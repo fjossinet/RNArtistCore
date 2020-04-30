@@ -1,0 +1,1 @@
+The core library used in the projects RNArtist and RNArtistBackend.
