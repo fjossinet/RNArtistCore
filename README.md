@@ -50,3 +50,5 @@ writer.close()
 And you get:
 
 <img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA2.svg" width="902">
+
+And now you can pursue with Adobe Illustrator or Affinity Designer! 
