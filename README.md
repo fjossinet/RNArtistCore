@@ -27,4 +27,4 @@ writer.write(drawing.asSVG())
 writer.close()
 ```
 And you get:
-![SVG output](media/myRNA.svg)
+![SVG output](media/myRNA.svg | width=100)
