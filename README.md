@@ -40,7 +40,7 @@ val ss = SecondaryStructure(RNA(name="myRNA2",seq = seq), bracketNotation = bn)
 val drawing = SecondaryStructureDrawing(secondaryStructure = ss)
 //we tweak the default theme
 drawing.theme.fontName = "Courier New"
-drawing.theme.residueBorder = 3
+drawing.theme.residueBorder = 1
 drawing.theme.AColor = Color.RED
 
 val writer = FileWriter("media/myRNA2.svg")
