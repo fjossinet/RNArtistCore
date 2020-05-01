@@ -10,7 +10,8 @@ val ss = parseBPSeq(FileReader("my_file.bpseq"))
 ```
 ## from scratch
 ```kotlin
-val ss1 = parseVienna(StringReader(">test\nCGCUGAAUUCAGCG\n((((......))))"))
+val ss1 = parseVienna(StringReader(">myRNA\nCGCUGAAUUCAGCG\n((((......))))"))
+//or
 val ss2 = SecondaryStructure(RNA(name="myRNA",seq = "CGCUGAAUUCAGCG"), bracketNotation = "((((......))))")
 ```
 
@@ -39,7 +40,7 @@ val bn = ".....((((((.....))))))....((((((((....))))))))....((((........))))..((
 val ss = SecondaryStructure(RNA(name="myRNA2",seq = seq), bracketNotation = bn)
 val drawing = SecondaryStructureDrawing(secondaryStructure = ss)
 //we tweak the default theme
-drawing.theme.fontName = "Courier New"
+drawing.theme.fontName = "Arial"
 drawing.theme.residueBorder = 1
 drawing.theme.AColor = Color.RED
 
