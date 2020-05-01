@@ -27,4 +27,5 @@ writer.write(drawing.asSVG())
 writer.close()
 ```
 And you get:
-![SVG output](media/myRNA.svg | width=100)
+
+<img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA.svg" width="144">
