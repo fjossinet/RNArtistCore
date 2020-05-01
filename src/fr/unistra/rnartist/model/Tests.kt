@@ -12,13 +12,13 @@ fun main(args:Array<String>) {
     println("Is docker installed: ${rnaview.isDockerInstalled()}");
     println("Is the image fjossinet/assemble2 installed (Docker needs to run for this test): ${rnaview.isAssemble2DockerImageInstalled()}");
     val ss = SecondaryStructure(RNA(name="myRNA",seq = "CGCUGAAUUCAGCG"), bracketNotation = "((((......))))")
-    val drawing = SecondaryStructureDrawing(secondaryStructure = parseVienna(StringReader(">test\nCGCUGAAUUCAGCG\n((((......))))"))!!, frame = Rectangle(0,0,400,400))
+    val drawing = SecondaryStructureDrawing(secondaryStructure = parseVienna(StringReader(">test\nCGCUGAAUUCAGCG\n((((......))))"))!!)
     drawing.theme.fontName = "Courier New"
     drawing.theme.residueBorder = 3
     drawing.theme.AColor = Color.RED
-    val writer = FileWriter("media/myRNA.svg")
+    /*val writer = FileWriter("media/myRNA.svg")
     writer.write(drawing.asSVG())
-    writer.close()
+    writer.close()*/
     /*for (f in NDB().listPDBFileNames())
         println(f)*/
 }

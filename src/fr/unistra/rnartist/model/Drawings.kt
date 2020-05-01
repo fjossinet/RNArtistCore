@@ -165,7 +165,7 @@ class Theme(val themeParams:MutableMap<String,String> = defaultThemeParams, val 
         set(value) {
             this.themeParams.set(ThemeParameter.TertiaryColor.toString(), (value as Color).rgb.toString())
         }
-        get() = transparentColor(Color(themeConfigurator?.getTertiaryInteractionColor()?.toInt() ?: this.themeParams.get(ThemeParameter.TertiaryColor.toString())!!.toInt()), ((themeConfigurator?.getTertiaryOpacity()?.toDouble() ?: ThemeParameter.TertiaryOpacity.toString()!!.toDouble())/100.0*255).toInt())
+        get() = transparentColor(Color(themeConfigurator?.getTertiaryInteractionColor()?.toInt() ?: this.themeParams.get(ThemeParameter.TertiaryColor.toString())!!.toInt()), ((themeConfigurator?.getTertiaryOpacity() ?: this.themeParams.get(ThemeParameter.TertiaryOpacity.toString())!!.toInt())/100.0*255).toInt())
     var fontName
         set(value) {
             this.themeParams.set(ThemeParameter.FontName.toString(), value as String)
@@ -252,7 +252,7 @@ fun getStringBoundsRectangle2D(g: Graphics2D, title: String, font: Font): Dimens
     return Dimension(r.getWidth().toInt(), (lm.ascent-lm.descent).toInt())
 }
 
-class SecondaryStructureDrawing(val secondaryStructure:SecondaryStructure, frame:Rectangle2D, val theme:Theme = Theme()) {
+class SecondaryStructureDrawing(val secondaryStructure:SecondaryStructure, frame:Rectangle2D = Rectangle(0,0,Toolkit.getDefaultToolkit().getScreenSize().width,Toolkit.getDefaultToolkit().getScreenSize().height), val theme:Theme = Theme()) {
 
     val branches = mutableListOf<JunctionCircle>()
     val helices = mutableListOf<HelixLine>()
