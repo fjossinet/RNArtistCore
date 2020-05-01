@@ -43,7 +43,7 @@ drawing.theme.fontName = "Courier New"
 drawing.theme.residueBorder = 3
 drawing.theme.AColor = Color.RED
 
-val writer = FileWriter("media/myRNA.svg")
+val writer = FileWriter("media/myRNA2.svg")
 writer.write(drawing.asSVG())
 writer.close()
 ```
