@@ -33,7 +33,10 @@ And you get:
 And now something larger
 ```kotlin
 
-val ss = SecondaryStructure(RNA(name="myRNA2",seq = "GGGACCGCCCGGGAAACGGGCGAAAAACGAGGUGCGGGCACCUCGUGACGACGGGAGUUCGACCGUGACGCAUGCGGAAAUUGGAGGUGAGUUCCCUGCUUACCGAAGCAAGCG"), bracketNotation = ".....((((((.....))))))....((((((((....))))))))....((((........))))..(((.(((..........(((((((.....)))))))...))).)))")
+val seq = "GGGACCGCCCGGGAAACGGGCGAAAAACGAGGUGCGGGCACCUCGUGACGACGGGAGUUCGACCGUGACGCAUGCGGAAAUUGGAGGUGAGUUCCCUGCUUACCGAAGCAAGCG"
+val bn = ".....((((((.....))))))....((((((((....))))))))....((((........))))..(((.(((..........(((((((.....)))))))...))).)))"
+
+val ss = SecondaryStructure(RNA(name="myRNA2",seq = seq), bracketNotation = bn)
 val drawing = SecondaryStructureDrawing(secondaryStructure = ss)
 //we tweak the default theme
 drawing.theme.fontName = "Courier New"
