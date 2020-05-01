@@ -51,6 +51,8 @@ And you get:
 
 ![myRNA2 capture](media/myRNA2.png)
 
-Now you can pursue with Adobe Illustrator or Affinity Designer:
+Now you can pursue with Affinity Designer or Inkscape:
 
 ![Affinity Designer capture](media/AffinityDesigner.png)
+
+![Inkscape capture](media/inkscape.png)
