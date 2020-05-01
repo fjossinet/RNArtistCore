@@ -18,7 +18,7 @@ val ss2 = SecondaryStructure(RNA(name="myRNA",seq = "CGCUGAAUUCAGCG"), bracketNo
 ```kotlin
 var drawing = SecondaryStructureDrawing(secondaryStructure = ss2)
 //we tweak the default theme
-drawing.theme.fontName = "Courier New"
+drawing.theme.fontName = "Arial"
 drawing.theme.residueBorder = 3
 drawing.theme.AColor = Color.RED
 
