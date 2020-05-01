@@ -448,10 +448,10 @@ class SecondaryStructureDrawing(val secondaryStructure:SecondaryStructure, frame
     }
 
     fun getBounds():Rectangle {
-        val minX = this.residues.minBy { it.circle!!.minX }!!.circle!!.minX
-        val minY = this.residues.minBy { it.circle!!.minY }!!.circle!!.minY
-        val maxX = this.residues.maxBy { it.circle!!.maxX }!!.circle!!.maxX
-        val maxY = this.residues.maxBy { it.circle!!.maxY }!!.circle!!.maxY
+        val minX = this.residues.minBy { it.circle!!.minX }!!.circle!!.minX-theme.residueBorder
+        val minY = this.residues.minBy { it.circle!!.minY }!!.circle!!.minY-theme.residueBorder
+        val maxX = this.residues.maxBy { it.circle!!.maxX }!!.circle!!.maxX+theme.residueBorder
+        val maxY = this.residues.maxBy { it.circle!!.maxY }!!.circle!!.maxY+theme.residueBorder
         return Rectangle(minX.toInt(), minY.toInt(), (maxX-minX).toInt(), (maxY-minY).toInt())
     }
 
