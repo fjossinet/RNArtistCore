@@ -12,7 +12,7 @@ fun main(args:Array<String>) {
     println("Is the image fjossinet/assemble2 installed (Docker needs to run for this test): ${rnaview.isAssemble2DockerImageInstalled()}");
     var ss = SecondaryStructure(RNA(name="myRNA",seq = "CGCUGAAUUCAGCG"), bracketNotation = "((((......))))")
     var drawing = SecondaryStructureDrawing(secondaryStructure = parseVienna(StringReader(">test\nCGCUGAAUUCAGCG\n((((......))))"))!!)
-    drawing.theme.fontName = "Courier New"
+    drawing.theme.fontName = "Arial"
     drawing.theme.residueBorder = 3
     drawing.theme.AColor = Color.RED
     var writer = FileWriter("media/myRNA.svg")

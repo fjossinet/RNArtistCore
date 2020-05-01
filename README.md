@@ -26,9 +26,9 @@ var writer = FileWriter("media/myRNA.svg")
 writer.write(drawing.asSVG())
 writer.close()
 ```
-And you get (residue letters centered the best with Safari and Google Chrome):
+And you get:
 
-<img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA.svg" width="144">
+![myRNA capture](media/myRNA.png)
 
 And now something larger
 ```kotlin
@@ -47,9 +47,9 @@ val writer = FileWriter("media/myRNA2.svg")
 writer.write(drawing.asSVG())
 writer.close()
 ```
-And you get (residue letters centered the best with Safari and Google Chrome):
+And you get:
 
-<img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA2.svg" width="902">
+![myRNA2 capture](media/myRNA2.png)
 
 Now you can pursue with Adobe Illustrator or Affinity Designer:
 
