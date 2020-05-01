@@ -255,17 +255,18 @@ class PDB() {
                 for (ts in parsePDB(pdb.getEntry(id))!!.iterator()) {
                     ts.pdbId = id
                     try {
-                        val ss = rnaview.annotate(ts)
-                        ss.pdbId = ts.pdbId
-                        ss.title = ts.title
-                        ss.authors = ts.authors
-                        ss.pubDate = ts.pubDate
-                        ss.rna.name = ts.rna.name
-                        embeddedDB.addPDBSecondaryStructure(ss)
-                        if (ss.rna.length != ts.rna.length) //RNAVIEW can remove some residues silently
-                            embeddedDB.addPDBTertiaryStructure(ts)
-                        println("############# Secondary Structure Stored ################")
-                        println("############# ${embeddedDB.getPDBSecondaryStructures().find().size()} Secondary Structures Stored ################")
+                        rnaview.annotate(ts)?.let { ss ->
+                            ss.pdbId = ts.pdbId
+                            ss.title = ts.title
+                            ss.authors = ts.authors
+                            ss.pubDate = ts.pubDate
+                            ss.rna.name = ts.rna.name
+                            embeddedDB.addPDBSecondaryStructure(ss)
+                            if (ss.rna.length != ts.rna.length) //RNAVIEW can remove some residues silently
+                                embeddedDB.addPDBTertiaryStructure(ts)
+                            println("############# Secondary Structure Stored ################")
+                            println("############# ${embeddedDB.getPDBSecondaryStructures().find().size()} Secondary Structures Stored ################")
+                        }
                     } catch (ex: java.lang.Exception) {
                         if (!idsWithPbs.contains(id)) {
                             idsWithPbs.add(id)
@@ -350,21 +351,22 @@ class NDB {
                         continue
                     }
                     try {
-                        val ss = rnaview.annotate(ts)
-                        ss.pdbId = ts.pdbId
-                        ss.title = ts.title
-                        ss.authors = ts.authors
-                        ss.pubDate = ts.pubDate
-                        ss.rna.name = ts.rna.name
-                        embeddedDB.addPDBSecondaryStructure(ss) //RNAVIEW can remove some residues silently
-                        if (ss.rna.length != ts.rna.length)
-                            embeddedDB.addPDBTertiaryStructure(ts)
-                        println("############# Secondary Structure Stored ################")
-                        println("############# ${embeddedDB.getPDBSecondaryStructures().find().size()} Secondary Structures Stored ################")
-                        if (!filesParsed.contains(fileName)) {
-                            filesParsed.add(fileName)
-                            filesProcessedWriter.write("$fileName\n")
-                            filesProcessedWriter.flush()
+                        rnaview.annotate(ts)?.let { ss ->
+                            ss.pdbId = ts.pdbId
+                            ss.title = ts.title
+                            ss.authors = ts.authors
+                            ss.pubDate = ts.pubDate
+                            ss.rna.name = ts.rna.name
+                            embeddedDB.addPDBSecondaryStructure(ss) //RNAVIEW can remove some residues silently
+                            if (ss.rna.length != ts.rna.length)
+                                embeddedDB.addPDBTertiaryStructure(ts)
+                            println("############# Secondary Structure Stored ################")
+                            println("############# ${embeddedDB.getPDBSecondaryStructures().find().size()} Secondary Structures Stored ################")
+                            if (!filesParsed.contains(fileName)) {
+                                filesParsed.add(fileName)
+                                filesProcessedWriter.write("$fileName\n")
+                                filesProcessedWriter.flush()
+                            }
                         }
                     } catch (ex: Exception) {
                         if (!filesWithPbs.contains(fileName)) {

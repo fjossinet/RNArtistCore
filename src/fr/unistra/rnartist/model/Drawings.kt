@@ -61,6 +61,8 @@ interface ThemeConfigurator {
     fun getFontName():String
 }
 
+fun transparentColor(source:Color, alpha:Int) = Color(source.red, source.green, source.blue, alpha);
+
 @JvmField
 var DASHED: Byte = 0
 @JvmField
@@ -70,28 +72,26 @@ enum class ThemeParameter {
     AColor, UColor, GColor, CColor, XColor, SecondaryColor, TertiaryColor, HaloWidth, TertiaryOpacity, SecondaryInteractionWidth, TertiaryInteractionWidth, TertiaryInteractionStyle, ResidueBorder, FontName, ModuloXRes, ModuloYRes, ModuloSizeRes
 }
 
-fun transparentColor(source:Color, alpha:Int) = Color(source.red, source.green, source.blue, alpha);
+class Theme(val themeParams:Map<String,String> = defaultThemeParams, val themeConfigurator:ThemeConfigurator? = null) {
 
-class Theme(val themeConfigurator:ThemeConfigurator?) {
-
-    var haloWidth = Integer.parseInt(defaultTheme.get(ThemeParameter.HaloWidth.toString()))
-        get() = themeConfigurator?.getHaloWidth() ?: Integer.parseInt(defaultTheme.get(ThemeParameter.HaloWidth.toString()))
-    var tertiaryOpacity = Integer.parseInt(defaultTheme.get(ThemeParameter.TertiaryOpacity.toString()))
-        get() = themeConfigurator?.getTertiaryOpacity() ?: Integer.parseInt(defaultTheme.get(ThemeParameter.TertiaryOpacity.toString()))
-    var tertiaryInteractionStyle = if (defaultTheme.get(ThemeParameter.TertiaryInteractionStyle.toString()) == "Dashed")  DASHED else SOLID
-        get() = themeConfigurator?.getTertiaryInteractionStyle() ?: if (defaultTheme.get(ThemeParameter.TertiaryInteractionStyle.toString()) == "Dashed")  DASHED else SOLID
-    var residueBorder = Integer.parseInt(defaultTheme.get(ThemeParameter.ResidueBorder.toString()))
-        get() = themeConfigurator?.getResidueBorder() ?: Integer.parseInt(defaultTheme.get(ThemeParameter.ResidueBorder.toString()))
-    var secondaryInteractionWidth = Integer.parseInt(defaultTheme.get(ThemeParameter.SecondaryInteractionWidth.toString()))
-        get() = themeConfigurator?.getSecondaryInteractionWidth() ?: Integer.parseInt(defaultTheme.get(ThemeParameter.SecondaryInteractionWidth.toString()))
-    var tertiaryInteractionWidth = Integer.parseInt(defaultTheme.get(ThemeParameter.TertiaryInteractionWidth.toString()))
-        get() = themeConfigurator?.getTertiaryInteractionWidth() ?: Integer.parseInt(defaultTheme.get(ThemeParameter.TertiaryInteractionWidth.toString()))
-    var moduloXRes = Integer.parseInt(defaultTheme.get(ThemeParameter.ModuloXRes.toString()))
-        get() = themeConfigurator?.getModuloXRes() ?: Integer.parseInt(defaultTheme.get(ThemeParameter.ModuloXRes.toString()))
-    var moduloYRes = Integer.parseInt(defaultTheme.get(ThemeParameter.ModuloYRes.toString()))
-        get() = themeConfigurator?.getModuloYRes() ?: Integer.parseInt(defaultTheme.get(ThemeParameter.ModuloYRes.toString()))
-    var moduloSizeRes = defaultTheme.get(ThemeParameter.ModuloSizeRes.toString())!!.toFloat()
-        get() = themeConfigurator?.getModuloSizeRes() ?: defaultTheme.get(ThemeParameter.ModuloSizeRes.toString())!!.toFloat()
+    var haloWidth = Integer.parseInt(this.themeParams.get(ThemeParameter.HaloWidth.toString()))
+        get() = themeConfigurator?.getHaloWidth() ?: Integer.parseInt(this.themeParams.get(ThemeParameter.HaloWidth.toString()))
+    var tertiaryOpacity = Integer.parseInt(this.themeParams.get(ThemeParameter.TertiaryOpacity.toString()))
+        get() = themeConfigurator?.getTertiaryOpacity() ?: Integer.parseInt(this.themeParams.get(ThemeParameter.TertiaryOpacity.toString()))
+    var tertiaryInteractionStyle = if (this.themeParams.get(ThemeParameter.TertiaryInteractionStyle.toString()) == "Dashed")  DASHED else SOLID
+        get() = themeConfigurator?.getTertiaryInteractionStyle() ?: if (this.themeParams.get(ThemeParameter.TertiaryInteractionStyle.toString()) == "Dashed")  DASHED else SOLID
+    var residueBorder = Integer.parseInt(this.themeParams.get(ThemeParameter.ResidueBorder.toString()))
+        get() = themeConfigurator?.getResidueBorder() ?: Integer.parseInt(this.themeParams.get(ThemeParameter.ResidueBorder.toString()))
+    var secondaryInteractionWidth = Integer.parseInt(this.themeParams.get(ThemeParameter.SecondaryInteractionWidth.toString()))
+        get() = themeConfigurator?.getSecondaryInteractionWidth() ?: Integer.parseInt(this.themeParams.get(ThemeParameter.SecondaryInteractionWidth.toString()))
+    var tertiaryInteractionWidth = Integer.parseInt(this.themeParams.get(ThemeParameter.TertiaryInteractionWidth.toString()))
+        get() = themeConfigurator?.getTertiaryInteractionWidth() ?: Integer.parseInt(this.themeParams.get(ThemeParameter.TertiaryInteractionWidth.toString()))
+    var moduloXRes = Integer.parseInt(this.themeParams.get(ThemeParameter.ModuloXRes.toString()))
+        get() = themeConfigurator?.getModuloXRes() ?: Integer.parseInt(this.themeParams.get(ThemeParameter.ModuloXRes.toString()))
+    var moduloYRes = Integer.parseInt(this.themeParams.get(ThemeParameter.ModuloYRes.toString()))
+        get() = themeConfigurator?.getModuloYRes() ?: Integer.parseInt(this.themeParams.get(ThemeParameter.ModuloYRes.toString()))
+    var moduloSizeRes = this.themeParams.get(ThemeParameter.ModuloSizeRes.toString())!!.toFloat()
+        get() = themeConfigurator?.getModuloSizeRes() ?: this.themeParams.get(ThemeParameter.ModuloSizeRes.toString())!!.toFloat()
     var ATransX: Float = 0F
     var ATransY: Float = 0F
     var UTransX: Float = 0F
@@ -102,37 +102,71 @@ class Theme(val themeConfigurator:ThemeConfigurator?) {
     var CTransY: Float = 0F
     var XTransX: Float = 0F
     var XTransY: Float = 0F
-    var AColor = Color(defaultTheme.get(ThemeParameter.AColor.toString())!!.toInt())
-        get() = Color(themeConfigurator?.getAColor()?.toInt() ?: defaultTheme.get(ThemeParameter.AColor.toString())!!.toInt())
-    var UColor = Color(defaultTheme.get(ThemeParameter.UColor.toString())!!.toInt())
-        get() = Color(themeConfigurator?.getUColor()?.toInt() ?: defaultTheme.get(ThemeParameter.UColor.toString())!!.toInt())
-    var GColor = Color(defaultTheme.get(ThemeParameter.GColor.toString())!!.toInt())
-        get() = Color(themeConfigurator?.getGColor()?.toInt() ?: defaultTheme.get(ThemeParameter.GColor.toString())!!.toInt())
-    var CColor = Color(defaultTheme.get(ThemeParameter.CColor.toString())!!.toInt())
-        get() = Color(themeConfigurator?.getCColor()?.toInt() ?: defaultTheme.get(ThemeParameter.CColor.toString())!!.toInt())
-    var XColor = Color(defaultTheme.get(ThemeParameter.XColor.toString())!!.toInt())
-        get() = Color(themeConfigurator?.getXColor()?.toInt() ?: defaultTheme.get(ThemeParameter.XColor.toString())!!.toInt())
-    var SecondaryColor = Color(defaultTheme.get(ThemeParameter.SecondaryColor.toString())!!.toInt())
-        get() = Color(themeConfigurator?.getSecondaryInteractionColor()?.toInt() ?: defaultTheme.get(ThemeParameter.SecondaryColor.toString())!!.toInt())
-    var TertiaryColor = transparentColor(Color(defaultTheme.get(ThemeParameter.TertiaryColor.toString())!!.toInt()), (defaultTheme.get(ThemeParameter.TertiaryOpacity.toString())!!.toDouble()/100.0*255).toInt())
-        get() = transparentColor(Color(themeConfigurator?.getTertiaryInteractionColor()?.toInt() ?: defaultTheme.get(ThemeParameter.TertiaryColor.toString())!!.toInt()), ((themeConfigurator?.getTertiaryOpacity()?.toDouble() ?: ThemeParameter.TertiaryOpacity.toString()!!.toDouble())/100.0*255).toInt())
-    var fontName = defaultTheme.get(ThemeParameter.FontName.toString())
-        get() = themeConfigurator?.getFontName() ?: defaultTheme.get(ThemeParameter.FontName.toString())
+    var AColor = Color(this.themeParams.get(ThemeParameter.AColor.toString())!!.toInt())
+        get() = Color(themeConfigurator?.getAColor()?.toInt() ?: this.themeParams.get(ThemeParameter.AColor.toString())!!.toInt())
+    var UColor = Color(this.themeParams.get(ThemeParameter.UColor.toString())!!.toInt())
+        get() = Color(themeConfigurator?.getUColor()?.toInt() ?: this.themeParams.get(ThemeParameter.UColor.toString())!!.toInt())
+    var GColor = Color(this.themeParams.get(ThemeParameter.GColor.toString())!!.toInt())
+        get() = Color(themeConfigurator?.getGColor()?.toInt() ?: this.themeParams.get(ThemeParameter.GColor.toString())!!.toInt())
+    var CColor = Color(this.themeParams.get(ThemeParameter.CColor.toString())!!.toInt())
+        get() = Color(themeConfigurator?.getCColor()?.toInt() ?: this.themeParams.get(ThemeParameter.CColor.toString())!!.toInt())
+    var XColor = Color(this.themeParams.get(ThemeParameter.XColor.toString())!!.toInt())
+        get() = Color(themeConfigurator?.getXColor()?.toInt() ?: this.themeParams.get(ThemeParameter.XColor.toString())!!.toInt())
+    var SecondaryColor = Color(this.themeParams.get(ThemeParameter.SecondaryColor.toString())!!.toInt())
+        get() = Color(themeConfigurator?.getSecondaryInteractionColor()?.toInt() ?: this.themeParams.get(ThemeParameter.SecondaryColor.toString())!!.toInt())
+    var TertiaryColor = transparentColor(Color(this.themeParams.get(ThemeParameter.TertiaryColor.toString())!!.toInt()), (this.themeParams.get(ThemeParameter.TertiaryOpacity.toString())!!.toDouble()/100.0*255).toInt())
+        get() = transparentColor(Color(themeConfigurator?.getTertiaryInteractionColor()?.toInt() ?: this.themeParams.get(ThemeParameter.TertiaryColor.toString())!!.toInt()), ((themeConfigurator?.getTertiaryOpacity()?.toDouble() ?: ThemeParameter.TertiaryOpacity.toString()!!.toDouble())/100.0*255).toInt())
+    var fontName = this.themeParams.get(ThemeParameter.FontName.toString())
+        get() = themeConfigurator?.getFontName() ?: this.themeParams.get(ThemeParameter.FontName.toString())
     var displayResidueNames = true
     var fitToResiduesBetweenBranches = true
     var fontStyle = Font.PLAIN
     var quickDraw = false
+
 }
 
 @JvmField
-var defaultTheme = mutableMapOf<String,String>(
-        ThemeParameter.AColor.toString() to Color(0,192,255).rgb.toString(),
-        ThemeParameter.UColor.toString() to Color(192,128,128).rgb.toString(),
-        ThemeParameter.GColor.toString() to Color(128,192,0).rgb.toString(),
-        ThemeParameter.CColor.toString() to Color(255,0,255).rgb.toString(),
-        ThemeParameter.XColor.toString() to Color.LIGHT_GRAY.rgb.toString(),
-        ThemeParameter.SecondaryColor.toString() to Color.LIGHT_GRAY.rgb.toString(),
-        ThemeParameter.TertiaryColor.toString() to Color(255, 192,128).rgb.toString(),
+val defaultColorSchemes: Map<String, Map<String, String>> = mapOf(
+        "Candies" to mapOf(
+                ThemeParameter.AColor.toString() to Color(0, 192, 255).rgb.toString(),
+                ThemeParameter.UColor.toString() to Color(192, 128, 128).rgb.toString(),
+                ThemeParameter.GColor.toString() to Color(128, 192, 0).rgb.toString(),
+                ThemeParameter.CColor.toString() to Color(255, 0, 255).rgb.toString(),
+                ThemeParameter.XColor.toString() to Color.LIGHT_GRAY.rgb.toString(),
+                ThemeParameter.SecondaryColor.toString() to Color.LIGHT_GRAY.rgb.toString(),
+                ThemeParameter.TertiaryColor.toString() to Color(255, 192, 128).rgb.toString()
+        ),
+
+        "Grapes" to mapOf(
+                ThemeParameter.AColor.toString() to Color(128, 128, 0).rgb.toString(),
+                ThemeParameter.UColor.toString() to Color(128, 128, 128).rgb.toString(),
+                ThemeParameter.GColor.toString() to Color(192, 0, 0).rgb.toString(),
+                ThemeParameter.CColor.toString() to Color(255, 128, 0).rgb.toString(),
+                ThemeParameter.XColor.toString() to Color.LIGHT_GRAY.rgb.toString(),
+                ThemeParameter.SecondaryColor.toString() to Color.LIGHT_GRAY.rgb.toString(),
+                ThemeParameter.TertiaryColor.toString() to Color(255, 192, 128).rgb.toString()
+        ),
+
+        "Metal" to mapOf(
+                ThemeParameter.AColor.toString() to Color(153, 77, 0).rgb.toString(),
+                ThemeParameter.UColor.toString() to Color(179, 128, 26).rgb.toString(),
+                ThemeParameter.GColor.toString() to Color(179, 179, 179).rgb.toString(),
+                ThemeParameter.CColor.toString() to Color(77, 77, 77).rgb.toString(),
+                ThemeParameter.XColor.toString() to Color.LIGHT_GRAY.rgb.toString(),
+                ThemeParameter.SecondaryColor.toString() to Color.LIGHT_GRAY.rgb.toString(),
+                ThemeParameter.TertiaryColor.toString() to Color(153, 153, 51).rgb.toString()
+        )
+)
+
+@JvmField
+var defaultThemeParams:Map<String,String> = mapOf(
+        ThemeParameter.AColor.toString() to defaultColorSchemes.get("Metal")!!.get(ThemeParameter.AColor.toString())!!,
+        ThemeParameter.UColor.toString() to defaultColorSchemes.get("Metal")!!.get(ThemeParameter.UColor.toString())!!,
+        ThemeParameter.GColor.toString() to defaultColorSchemes.get("Metal")!!.get(ThemeParameter.GColor.toString())!!,
+        ThemeParameter.CColor.toString() to defaultColorSchemes.get("Metal")!!.get(ThemeParameter.CColor.toString())!!,
+        ThemeParameter.XColor.toString() to defaultColorSchemes.get("Metal")!!.get(ThemeParameter.XColor.toString())!!,
+        ThemeParameter.SecondaryColor.toString() to defaultColorSchemes.get("Metal")!!.get(ThemeParameter.SecondaryColor.toString())!!,
+        ThemeParameter.TertiaryColor.toString() to defaultColorSchemes.get("Metal")!!.get(ThemeParameter.TertiaryColor.toString())!!,
         ThemeParameter.ResidueBorder.toString() to "2",
         ThemeParameter.SecondaryInteractionWidth.toString() to "4",
         ThemeParameter.TertiaryInteractionWidth.toString() to "2",
@@ -143,39 +177,6 @@ var defaultTheme = mutableMapOf<String,String>(
         ThemeParameter.ModuloXRes.toString() to "0",
         ThemeParameter.ModuloYRes.toString() to "0",
         ThemeParameter.ModuloSizeRes.toString() to "1.0"
-)
-
-@JvmField
-val defaultColorSchemes: Map<String, Map<String, String>> = mapOf(
-        "Candies" to mapOf<String, String>(
-                ThemeParameter.AColor.toString() to Color(0, 192, 255).toString(),
-                ThemeParameter.UColor.toString() to Color(192, 128, 128).toString(),
-                ThemeParameter.GColor.toString() to Color(128, 192, 0).toString(),
-                ThemeParameter.CColor.toString() to Color(255, 0, 255).toString(),
-                ThemeParameter.XColor.toString() to Color.LIGHT_GRAY.toString(),
-                ThemeParameter.SecondaryColor.toString() to Color.LIGHT_GRAY.toString(),
-                ThemeParameter.TertiaryColor.toString() to Color(255, 192, 128).toString()
-        ),
-
-        "Grapes" to mapOf<String, String>(
-                ThemeParameter.AColor.toString() to Color(128, 128, 0).toString(),
-                ThemeParameter.UColor.toString() to Color(128, 128, 128).toString(),
-                ThemeParameter.GColor.toString() to Color(192, 0, 0).toString(),
-                ThemeParameter.CColor.toString() to Color(255, 128, 0).toString(),
-                ThemeParameter.XColor.toString() to Color.LIGHT_GRAY.toString(),
-                ThemeParameter.SecondaryColor.toString() to Color.LIGHT_GRAY.toString(),
-                ThemeParameter.TertiaryColor.toString() to Color(255, 192, 128).toString()
-        ),
-
-        "Metal" to mapOf<String, String>(
-                ThemeParameter.AColor.toString() to Color(153, 77, 0).toString(),
-                ThemeParameter.UColor.toString() to Color(179, 128, 26).toString(),
-                ThemeParameter.GColor.toString() to Color(179, 179, 179).toString(),
-                ThemeParameter.CColor.toString() to Color(77, 77, 77).toString(),
-                ThemeParameter.XColor.toString() to Color.LIGHT_GRAY.toString(),
-                ThemeParameter.SecondaryColor.toString() to Color.LIGHT_GRAY.toString(),
-                ThemeParameter.TertiaryColor.toString() to Color(153, 153, 51).toString()
-        )
 )
 
 fun pickOptimalFontSize(g: Graphics2D, gc: GraphicContext, dc:Theme, title: String, width: Double, height: Double): Int {
@@ -197,7 +198,7 @@ fun getStringBoundsRectangle2D(g: Graphics2D, title: String, font: Font): Dimens
     return Dimension(r.getWidth().toInt(), (lm.ascent-lm.descent).toInt())
 }
 
-class SecondaryStructureDrawing(val secondaryStructure:SecondaryStructure, frame:Rectangle2D, val theme:Theme) {
+class SecondaryStructureDrawing(val secondaryStructure:SecondaryStructure, frame:Rectangle2D, val theme:Theme = Theme()) {
 
     val branches = mutableListOf<JunctionCircle>()
     val helices = mutableListOf<HelixLine>()
