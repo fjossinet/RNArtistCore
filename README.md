@@ -26,7 +26,7 @@ var writer = FileWriter("media/myRNA.svg")
 writer.write(drawing.asSVG())
 writer.close()
 ```
-And you get:
+And you get (residue letters centered the best with Safari and Google Chrome):
 
 <img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA.svg" width="144">
 
@@ -47,8 +47,10 @@ val writer = FileWriter("media/myRNA2.svg")
 writer.write(drawing.asSVG())
 writer.close()
 ```
-And you get:
+And you get (residue letters centered the best with Safari and Google Chrome):
 
 <img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA2.svg" width="902">
 
-And now you can pursue with Adobe Illustrator or Affinity Designer! 
+Now you can pursue with Adobe Illustrator or Affinity Designer:
+
+![Affinity Designer capture](media/AffinityDesigner.png)
