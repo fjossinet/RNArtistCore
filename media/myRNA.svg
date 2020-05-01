@@ -1,4 +1,21 @@
 <svg viewBox="0 0 144 241" xmlns="http://www.w3.org/2000/svg">
+	<path d="M64.0,189.0l18.0,0.0" style="fill:none;stroke:rgb(192, 192, 192);stroke-width:4;stroke-linecap:round;" />
+	<path d="M64.0,154.0l18.0,0.0" style="fill:none;stroke:rgb(192, 192, 192);stroke-width:4;stroke-linecap:round;" />
+	<path d="M64.0,224.0l18.0,0.0" style="fill:none;stroke:rgb(192, 192, 192);stroke-width:4;stroke-linecap:round;" />
+	<path d="M64.0,119.0l18.0,0.0" style="fill:none;stroke:rgb(192, 192, 192);stroke-width:4;stroke-linecap:round;" />
+	<path d="M43.0,209.0l0.0,-5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M43.0,174.0l0.0,-5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M43.0,139.0l0.0,-5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M34.028171287147416,106.97892311199894l-6.3647573243786155,-8.527942253313086" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M20.131789248853238,71.49920363743036l1.0217035171103817,-10.592075188422541" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M33.69781897208236,35.89186218518523l7.877440086178922,-7.154150722673876" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M67.679381265443,18.653145531943323l10.64123746911389,0.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M104.42474094173872,28.737711462511243l7.8774400861790355,7.154150722674217" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M124.84650723403661,60.90712844900793l1.021703517110268,10.592075188422314" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M118.33658603723131,98.45098085868585l-6.364757324378729,8.527942253313086" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M103.0,134.0l0.0,5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M103.0,169.0l0.0,5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M103.0,204.0l0.0,5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
 	<circle cx="43.0" cy="224.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(77, 77, 77)" />
 	<text x="34.5" y="231.0" style="fill:rgb(255, 255, 255);font-family:Courier New;font-size:28;">C</text>
 	<circle cx="43.0" cy="189.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(179, 179, 179)" />
@@ -27,8 +44,4 @@
 	<text x="94.5" y="196.0" style="fill:rgb(255, 255, 255);font-family:Courier New;font-size:28;">C</text>
 	<circle cx="103.0" cy="224.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(179, 179, 179)" />
 	<text x="94.5" y="231.0" style="fill:rgb(255, 255, 255);font-family:Courier New;font-size:28;">G</text>
-	<path d="M64.0,154.0l18.0,0.0" style="fill:none;stroke:rgb(192, 192, 192);stroke-width:4;stroke-linecap:round;" />
-	<path d="M64.0,119.0l18.0,0.0" style="fill:none;stroke:rgb(192, 192, 192);stroke-width:4;stroke-linecap:round;" />
-	<path d="M64.0,189.0l18.0,0.0" style="fill:none;stroke:rgb(192, 192, 192);stroke-width:4;stroke-linecap:round;" />
-	<path d="M64.0,224.0l18.0,0.0" style="fill:none;stroke:rgb(192, 192, 192);stroke-width:4;stroke-linecap:round;" />
 </svg>

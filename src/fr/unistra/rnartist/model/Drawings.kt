@@ -600,8 +600,10 @@ class SecondaryStructureDrawing(val secondaryStructure:SecondaryStructure, frame
         this.theme.XTransY = (residues.first()!!.circle!!.bounds2D.height + r2d.height).toFloat() / 2F
         val bounds = getBounds()
         val svgBuffer = StringBuffer("""<svg viewBox="0 0 ${bounds.width} ${bounds.height}" xmlns="http://www.w3.org/2000/svg">"""+"\n")
-        residues.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
         secondaryInteractions.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
+        phosphodiesterBonds.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
+        tertiaryInteractions.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
+        residues.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
         svgBuffer.append("</svg>")
         return svgBuffer.toString()
     }
@@ -1097,6 +1099,16 @@ class TertiaryInteractionLine(val interaction:BasePair, val ssDrawing:SecondaryS
         g.stroke = previousStroke
     }
 
+    fun asSVG(indentChar:String ="\t", indentLevel:Int = 1, theme:Theme, transX:Double= 0.0, transY:Double = 0.0):String {
+        val center1 = this.ssDrawing.residues[this.interaction.location.start-1].center
+        val center2 = this.ssDrawing.residues[this.interaction.location.end-1].center
+        if (theme.tertiaryInteractionWidth != 0 && center1 != null && center2 != null) {
+            val (p1, p2) = pointsFrom(center1, center2, radiusConst * 1.4)
+            return indentChar.repeat(indentLevel) + """<path d="M${p1.x+transX},${p1.y+transY}l${p2.x-p1.x},${p2.y-p1.y}" style="fill:none;stroke:rgb(${theme.SecondaryColor.red}, ${theme.SecondaryColor.green}, ${theme.SecondaryColor.blue});stroke-width:${theme.secondaryInteractionWidth};stroke-linecap:round;" />""" + "\n"
+        }
+        return ""
+    }
+
 }
 
 class PhosphodiesterBondLine(val start:Int, val end:Int, val ssDrawing:SecondaryStructureDrawing) {
@@ -1117,6 +1129,16 @@ class PhosphodiesterBondLine(val start:Int, val end:Int, val ssDrawing:Secondary
             }
         }
         g.stroke = previousStroke
+    }
+
+    fun asSVG(indentChar:String ="\t", indentLevel:Int = 1, theme:Theme, transX:Double= 0.0, transY:Double = 0.0):String {
+        val center1 = this.ssDrawing.residues[this.start-1].center
+        val center2 = this.ssDrawing.residues[this.end-1].center
+        if (center1 != null && center2 != null) {
+            val (p1, p2) = pointsFrom(center1, center2, radiusConst)
+            return indentChar.repeat(indentLevel) + """<path d="M${p1.x+transX},${p1.y+transY}l${p2.x-p1.x},${p2.y-p1.y}" style="fill:none;stroke:rgb(${Color.DARK_GRAY.red}, ${Color.DARK_GRAY.green}, ${Color.DARK_GRAY.blue});stroke-width:2;" />""" + "\n"
+        }
+        return ""
     }
 
 }

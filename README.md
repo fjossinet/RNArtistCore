@@ -16,6 +16,24 @@ val ss2 = SecondaryStructure(RNA(name="myRNA",seq = "CGCUGAAUUCAGCG"), bracketNo
 
 # Get a plot
 ```kotlin
+var drawing = SecondaryStructureDrawing(secondaryStructure = ss2)
+//we tweak the default theme
+drawing.theme.fontName = "Courier New"
+drawing.theme.residueBorder = 3
+drawing.theme.AColor = Color.RED
+
+var writer = FileWriter("media/myRNA.svg")
+writer.write(drawing.asSVG())
+writer.close()
+```
+And you get:
+
+<img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA.svg" width="144">
+
+And now omething larger
+```kotlin
+
+val ss = SecondaryStructure(RNA(name="myRNA2",seq = "GGGACCGCCCGGGAAACGGGCGAAAAACGAGGUGCGGGCACCUCGUGACGACGGGAGUUCGACCGUGACGCAUGCGGAAAUUGGAGGUGAGUUCCCUGCUUACCGAAGCAAGCG"), bracketNotation = ".....((((((.....))))))....((((((((....))))))))....((((........))))..(((.(((..........(((((((.....)))))))...))).)))")
 val drawing = SecondaryStructureDrawing(secondaryStructure = ss)
 //we tweak the default theme
 drawing.theme.fontName = "Courier New"
@@ -28,4 +46,4 @@ writer.close()
 ```
 And you get:
 
-<img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA.svg" width="144">
+<img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA2.svg" width="902">
