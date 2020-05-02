@@ -16,6 +16,7 @@ fun main(args:Array<String>) {
     drawing.theme.residueBorder = 3
     drawing.theme.AColor = Color.RED
     var writer = FileWriter("media/myRNA.svg")
+    println(drawing.asSVG())
     writer.write(drawing.asSVG())
     writer.close()
 
