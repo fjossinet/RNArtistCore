@@ -29,7 +29,7 @@ writer.close()
 ```
 And you get:
 
-![myRNA capture](media/myRNA.png)
+<img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA.svg" width="144">
 
 And now something larger
 ```kotlin
@@ -50,7 +50,7 @@ writer.close()
 ```
 And you get:
 
-![myRNA2 capture](media/myRNA2.png)
+<img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA2.svg" width="902">
 
 Now you can pursue with Affinity Designer or Inkscape:
 

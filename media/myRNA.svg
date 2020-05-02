@@ -16,32 +16,60 @@
 	<path d="M103.0,134.0l0.0,5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
 	<path d="M103.0,169.0l0.0,5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
 	<path d="M103.0,204.0l0.0,5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
-	<circle cx="43.0" cy="224.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(77, 77, 77)" />
-	<text x="35.5" y="231.0" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">C</text>
-	<circle cx="43.0" cy="189.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(179, 179, 179)" />
-	<text x="35.0" y="196.0" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">G</text>
-	<circle cx="43.0" cy="154.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(77, 77, 77)" />
-	<text x="35.5" y="161.0" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">C</text>
-	<circle cx="43.0" cy="119.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(179, 128, 26)" />
-	<text x="35.5" y="126.0" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">U</text>
-	<circle cx="18.691585249916216" cy="86.42990397068479" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(179, 179, 179)" />
-	<text x="10.69158935546875" y="93.429931640625" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">G</text>
-	<circle cx="22.593696764900642" cy="45.976428115753265" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(255, 0, 0)" />
-	<text x="15.59368896484375" y="52.9764404296875" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">A</text>
-	<circle cx="52.679381265443" cy="18.653145531943323" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(255, 0, 0)" />
-	<text x="45.67938232421875" y="25.65313720703125" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">A</text>
-	<circle cx="93.32061873455689" cy="18.653145531943323" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(179, 128, 26)" />
-	<text x="85.82061767578125" y="25.65313720703125" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">U</text>
-	<circle cx="123.40630323509959" cy="45.97642811575338" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(179, 128, 26)" />
-	<text x="115.90631103515625" y="52.9764404296875" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">U</text>
-	<circle cx="127.3084147500839" cy="86.42990397068479" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(77, 77, 77)" />
-	<text x="119.80841064453125" y="93.429931640625" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">C</text>
-	<circle cx="103.0" cy="119.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(255, 0, 0)" />
-	<text x="96.0" y="126.0" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">A</text>
-	<circle cx="103.0" cy="154.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(179, 179, 179)" />
-	<text x="95.0" y="161.0" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">G</text>
-	<circle cx="103.0" cy="189.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(77, 77, 77)" />
-	<text x="95.5" y="196.0" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">C</text>
-	<circle cx="103.0" cy="224.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(179, 179, 179)" />
-	<text x="95.0" y="231.0" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">G</text>
+	<g>
+		<circle cx="43.0" cy="224.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(77, 77, 77)" />
+		<text x="43.0" y="224.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">C</text>
+	</g>
+	<g>
+		<circle cx="43.0" cy="189.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(179, 179, 179)" />
+		<text x="43.0" y="189.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">G</text>
+	</g>
+	<g>
+		<circle cx="43.0" cy="154.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(77, 77, 77)" />
+		<text x="43.0" y="154.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">C</text>
+	</g>
+	<g>
+		<circle cx="43.0" cy="119.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(179, 128, 26)" />
+		<text x="43.0" y="119.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">U</text>
+	</g>
+	<g>
+		<circle cx="18.691585249916216" cy="86.42990397068479" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(179, 179, 179)" />
+		<text x="18.691585249916216" y="86.42990397068479" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">G</text>
+	</g>
+	<g>
+		<circle cx="22.593696764900642" cy="45.976428115753265" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(255, 0, 0)" />
+		<text x="22.593696764900642" y="45.976428115753265" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">A</text>
+	</g>
+	<g>
+		<circle cx="52.679381265443" cy="18.653145531943323" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(255, 0, 0)" />
+		<text x="52.679381265443" y="18.653145531943323" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">A</text>
+	</g>
+	<g>
+		<circle cx="93.32061873455689" cy="18.653145531943323" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(179, 128, 26)" />
+		<text x="93.32061873455689" y="18.653145531943323" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">U</text>
+	</g>
+	<g>
+		<circle cx="123.40630323509959" cy="45.97642811575338" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(179, 128, 26)" />
+		<text x="123.40630323509959" y="45.97642811575338" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">U</text>
+	</g>
+	<g>
+		<circle cx="127.3084147500839" cy="86.42990397068479" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(77, 77, 77)" />
+		<text x="127.3084147500839" y="86.42990397068479" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">C</text>
+	</g>
+	<g>
+		<circle cx="103.0" cy="119.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(255, 0, 0)" />
+		<text x="103.0" y="119.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">A</text>
+	</g>
+	<g>
+		<circle cx="103.0" cy="154.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(179, 179, 179)" />
+		<text x="103.0" y="154.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">G</text>
+	</g>
+	<g>
+		<circle cx="103.0" cy="189.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(77, 77, 77)" />
+		<text x="103.0" y="189.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">C</text>
+	</g>
+	<g>
+		<circle cx="103.0" cy="224.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="3" fill="rgb(179, 179, 179)" />
+		<text x="103.0" y="224.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Arial;font-size:21;">G</text>
+	</g>
 </svg>
