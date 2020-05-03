@@ -22,7 +22,7 @@ fun main(args:Array<String>) {
                 println("- ${k}: ${v}")
             println("##################################################################\n")
         }
-        else if (optionExists(args, "-f", "-id") && optionExists(args, "-o")) {
+        else if (optionExists(args, "-f", "-id")) {
 
             getOptionValue(args, "-cA")?.let {
                 if (!it.startsWith("#"))
@@ -106,6 +106,10 @@ fun main(args:Array<String>) {
                 theme.tertiaryOpacity = it.toInt()
             }
 
+            val outputPath = getOptionValue(args, "-o")?.let {
+                it.replaceFirst("~", System.getProperty("user.home"))
+            } ?: ""
+
             getOptionValue(args,"-f")?.let {
                 val index = args.indexOf("-f") + 1
                 val filePaths = mutableListOf<String>()
@@ -119,37 +123,42 @@ fun main(args:Array<String>) {
                 }
 
                 filePaths.forEach { path ->
-                    println("Processing ${path}")
                     when (path.split(".").last()) {
-                        "bpseq" -> parseBPSeq(FileReader(File(path)))
-                        "vienna" -> parseVienna(FileReader(File(path)))
-                        "ct" -> parseCT(FileReader(File(path)))
+                        "bpseq" -> listOf(parseBPSeq(FileReader(File(path))))
+                        "vienna", "fasta", "fna" -> listOf(parseVienna(FileReader(File(path))))
+                        "ct" -> listOf(parseCT(FileReader(File(path))))
+                        "stk", "stockholm" -> parseStockholm(FileReader(File(path)))
                         else -> null
-                    }?.let { ss ->
-                        val drawing = SecondaryStructureDrawing(ss, theme = theme)
-
-                        val outputPath = getOptionValue(args, "-o")?.let {
-                            it.replaceFirst("~", System.getProperty("user.home"))
+                    }?.let { secondaryStructures ->
+                        secondaryStructures.forEach { ss ->
+                            ss?.let {
+                                val drawing = SecondaryStructureDrawing(ss, theme = theme)
+                                if (outputPath.equals("-")) {
+                                    println(drawing.asSVG(browserFix = optionExists(args, "--browser-fix")))
+                                } else {
+                                    println("Processing ${path}")
+                                    val tokens = path.split("/").last().split(".")
+                                    val writer = PrintWriter(File(File(outputPath).getAbsolutePath(), "${tokens.subList(0, tokens.size - 1).joinToString(separator = ".")}.svg"))
+                                    writer.write(drawing.asSVG(browserFix = optionExists(args, "--browser-fix")))
+                                    writer.close()
+                                }
+                            }
                         }
-
-                        val tokens = path.split("/").last().split(".")
-                        val writer = PrintWriter(File(File(outputPath).getAbsolutePath(), "${tokens.subList(0, tokens.size - 1).joinToString(separator = ".")}.svg"))
-                        writer.write(drawing.asSVG(browserFix = optionExists(args,"--browser-fix")))
-                        writer.close()
                     }
                 }
             } ?: getOptionValue(args,"-id")?.let{ database_id ->
-                val outputPath = getOptionValue(args, "-o")?.let {
-                    it.replaceFirst("~", System.getProperty("user.home"))
-                }
                 when {
                     Regex("^RF.+").matches(database_id) -> {
                         for (ss in parseStockholm(Rfam().getEntry(database_id.trim()))) {
-                            println("Processing ${ss.rna.name}")
                             var drawing = SecondaryStructureDrawing(secondaryStructure = ss)
-                            var writer = FileWriter(File(File(outputPath).getAbsolutePath(),"${ss.rna.name.replace('/','_')}.svg"))
-                            writer.write(drawing.asSVG(browserFix = optionExists(args,"--browser-fix")))
-                            writer.close()
+                            if (outputPath.equals("-")) {
+                                println(drawing.asSVG(browserFix = optionExists(args, "--browser-fix")))
+                            } else {
+                                println("Processing ${ss.rna.name}")
+                                var writer = FileWriter(File(File(outputPath).getAbsolutePath(), "${ss.rna.name.replace('/', '_')}.svg"))
+                                writer.write(drawing.asSVG(browserFix = optionExists(args, "--browser-fix")))
+                                writer.close()
+                            }
                         }
                     }
                 }
@@ -187,7 +196,7 @@ fun getOptionValue(args:Array<String>, vararg optionName:String):String? {
     return null
 }
 
-fun printHelp() = println("""Usage: java -jar rnartistcore.jar [options]  [-f file_name] [-id database_id] -o directory
+fun printHelp() = println("""Usage: java -jar rnartistcore.jar [options]  [-f file_name] [-id database_id]
             
 Description:
 ============
@@ -201,15 +210,14 @@ Mandatory Options:
 ==================
     -f file_name
         Either this option or -id is mandatory. The local file needs to describe an RNA secondary structure (BPSEQ, 
-        VIENNA, CT and STOCKHOLM formats). Several file names are allowed.
+        VIENNA, CT and STOCKHOLM formats). Several file names are allowed. If the option -o is not used, the SVG files 
+        are stored in the working directory.
     
     -id database_entry_id
-        Either this option or -f is mandatory. The database_entry_id has to conform to:
+        Either this option or -f is mandatory. If the option -o is not used, the SVG files are stored in the working 
+        directory. The database_entry_id has to conform to:
         RFXXXXX: an entry from the RFAM database (https://rfam.xfam.org/). A 2D structure is derived from the consensus 
                  one for each RNA member of the family and exported in the ouput directory as an SVG file
-        
-    -o dir_name
-        The directory to output the SVG files. The directory has to exist.
 
 Other Options:
 ==============
@@ -259,6 +267,10 @@ Other Options:
     --halo-width=number
         [NOT IMPLEMENTED, TO COME] Define the size of the halo around residues making tertiary interactions. The number 
         has to be an integer greater of equal to 0.
+        
+    -o dir_name
+        The directory to output the SVG files. The directory has to exist. If - is used as dir_name, SVG data will be 
+        printed to standard output.
         
     -o3d number
     --opacity-3d=number

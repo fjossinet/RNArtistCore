@@ -7,7 +7,7 @@ RNArtistCore is a commandline tool and a Kotlin library to describe and plot RNA
 
 ## Usage: 
 
-<pre>java -jar rnartistcore.jar [options]  [-f file_name] [-id database_id] -o directory</pre>
+<pre>java -jar rnartistcore.jar [options]  [-f file_name] [-id database_id]</pre>
 
 ## Description:
 RNArtistCore is a Java/Kotlin library and a commandline tool. As a tool, it exports an RNA secondary structure
@@ -22,18 +22,16 @@ user-defined values can be saved in a configuration file and become the default 
 * -f file_name
 
     Either this option or -id is mandatory. The local file needs to describe an RNA secondary structure (BPSEQ, 
-    VIENNA, CT and STOCKHOLM formats). Several file names are allowed.
+    VIENNA, CT and STOCKHOLM formats). Several file names are allowed. If the option -o is not used, the SVG files 
+    are stored in the working directory.
 
 * -id database_entry_id
 
-    Either this option or -f is mandatory. The database_entry_id has to conform to:
+    Either this option or -f is mandatory.  If the option -o is not used, the SVG files are stored in the working 
+    directory. The database_entry_id has to conform to:
     
     * RFXXXXX: an entry from the RFAM database (https://rfam.xfam.org/). A 2D structure is derived from the consensus
              one for each RNA member of the family and exported in the ouput directory as an SVG file
-
-* -o dir_name
-
-    The directory to output the SVG files. The directory has to exist.
 
 ## Other Options:
 
@@ -90,6 +88,11 @@ user-defined values can be saved in a configuration file and become the default 
   
     [NOT IMPLEMENTED, TO COME] Define the size of the halo around residues making tertiary interactions. The number
     has to be an integer greater of equal to 0.
+
+* -o dir_name
+
+    The directory to output the SVG files. The directory has to exist. If - is used as dir_name, SVG data will
+    be printed to standard output.
 
 * -o3d number<br/>
   --opacity-3d=number
@@ -160,7 +163,6 @@ val theme = Theme()
 //we tweak the default theme
 theme.fontName = "Arial"
 theme.residueBorder = 1
-theme.AColor = Color.RED
 var drawing = SecondaryStructureDrawing(secondaryStructure = ss2, theme = theme)
 
 var writer = FileWriter("media/myRNA.svg")
@@ -180,9 +182,9 @@ val bn = ".....((((((.....))))))....((((((((....))))))))....((((........))))..((
 val ss = SecondaryStructure(RNA(name="myRNA2",seq = seq), bracketNotation = bn)
 val theme = Theme()
 //we tweak the default theme
-theme.fontName = "Arial"
+theme.fontName = "Futura"
 theme.residueBorder = 1
-theme.AColor = Color.RED
+theme.GColor = Color(223, 1, 1)
 val drawing = SecondaryStructureDrawing(secondaryStructure = ss, theme = theme)
 
 val writer = FileWriter("media/myRNA2.svg")
@@ -191,6 +193,6 @@ writer.close()
 ```
 And you get:
 
-<img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA2.svg" width="902">
+<img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA2.svg" width="1376">
 
 Now you can pursue with vector graphics editor like Affinity Designer or Inkscape.
