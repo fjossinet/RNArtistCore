@@ -101,7 +101,8 @@ Other Options:
 
     -t theme_id
     --theme=theme_id
-        [NOT IMPLEMENTED, TO COME] Use a theme shared by the community. Take allog at this page to see all theze themes shared.
+        [NOT IMPLEMENTED, TO COME] Use a theme shared by the community. Take a look at this page to see all the themes
+         shared : http://to_come
 
     -w2d number
     --width-2d=number
