@@ -3,7 +3,7 @@ RNArtistCore
 
 RNArtistCore is a commandline tool and a Kotlin library to describe and plot RNA secondary structures. As a library it is used in the projects RNArtist and RNArtistBackend.
 
-# The tool
+# The command-line tool
 <pre>
 Usage: java -jar rnartistcore.jar [options]  [-f file_name] [-id database_id] -o directory
 
