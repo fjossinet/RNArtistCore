@@ -3,7 +3,7 @@ RNArtistCore
 
 RNArtistCore is a commandline tool and a Kotlin library to describe and plot RNA secondary structures. As a library it is used in the projects RNArtist and RNArtistBackend.
 
-#The tool
+# The tool
 <pre>
 Usage: java -jar rnartistcore.jar [options]  [-f file_name] [-id database_id] -o directory
 
@@ -120,7 +120,7 @@ Examples:
     java -jar rnartistcore.jar -f ~/data/*.ct -o ~/svg_files -w2d 5 --font="Futura" --deltaFontSize=-2 -cA 0066ff -cG "#ff9900" -cU 009933 -cC \#cc00cc
 </pre>
 
-#The library
+# The library
 ## Get a secondary structure
 ### from a file
 ```kotlin
