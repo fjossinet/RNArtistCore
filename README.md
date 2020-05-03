@@ -176,8 +176,8 @@ And you get:
 And now something larger
 ```kotlin
 
-val seq = "GGGACCGCCCGGGAAACGGGCGAAAAACGAGGUGCGGGCACCUCGUGACGACGGGAGUUCGACCGUGACGCAUGCGGAAAUUGGAGGUGAGUUCCCUGCUUACCGAAGCAAGCG"
-val bn = ".....((((((.....))))))....((((((((....))))))))....((((........))))..(((.(((..........(((((((.....)))))))...))).)))"
+val seq = "AUACUUACCUGGCAGGGGAGAUACCAUGAUCACGAAGGUGGUUUUCCCAGGGCGAGGCUUAUCCAUUGCACUCCGGAUGUGCUGACCCCUGCGAUUUCCCCAAAUGUGGGAAACUCGACUGCAUAAUUUGUGGUAGUGGGGGACUGCGUUCGCGCUUUCCCCUG"
+val bn = "...........((((((((((.(((((..........))))))))))).(((......(((.((..........)).)).).....)))..(((.((.((.......))))...))).))))...............(((((.(((((....))))).)))))."
 
 val ss = SecondaryStructure(RNA(name="myRNA2",seq = seq), bracketNotation = bn)
 val theme = Theme()
