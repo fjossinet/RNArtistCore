@@ -5,7 +5,9 @@ RNArtistCore is a commandline tool and a Kotlin library to describe and plot RNA
 
 # The command-line tool
 
-Usage: <pre>java -jar rnartistcore.jar [options]  [-f file_name] [-id database_id] -o directory</pre>
+## Usage: 
+
+<pre>java -jar rnartistcore.jar [options]  [-f file_name] [-id database_id] -o directory</pre>
 
 ## Description:
 RNArtistCore is a Java/Kotlin library and a commandline tool. As a tool, it exports an RNA secondary structure
@@ -25,7 +27,8 @@ user-defined values can be saved in a configuration file and become the default 
 * -id database_entry_id
 
     Either this option or -f is mandatory. The database_entry_id has to conform to:
-    RFXXXXX: an entry from the RFAM database (https://rfam.xfam.org/). A 2D structure is derived from the consensus
+    
+    * RFXXXXX: an entry from the RFAM database (https://rfam.xfam.org/). A 2D structure is derived from the consensus
              one for each RNA member of the family and exported in the ouput directory as an SVG file
 
 * -o dir_name
