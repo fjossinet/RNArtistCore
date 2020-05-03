@@ -5,7 +5,7 @@ RNArtistCore is a commandline tool and a Kotlin library to describe and plot RNA
 
 # The command-line tool
 
-Usage: java -jar rnartistcore.jar [options]  [-f file_name] [-id database_id] -o directory
+Usage: <pre>java -jar rnartistcore.jar [options]  [-f file_name] [-id database_id] -o directory</pre>
 
 ## Description:
 RNArtistCore is a Java/Kotlin library and a commandline tool. As a tool, it exports an RNA secondary structure
@@ -15,7 +15,7 @@ like Rfam using an ID.
 The SVG plot can be configured through several options (lines width, font name,...). Using the option -s, these
 user-defined values can be saved in a configuration file and become the default values for the next runs.
 
-##Mandatory Options:
+## Mandatory Options:
 
 * -f file_name
 
@@ -32,7 +32,7 @@ user-defined values can be saved in a configuration file and become the default 
 
     The directory to output the SVG files. The directory has to exist.
 
-##Other Options:
+## Other Options:
 
 * --browser-fix
 
@@ -128,7 +128,7 @@ user-defined values can be saved in a configuration file and become the default 
 These options define the width for the secondary (-w2d) or the tertiary (-w3d) interactions lines. The number has to
 be an integer greater of equal to 0.
 
-##Examples:
+## Examples:
 <pre>
     java -jar rnartistcore.jar -f ~/data/* -o ~/svg_files --font="Andale Mono" --browser-fix
     java -jar rnartistcore.jar -f ~/data/* -o ~/svg_files --font="DIN Condensed" -rb 2 -dxr 0 --deltaYRes=-5
