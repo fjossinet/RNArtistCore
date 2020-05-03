@@ -3,116 +3,133 @@ RNArtistCore
 
 RNArtistCore is a commandline tool and a Kotlin library to describe and plot RNA secondary structures. As a library it is used in the projects RNArtist and RNArtistBackend.
 
-# The command-  line tool
-<pre>
+# The command-line tool
+
 Usage: java -jar rnartistcore.jar [options]  [-f file_name] [-id database_id] -o directory
 
-Description:
-============
-    RNArtistCore is a Java/Kotlin library and a commandline tool. As a tool, it exports an RNA secondary structure
-    in an SVG file. The secondary structure is computed from data stored in a local file or recovered from databases
-    like Rfam using an ID.
-    The SVG plot can be configured through several options (lines width, font name,...). Using the option -s, these
-    user-defined values can be saved in a configuration file and become the default values for the next runs.
+## Description:
+RNArtistCore is a Java/Kotlin library and a commandline tool. As a tool, it exports an RNA secondary structure
+in an SVG file. The secondary structure is computed from data stored in a local file or recovered from databases
+like Rfam using an ID.
 
-Mandatory Options:
-==================
-    -f file_name
-        Either this option or -id is mandatory. The local file needs to describe an RNA secondary structure (BPSEQ, 
-        VIENNA, CT and STOCKHOLM formats). Several file names are allowed.
+The SVG plot can be configured through several options (lines width, font name,...). Using the option -s, these
+user-defined values can be saved in a configuration file and become the default values for the next runs.
 
-    -id database_entry_id
-        Either this option or -f is mandatory. The database_entry_id has to conform to:
-        RFXXXXX: an entry from the RFAM database (https://rfam.xfam.org/). A 2D structure is derived from the consensus
-                 one for each RNA member of the family and exported in the ouput directory as an SVG file
+##Mandatory Options:
 
-    -o dir_name
-        The directory to output the SVG files. The directory has to exist.
+* -f file_name
 
-Other Options:
-==============
+    Either this option or -id is mandatory. The local file needs to describe an RNA secondary structure (BPSEQ, 
+    VIENNA, CT and STOCKHOLM formats). Several file names are allowed.
 
-    --browser-fix
-        If you display your SVG files in a browser and observe some issues concerning the centering of residue characters,
-        try to add this option. If this doesn't fix the problem, you can improve the centering by yourself with the options
-        "dxr" and "dyr".
+* -id database_entry_id
 
-    -cA "HTML_color_code"
-    -cU "HTML_color_code"
-    -cG "HTML_color_code"
-    -cC "HTML_color_code"
-        These options define the color to use for each residue. The HTML code can be defined like "#99ccff", \#99ccff or
-        99ccff. You can find a list of HTML color codes here: https://www.w3schools.com/colors/colors_picker.asp
+    Either this option or -f is mandatory. The database_entry_id has to conform to:
+    RFXXXXX: an entry from the RFAM database (https://rfam.xfam.org/). A 2D structure is derived from the consensus
+             one for each RNA member of the family and exported in the ouput directory as an SVG file
 
-    -c2d "HTML_color_code"
-    -c3d "HTML_color_code"
-        These options define the color to use for the secondary (-c2d) or the tertiary (-c3d) interactions. The HTML code
-        can be defined like "#99ccff", \#99ccff or 99ccff. You can find a list of HTML color codes here:
-        https://www.w3schools.com/colors/colors_picker.asp
+* -o dir_name
 
-    -dxr number
-    --deltaXRes=number
-    -dyr number
-    --deltaYRes=number
-        These options translate the residue characters along the X- or Y-axis (for example, to move it by 5 pixels along
-        the X-axis, type "-dxr 5"). The X- and Y-axis are in the "classical" orientations (0,0 is the bottom left corner).
-        To push the characters on the left (X-axis) or to the bottom (Y-Axis), you need to use the two hypens syntax (like
-        "--deltaXRes=-5"). Once one of these two options user-defined, their value will be stored as the default one. To
-        erase them, make them equal to 0 (like "-dxr 0"). The number has to be a positive or negative integer.
+    The directory to output the SVG files. The directory has to exist.
 
-    -df number
-    --deltaFontSize=number
-        Modifies the residue character size. To decrease it by 5 in size, you need to use the two hypens syntax (like
-        "--deltaFontSize=-5"). Once this option user-defined, its value will be stored as the default one. To erase it,
-        make it equal to 0 (like "-df 0"). The number has to be a positive or negative integer.
+##Other Options:
 
-    --font=font_name
-        The name of the font to use. Check the fonts available for your system to make a choice.
+* --browser-fix
 
-    -h
-    --help
-        Print this help message.
+    If you display your SVG files in a browser and observe some issues concerning the centering of residue characters,
+    try to add this option. If this doesn't fix the problem, you can improve the centering by yourself with the options
+    "dxr" and "dyr".
 
-    -hw number
-    --halo-width=number
-        [NOT IMPLEMENTED, TO COME] Define the size of the halo around residues making tertiary interactions. The number
-        has to be an integer greater of equal to 0.
+* -cA "HTML_color_code"<br/>
+  -cU "HTML_color_code"<br/>
+  -cG "HTML_color_code"<br/>
+  -cC "HTML_color_code"<br/>
+  
+    These options define the color to use for each residue. The HTML code can be defined like "#99ccff", \#99ccff or
+    99ccff. You can find a list of HTML color codes here: https://www.w3schools.com/colors/colors_picker.asp
 
-    -o3d number
-    --opacity-3d=number
-        [NOT IMPLEMENTED, TO COME] Define the % of opacity of the halo around residues making tertiary interactions. The
-        number has to be an integer between 0 and 100.
+* -c2d "HTML_color_code"<br/>
+  -c3d "HTML_color_code"
+  
+    These options define the color to use for the secondary (-c2d) or the tertiary (-c3d) interactions. The HTML code
+    can be defined like "#99ccff", \#99ccff or 99ccff. You can find a list of HTML color codes here:
+    https://www.w3schools.com/colors/colors_picker.asp
 
-    -p
-    --print
-        Print the current user-defined options to plot the 2D structures.
+* -dxr number<br/>
+  --deltaXRes=number<br/>
+  -dyr number<br/>
+  --deltaYRes=number<br/>
+  
+    These options translate the residue characters along the X- or Y-axis (for example, to move it by 5 pixels along
+    the X-axis, type "-dxr 5"). The X- and Y-axis are in the "classical" orientations (0,0 is the bottom left corner).
+    To push the characters on the left (X-axis) or to the bottom (Y-Axis), you need to use the two hypens syntax (like
+    "--deltaXRes=-5"). Once one of these two options user-defined, their value will be stored as the default one. To
+    erase them, make them equal to 0 (like "-dxr 0"). The number has to be a positive or negative integer.
 
-    -rb number
-    --residueBorder=number
-        Change the width for the border of the residues circles. The number has to be an integer greater of equal to 0.
+* -df number<br/>
+  --deltaFontSize=number
+  
+    Modifies the residue character size. To decrease it by 5 in size, you need to use the two hypens syntax (like
+    "--deltaFontSize=-5"). Once this option user-defined, its value will be stored as the default one. To erase it,
+    make it equal to 0 (like "-df 0"). The number has to be a positive or negative integer.
 
-    -s
-    --save
-        Save the options defined as default ones. Use option -p to print current default options.
+* --font=font_name
 
-    -s3d style
-    --style-3d=style
-        [NOT IMPLEMENTED, TO COME] Define the line style for the tertiary interactions. The value can be dashed or solid.
+    The name of the font to use. Check the fonts available for your system to make a choice.
 
-    -t theme_id
-    --theme=theme_id
-        [NOT IMPLEMENTED, TO COME] Use a theme shared by the community. Take a look at this page to see all the themes
-         shared : http://to_come
+* -h<br/>
+  --help
+  
+    Print this help message.
 
-    -w2d number
-    --width-2d=number
-    -w3d number
-    --width-3d=number
-    These options define the width for the secondary (-w2d) or the tertiary (-w3d) interactions lines. The number has to
-    be an integer greater of equal to 0.
+* -hw number<br/>
+  --halo-width=number
+  
+    [NOT IMPLEMENTED, TO COME] Define the size of the halo around residues making tertiary interactions. The number
+    has to be an integer greater of equal to 0.
 
-Examples:
-=========
+* -o3d number<br/>
+  --opacity-3d=number
+  
+    [NOT IMPLEMENTED, TO COME] Define the % of opacity of the halo around residues making tertiary interactions. The
+    number has to be an integer between 0 and 100.
+
+* -p<br/>
+  --print
+  
+    Print the current user-defined options to plot the 2D structures.
+
+* -rb number<br/>
+  --residueBorder=number
+  
+    Change the width for the border of the residues circles. The number has to be an integer greater of equal to 0.
+
+* -s<br/>
+  --save
+  
+    Save the options defined as default ones. Use option -p to print current default options.
+
+* -s3d style<br/>
+  --style-3d=style
+  
+    [NOT IMPLEMENTED, TO COME] Define the line style for the tertiary interactions. The value can be dashed or solid.
+
+* -t theme_id<br/>
+  --theme=theme_id
+  
+    [NOT IMPLEMENTED, TO COME] Use a theme shared by the community. Take a look at this page to see all the themes
+     shared : http://to_come
+
+* -w2d number<br/>
+  --width-2d=number<br/>
+  -w3d number<br/>
+  --width-3d=number<br/>
+  
+These options define the width for the secondary (-w2d) or the tertiary (-w3d) interactions lines. The number has to
+be an integer greater of equal to 0.
+
+##Examples:
+<pre>
     java -jar rnartistcore.jar -f ~/data/* -o ~/svg_files --font="Andale Mono" --browser-fix
     java -jar rnartistcore.jar -f ~/data/* -o ~/svg_files --font="DIN Condensed" -rb 2 -dxr 0 --deltaYRes=-5
     java -jar rnartistcore.jar -f ~/data/rna.bpseq -o ~/svg_files --font="Arial" -rb 0 --deltaFontSize=-10
