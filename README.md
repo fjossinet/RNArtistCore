@@ -63,15 +63,15 @@ user-defined values can be saved in a configuration file and become the default 
     These options translate the residue characters along the X- or Y-axis (for example, to move it by 5 pixels along
     the X-axis, type "-dxr 5"). The X- and Y-axis are in the "classical" orientations (0,0 is the bottom left corner).
     To push the characters on the left (X-axis) or to the bottom (Y-Axis), you need to use the two hypens syntax (like
-    "--deltaXRes=-5"). Once one of these two options user-defined, their value will be stored as the default one. To
-    erase them, make them equal to 0 (like "-dxr 0"). The number has to be a positive or negative integer.
+    "--deltaXRes=-5"). If you saved a user-defined value for one of these options, you can erase it by doing "-dxr 0 -s". 
+    The number for these options has to be a positive or negative integer.
 
 * -df number<br/>
   --deltaFontSize=number
   
-    Modifies the residue character size. To decrease it by 5 in size, you need to use the two hypens syntax (like
-    "--deltaFontSize=-5"). Once this option user-defined, its value will be stored as the default one. To erase it,
-    make it equal to 0 (like "-df 0"). The number has to be a positive or negative integer.
+    Modifies the residue character size. To decrease it by 5 in size, you need to use the two hypens syntax (like 
+    "--deltaFontSize=-5"). If you saved a user-defined value for this option, you can erase it by doing "-df 0 -s". 
+    The number for this option has to be a positive or negative integer.
 
 * --font=font_name
 
