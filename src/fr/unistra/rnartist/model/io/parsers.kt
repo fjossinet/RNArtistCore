@@ -113,6 +113,61 @@ fun parseCT(reader: Reader): SecondaryStructure? {
     return SecondaryStructure(RNA("A", sequence.toString()), bn.toString(), null)
 }
 
+fun parseStockholm(reader: Reader): List<SecondaryStructure> {
+    var secondaryStructures = mutableListOf<SecondaryStructure>()
+    val alignedMolecules: MutableMap<String, StringBuffer> = HashMap()
+    val rnas: MutableList<RNA> = mutableListOf<RNA>()
+    val bn = StringBuffer()
+    var familyName: String? = null
+    val `in` = BufferedReader(reader)
+    var line: String? = null
+    while (`in`.readLine().also { line = it } != null) {
+        val tokens = line!!.trim { it <= ' ' }.split("\\s+".toRegex()).toTypedArray()
+        if (line!!.trim { it <= ' ' }.length != 0 && !line!!.startsWith("# ") && tokens.size == 2) {
+            if (alignedMolecules.containsKey(tokens[0]))
+                alignedMolecules[tokens[0]] = alignedMolecules[tokens[0]]!!.append(tokens[1])
+            else
+                alignedMolecules[tokens[0]] = StringBuffer(tokens[1])
+        } else if (line!!.trim { it <= ' ' }.length != 0 && line!!.startsWith("#=GC SS_cons"))
+            bn.append(tokens[2].replace("<", "(").replace(">", ")").replace(":", ".").replace(",", ".").replace("-", ".").replace("_", "."))
+        else if (line!!.trim { it <= ' ' }.startsWith("#=GF DE"))
+            familyName = line!!.split("#=GF DE".toRegex()).toTypedArray()[1].trim { it <= ' ' }
+    }
+    `in`.close()
+    for ((key, value) in alignedMolecules) {
+        var rna = RNA(key, value.toString())
+        var _bn = bn.toString()
+        var consensusSS = SecondaryStructure(rna,  _bn)
+
+        for (bp in consensusSS.secondaryInteractions) {
+            if (rna.seq[bp.location.start-1] == '-')
+                _bn = _bn.replaceRange(bp.location.end-1,bp.location.end,".")
+            if (rna.seq[bp.location.end-1] == '-')
+                _bn = _bn.replaceRange(bp.location.start-1,bp.location.start,".")
+        }
+        for (bp in consensusSS.tertiaryInteractions) {
+            if (rna.seq[bp.location.start-1] == '-')
+                _bn = _bn.replaceRange(bp.location.end-1,bp.location.end,".")
+            if (rna.seq[bp.location.end-1] == '-')
+                _bn = _bn.replaceRange(bp.location.start-1,bp.location.start,".")
+        }
+
+
+        var gapPositions = mutableListOf<Int>()
+        var pos: Int = value.indexOf("-")
+        while (pos >= 0) {
+            gapPositions.add(pos)
+            pos = value.indexOf("-", pos+1)
+        }
+        rna = RNA(key, value.toString().replace("-", ""))
+
+        gapPositions.reverse()
+        gapPositions.forEach { _bn = _bn.replaceRange(it,it+1,"") }
+        secondaryStructures.add(SecondaryStructure(rna,_bn))
+    }
+    return secondaryStructures
+}
+
 @Throws(java.lang.Exception::class)
 fun parseBPSeq(reader: Reader?): SecondaryStructure? {
     val sequence = StringBuffer()

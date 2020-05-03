@@ -387,6 +387,11 @@ class NDB {
             }
         }
     }
+}
 
-
+class Rfam {
+    fun getEntry(rfamID:String): Reader {
+        val url = URL("https://rfam.xfam.org/family/RF00010/alignment?acc=$rfamID&format=stockholm&download=0")
+        return StringReader(url.readText())
+    }
 }

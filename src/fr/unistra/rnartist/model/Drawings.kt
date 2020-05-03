@@ -1,6 +1,8 @@
 package fr.unistra.rnartist.model
 
+import fr.unistra.rnartist.model.RnartistConfig.defaultTheme
 import java.awt.*
+import java.awt.Color
 import java.awt.geom.*
 import java.awt.image.BufferedImage
 import kotlin.math.hypot
@@ -50,16 +52,16 @@ interface ThemeConfigurator {
     fun getResidueBorder():Int
     fun getSecondaryInteractionWidth():Int
     fun getTertiaryInteractionWidth():Int
-    fun getModuloXRes():Int
-    fun getModuloYRes():Int
-    fun getModuloSizeRes():Float
-    fun getAColor():String //int rgb as String
-    fun getUColor():String //int rgb as String
-    fun getGColor():String //int rgb as String
-    fun getCColor():String //int rgb as String
-    fun getXColor():String //int rgb as String
-    fun getSecondaryInteractionColor():String //int rgb as String
-    fun getTertiaryInteractionColor():String //int rgb as String
+    fun getDeltaXRes():Int
+    fun getDeltaYRes():Int
+    fun getDeltaFontSize():Int
+    fun getAColor():String //HTML Color code
+    fun getUColor():String //HTML Color code
+    fun getGColor():String //HTML Color code
+    fun getCColor():String //HTML Color code
+    fun getXColor():String //HTML Color code
+    fun getSecondaryInteractionColor():String //HTML Color code
+    fun getTertiaryInteractionColor():String //HTML Color code
     fun getFontName():String
 }
 
@@ -71,56 +73,181 @@ var DASHED: Byte = 0
 var SOLID: Byte = 1
 
 enum class ThemeParameter {
-    AColor, UColor, GColor, CColor, XColor, SecondaryColor, TertiaryColor, HaloWidth, TertiaryOpacity, SecondaryInteractionWidth, TertiaryInteractionWidth, TertiaryInteractionStyle, ResidueBorder, FontName, ModuloXRes, ModuloYRes, ModuloSizeRes
+    AColor, UColor, GColor, CColor, XColor, SecondaryColor, TertiaryColor, HaloWidth, TertiaryOpacity, SecondaryInteractionWidth, TertiaryInteractionWidth, TertiaryInteractionStyle, ResidueBorder, FontName, DeltaXRes, DeltaYRes, DeltaFontSize
 }
 
-class Theme(val themeParams:MutableMap<String,String> = defaultThemeParams, val themeConfigurator:ThemeConfigurator? = null) {
+class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeConfigurator:ThemeConfigurator? = null) {
 
-    var haloWidth
+    var haloWidth: Int
         set(value) {
-            this.themeParams.set(ThemeParameter.HaloWidth.toString(), (value as Int).toString())
+            this.themeParams.set(ThemeParameter.HaloWidth.toString(), value.toString())
         }
-        get() = themeConfigurator?.getHaloWidth() ?: Integer.parseInt(this.themeParams.get(ThemeParameter.HaloWidth.toString()))
-    var tertiaryOpacity
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.HaloWidth.toString(), it.getHaloWidth().toString())
+            }
+            return Integer.parseInt(this.themeParams.get(ThemeParameter.HaloWidth.toString()))
+        }
+    var tertiaryOpacity: Int
         set(value) {
-            this.themeParams.set(ThemeParameter.TertiaryOpacity.toString(), (value as Int).toString())
+            this.themeParams.set(ThemeParameter.TertiaryOpacity.toString(), value.toString())
         }
-        get() = themeConfigurator?.getTertiaryOpacity() ?: Integer.parseInt(this.themeParams.get(ThemeParameter.TertiaryOpacity.toString()))
-    var tertiaryInteractionStyle
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.TertiaryOpacity.toString(), it.getTertiaryOpacity().toString())
+            }
+            return Integer.parseInt(this.themeParams.get(ThemeParameter.TertiaryOpacity.toString()))
+        }
+    var tertiaryInteractionStyle: Byte
         set(value) {
-            this.themeParams.set(ThemeParameter.ResidueBorder.toString(), if (value == DASHED) "Dashed" else "Solid")
+            this.themeParams.set(ThemeParameter.ResidueBorder.toString(), if (value == DASHED) "dashed" else "solid")
         }
-        get() = themeConfigurator?.getTertiaryInteractionStyle() ?: if (this.themeParams.get(ThemeParameter.TertiaryInteractionStyle.toString()) == "Dashed")  DASHED else SOLID
-    var residueBorder
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.ResidueBorder.toString(), if (it.getTertiaryInteractionStyle() == DASHED) "dashed" else "solid")
+            }
+            return if (this.themeParams.get(ThemeParameter.TertiaryInteractionStyle.toString()).equals("dashed")) DASHED else SOLID
+        }
+    var residueBorder: Int
         set(value) {
-            this.themeParams.set(ThemeParameter.ResidueBorder.toString(), (value as Int).toString())
+            this.themeParams.set(ThemeParameter.ResidueBorder.toString(), value.toString())
         }
-        get() = themeConfigurator?.getResidueBorder() ?: Integer.parseInt(this.themeParams.get(ThemeParameter.ResidueBorder.toString()))
-    var secondaryInteractionWidth
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.ResidueBorder.toString(), it.getResidueBorder().toString())
+            }
+            return Integer.parseInt(this.themeParams.get(ThemeParameter.ResidueBorder.toString()))
+        }
+    var secondaryInteractionWidth: Int
         set(value) {
-            this.themeParams.set(ThemeParameter.SecondaryInteractionWidth.toString(), (value as Int).toString())
+            this.themeParams.set(ThemeParameter.SecondaryInteractionWidth.toString(), value.toString())
         }
-        get() = themeConfigurator?.getSecondaryInteractionWidth() ?: Integer.parseInt(this.themeParams.get(ThemeParameter.SecondaryInteractionWidth.toString()))
-    var tertiaryInteractionWidth
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.SecondaryInteractionWidth.toString(), it.getSecondaryInteractionWidth().toString())
+            }
+            return Integer.parseInt(this.themeParams.get(ThemeParameter.SecondaryInteractionWidth.toString()))
+        }
+    var tertiaryInteractionWidth: Int
         set(value) {
-            this.themeParams.set(ThemeParameter.TertiaryInteractionWidth.toString(), (value as Int).toString())
+            this.themeParams.set(ThemeParameter.TertiaryInteractionWidth.toString(), value.toString())
         }
-        get() = themeConfigurator?.getTertiaryInteractionWidth() ?: Integer.parseInt(this.themeParams.get(ThemeParameter.TertiaryInteractionWidth.toString()))
-    var moduloXRes
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.TertiaryInteractionWidth.toString(), it.getTertiaryInteractionWidth().toString())
+            }
+            return Integer.parseInt(this.themeParams.get(ThemeParameter.TertiaryInteractionWidth.toString()))
+        }
+    var deltaXRes: Int
         set(value) {
-            this.themeParams.set(ThemeParameter.ModuloXRes.toString(), (value as Int).toString())
+            this.themeParams.set(ThemeParameter.DeltaXRes.toString(), value.toString())
         }
-        get() = themeConfigurator?.getModuloXRes() ?: Integer.parseInt(this.themeParams.get(ThemeParameter.ModuloXRes.toString()))
-    var moduloYRes
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.DeltaXRes.toString(), it.getDeltaXRes().toString())
+            }
+            return Integer.parseInt(this.themeParams.get(ThemeParameter.DeltaXRes.toString()))
+        }
+    var deltaYRes: Int
         set(value) {
-            this.themeParams.set(ThemeParameter.ModuloYRes.toString(),(value as Int).toString())
+            this.themeParams.set(ThemeParameter.DeltaYRes.toString(), value.toString())
         }
-        get() = themeConfigurator?.getModuloYRes() ?: Integer.parseInt(this.themeParams.get(ThemeParameter.ModuloYRes.toString()))
-    var moduloSizeRes
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.DeltaYRes.toString(), it.getDeltaYRes().toString())
+            }
+            return Integer.parseInt(this.themeParams.get(ThemeParameter.DeltaYRes.toString()))
+        }
+    var deltaFontSize: Int
         set(value) {
-            this.themeParams.set(ThemeParameter.ModuloSizeRes.toString(),(value as Float).toString())
+            this.themeParams.set(ThemeParameter.DeltaFontSize.toString(), value.toString())
         }
-        get() = themeConfigurator?.getModuloSizeRes() ?: this.themeParams.get(ThemeParameter.ModuloSizeRes.toString())!!.toFloat()
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.DeltaFontSize.toString(), it.getDeltaFontSize().toString())
+            }
+            return this.themeParams.get(ThemeParameter.DeltaFontSize.toString())!!.toInt()
+        }
+    var AColor: Color
+        set(value) {
+            this.themeParams.set(ThemeParameter.AColor.toString(), getHTMLColorString(value))
+        }
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.AColor.toString(), it.getAColor())
+            }
+            return getAWTColor(this.themeParams.get(ThemeParameter.AColor.toString())!!)!!
+        }
+    var UColor: Color
+        set(value) {
+            this.themeParams.set(ThemeParameter.UColor.toString(), getHTMLColorString(value))
+        }
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.UColor.toString(), it.getUColor())
+            }
+            return getAWTColor(this.themeParams.get(ThemeParameter.UColor.toString())!!)!!
+        }
+    var GColor: Color
+        set(value) {
+            this.themeParams.set(ThemeParameter.GColor.toString(), getHTMLColorString(value))
+        }
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.GColor.toString(), it.getGColor())
+            }
+            return getAWTColor(this.themeParams.get(ThemeParameter.GColor.toString())!!)!!
+        }
+    var CColor: Color
+        set(value) {
+            this.themeParams.set(ThemeParameter.CColor.toString(), getHTMLColorString(value))
+        }
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.CColor.toString(), it.getCColor())
+            }
+            return getAWTColor(this.themeParams.get(ThemeParameter.CColor.toString())!!)!!
+        }
+    var XColor: Color
+        set(value) {
+            this.themeParams.set(ThemeParameter.XColor.toString(), getHTMLColorString(value))
+        }
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.XColor.toString(), it.getXColor())
+            }
+            return getAWTColor(this.themeParams.get(ThemeParameter.XColor.toString())!!)!!
+        }
+    var SecondaryColor: Color
+        set(value) {
+            this.themeParams.set(ThemeParameter.SecondaryColor.toString(), getHTMLColorString(value))
+        }
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.SecondaryColor.toString(), it.getSecondaryInteractionColor())
+            }
+            return getAWTColor(this.themeParams.get(ThemeParameter.SecondaryColor.toString())!!)!!
+        }
+    var TertiaryColor:Color
+        set(value) {
+            this.themeParams.set(ThemeParameter.TertiaryColor.toString(), getHTMLColorString(value))
+        }
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.TertiaryColor.toString(), it.getTertiaryInteractionColor())
+            }
+            return getAWTColor(this.themeParams.get(ThemeParameter.TertiaryColor.toString())!!)!!
+        }
+    var fontName:String
+        set(value) {
+            this.themeParams.set(ThemeParameter.FontName.toString(), value)
+        }
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.FontName.toString(), it.getFontName())
+            }
+            return this.themeParams.get(ThemeParameter.FontName.toString())!!
+        }
     var ATransX: Float = 0F
     var ATransY: Float = 0F
     var UTransX: Float = 0F
@@ -131,117 +258,23 @@ class Theme(val themeParams:MutableMap<String,String> = defaultThemeParams, val 
     var CTransY: Float = 0F
     var XTransX: Float = 0F
     var XTransY: Float = 0F
-    var AColor
-        set(value) {
-            this.themeParams.set(ThemeParameter.AColor.toString(),(value as Color).rgb.toString())
-        }
-        get() = Color(themeConfigurator?.getAColor()?.toInt() ?: this.themeParams.get(ThemeParameter.AColor.toString())!!.toInt())
-    var UColor
-        set(value) {
-            this.themeParams.set(ThemeParameter.UColor.toString(), (value as Color).rgb.toString())
-        }
-        get() = Color(themeConfigurator?.getUColor()?.toInt() ?: this.themeParams.get(ThemeParameter.UColor.toString())!!.toInt())
-    var GColor
-        set(value) {
-            this.themeParams.set(ThemeParameter.GColor.toString(), (value as Color).rgb.toString())
-        }
-        get() = Color(themeConfigurator?.getGColor()?.toInt() ?: this.themeParams.get(ThemeParameter.GColor.toString())!!.toInt())
-    var CColor
-        set(value) {
-            this.themeParams.set(ThemeParameter.CColor.toString(), (value as Color).rgb.toString())
-        }
-        get() = Color(themeConfigurator?.getCColor()?.toInt() ?: this.themeParams.get(ThemeParameter.CColor.toString())!!.toInt())
-    var XColor
-        set(value) {
-            this.themeParams.set(ThemeParameter.XColor.toString(), (value as Color).rgb.toString())
-        }
-        get() = Color(themeConfigurator?.getXColor()?.toInt() ?: this.themeParams.get(ThemeParameter.XColor.toString())!!.toInt())
-    var SecondaryColor
-        set(value) {
-            this.themeParams.set(ThemeParameter.SecondaryColor.toString(), (value as Color).rgb.toString())
-        }
-        get() = Color(themeConfigurator?.getSecondaryInteractionColor()?.toInt() ?: this.themeParams.get(ThemeParameter.SecondaryColor.toString())!!.toInt())
-    var TertiaryColor
-        set(value) {
-            this.themeParams.set(ThemeParameter.TertiaryColor.toString(), (value as Color).rgb.toString())
-        }
-        get() = transparentColor(Color(themeConfigurator?.getTertiaryInteractionColor()?.toInt() ?: this.themeParams.get(ThemeParameter.TertiaryColor.toString())!!.toInt()), ((themeConfigurator?.getTertiaryOpacity() ?: this.themeParams.get(ThemeParameter.TertiaryOpacity.toString())!!.toInt())/100.0*255).toInt())
-    var fontName
-        set(value) {
-            this.themeParams.set(ThemeParameter.FontName.toString(), value as String)
-        }
-        get() = themeConfigurator?.getFontName() ?: this.themeParams.get(ThemeParameter.FontName.toString())
     var displayResidueNames = true
     var fitToResiduesBetweenBranches = true
     var fontStyle = Font.PLAIN
-    var fontSize = 12 //not user-defined. Defined by the function computeOptimalFontSize
+    var fontSize = 12 //not user-defined. Computed by the function computeOptimalFontSize()
     var quickDraw = false
 
 }
 
-@JvmField
-val defaultColorSchemes: Map<String, Map<String, String>> = mapOf(
-        "Candies" to mapOf(
-                ThemeParameter.AColor.toString() to Color(0, 192, 255).rgb.toString(),
-                ThemeParameter.UColor.toString() to Color(192, 128, 128).rgb.toString(),
-                ThemeParameter.GColor.toString() to Color(128, 192, 0).rgb.toString(),
-                ThemeParameter.CColor.toString() to Color(255, 0, 255).rgb.toString(),
-                ThemeParameter.XColor.toString() to Color.LIGHT_GRAY.rgb.toString(),
-                ThemeParameter.SecondaryColor.toString() to Color.LIGHT_GRAY.rgb.toString(),
-                ThemeParameter.TertiaryColor.toString() to Color(255, 192, 128).rgb.toString()
-        ),
-
-        "Grapes" to mapOf(
-                ThemeParameter.AColor.toString() to Color(128, 128, 0).rgb.toString(),
-                ThemeParameter.UColor.toString() to Color(128, 128, 128).rgb.toString(),
-                ThemeParameter.GColor.toString() to Color(192, 0, 0).rgb.toString(),
-                ThemeParameter.CColor.toString() to Color(255, 128, 0).rgb.toString(),
-                ThemeParameter.XColor.toString() to Color.LIGHT_GRAY.rgb.toString(),
-                ThemeParameter.SecondaryColor.toString() to Color.LIGHT_GRAY.rgb.toString(),
-                ThemeParameter.TertiaryColor.toString() to Color(255, 192, 128).rgb.toString()
-        ),
-
-        "Metal" to mapOf(
-                ThemeParameter.AColor.toString() to Color(153, 77, 0).rgb.toString(),
-                ThemeParameter.UColor.toString() to Color(179, 128, 26).rgb.toString(),
-                ThemeParameter.GColor.toString() to Color(179, 179, 179).rgb.toString(),
-                ThemeParameter.CColor.toString() to Color(77, 77, 77).rgb.toString(),
-                ThemeParameter.XColor.toString() to Color.LIGHT_GRAY.rgb.toString(),
-                ThemeParameter.SecondaryColor.toString() to Color.LIGHT_GRAY.rgb.toString(),
-                ThemeParameter.TertiaryColor.toString() to Color(153, 153, 51).rgb.toString()
-        )
-)
-
-@JvmField
-var defaultThemeParams:MutableMap<String,String> = mutableMapOf(
-        ThemeParameter.AColor.toString() to defaultColorSchemes.get("Metal")!!.get(ThemeParameter.AColor.toString())!!,
-        ThemeParameter.UColor.toString() to defaultColorSchemes.get("Metal")!!.get(ThemeParameter.UColor.toString())!!,
-        ThemeParameter.GColor.toString() to defaultColorSchemes.get("Metal")!!.get(ThemeParameter.GColor.toString())!!,
-        ThemeParameter.CColor.toString() to defaultColorSchemes.get("Metal")!!.get(ThemeParameter.CColor.toString())!!,
-        ThemeParameter.XColor.toString() to defaultColorSchemes.get("Metal")!!.get(ThemeParameter.XColor.toString())!!,
-        ThemeParameter.SecondaryColor.toString() to defaultColorSchemes.get("Metal")!!.get(ThemeParameter.SecondaryColor.toString())!!,
-        ThemeParameter.TertiaryColor.toString() to defaultColorSchemes.get("Metal")!!.get(ThemeParameter.TertiaryColor.toString())!!,
-        ThemeParameter.ResidueBorder.toString() to "2",
-        ThemeParameter.SecondaryInteractionWidth.toString() to "4",
-        ThemeParameter.TertiaryInteractionWidth.toString() to "2",
-        ThemeParameter.HaloWidth.toString() to "10",
-        ThemeParameter.TertiaryOpacity.toString() to "50",
-        ThemeParameter.TertiaryInteractionStyle.toString() to "Dashed",
-        ThemeParameter.FontName.toString() to "Tahoma",
-        ThemeParameter.ModuloXRes.toString() to "0",
-        ThemeParameter.ModuloYRes.toString() to "0",
-        ThemeParameter.ModuloSizeRes.toString() to "1.0"
-)
-
-fun computeOptimalFontSize(g: Graphics2D, gc: GraphicContext, dc:Theme, title: String, width: Double, height: Double): Int {
-    var dimension: Dimension? = null
+fun computeOptimalFontSize(g: Graphics2D, gc: GraphicContext, theme:Theme, title: String, width: Double, height: Double): Int {
+    var dimension: Dimension?
     var fontSize = (100*gc.finalZoomLevel).toInt() //initial value
     do {
         fontSize--
-        val font = Font(dc.fontName, dc.fontStyle, fontSize)
+        val font = Font(theme.fontName, theme.fontStyle, fontSize)
         dimension = getStringBoundsRectangle2D(g, title, font)
-    } while (dimension!!.width >= width*dc.moduloSizeRes-width*0.5 && dimension.height >= height*dc.moduloSizeRes-height*0.5)
-    return fontSize.toInt();
+    } while (dimension!!.width >= width-width*0.5+width*theme.deltaFontSize.toDouble()/20.0 && dimension.height >= height-height*0.5+height*theme.deltaFontSize.toDouble()/20.0)
+    return fontSize;
 }
 
 fun getStringBoundsRectangle2D(g: Graphics2D, title: String, font: Font): Dimension {
@@ -579,31 +612,32 @@ class SecondaryStructureDrawing(val secondaryStructure:SecondaryStructure, frame
         return false
     }
 
-    fun asSVG():String {
+    fun asSVG(browserFix:Boolean=false):String {
         val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB) //just to get a Graphics object
         val g = image.createGraphics()
-        theme.fontSize = computeOptimalFontSize(g, GraphicContext(),theme,"A", residues.first()!!.circle!!.width,residues.first()!!.circle!!.height)
-        var r2d = getStringBoundsRectangle2D(g, "A", Font(theme.fontName, theme.fontStyle, theme.fontSize))
-        this.theme.ATransX = (residues.first()!!.circle!!.bounds2D.width - r2d.width).toFloat() / 2F
-        this.theme.ATransY = (residues.first()!!.circle!!.bounds2D.height + r2d.height).toFloat() / 2F
-        r2d = getStringBoundsRectangle2D(g, "U", Font(theme.fontName, theme.fontStyle, theme.fontSize))
-        this.theme.UTransX = (residues.first()!!.circle!!.bounds2D.width - r2d.width).toFloat() / 2F
-        this.theme.UTransY = (residues.first()!!.circle!!.bounds2D.height + r2d.height).toFloat() / 2F
-        r2d = getStringBoundsRectangle2D(g, "G", Font(theme.fontName, theme.fontStyle, theme.fontSize))
-        this.theme.GTransX = (residues.first()!!.circle!!.bounds2D.width - r2d.width).toFloat() / 2F
-        this.theme.GTransY = (residues.first()!!.circle!!.bounds2D.height + r2d.height).toFloat() / 2F
-        r2d = getStringBoundsRectangle2D(g, "C", Font(theme.fontName, theme.fontStyle, theme.fontSize))
-        this.theme.CTransX = (residues.first()!!.circle!!.bounds2D.width - r2d.width).toFloat() / 2F
-        this.theme.CTransY = (residues.first()!!.circle!!.bounds2D.height + r2d.height).toFloat() / 2F
-        r2d = getStringBoundsRectangle2D(g, "X", Font(theme.fontName, theme.fontStyle, theme.fontSize))
-        this.theme.XTransX = (residues.first()!!.circle!!.bounds2D.width - r2d.width).toFloat() / 2F
-        this.theme.XTransY = (residues.first()!!.circle!!.bounds2D.height + r2d.height).toFloat() / 2F
+        theme.fontSize = computeOptimalFontSize(g, GraphicContext(),theme,"A", residues.first().circle!!.width,residues.first().circle!!.height)
+        val font = Font(theme.fontName, theme.fontStyle, theme.fontSize)
+        var r2d = getStringBoundsRectangle2D(g, "A", font)
+        this.theme.ATransX = (residues.first().circle!!.bounds2D.width - r2d.width).toFloat() / 2F
+        this.theme.ATransY = (residues.first().circle!!.bounds2D.height + r2d.height).toFloat() / 2F
+        r2d = getStringBoundsRectangle2D(g, "U", font)
+        this.theme.UTransX = (residues.first().circle!!.bounds2D.width - r2d.width).toFloat() / 2F
+        this.theme.UTransY = (residues.first().circle!!.bounds2D.height + r2d.height).toFloat() / 2F
+        r2d = getStringBoundsRectangle2D(g, "G", font)
+        this.theme.GTransX = (residues.first().circle!!.bounds2D.width - r2d.width).toFloat() / 2F
+        this.theme.GTransY = (residues.first().circle!!.bounds2D.height + r2d.height).toFloat() / 2F
+        r2d = getStringBoundsRectangle2D(g, "C", font)
+        this.theme.CTransX = (residues.first().circle!!.bounds2D.width - r2d.width).toFloat() / 2F
+        this.theme.CTransY = (residues.first().circle!!.bounds2D.height + r2d.height).toFloat() / 2F
+        r2d = getStringBoundsRectangle2D(g, "X", font)
+        this.theme.XTransX = (residues.first().circle!!.bounds2D.width - r2d.width).toFloat() / 2F
+        this.theme.XTransY = (residues.first().circle!!.bounds2D.height + r2d.height).toFloat() / 2F
         val bounds = getBounds()
         val svgBuffer = StringBuffer("""<svg viewBox="0 0 ${bounds.width} ${bounds.height}" xmlns="http://www.w3.org/2000/svg">"""+"\n")
         secondaryInteractions.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
         phosphodiesterBonds.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
         tertiaryInteractions.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
-        residues.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
+        residues.map { it.asSVG(browserFix, indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
         svgBuffer.append("</svg>")
         return svgBuffer.toString()
     }
@@ -647,11 +681,11 @@ class ResidueCircle(val absPos:Int, label:Char) {
             if (g.font.size > 5 && !theme.quickDraw) {
                 g.color = Color.WHITE
                 when (this.label.name) {
-                    "A" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.ATransX + (theme.moduloXRes*gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.ATransY - (theme.moduloYRes*gc.finalZoomLevel).toFloat())
-                    "U" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.UTransX + (theme.moduloXRes*gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.UTransY - (theme.moduloYRes*gc.finalZoomLevel).toFloat())
-                    "G" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.GTransX + (theme.moduloXRes*gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.GTransY - (theme.moduloYRes*gc.finalZoomLevel).toFloat())
-                    "C" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.CTransX + (theme.moduloXRes*gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.CTransY - (theme.moduloYRes*gc.finalZoomLevel).toFloat())
-                    "X" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.XTransX + (theme.moduloXRes*gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.XTransY - (theme.moduloYRes*gc.finalZoomLevel).toFloat())
+                    "A" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.ATransX + (theme.deltaXRes*gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.ATransY - (theme.deltaYRes*gc.finalZoomLevel).toFloat())
+                    "U" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.UTransX + (theme.deltaXRes*gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.UTransY - (theme.deltaYRes*gc.finalZoomLevel).toFloat())
+                    "G" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.GTransX + (theme.deltaXRes*gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.GTransY - (theme.deltaYRes*gc.finalZoomLevel).toFloat())
+                    "C" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.CTransX + (theme.deltaXRes*gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.CTransY - (theme.deltaYRes*gc.finalZoomLevel).toFloat())
+                    "X" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.XTransX + (theme.deltaXRes*gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.XTransY - (theme.deltaYRes*gc.finalZoomLevel).toFloat())
                 }
             }
         }
@@ -667,11 +701,13 @@ class ResidueCircle(val absPos:Int, label:Char) {
         }
     }
 
-    fun asSVG(indentChar:String ="\t", indentLevel:Int = 1, theme:Theme, transX:Double= 0.0, transY:Double = 0.0):String {
+    fun asSVG(browserFix:Boolean = false, indentChar:String ="\t", indentLevel:Int = 1, theme:Theme, transX:Double= 0.0, transY:Double = 0.0):String {
         val buff = StringBuffer(indentChar.repeat(indentLevel)+"<g>\n")
         buff.append(indentChar.repeat(indentLevel+1)+"""<circle cx="${this.circle!!.centerX+transX}" cy="${this.circle!!.centerY+transY}" r="${this.circle!!.width/2}" stroke="rgb(${Color.DARK_GRAY.red}, ${Color.DARK_GRAY.green}, ${Color.DARK_GRAY.blue})" stroke-width="${theme.residueBorder}" fill="rgb(${getColor(theme).red}, ${getColor(theme).green}, ${getColor(theme).blue})" />"""+"\n")
-        //buff.append(indentChar.repeat(indentLevel+1)+"""<text x="${this.circle!!.bounds2D.minX.toFloat()+transX + when (this.label) { SecondaryStructureElement.A -> theme.ATransX ; SecondaryStructureElement.U -> theme.UTransX ; SecondaryStructureElement.G -> theme.GTransX ; SecondaryStructureElement.C -> theme.CTransX ; else -> theme.XTransX } }" y="${this.circle!!.bounds2D.minY.toFloat()+transY + when (this.label) { SecondaryStructureElement.A -> theme.ATransY ; SecondaryStructureElement.U -> theme.UTransY ; SecondaryStructureElement.G -> theme.GTransY ; SecondaryStructureElement.C -> theme.CTransY ; else -> theme.XTransY } }" style="fill:rgb(${Color.WHITE.red}, ${Color.WHITE.green}, ${Color.WHITE.blue});font-family:${theme.fontName};font-size:${theme.fontSize};">${this.label.name}</text>"""+"\n")
-        buff.append(indentChar.repeat(indentLevel+1)+"""<text x="${this.circle!!.centerX+transX}" y="${this.circle!!.centerY+transY}" text-anchor="middle" dy=".3em" style="fill:rgb(${Color.WHITE.red}, ${Color.WHITE.green}, ${Color.WHITE.blue});font-family:${theme.fontName};font-size:${theme.fontSize};">${this.label.name}</text>"""+"\n")
+        if (browserFix)
+            buff.append(indentChar.repeat(indentLevel+1)+"""<text x="${this.circle!!.centerX+transX+theme.deltaXRes}" y="${this.circle!!.centerY+transY+theme.deltaYRes}" text-anchor="middle" dy=".3em" style="fill:rgb(${Color.WHITE.red}, ${Color.WHITE.green}, ${Color.WHITE.blue});font-family:${theme.fontName};font-size:${theme.fontSize};">${this.label.name}</text>"""+"\n")
+        else
+            buff.append(indentChar.repeat(indentLevel+1)+"""<text x="${this.circle!!.bounds2D.minX.toFloat()+transX+theme.deltaXRes + when (this.label) { SecondaryStructureElement.A -> theme.ATransX ; SecondaryStructureElement.U -> theme.UTransX ; SecondaryStructureElement.G -> theme.GTransX ; SecondaryStructureElement.C -> theme.CTransX ; else -> theme.XTransX } }" y="${this.circle!!.bounds2D.minY.toFloat()+transY+theme.deltaYRes + when (this.label) { SecondaryStructureElement.A -> theme.ATransY ; SecondaryStructureElement.U -> theme.UTransY ; SecondaryStructureElement.G -> theme.GTransY ; SecondaryStructureElement.C -> theme.CTransY ; else -> theme.XTransY } }" style="fill:rgb(${Color.WHITE.red}, ${Color.WHITE.green}, ${Color.WHITE.blue});font-family:${theme.fontName};font-size:${theme.fontSize};">${this.label.name}</text>"""+"\n")
         buff.append(indentChar.repeat(indentLevel)+"</g>\n")
         return buff.toString()
     }
@@ -1332,4 +1368,25 @@ fun getPerpendicular(p0:Point2D, p1:Point2D, p2:Point2D, distance:Double) : Pair
     } else {
         return Pair<Point2D,Point2D>(Point2D.Double(p0.x - oppositeSideFrom(angle, distance), p0.y + adjacentSideFrom(angle,distance)), Point2D.Double(p0.x + oppositeSideFrom(angle, distance), p0.y - adjacentSideFrom(angle, distance)))
     }
+}
+
+fun getAWTColor(htmlColor: String): Color? {
+    val r: Int
+    val g: Int
+    val b: Int
+    require(!(htmlColor.length != 7 || htmlColor[0] != '#')) { "$htmlColor is not an HTML color string" }
+    r = htmlColor.substring(1, 3).toInt(16)
+    g = htmlColor.substring(3, 5).toInt(16)
+    b = htmlColor.substring(5, 7).toInt(16)
+    return Color(r, g, b)
+}
+
+fun getHTMLColorString(color: Color): String {
+    val red = Integer.toHexString(color.red)
+    val green = Integer.toHexString(color.green)
+    val blue = Integer.toHexString(color.blue)
+    return "#" +
+            (if (red.length == 1) "0$red" else red) +
+            (if (green.length == 1) "0$green" else green) +
+            if (blue.length == 1) "0$blue" else blue
 }
