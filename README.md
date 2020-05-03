@@ -3,7 +3,7 @@ RNArtistCore
 
 RNArtistCore is a commandline tool and a Kotlin library to describe and plot RNA secondary structures. As a library it is used in the projects RNArtist and RNArtistBackend.
 
-# The command-line tool
+# The command-  line tool
 <pre>
 Usage: java -jar rnartistcore.jar [options]  [-f file_name] [-id database_id] -o directory
 
@@ -18,8 +18,8 @@ Description:
 Mandatory Options:
 ==================
     -f file_name
-        Either this option or -id is mandatory. The local file describing an RNA secondary structure. This option
-        accepts several file names.
+        Either this option or -id is mandatory. The local file needs to describe an RNA secondary structure (BPSEQ, 
+        VIENNA, CT and STOCKHOLM formats). Several file names are allowed.
 
     -id database_entry_id
         Either this option or -f is mandatory. The database_entry_id has to conform to:
