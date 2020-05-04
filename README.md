@@ -36,10 +36,11 @@ user-defined values can be saved in a configuration file and become the default 
 ## Other Options:
 
 * --browser-fix
+  --no-browser-fix
 
     If you display your SVG files in a browser and observe some issues concerning the centering of residue characters,
     try to add this option. If this doesn't fix the problem, you can improve the centering by yourself with the options
-    "dxr" and "dyr".
+    "dxr" and "dyr". Use "--no-browser-fix -s" if you ahve saved the option --browser-fix.
 
 * -cA "HTML_color_code"<br/>
   -cU "HTML_color_code"<br/>

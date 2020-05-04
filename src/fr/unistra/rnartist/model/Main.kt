@@ -20,10 +20,15 @@ fun main(args:Array<String>) {
             println("\n#### Current user-defined options to plot the 2D structures ####")
             for ((k,v) in theme.themeParams)
                 println("- ${k}: ${v}")
+            println("- SVG WebBrowsers fix: ${RnartistConfig.exportSVGWithBrowserCompatibility()}")
             println("##################################################################\n")
         }
         else if (optionExists(args, "-f", "-id")) {
 
+            if (optionExists(args, "--browser-fix"))
+                RnartistConfig.exportSVGWithBrowserCompatibility(true)
+            if (optionExists(args, "--no-browser-fix"))
+                RnartistConfig.exportSVGWithBrowserCompatibility(false)
             getOptionValue(args, "-cA")?.let {
                 if (!it.startsWith("#"))
                     theme.AColor = getAWTColor("#$it")!!
@@ -134,12 +139,12 @@ fun main(args:Array<String>) {
                             ss?.let {
                                 val drawing = SecondaryStructureDrawing(ss, theme = theme)
                                 if (outputPath.equals("-")) {
-                                    println(drawing.asSVG(browserFix = optionExists(args, "--browser-fix")))
+                                    println(drawing.asSVG())
                                 } else {
                                     println("Processing ${path}")
                                     val tokens = path.split("/").last().split(".")
                                     val writer = PrintWriter(File(File(outputPath).getAbsolutePath(), "${tokens.subList(0, tokens.size - 1).joinToString(separator = ".")}.svg"))
-                                    writer.write(drawing.asSVG(browserFix = optionExists(args, "--browser-fix")))
+                                    writer.write(drawing.asSVG())
                                     writer.close()
                                 }
                             }
@@ -152,11 +157,11 @@ fun main(args:Array<String>) {
                         for (ss in parseStockholm(Rfam().getEntry(database_id.trim()))) {
                             var drawing = SecondaryStructureDrawing(secondaryStructure = ss)
                             if (outputPath.equals("-")) {
-                                println(drawing.asSVG(browserFix = optionExists(args, "--browser-fix")))
+                                println(drawing.asSVG())
                             } else {
                                 println("Processing ${ss.rna.name}")
                                 var writer = FileWriter(File(File(outputPath).getAbsolutePath(), "${ss.rna.name.replace('/', '_')}.svg"))
-                                writer.write(drawing.asSVG(browserFix = optionExists(args, "--browser-fix")))
+                                writer.write(drawing.asSVG())
                                 writer.close()
                             }
                         }
@@ -222,10 +227,11 @@ Mandatory Options:
 Other Options:
 ==============
     
-    --browser-fix 
+    --browser-fix
+    --no-browser-fix
         If you display your SVG files in a browser and observe some issues concerning the centering of residue characters, 
         try to add this option. If this doesn't fix the problem, you can improve the centering by yourself with the options 
-        "dxr" and "dyr".
+        "dxr" and "dyr". Use "--no-browser-fix -s" if you ahve saved the option --browser-fix.
     
     -cA "HTML_color_code"
     -cU "HTML_color_code"

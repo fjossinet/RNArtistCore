@@ -612,7 +612,7 @@ class SecondaryStructureDrawing(val secondaryStructure:SecondaryStructure, frame
         return false
     }
 
-    fun asSVG(browserFix:Boolean=false):String {
+    fun asSVG():String {
         val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB) //just to get a Graphics object
         val g = image.createGraphics()
         theme.fontSize = computeOptimalFontSize(g, GraphicContext(),theme,"A", residues.first().circle!!.width,residues.first().circle!!.height)
@@ -637,7 +637,7 @@ class SecondaryStructureDrawing(val secondaryStructure:SecondaryStructure, frame
         secondaryInteractions.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
         phosphodiesterBonds.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
         tertiaryInteractions.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
-        residues.map { it.asSVG(browserFix, indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
+        residues.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
         svgBuffer.append("</svg>")
         return svgBuffer.toString()
     }
@@ -701,10 +701,10 @@ class ResidueCircle(val absPos:Int, label:Char) {
         }
     }
 
-    fun asSVG(browserFix:Boolean = false, indentChar:String ="\t", indentLevel:Int = 1, theme:Theme, transX:Double= 0.0, transY:Double = 0.0):String {
+    fun asSVG(indentChar:String ="\t", indentLevel:Int = 1, theme:Theme, transX:Double= 0.0, transY:Double = 0.0):String {
         val buff = StringBuffer(indentChar.repeat(indentLevel)+"<g>\n")
         buff.append(indentChar.repeat(indentLevel+1)+"""<circle cx="${this.circle!!.centerX+transX}" cy="${this.circle!!.centerY+transY}" r="${this.circle!!.width/2}" stroke="rgb(${Color.DARK_GRAY.red}, ${Color.DARK_GRAY.green}, ${Color.DARK_GRAY.blue})" stroke-width="${theme.residueBorder}" fill="rgb(${getColor(theme).red}, ${getColor(theme).green}, ${getColor(theme).blue})" />"""+"\n")
-        if (browserFix)
+        if (RnartistConfig.exportSVGWithBrowserCompatibility())
             buff.append(indentChar.repeat(indentLevel+1)+"""<text x="${this.circle!!.centerX+transX+theme.deltaXRes}" y="${this.circle!!.centerY+transY+theme.deltaYRes}" text-anchor="middle" dy=".3em" style="fill:rgb(${Color.WHITE.red}, ${Color.WHITE.green}, ${Color.WHITE.blue});font-family:${theme.fontName};font-size:${theme.fontSize};">${this.label.name}</text>"""+"\n")
         else
             buff.append(indentChar.repeat(indentLevel+1)+"""<text x="${this.circle!!.bounds2D.minX.toFloat()+transX+theme.deltaXRes + when (this.label) { SecondaryStructureElement.A -> theme.ATransX ; SecondaryStructureElement.U -> theme.UTransX ; SecondaryStructureElement.G -> theme.GTransX ; SecondaryStructureElement.C -> theme.CTransX ; else -> theme.XTransX } }" y="${this.circle!!.bounds2D.minY.toFloat()+transY+theme.deltaYRes + when (this.label) { SecondaryStructureElement.A -> theme.ATransY ; SecondaryStructureElement.U -> theme.UTransY ; SecondaryStructureElement.G -> theme.GTransY ; SecondaryStructureElement.C -> theme.CTransY ; else -> theme.XTransY } }" style="fill:rgb(${Color.WHITE.red}, ${Color.WHITE.green}, ${Color.WHITE.blue});font-family:${theme.fontName};font-size:${theme.fontSize};">${this.label.name}</text>"""+"\n")

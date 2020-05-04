@@ -261,41 +261,17 @@ object RnartistConfig {
         }
 
     @JvmStatic
-    fun showHelpToolTip(): Boolean {
-        var e = document!!.rootElement.getChild("show-help-tooltip")
-        if (e == null) {
-            e = Element("show-help-tooltip")
-            e.text = "true"
-            document!!.rootElement.addContent(e)
-        }
-        return e.text == "true"
+    fun exportSVGWithBrowserCompatibility(): Boolean {
+        var e = document!!.rootElement.getChild("export-SVG-with-browser-compatibility")
+        return e != null
     }
 
     @JvmStatic
-    fun showHelpToolTip(show: Boolean) {
-        document!!.rootElement.getChild("show-help-tooltip").text = "" + show
-    }
-
-    @JvmStatic
-    fun showWelcomeDialog(): Boolean {
-        var e = document!!.rootElement.getChild("show-welcome-dialog")
-        if (e == null) {
-            e = Element("show-welcome-dialog")
-            e.text = "true"
-            document!!.rootElement.addContent(e)
-        }
-        return e.text == "true"
-    }
-
-    @JvmStatic
-    fun showWelcomeDialog(show: Boolean) {
-        var e = document!!.rootElement.getChild("show-welcome-dialog")
-        if (e == null) {
-            e = Element("show-welcome-dialog")
-            e.text = "true"
-            document!!.rootElement.addContent(e)
-        }
-        document!!.rootElement.getChild("show-welcome-dialog").text = "" + show
+    fun exportSVGWithBrowserCompatibility(compatibility: Boolean) {
+        if (compatibility && !exportSVGWithBrowserCompatibility() /*the element is not already there*/)
+            document!!.rootElement.addContent(Element("export-SVG-with-browser-compatibility"))
+        else if (!compatibility)
+            document!!.rootElement.removeChild("export-SVG-with-browser-compatibility")
     }
 
     @JvmStatic
