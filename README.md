@@ -161,8 +161,10 @@ val ss2 = SecondaryStructure(RNA(name="myRNA",seq = "CGCUGAAUUCAGCG"), bracketNo
 ```kotlin
 val theme = Theme()
 //we tweak the default theme
-theme.fontName = "Arial"
+theme.fontName = "Futura"
+theme.secondaryInteractionWidth = 4
 theme.residueBorder = 1
+theme.GColor = Color(223, 1, 1)
 var drawing = SecondaryStructureDrawing(secondaryStructure = ss2, theme = theme)
 
 var writer = FileWriter("media/myRNA.svg")
@@ -183,6 +185,7 @@ val ss = SecondaryStructure(RNA(name="myRNA2",seq = seq), bracketNotation = bn)
 val theme = Theme()
 //we tweak the default theme
 theme.fontName = "Futura"
+theme.secondaryInteractionWidth = 4
 theme.residueBorder = 1
 theme.GColor = Color(223, 1, 1)
 val drawing = SecondaryStructureDrawing(secondaryStructure = ss, theme = theme)
