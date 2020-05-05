@@ -275,6 +275,27 @@ object RnartistConfig {
     }
 
     @JvmStatic
+    var selectionFading: Int
+        get() {
+            document!!.rootElement.getChild("selection-fading")?.let {
+                return it.text.toInt()
+            }
+            val e = Element("selection-fading")
+            e.text = "50"
+            document!!.rootElement.addContent(e)
+            return e.text.toInt()
+        }
+        set(value) {
+            document!!.rootElement.getChild("selection-fading")?.let {
+                it.text = value.toString()
+            }
+            val e = Element("selection-fading")
+            e.text = "50"
+            document!!.rootElement.addContent(e)
+            e.text = value.toString()
+        }
+
+    @JvmStatic
     fun launchChimeraAtStart(): Boolean {
         var e = document!!.rootElement.getChild("launch-chimera")
         if (e == null) {

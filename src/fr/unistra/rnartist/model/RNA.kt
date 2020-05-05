@@ -685,6 +685,7 @@ class SecondaryStructure(val rna:RNA, bracketNotation:String? = null, basePairs:
 
     fun findJunctions() {
         this.junctions.clear()
+        var junctionCount = 0
         for (h in this.helices) {
             h.junctionsLinked = Pair<Junction?, Junction?>(null,null)
         }
@@ -708,7 +709,7 @@ class SecondaryStructure(val rna:RNA, bracketNotation:String? = null, basePairs:
                 } while (pos != h.ends[1])
 
                 if (!positionsInJunction.isEmpty())
-                    this.junctions.add(Junction(location=Location(positions=positionsInJunction.toIntArray()), helicesLinked=helicesLinked))
+                    this.junctions.add(Junction(name = "J${junctionCount++}", location=Location(positions=positionsInJunction.toIntArray()), helicesLinked=helicesLinked))
             }
 
             //the other side (of the river ;-) )
@@ -730,7 +731,7 @@ class SecondaryStructure(val rna:RNA, bracketNotation:String? = null, basePairs:
                 } while (pos != h.ends[3])
 
                 if (!positionsInJunction.isEmpty())
-                    this.junctions.add(Junction(location=Location(positions=positionsInJunction.toIntArray()), helicesLinked=helicesLinked))
+                    this.junctions.add(Junction(name = "J${junctionCount++}", location=Location(positions=positionsInJunction.toIntArray()), helicesLinked=helicesLinked))
             }
         }
     }

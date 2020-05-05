@@ -1,6 +1,7 @@
 package fr.unistra.rnartist.model
 
 import fr.unistra.rnartist.model.RnartistConfig.defaultTheme
+import fr.unistra.rnartist.model.RnartistConfig.selectionFading
 import java.awt.*
 import java.awt.Color
 import java.awt.geom.*
@@ -34,6 +35,7 @@ class GraphicContext() {
     var finalZoomLevel = 1.0
     var screen_capture = false
     var screen_capture_area: Rectangle2D? = null
+    val selectedResidues = mutableListOf<Int>()
 
     fun moveView(transX: Double, transY: Double) {
         viewX += transX
@@ -296,12 +298,12 @@ class SecondaryStructureDrawing(val secondaryStructure:SecondaryStructure, frame
     val tertiaryInteractions = mutableListOf<TertiaryInteractionLine>()
     val allJunctions:List<JunctionCircle>
         get() {
-            val allJunctions = mutableListOf<JunctionCircle>()
+            val allJunctions = mutableSetOf<JunctionCircle>()
             for (branch in this.branches) {
                 allJunctions.add(branch)
                 allJunctions.addAll(branch.junctionsFromBranch())
             }
-            return allJunctions
+            return allJunctions.toList()
         }
 
     init {
@@ -488,11 +490,6 @@ class SecondaryStructureDrawing(val secondaryStructure:SecondaryStructure, frame
         return Rectangle(minX.toInt(), minY.toInt(), (maxX-minX).toInt(), (maxY-minY).toInt())
     }
 
-    fun getAllResidues():List<ResidueCircle> {
-        val residues = mutableListOf<ResidueCircle>()
-        return residues
-    }
-
     fun draw (g: Graphics2D, gc:GraphicContext) {
         if (!theme.quickDraw) {
             val at = AffineTransform()
@@ -670,16 +667,25 @@ class ResidueCircle(val absPos:Int, label:Char) {
             at.scale(gc.finalZoomLevel, gc.finalZoomLevel)
             val _c = at.createTransformedShape(this.circle)
             g.color = getColor(theme)
+            if (!gc.selectedResidues.isEmpty() && !(this.absPos in gc.selectedResidues)) {
+                g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
+            }
             g.fill(_c)
             if (!theme.quickDraw) {
                 val previousStroke: Stroke = g.getStroke()
                 g.stroke = BasicStroke(gc.finalZoomLevel.toFloat() * theme.residueBorder)
                 g.color = Color.DARK_GRAY
+                if (!gc.selectedResidues.isEmpty() && !(this.absPos in gc.selectedResidues)) {
+                    g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
+                }
                 g.draw(_c)
                 g.stroke = previousStroke
             }
             if (g.font.size > 5 && !theme.quickDraw) {
                 g.color = Color.WHITE
+                if (!gc.selectedResidues.isEmpty() && !(this.absPos in gc.selectedResidues)) {
+                    g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
+                }
                 when (this.label.name) {
                     "A" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.ATransX + (theme.deltaXRes*gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.ATransY - (theme.deltaYRes*gc.finalZoomLevel).toFloat())
                     "U" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.UTransX + (theme.deltaXRes*gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.UTransY - (theme.deltaYRes*gc.finalZoomLevel).toFloat())
@@ -745,7 +751,6 @@ class JunctionCircle (circlesFromBranchSoFar: MutableList<Triple<Point2D, Double
     var helices = mutableListOf<HelixLine>()
     var connectedJunctions = mutableMapOf<ConnectorId,JunctionCircle>()
     val connectors:Array<Point2D> = Array(ConnectorId.values().size, { Point2D.Float(0F,0F) } ) //the connector points on the circle
-
     var layout:MutableList<ConnectorId>? = defaultLayouts[this.junction.type]?.toMutableList()
         set(value) {
             //we order the helices according to the start but with inHelix as the first one
@@ -1089,6 +1094,9 @@ class SecondaryInteractionLine(val interaction:BasePair, val ssDrawing:Secondary
         val previousStroke = g.stroke
         g.stroke = BasicStroke(gc.finalZoomLevel.toFloat()*theme.secondaryInteractionWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL)
         g.color = theme.SecondaryColor
+        if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.interaction.location.start-1].absPos in gc.selectedResidues) || !(this.ssDrawing.residues[this.interaction.location.end-1].absPos in gc.selectedResidues))) {
+            g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
+        }
         val center1 = this.ssDrawing.residues[this.interaction.location.start-1].center
         val center2 = this.ssDrawing.residues[this.interaction.location.end-1].center
         if (center1 != null && center2 != null) {
@@ -1124,6 +1132,9 @@ class TertiaryInteractionLine(val interaction:BasePair, val ssDrawing:SecondaryS
         val center2 = this.ssDrawing.residues[this.interaction.location.end-1].center
         if (theme.tertiaryInteractionWidth != 0 && center1 != null && center2 != null) {
             g.color = theme.TertiaryColor
+            if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.interaction.location.start-1].absPos in gc.selectedResidues) || !(this.ssDrawing.residues[this.interaction.location.end-1].absPos in gc.selectedResidues))) {
+                g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
+            }
             if (theme.tertiaryInteractionStyle == DASHED)
                 g.stroke = BasicStroke(gc.finalZoomLevel.toFloat() * theme.tertiaryInteractionWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL, 0F, floatArrayOf(gc.finalZoomLevel.toFloat() * theme.tertiaryInteractionWidth * 2), 0F)
             else
@@ -1133,6 +1144,9 @@ class TertiaryInteractionLine(val interaction:BasePair, val ssDrawing:SecondaryS
         }
         g.stroke = BasicStroke(gc.finalZoomLevel.toFloat()*theme.haloWidth)
         g.color = theme.TertiaryColor
+        if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.interaction.location.start-1].absPos in gc.selectedResidues) || !(this.ssDrawing.residues[this.interaction.location.end-1].absPos in gc.selectedResidues))) {
+            g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
+        }
         g.draw(at.createTransformedShape(this.ssDrawing.residues[this.interaction.location.start-1].circle))
         g.draw(at.createTransformedShape(this.ssDrawing.residues[this.interaction.location.end-1].circle))
         g.stroke = previousStroke
@@ -1156,6 +1170,9 @@ class PhosphodiesterBondLine(val start:Int, val end:Int, val ssDrawing:Secondary
         val previousStroke = g.stroke
         g.stroke = BasicStroke(gc.finalZoomLevel.toFloat()*2)
         g.color = Color.DARK_GRAY
+        if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.start-1].absPos in gc.selectedResidues) || !(this.ssDrawing.residues[this.end-1].absPos in gc.selectedResidues))) {
+            g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
+        }
         val center1 = this.ssDrawing.residues[this.start-1].center
         val center2 = this.ssDrawing.residues[this.end-1].center
         if (center1 != null && center2 != null) {
