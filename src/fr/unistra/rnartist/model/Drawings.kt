@@ -35,7 +35,16 @@ class GraphicContext() {
     var finalZoomLevel = 1.0
     var screen_capture = false
     var screen_capture_area: Rectangle2D? = null
-    val selectedResidues = mutableListOf<Int>()
+    val selectedResidues = mutableListOf<ResidueCircle>()
+
+    fun clear() {
+        viewX = 0.0
+        viewY = 0.0
+        finalZoomLevel = 1.0
+        screen_capture = false
+        screen_capture_area = null
+        selectedResidues.clear()
+    }
 
     fun moveView(transX: Double, transY: Double) {
         viewX += transX
@@ -45,12 +54,29 @@ class GraphicContext() {
     fun setZoom(zoomFactor: Double) {
         finalZoomLevel *= zoomFactor
     }
+
+    fun centerFrameOnSelection(frame: Rectangle2D) {
+        val at = AffineTransform()
+        at.translate(viewX, viewY)
+        at.scale(finalZoomLevel, finalZoomLevel)
+
+        val centers = mutableListOf<Point2D>()
+        for (res in this.selectedResidues) {
+            val bounds = at.createTransformedShape(res.circle).bounds2D
+            centers.add(Point2D.Double(bounds.centerX, bounds.centerY))
+        }
+
+        val centroid = centroid(centers)
+
+        viewX += frame.bounds2D.centerX - centroid.x
+        viewY += frame.bounds2D.centerY - centroid.y
+    }
 }
 
 interface ThemeConfigurator {
     fun getHaloWidth():Int
     fun getTertiaryOpacity():Int
-    fun getTertiaryInteractionStyle():Byte
+    fun getTertiaryInteractionStyle():String
     fun getResidueBorder():Int
     fun getSecondaryInteractionWidth():Int
     fun getTertiaryInteractionWidth():Int
@@ -58,10 +84,15 @@ interface ThemeConfigurator {
     fun getDeltaYRes():Int
     fun getDeltaFontSize():Int
     fun getAColor():String //HTML Color code
+    fun getAChar():String //HTML Color code
     fun getUColor():String //HTML Color code
+    fun getUChar():String //HTML Color code
     fun getGColor():String //HTML Color code
+    fun getGChar():String //HTML Color code
     fun getCColor():String //HTML Color code
+    fun getCChar():String //HTML Color code
     fun getXColor():String //HTML Color code
+    fun getXChar():String //HTML Color code
     fun getSecondaryInteractionColor():String //HTML Color code
     fun getTertiaryInteractionColor():String //HTML Color code
     fun getFontName():String
@@ -70,12 +101,12 @@ interface ThemeConfigurator {
 fun transparentColor(source:Color, alpha:Int) = Color(source.red, source.green, source.blue, alpha);
 
 @JvmField
-var DASHED: Byte = 0
+var DASHED = "dashed"
 @JvmField
-var SOLID: Byte = 1
+var SOLID = "solid"
 
 enum class ThemeParameter {
-    AColor, UColor, GColor, CColor, XColor, SecondaryColor, TertiaryColor, HaloWidth, TertiaryOpacity, SecondaryInteractionWidth, TertiaryInteractionWidth, TertiaryInteractionStyle, ResidueBorder, FontName, DeltaXRes, DeltaYRes, DeltaFontSize
+    AColor, AChar, UColor, UChar, GColor, GChar, CColor, CChar, XColor, XChar, SecondaryColor, TertiaryColor, HaloWidth, TertiaryOpacity, SecondaryInteractionWidth, TertiaryInteractionWidth, TertiaryInteractionStyle, ResidueBorder, FontName, DeltaXRes, DeltaYRes, DeltaFontSize
 }
 
 class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeConfigurator:ThemeConfigurator? = null) {
@@ -86,7 +117,7 @@ class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeC
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.HaloWidth.toString(), it.getHaloWidth().toString())
+                return Integer.parseInt(it.getHaloWidth().toString())
             }
             return Integer.parseInt(this.themeParams.get(ThemeParameter.HaloWidth.toString()))
         }
@@ -96,19 +127,19 @@ class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeC
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.TertiaryOpacity.toString(), it.getTertiaryOpacity().toString())
+                return Integer.parseInt(it.getTertiaryOpacity().toString())
             }
             return Integer.parseInt(this.themeParams.get(ThemeParameter.TertiaryOpacity.toString()))
         }
-    var tertiaryInteractionStyle: Byte
+    var tertiaryInteractionStyle: String
         set(value) {
-            this.themeParams.set(ThemeParameter.ResidueBorder.toString(), if (value == DASHED) "dashed" else "solid")
+            this.themeParams.set(ThemeParameter.TertiaryInteractionStyle.toString(), value)
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.ResidueBorder.toString(), if (it.getTertiaryInteractionStyle() == DASHED) "dashed" else "solid")
+                return it.getTertiaryInteractionStyle()
             }
-            return if (this.themeParams.get(ThemeParameter.TertiaryInteractionStyle.toString()).equals("dashed")) DASHED else SOLID
+            return this.themeParams.get(ThemeParameter.TertiaryInteractionStyle.toString())!!
         }
     var residueBorder: Int
         set(value) {
@@ -116,7 +147,7 @@ class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeC
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.ResidueBorder.toString(), it.getResidueBorder().toString())
+                return Integer.parseInt(it.getResidueBorder().toString())
             }
             return Integer.parseInt(this.themeParams.get(ThemeParameter.ResidueBorder.toString()))
         }
@@ -126,7 +157,7 @@ class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeC
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.SecondaryInteractionWidth.toString(), it.getSecondaryInteractionWidth().toString())
+                return Integer.parseInt(it.getSecondaryInteractionWidth().toString())
             }
             return Integer.parseInt(this.themeParams.get(ThemeParameter.SecondaryInteractionWidth.toString()))
         }
@@ -136,7 +167,7 @@ class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeC
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.TertiaryInteractionWidth.toString(), it.getTertiaryInteractionWidth().toString())
+                return Integer.parseInt(it.getTertiaryInteractionWidth().toString())
             }
             return Integer.parseInt(this.themeParams.get(ThemeParameter.TertiaryInteractionWidth.toString()))
         }
@@ -146,7 +177,7 @@ class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeC
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.DeltaXRes.toString(), it.getDeltaXRes().toString())
+                return Integer.parseInt(it.getDeltaXRes().toString())
             }
             return Integer.parseInt(this.themeParams.get(ThemeParameter.DeltaXRes.toString()))
         }
@@ -156,7 +187,7 @@ class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeC
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.DeltaYRes.toString(), it.getDeltaYRes().toString())
+                return Integer.parseInt(it.getDeltaYRes().toString())
             }
             return Integer.parseInt(this.themeParams.get(ThemeParameter.DeltaYRes.toString()))
         }
@@ -166,9 +197,9 @@ class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeC
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.DeltaFontSize.toString(), it.getDeltaFontSize().toString())
+                return Integer.parseInt(it.getDeltaFontSize().toString())
             }
-            return this.themeParams.get(ThemeParameter.DeltaFontSize.toString())!!.toInt()
+            return Integer.parseInt(this.themeParams.get(ThemeParameter.DeltaFontSize.toString()))
         }
     var AColor: Color
         set(value) {
@@ -176,9 +207,19 @@ class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeC
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.AColor.toString(), it.getAColor())
+                return getAWTColor(it.getAColor())!!
             }
             return getAWTColor(this.themeParams.get(ThemeParameter.AColor.toString())!!)!!
+        }
+    var AChar: Color
+        set(value) {
+            this.themeParams.set(ThemeParameter.AChar.toString(), getHTMLColorString(value))
+        }
+        get() {
+            themeConfigurator?.let {
+                return getAWTColor(it.getAChar())!!
+            }
+            return getAWTColor(this.themeParams.get(ThemeParameter.AChar.toString())!!)!!
         }
     var UColor: Color
         set(value) {
@@ -186,9 +227,19 @@ class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeC
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.UColor.toString(), it.getUColor())
+                return getAWTColor(it.getUColor())!!
             }
             return getAWTColor(this.themeParams.get(ThemeParameter.UColor.toString())!!)!!
+        }
+    var UChar: Color
+        set(value) {
+            this.themeParams.set(ThemeParameter.UChar.toString(), getHTMLColorString(value))
+        }
+        get() {
+            themeConfigurator?.let {
+                return getAWTColor(it.getUChar())!!
+            }
+            return getAWTColor(this.themeParams.get(ThemeParameter.UChar.toString())!!)!!
         }
     var GColor: Color
         set(value) {
@@ -196,9 +247,19 @@ class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeC
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.GColor.toString(), it.getGColor())
+                return getAWTColor(it.getGColor())!!
             }
             return getAWTColor(this.themeParams.get(ThemeParameter.GColor.toString())!!)!!
+        }
+    var GChar: Color
+        set(value) {
+            this.themeParams.set(ThemeParameter.GChar.toString(), getHTMLColorString(value))
+        }
+        get() {
+            themeConfigurator?.let {
+                return getAWTColor(it.getGChar())!!
+            }
+            return getAWTColor(this.themeParams.get(ThemeParameter.GChar.toString())!!)!!
         }
     var CColor: Color
         set(value) {
@@ -206,9 +267,19 @@ class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeC
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.CColor.toString(), it.getCColor())
+                return getAWTColor(it.getCColor())!!
             }
             return getAWTColor(this.themeParams.get(ThemeParameter.CColor.toString())!!)!!
+        }
+    var CChar: Color
+        set(value) {
+            this.themeParams.set(ThemeParameter.CChar.toString(), getHTMLColorString(value))
+        }
+        get() {
+            themeConfigurator?.let {
+                return getAWTColor(it.getCChar())!!
+            }
+            return getAWTColor(this.themeParams.get(ThemeParameter.CChar.toString())!!)!!
         }
     var XColor: Color
         set(value) {
@@ -216,9 +287,19 @@ class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeC
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.XColor.toString(), it.getXColor())
+                return getAWTColor(it.getXColor())!!
             }
             return getAWTColor(this.themeParams.get(ThemeParameter.XColor.toString())!!)!!
+        }
+    var XChar: Color
+        set(value) {
+            this.themeParams.set(ThemeParameter.XChar.toString(), getHTMLColorString(value))
+        }
+        get() {
+            themeConfigurator?.let {
+                return getAWTColor(it.getXChar())!!
+            }
+            return getAWTColor(this.themeParams.get(ThemeParameter.XChar.toString())!!)!!
         }
     var SecondaryColor: Color
         set(value) {
@@ -226,7 +307,7 @@ class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeC
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.SecondaryColor.toString(), it.getSecondaryInteractionColor())
+                return getAWTColor(it.getSecondaryInteractionColor())!!
             }
             return getAWTColor(this.themeParams.get(ThemeParameter.SecondaryColor.toString())!!)!!
         }
@@ -236,7 +317,7 @@ class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeC
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.TertiaryColor.toString(), it.getTertiaryInteractionColor())
+                return getAWTColor(it.getTertiaryInteractionColor())!!
             }
             return getAWTColor(this.themeParams.get(ThemeParameter.TertiaryColor.toString())!!)!!
         }
@@ -246,7 +327,7 @@ class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeC
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.FontName.toString(), it.getFontName())
+                return it.getFontName()
             }
             return this.themeParams.get(ThemeParameter.FontName.toString())!!
         }
@@ -265,6 +346,31 @@ class Theme(val themeParams:MutableMap<String,String> = defaultTheme, val themeC
     var fontStyle = Font.PLAIN
     var fontSize = 12 //not user-defined. Computed by the function computeOptimalFontSize()
     var quickDraw = false
+
+    fun save() {
+        this.AChar = this.AChar
+        this.AColor = this.AColor
+        this.UChar = this.UChar
+        this.UColor = this.UColor
+        this.GChar = this.GChar
+        this.GColor = this.GColor
+        this.CChar = this.CChar
+        this.CColor = this.CColor
+        this.XChar = this.XChar
+        this.XColor = this.XColor
+        this.SecondaryColor = this.SecondaryColor
+        this.TertiaryColor = this.TertiaryColor
+        this.fontName = this.fontName
+        this.residueBorder = this.residueBorder
+        this.secondaryInteractionWidth = this.secondaryInteractionWidth
+        this.tertiaryInteractionWidth = this.tertiaryInteractionWidth
+        this.deltaFontSize = this.deltaFontSize
+        this.deltaXRes = this.deltaXRes
+        this.deltaYRes = this.deltaYRes
+        this.haloWidth = this.haloWidth
+        this.tertiaryOpacity = this.tertiaryOpacity
+        this.tertiaryInteractionStyle = this.tertiaryInteractionStyle
+    }
 
 }
 
@@ -482,6 +588,16 @@ class SecondaryStructureDrawing(val secondaryStructure:SecondaryStructure, frame
         }
     }
 
+    fun getResiduesFromAbsPositions(positions:List<Int>): List<ResidueCircle> {
+        val _residues:MutableList<ResidueCircle> = mutableListOf<ResidueCircle>()
+        for (r:ResidueCircle in residues) {
+            if (r.absPos in positions) {
+                _residues.add(r)
+            }
+        }
+        return _residues
+    }
+
     fun getBounds():Rectangle {
         val minX = this.residues.minBy { it.circle!!.minX }!!.circle!!.minX-theme.residueBorder
         val minY = this.residues.minBy { it.circle!!.minY }!!.circle!!.minY-theme.residueBorder
@@ -667,7 +783,7 @@ class ResidueCircle(val absPos:Int, label:Char) {
             at.scale(gc.finalZoomLevel, gc.finalZoomLevel)
             val _c = at.createTransformedShape(this.circle)
             g.color = getColor(theme)
-            if (!gc.selectedResidues.isEmpty() && !(this.absPos in gc.selectedResidues)) {
+            if (!gc.selectedResidues.isEmpty() && !(this in gc.selectedResidues)) {
                 g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
             }
             g.fill(_c)
@@ -675,15 +791,21 @@ class ResidueCircle(val absPos:Int, label:Char) {
                 val previousStroke: Stroke = g.getStroke()
                 g.stroke = BasicStroke(gc.finalZoomLevel.toFloat() * theme.residueBorder)
                 g.color = Color.DARK_GRAY
-                if (!gc.selectedResidues.isEmpty() && !(this.absPos in gc.selectedResidues)) {
+                if (!gc.selectedResidues.isEmpty() && !(this in gc.selectedResidues)) {
                     g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
                 }
                 g.draw(_c)
                 g.stroke = previousStroke
             }
             if (g.font.size > 5 && !theme.quickDraw) {
-                g.color = Color.WHITE
-                if (!gc.selectedResidues.isEmpty() && !(this.absPos in gc.selectedResidues)) {
+                when (this.label.name) {
+                    "A" -> g.color = theme.AChar
+                    "U" -> g.color = theme.UChar
+                    "G" -> g.color = theme.GChar
+                    "C" -> g.color = theme.CChar
+                    "X" -> g.color = theme.XChar
+                }
+                if (!gc.selectedResidues.isEmpty() && !(this in gc.selectedResidues)) {
                     g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
                 }
                 when (this.label.name) {
@@ -1094,7 +1216,7 @@ class SecondaryInteractionLine(val interaction:BasePair, val ssDrawing:Secondary
         val previousStroke = g.stroke
         g.stroke = BasicStroke(gc.finalZoomLevel.toFloat()*theme.secondaryInteractionWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL)
         g.color = theme.SecondaryColor
-        if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.interaction.location.start-1].absPos in gc.selectedResidues) || !(this.ssDrawing.residues[this.interaction.location.end-1].absPos in gc.selectedResidues))) {
+        if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.interaction.location.start-1] in gc.selectedResidues) || !(this.ssDrawing.residues[this.interaction.location.end-1] in gc.selectedResidues))) {
             g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
         }
         val center1 = this.ssDrawing.residues[this.interaction.location.start-1].center
@@ -1131,8 +1253,8 @@ class TertiaryInteractionLine(val interaction:BasePair, val ssDrawing:SecondaryS
         val center1 = this.ssDrawing.residues[this.interaction.location.start-1].center
         val center2 = this.ssDrawing.residues[this.interaction.location.end-1].center
         if (theme.tertiaryInteractionWidth != 0 && center1 != null && center2 != null) {
-            g.color = theme.TertiaryColor
-            if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.interaction.location.start-1].absPos in gc.selectedResidues) || !(this.ssDrawing.residues[this.interaction.location.end-1].absPos in gc.selectedResidues))) {
+            g.color = Color(theme.TertiaryColor.red, theme.TertiaryColor.green, theme.TertiaryColor.blue, theme.tertiaryOpacity)
+            if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.interaction.location.start-1] in gc.selectedResidues) || !(this.ssDrawing.residues[this.interaction.location.end-1] in gc.selectedResidues))) {
                 g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
             }
             if (theme.tertiaryInteractionStyle == DASHED)
@@ -1143,8 +1265,8 @@ class TertiaryInteractionLine(val interaction:BasePair, val ssDrawing:SecondaryS
             g.draw(at.createTransformedShape(Line2D.Double(p1, p2)))
         }
         g.stroke = BasicStroke(gc.finalZoomLevel.toFloat()*theme.haloWidth)
-        g.color = theme.TertiaryColor
-        if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.interaction.location.start-1].absPos in gc.selectedResidues) || !(this.ssDrawing.residues[this.interaction.location.end-1].absPos in gc.selectedResidues))) {
+        g.color = Color(theme.TertiaryColor.red, theme.TertiaryColor.green, theme.TertiaryColor.blue, theme.tertiaryOpacity)
+        if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.interaction.location.start-1] in gc.selectedResidues) || !(this.ssDrawing.residues[this.interaction.location.end-1] in gc.selectedResidues))) {
             g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
         }
         g.draw(at.createTransformedShape(this.ssDrawing.residues[this.interaction.location.start-1].circle))
@@ -1170,7 +1292,7 @@ class PhosphodiesterBondLine(val start:Int, val end:Int, val ssDrawing:Secondary
         val previousStroke = g.stroke
         g.stroke = BasicStroke(gc.finalZoomLevel.toFloat()*2)
         g.color = Color.DARK_GRAY
-        if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.start-1].absPos in gc.selectedResidues) || !(this.ssDrawing.residues[this.end-1].absPos in gc.selectedResidues))) {
+        if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.start-1] in gc.selectedResidues) || !(this.ssDrawing.residues[this.end-1] in gc.selectedResidues))) {
             g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
         }
         val center1 = this.ssDrawing.residues[this.start-1].center
@@ -1249,7 +1371,7 @@ val defaultLayouts = mapOf<JunctionType, Layout>(
         Pair(JunctionType.TwelveWay, listOf(ConnectorId.so,ConnectorId.o, ConnectorId.ono, ConnectorId.no, ConnectorId.nno, ConnectorId.n, ConnectorId.nne, ConnectorId.ne, ConnectorId.ene, ConnectorId.e, ConnectorId.se)),
         Pair(JunctionType.ThirteenWay, listOf(ConnectorId.so,ConnectorId.oso,ConnectorId.o, ConnectorId.ono, ConnectorId.no, ConnectorId.nno, ConnectorId.n, ConnectorId.nne, ConnectorId.ne, ConnectorId.ene, ConnectorId.e, ConnectorId.se)),
         Pair(JunctionType.FourteenWay, listOf(ConnectorId.so,ConnectorId.oso,ConnectorId.o, ConnectorId.ono, ConnectorId.no, ConnectorId.nno, ConnectorId.n, ConnectorId.nne, ConnectorId.ne, ConnectorId.ene, ConnectorId.e, ConnectorId.ese, ConnectorId.se)),
-        Pair(JunctionType.FiveteenWay, listOf(ConnectorId.sso, ConnectorId.so,ConnectorId.oso,ConnectorId.o, ConnectorId.ono, ConnectorId.no, ConnectorId.nno, ConnectorId.n, ConnectorId.nne, ConnectorId.ne, ConnectorId.ene, ConnectorId.e, ConnectorId.ese, ConnectorId.se)),
+        Pair(JunctionType.FifthteenWay, listOf(ConnectorId.sso, ConnectorId.so,ConnectorId.oso,ConnectorId.o, ConnectorId.ono, ConnectorId.no, ConnectorId.nno, ConnectorId.n, ConnectorId.nne, ConnectorId.ne, ConnectorId.ene, ConnectorId.e, ConnectorId.ese, ConnectorId.se)),
         Pair(JunctionType.SixteenWay, listOf(ConnectorId.sso, ConnectorId.so,ConnectorId.oso,ConnectorId.o, ConnectorId.ono, ConnectorId.no, ConnectorId.nno, ConnectorId.n, ConnectorId.nne, ConnectorId.ne, ConnectorId.ene, ConnectorId.e, ConnectorId.ese, ConnectorId.se, ConnectorId.sse)))
 
 typealias ColorScheme = Map<SecondaryStructureElement, Color>
@@ -1406,4 +1528,23 @@ fun getHTMLColorString(color: Color): String {
             (if (red.length == 1) "0$red" else red) +
             (if (green.length == 1) "0$green" else green) +
             if (blue.length == 1) "0$blue" else blue
+}
+
+fun centroid(points: List<Point2D>): Point2D {
+    return if (points.size == 1) {
+        points.first()
+    }
+    else {
+        val centroid = doubleArrayOf(0.0, 0.0)
+        var i = 0
+        while (i < points.size) {
+            centroid[0] += points[i].x
+            centroid[1] += points[i].y
+            i += 2
+        }
+        val totalPoints = points.size / 2
+        centroid[0] = centroid[0] / totalPoints
+        centroid[1] = centroid[1] / totalPoints
+        Point2D.Double(centroid[0], centroid[1])
+    }
 }

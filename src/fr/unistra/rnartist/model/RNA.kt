@@ -23,7 +23,7 @@ class Block(start:Int,end:Int):Serializable {
 class Location:Serializable {
 
     var blocks = mutableListOf<Block>()
-    val positions: Collection<Int>
+    val positions: List<Int>
         get() {
             val positions = arrayListOf<Int>()
             this.blocks.forEach {
@@ -217,7 +217,7 @@ class Helix(val name:String?="MyHelix"):Serializable {
     }
 }
 
-class Junction(val name:String?="MyJunction", val location:Location, val helicesLinked:List<Helix>):Serializable {
+class Junction(var name:String?="MyJunction", val location:Location, val helicesLinked:List<Helix>):Serializable {
 
     val length:Int
         get() {
@@ -842,7 +842,7 @@ enum class JunctionType(val value:Int) {
     TwelveWay(12),
     ThirteenWay(13),
     FourteenWay(14),
-    FiveteenWay(15),
+    FifthteenWay(15),
     SixteenWay(16),
     Flower(17)
 }
