@@ -159,7 +159,7 @@ class EmbeddedDB() {
         return this.userDB.getCollection("Themes")
     }
 
-    fun addProject(name: String, secondaryStructureDrawing: SecondaryStructureDrawing, tertiaryStructure: TertiaryStructure? = null, theme:Theme, graphicsContext: GraphicContext):NitriteId {
+    fun addProject(name: String, secondaryStructureDrawing: SecondaryStructureDrawing, tertiaryStructure: TertiaryStructure? = null):NitriteId {
         val doc = createDocument("name",name)
 
         doc.put("rna", mutableMapOf<String,String>(
@@ -196,12 +196,12 @@ class EmbeddedDB() {
             //j.radius
         }
         //save infos to clone the design (DrawingConfiguration)
-        doc.put("drawingConfiguration", theme)
+        doc.put("drawingConfiguration", secondaryStructureDrawing.theme)
         //save infos to clone the GraphicsContext (zoom, translation)
         doc.put("graphicsContext", mutableMapOf<String,String>(
-                "viewX" to "${graphicsContext.viewX}",
-                "viewY" to "${graphicsContext.viewY}",
-                "finalZoomLevel" to "${graphicsContext.finalZoomLevel}"
+                "viewX" to "${secondaryStructureDrawing.workingSession.viewX}",
+                "viewY" to "${secondaryStructureDrawing.workingSession.viewY}",
+                "finalZoomLevel" to "${secondaryStructureDrawing.workingSession.finalZoomLevel}"
         ))
         val r = this.userDB.getCollection("Projects").insert(doc)
         return r.first()

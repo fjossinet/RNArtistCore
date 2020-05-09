@@ -137,7 +137,7 @@ fun main(args:Array<String>) {
                     }?.let { secondaryStructures ->
                         secondaryStructures.forEach { ss ->
                             ss?.let {
-                                val drawing = SecondaryStructureDrawing(ss, theme = theme)
+                                val drawing = SecondaryStructureDrawing(ss, theme = theme, workingSession = WorkingSession())
                                 if (outputPath.equals("-")) {
                                     println(drawing.asSVG())
                                 } else {
@@ -155,7 +155,7 @@ fun main(args:Array<String>) {
                 when {
                     Regex("^RF.+").matches(database_id) -> {
                         for (ss in parseStockholm(Rfam().getEntry(database_id.trim()))) {
-                            var drawing = SecondaryStructureDrawing(secondaryStructure = ss)
+                            var drawing = SecondaryStructureDrawing(secondaryStructure = ss, workingSession = WorkingSession())
                             if (outputPath.equals("-")) {
                                 println(drawing.asSVG())
                             } else {
@@ -169,7 +169,7 @@ fun main(args:Array<String>) {
                 }
             }
             if (optionExists(args,"-s", "--save")) {
-                RnartistConfig.saveConfig(theme)
+                RnartistConfig.saveConfig(theme.themeParams)
             }
         } else {
             printHelp()

@@ -26,7 +26,7 @@ fun parseRnaml(f: File?): SecondaryStructure? {
         name = child!!.name
         if (name == "molecule") {
             var moleculeSequence = ""
-            val moleculeName = "RNA"
+            val moleculeName = "A"
             val sequence = child.getChild("sequence")
             if (sequence != null) {
                 val seqdata = sequence.getChild("seq-data")

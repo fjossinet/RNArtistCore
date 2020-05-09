@@ -483,17 +483,21 @@ object RnartistConfig {
 
     @JvmStatic
     @Throws(IOException::class)
-    fun saveConfig(theme:Theme) {
-        var drawing = document!!.rootElement.getChild("theme")
-        if (drawing == null) {
-            drawing = Element("theme")
-            document!!.rootElement.addContent(drawing)
-        } else
-            drawing.removeContent()
-        for ((k, v) in theme.themeParams) {
-            val e = Element(k)
-            e.setText(v)
-            drawing.addContent(e)
+    fun saveConfig(theme:Map<String,String>?) {
+        theme?.let {
+            var drawing = document!!.rootElement.getChild("theme")
+            if (drawing == null) {
+                drawing = Element("theme")
+                document!!.rootElement.addContent(drawing)
+            } else
+                drawing.removeContent()
+
+            for ((k, v) in theme) {
+                val e = Element(k)
+                e.setText(v)
+                drawing.addContent(e)
+                defaultTheme[k] =  v //we don't forget to save it in the defaultTheme map
+            }
         }
         val outputter = XMLOutputter(Format.getPrettyFormat())
         val writer = FileWriter(File(getUserDir(), "config.xml"))

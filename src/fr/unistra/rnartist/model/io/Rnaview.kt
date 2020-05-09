@@ -19,11 +19,9 @@ class Rnaview : Computation() {
             val p = pb.start()
             p.waitFor()
             val ss = parseRnaml(File(temp.parent, temp.name + ".xml"))
-            println(temp.absolutePath)
-            println(ss!!.rna.seq)
-            println(ts.rna.seq)
-            //TODO check if RNAVIEW has modified the RNA -> newTS (see below) like 1C0A
+            ss?.rna?.name = ts.rna.name
             ss
+            //TODO check if RNAVIEW has modified the RNA -> newTS (see below) like 1C0A
         } else if (System.getProperty("os.name") == "Windows 10") {
             val temp = createTemporaryFile("rnaview")
             val writer = PrintWriter(temp)
@@ -32,7 +30,9 @@ class Rnaview : Computation() {
             val p = pb.start()
             p.waitFor()
             //TODO check if RNAVIEW has modified the RNA -> newTS (see below) like 1C0A
-            parseRnaml(File(temp.parent, temp.name + ".xml"))
+            val ss = parseRnaml(File(temp.parent, temp.name + ".xml"))
+            ss?.rna?.name = ts.rna.name
+            ss
         } else {
             null
         }

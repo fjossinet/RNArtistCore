@@ -97,7 +97,7 @@ class Location:Serializable {
     fun contains(position:Int) = this.blocks.any { it.contains(position) }
 }
 
-class RNA(var name:String="A", seq:String):Serializable {
+class RNA(var name:String="A", seq:String, var source:String="Source N.A."):Serializable {
 
     val length:Int
         get() {
@@ -145,7 +145,7 @@ class RNA(var name:String="A", seq:String):Serializable {
     }
 
     override fun toString(): String {
-        return name
+        return "RNA \"${this.name}\" (from ${this.source})"
     }
 }
 
@@ -508,6 +508,7 @@ class SecondaryStructure(val rna:RNA, bracketNotation:String? = null, basePairs:
     var pubDate:String="To be published"
     var pdbId: String? = null
     var source:String? = null
+    var tertiaryStructure:TertiaryStructure? = null
 
     val secondaryInteractions:List<BasePair>
         get() {
