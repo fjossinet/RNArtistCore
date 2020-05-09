@@ -44,7 +44,7 @@ class Rnaview : Computation() {
                 val destFile = File(getUserDir(), "rnaview.bat")
                 if (!destFile.exists()) {
                     destFile.createNewFile()
-                    val inputUrl = Rnaview::class.java.getResource("/fr/unistra/ibmc/rnartist/model/io/rnaview.bat")
+                    val inputUrl = Rnaview::class.java.getResource("/fr/unistra/rnartist/model/io/rnaview.bat")
                     FileUtils.copyURLToFile(inputUrl, destFile)
                 }
             } catch (e: IOException) {

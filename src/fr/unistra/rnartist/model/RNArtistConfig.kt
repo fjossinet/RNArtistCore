@@ -178,7 +178,6 @@ object RnartistConfig {
                     ThemeParameter.AColor.toString() to "#FCFFFD",
                     ThemeParameter.AChar.toString() to getHTMLColorString(Color.BLACK),
                     ThemeParameter.UColor.toString() to "#64B6AC",
-                    ThemeParameter.UChar.toString() to getHTMLColorString(Color.BLACK),
                     ThemeParameter.GColor.toString() to "#C0FDFB",
                     ThemeParameter.GChar.toString() to getHTMLColorString(Color.BLACK),
                     ThemeParameter.CColor.toString() to "#DAFFEF",
