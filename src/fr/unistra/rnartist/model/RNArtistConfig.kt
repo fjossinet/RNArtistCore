@@ -657,22 +657,22 @@ object RnartistConfig {
     @JvmStatic
     var selectionFading: Int
         get() {
-            document!!.rootElement.getChild("selection-fading")?.let {
-                return it.text.toInt()
+            var e: Element? = document!!.rootElement.getChild("selection-fading")
+            if (e == null) {
+                e = Element("selection-fading")
+                e.text = "130"
+                document!!.rootElement.addContent(e)
             }
-            val e = Element("selection-fading")
-            e.text = "130"
-            document!!.rootElement.addContent(e)
             return e.text.toInt()
         }
         set(value) {
             var e: Element? = document!!.rootElement.getChild("selection-fading")
             if (e == null) {
-                val e = Element("selection-fading")
-                e.text = value.toString()
+                e = Element("selection-fading")
+                (e as Element).text = value.toString()
                 document!!.rootElement.addContent(e)
             } else {
-                e.text = value.toString()
+                (e as Element).text = value.toString()
             }
         }
 
