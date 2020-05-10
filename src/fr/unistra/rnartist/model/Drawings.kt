@@ -1,7 +1,6 @@
 package fr.unistra.rnartist.model
 
 import fr.unistra.rnartist.model.RnartistConfig.defaultTheme
-import fr.unistra.rnartist.model.RnartistConfig.selectionFading
 import java.awt.*
 import java.awt.Color
 import java.awt.geom.*
@@ -771,7 +770,7 @@ class ResidueCircle(val absPos:Int, label:Char) {
             val _c = at.createTransformedShape(this.circle)
             g.color = getColor(theme)
             if (!gc.selectedResidues.isEmpty() && !(this in gc.selectedResidues)) {
-                g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
+                g.color = Color(g.color.red, g.color.green, g.color.blue, RnartistConfig.selectionFading)
             }
             g.fill(_c)
             if (!theme.quickDraw) {
@@ -779,7 +778,7 @@ class ResidueCircle(val absPos:Int, label:Char) {
                 g.stroke = BasicStroke(gc.finalZoomLevel.toFloat() * theme.residueBorder)
                 g.color = Color.DARK_GRAY
                 if (!gc.selectedResidues.isEmpty() && !(this in gc.selectedResidues)) {
-                    g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
+                    g.color = Color(g.color.red, g.color.green, g.color.blue, RnartistConfig.selectionFading)
                 }
                 g.draw(_c)
                 g.stroke = previousStroke
@@ -793,7 +792,7 @@ class ResidueCircle(val absPos:Int, label:Char) {
                     "X" -> g.color = theme.XChar
                 }
                 if (!gc.selectedResidues.isEmpty() && !(this in gc.selectedResidues)) {
-                    g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
+                    g.color = Color(g.color.red, g.color.green, g.color.blue, RnartistConfig.selectionFading)
                 }
                 when (this.label.name) {
                     "A" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.ATransX + (theme.deltaXRes*gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.ATransY - (theme.deltaYRes*gc.finalZoomLevel).toFloat())
@@ -1204,7 +1203,7 @@ class SecondaryInteractionLine(val interaction:BasePair, val ssDrawing:Secondary
         g.stroke = BasicStroke(gc.finalZoomLevel.toFloat()*theme.secondaryInteractionWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL)
         g.color = theme.SecondaryColor
         if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.interaction.location.start-1] in gc.selectedResidues) || !(this.ssDrawing.residues[this.interaction.location.end-1] in gc.selectedResidues))) {
-            g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
+            g.color = Color(g.color.red, g.color.green, g.color.blue, RnartistConfig.selectionFading)
         }
         val center1 = this.ssDrawing.residues[this.interaction.location.start-1].center
         val center2 = this.ssDrawing.residues[this.interaction.location.end-1].center
@@ -1242,7 +1241,7 @@ class TertiaryInteractionLine(val interaction:BasePair, val ssDrawing:SecondaryS
         if (theme.tertiaryInteractionWidth != 0 && center1 != null && center2 != null) {
             g.color = Color(theme.TertiaryColor.red, theme.TertiaryColor.green, theme.TertiaryColor.blue, theme.tertiaryOpacity)
             if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.interaction.location.start-1] in gc.selectedResidues) || !(this.ssDrawing.residues[this.interaction.location.end-1] in gc.selectedResidues))) {
-                g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
+                g.color = Color(g.color.red, g.color.green, g.color.blue, RnartistConfig.selectionFading)
             }
             if (theme.tertiaryInteractionStyle == DASHED)
                 g.stroke = BasicStroke(gc.finalZoomLevel.toFloat() * theme.tertiaryInteractionWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL, 0F, floatArrayOf(gc.finalZoomLevel.toFloat() * theme.tertiaryInteractionWidth * 2), 0F)
@@ -1254,7 +1253,7 @@ class TertiaryInteractionLine(val interaction:BasePair, val ssDrawing:SecondaryS
         g.stroke = BasicStroke(gc.finalZoomLevel.toFloat()*theme.haloWidth)
         g.color = Color(theme.TertiaryColor.red, theme.TertiaryColor.green, theme.TertiaryColor.blue, theme.tertiaryOpacity)
         if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.interaction.location.start-1] in gc.selectedResidues) || !(this.ssDrawing.residues[this.interaction.location.end-1] in gc.selectedResidues))) {
-            g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
+            g.color = Color(g.color.red, g.color.green, g.color.blue, RnartistConfig.selectionFading)
         }
         g.draw(at.createTransformedShape(this.ssDrawing.residues[this.interaction.location.start-1].circle))
         g.draw(at.createTransformedShape(this.ssDrawing.residues[this.interaction.location.end-1].circle))
@@ -1280,7 +1279,7 @@ class PhosphodiesterBondLine(val start:Int, val end:Int, val ssDrawing:Secondary
         g.stroke = BasicStroke(gc.finalZoomLevel.toFloat()*2)
         g.color = Color.DARK_GRAY
         if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.start-1] in gc.selectedResidues) || !(this.ssDrawing.residues[this.end-1] in gc.selectedResidues))) {
-            g.color = Color(g.color.red, g.color.green, g.color.blue, selectionFading)
+            g.color = Color(g.color.red, g.color.green, g.color.blue, RnartistConfig.selectionFading)
         }
         val center1 = this.ssDrawing.residues[this.start-1].center
         val center2 = this.ssDrawing.residues[this.end-1].center

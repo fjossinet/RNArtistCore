@@ -663,17 +663,15 @@ object RnartistConfig {
                 e.text = "130"
                 document!!.rootElement.addContent(e)
             }
-            return e.text.toInt()
+            return e.value.toInt()
         }
         set(value) {
             var e: Element? = document!!.rootElement.getChild("selection-fading")
             if (e == null) {
                 e = Element("selection-fading")
-                (e as Element).text = value.toString()
                 document!!.rootElement.addContent(e)
-            } else {
-                (e as Element).text = value.toString()
             }
+            (e as Element).text = "${value}"
         }
 
     @JvmStatic
