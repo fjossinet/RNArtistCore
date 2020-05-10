@@ -75,6 +75,7 @@ class WorkingSession() {
 interface ThemeConfigurator {
     fun getHaloWidth():Int
     fun getTertiaryOpacity():Int
+    fun getResidueCharOpacity(): Int
     fun getTertiaryInteractionStyle():String
     fun getResidueBorder():Int
     fun getSecondaryInteractionWidth():Int
@@ -105,7 +106,7 @@ var DASHED = "dashed"
 var SOLID = "solid"
 
 enum class ThemeParameter {
-    AColor, AChar, UColor, UChar, GColor, GChar, CColor, CChar, XColor, XChar, SecondaryColor, TertiaryColor, HaloWidth, TertiaryOpacity, SecondaryInteractionWidth, TertiaryInteractionWidth, TertiaryInteractionStyle, ResidueBorder, FontName, DeltaXRes, DeltaYRes, DeltaFontSize
+    AColor, AChar, UColor, UChar, GColor, GChar, CColor, CChar, XColor, XChar, SecondaryColor, TertiaryColor, ResidueCharOpacity, HaloWidth, TertiaryOpacity, SecondaryInteractionWidth, TertiaryInteractionWidth, TertiaryInteractionStyle, ResidueBorder, FontName, DeltaXRes, DeltaYRes, DeltaFontSize
 }
 
 class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeConfigurator:ThemeConfigurator? = null) {
@@ -130,6 +131,16 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
                 this.themeParams.set(ThemeParameter.TertiaryOpacity.toString(), "${it.getTertiaryOpacity()}")
             }
             return Integer.parseInt(this.themeParams.get(ThemeParameter.TertiaryOpacity.toString()))
+        }
+    var residueCharOpacity: Int
+        set(value) {
+            this.themeParams.set(ThemeParameter.ResidueCharOpacity.toString(), "${value}")
+        }
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.ResidueCharOpacity.toString(), "${it.getResidueCharOpacity()}")
+            }
+            return Integer.parseInt(this.themeParams.get(ThemeParameter.ResidueCharOpacity.toString()))
         }
     var tertiaryInteractionStyle: String
         set(value) {
@@ -783,7 +794,7 @@ class ResidueCircle(val absPos:Int, label:Char) {
                 g.draw(_c)
                 g.stroke = previousStroke
             }
-            if (g.font.size > 5 && !theme.quickDraw) {
+            if (g.font.size > 5 && !theme.quickDraw && theme.residueCharOpacity  > 0) { //the conditions to draw a letter
                 when (this.label.name) {
                     "A" -> g.color = theme.AChar
                     "U" -> g.color = theme.UChar
@@ -791,15 +802,15 @@ class ResidueCircle(val absPos:Int, label:Char) {
                     "C" -> g.color = theme.CChar
                     "X" -> g.color = theme.XChar
                 }
-                if (!gc.selectedResidues.isEmpty() && !(this in gc.selectedResidues)) {
-                    g.color = Color(g.color.red, g.color.green, g.color.blue, RnartistConfig.selectionFading)
-                }
+                g.color = Color(g.color.red, g.color.green, g.color.blue, theme.residueCharOpacity) //we fade the residue letter
+                if (!gc.selectedResidues.isEmpty() && !(this in gc.selectedResidues)) //we fade it even more if unselected
+                    g.color = Color(g.color.red, g.color.green, g.color.blue, (RnartistConfig.selectionFading/255.0*theme.residueCharOpacity).toInt()) //the residue fading of an unselected residue is reduced by x%, x is the % of decrease of selection fading (according to full opacity which is 255).
                 when (this.label.name) {
-                    "A" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.ATransX + (theme.deltaXRes*gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.ATransY - (theme.deltaYRes*gc.finalZoomLevel).toFloat())
-                    "U" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.UTransX + (theme.deltaXRes*gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.UTransY - (theme.deltaYRes*gc.finalZoomLevel).toFloat())
-                    "G" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.GTransX + (theme.deltaXRes*gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.GTransY - (theme.deltaYRes*gc.finalZoomLevel).toFloat())
-                    "C" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.CTransX + (theme.deltaXRes*gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.CTransY - (theme.deltaYRes*gc.finalZoomLevel).toFloat())
-                    "X" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.XTransX + (theme.deltaXRes*gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.XTransY - (theme.deltaYRes*gc.finalZoomLevel).toFloat())
+                    "A" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.ATransX + (theme.deltaXRes * gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.ATransY - (theme.deltaYRes * gc.finalZoomLevel).toFloat())
+                    "U" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.UTransX + (theme.deltaXRes * gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.UTransY - (theme.deltaYRes * gc.finalZoomLevel).toFloat())
+                    "G" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.GTransX + (theme.deltaXRes * gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.GTransY - (theme.deltaYRes * gc.finalZoomLevel).toFloat())
+                    "C" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.CTransX + (theme.deltaXRes * gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.CTransY - (theme.deltaYRes * gc.finalZoomLevel).toFloat())
+                    "X" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.XTransX + (theme.deltaXRes * gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.XTransY - (theme.deltaYRes * gc.finalZoomLevel).toFloat())
                 }
             }
         }
