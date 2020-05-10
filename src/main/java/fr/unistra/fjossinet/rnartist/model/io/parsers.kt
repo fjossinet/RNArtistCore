@@ -1,6 +1,7 @@
-package fr.unistra.rnartist.model.io
+package fr.unistra.fjossinet.rnartist.model.io
 
-import fr.unistra.rnartist.model.*
+import fr.unistra.fjossinet.rnartist.*
+import fr.unistra.fjossinet.rnartist.model.*
 import org.jdom.Element
 import org.jdom.input.SAXBuilder
 import java.io.*
@@ -61,8 +62,22 @@ fun parseRnaml(f: File?): SecondaryStructure? {
                         'T' -> Orientation.trans
                         else -> Orientation.Unknown
                     }
-                    val l = Location(Location(bp.getChild("base-id-5p").getChild("base-id").getChild("position").text.toInt()), Location(bp.getChild("base-id-3p").getChild("base-id").getChild("position").text.toInt()))
-                    bps.add(BasePair(l, edge1, edge2, orientation))
+                    val l = Location(
+                        Location(
+                            bp.getChild("base-id-5p").getChild("base-id").getChild("position").text.toInt()
+                        ),
+                        Location(
+                            bp.getChild("base-id-3p").getChild("base-id").getChild("position").text.toInt()
+                        )
+                    )
+                    bps.add(
+                        BasePair(
+                            l,
+                            edge1,
+                            edge2,
+                            orientation
+                        )
+                    )
                 }
             }
             ss = SecondaryStructure(m, null, bps)
@@ -86,7 +101,12 @@ fun parseVienna(reader: Reader): SecondaryStructure? {
             bn.append(line)
         }
     }
-    return SecondaryStructure(RNA(name.toString(),sequence.toString()), bracketNotation = bn.toString())
+    return SecondaryStructure(
+        RNA(
+            name.toString(),
+            sequence.toString()
+        ), bracketNotation = bn.toString()
+    )
 }
 
 @Throws(Exception::class)
@@ -110,7 +130,12 @@ fun parseCT(reader: Reader): SecondaryStructure? {
             bn.append(".")
         }
     }
-    return SecondaryStructure(RNA("A", sequence.toString()), bn.toString(), null)
+    return SecondaryStructure(
+        RNA(
+            "A",
+            sequence.toString()
+        ), bn.toString(), null
+    )
 }
 
 fun parseStockholm(reader: Reader): List<SecondaryStructure> {
@@ -137,7 +162,7 @@ fun parseStockholm(reader: Reader): List<SecondaryStructure> {
     for ((key, value) in alignedMolecules) {
         var rna = RNA(key, value.toString())
         var _bn = bn.toString()
-        var consensusSS = SecondaryStructure(rna,  _bn)
+        var consensusSS = SecondaryStructure(rna, _bn)
 
         for (bp in consensusSS.secondaryInteractions) {
             if (rna.seq[bp.location.start-1] == '-')
@@ -163,7 +188,7 @@ fun parseStockholm(reader: Reader): List<SecondaryStructure> {
 
         gapPositions.reverse()
         gapPositions.forEach { _bn = _bn.replaceRange(it,it+1,"") }
-        secondaryStructures.add(SecondaryStructure(rna,_bn))
+        secondaryStructures.add(SecondaryStructure(rna, _bn))
     }
     return secondaryStructures
 }
@@ -189,10 +214,15 @@ fun parseBPSeq(reader: Reader?): SecondaryStructure? {
             bn.append(".")
         }
     }
-    return SecondaryStructure(RNA("A", sequence.toString()), bn.toString(), null)
+    return SecondaryStructure(
+        RNA(
+            "A",
+            sequence.toString()
+        ), bn.toString(), null
+    )
 }
 
-fun writePDB(ts:TertiaryStructure , exportNumberingSystem: Boolean, writer: Writer) {
+fun writePDB(ts: TertiaryStructure, exportNumberingSystem: Boolean, writer: Writer) {
     val pw = PrintWriter(writer)
     var atomID = 0
     val coordFormat = NumberFormat.getInstance(Locale.ENGLISH)

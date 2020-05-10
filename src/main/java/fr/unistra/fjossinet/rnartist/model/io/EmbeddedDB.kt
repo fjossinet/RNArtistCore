@@ -1,6 +1,7 @@
-package fr.unistra.rnartist.model.io
+package fr.unistra.fjossinet.rnartist.model.io
 
-import fr.unistra.rnartist.model.*
+import fr.unistra.fjossinet.rnartist.*
+import fr.unistra.fjossinet.rnartist.model.*
 import org.dizitart.no2.*
 import org.dizitart.no2.Document.createDocument
 import org.dizitart.no2.IndexOptions.indexOptions
@@ -49,7 +50,7 @@ class EmbeddedDB() {
                 .openOrCreate()
     }
 
-    fun addPDBSecondaryStructure(ss:SecondaryStructure) {
+    fun addPDBSecondaryStructure(ss: SecondaryStructure) {
         val doc = createDocument("pdbId",ss.pdbId)
         doc.put("title",ss.title)
         doc.put("authors",ss.authors)
@@ -127,27 +128,40 @@ class EmbeddedDB() {
         return this.pdbDB.getCollection("SecondaryStructures")
     }
 
-    fun getProject(id: NitriteId):Project {
+    fun getProject(id: NitriteId): Project {
         val doc = this.userDB.getCollection("Projects").getById(id) as Document
         val rna = doc.get("rna") as Map<String,String>
         val interactions = mutableListOf<BasePair>()
         for (interaction in doc.get("interactions") as MutableList<Map<String,String>>) {
-                interactions.add(BasePair(
-                        Location((interaction.get("start") as String).toInt(), (interaction.get("end") as String).toInt()),
+                interactions.add(
+                    BasePair(
+                        Location(
+                            (interaction.get("start") as String).toInt(),
+                            (interaction.get("end") as String).toInt()
+                        ),
                         Edge.valueOf(interaction.get("edge5") as String),
                         Edge.valueOf(interaction.get("edge3") as String),
                         Orientation.valueOf(interaction.get("orientation") as String)
-                ))
+                    )
+                )
         }
         //we set the current drawingConfiguration as it was during the saving of this project
         val theme = doc.get("theme") as Map<String,String>
 
         //we set the current graphicsContext as it was during the saving of this project
         val graphicsContext = doc.get("graphicsContext") as Map<String,String>
-        return Project(SecondaryStructure(RNA(rna.get("name") as String, rna.get("seq") as String), basePairs = interactions), null, theme, graphicsContext)
+        return Project(
+            SecondaryStructure(
+                RNA(
+                    rna.get("name") as String,
+                    rna.get("seq") as String
+                ),
+                basePairs = interactions
+            ), null, theme, graphicsContext
+        )
     }
 
-    fun addTheme(name:String, author:String, drawingConfiguration:Map<String,String>, theme:Theme):NitriteId {
+    fun addTheme(name:String, author:String, drawingConfiguration:Map<String,String>, theme: Theme):NitriteId {
         val doc = createDocument("name",name)
         doc.put("author", author)
         doc.put("theme", theme)

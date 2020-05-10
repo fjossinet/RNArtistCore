@@ -1,9 +1,9 @@
-package fr.unistra.rnartist.model
+package fr.unistra.fjossinet.rnartist.model
 
-import fr.unistra.rnartist.model.io.EmbeddedDB
-import fr.unistra.rnartist.model.io.parsePDB
-import fr.unistra.rnartist.model.io.Rnaview
-import fr.unistra.rnartist.model.io.getUserDir
+import fr.unistra.fjossinet.rnartist.model.io.EmbeddedDB
+import fr.unistra.fjossinet.rnartist.model.io.parsePDB
+import fr.unistra.fjossinet.rnartist.model.io.Rnaview
+import fr.unistra.fjossinet.rnartist.model.io.getUserDir
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL

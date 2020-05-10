@@ -1,9 +1,9 @@
-package fr.unistra.rnartist.model
+package fr.unistra.fjossinet.rnartist.model
 
-import fr.unistra.rnartist.model.io.parseBPSeq
-import fr.unistra.rnartist.model.io.parseCT
-import fr.unistra.rnartist.model.io.parseStockholm
-import fr.unistra.rnartist.model.io.parseVienna
+import fr.unistra.fjossinet.rnartist.model.io.parseBPSeq
+import fr.unistra.fjossinet.rnartist.model.io.parseCT
+import fr.unistra.fjossinet.rnartist.model.io.parseStockholm
+import fr.unistra.fjossinet.rnartist.model.io.parseVienna
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
@@ -26,9 +26,13 @@ fun main(args:Array<String>) {
         else if (optionExists(args, "-f", "-id")) {
 
             if (optionExists(args, "--browser-fix"))
-                RnartistConfig.exportSVGWithBrowserCompatibility(true)
+                RnartistConfig.exportSVGWithBrowserCompatibility(
+                    true
+                )
             if (optionExists(args, "--no-browser-fix"))
-                RnartistConfig.exportSVGWithBrowserCompatibility(false)
+                RnartistConfig.exportSVGWithBrowserCompatibility(
+                    false
+                )
             getOptionValue(args, "-cA")?.let {
                 if (!it.startsWith("#"))
                     theme.AColor = getAWTColor("#$it")!!
@@ -87,27 +91,27 @@ fun main(args:Array<String>) {
                 theme.deltaYRes = -it.toInt() //the inversion of sign is to have the y axis in the orientation people are used to see
             }
 
-            getOptionValue(args,"-df", "--deltaFontSize")?.let {
+            getOptionValue(args, "-df", "--deltaFontSize")?.let {
                 theme.deltaFontSize = it.toInt()
             }
 
-            getOptionValue(args,"-w2d", "--width-2d")?.let {
+            getOptionValue(args, "-w2d", "--width-2d")?.let {
                 theme.secondaryInteractionWidth = it.toInt()
             }
 
-            getOptionValue(args,"-w3d", "--width-3d")?.let {
+            getOptionValue(args, "-w3d", "--width-3d")?.let {
                 theme.tertiaryInteractionWidth = it.toInt()
             }
 
-            getOptionValue(args,"-s3d", "--style-3d")?.let {
+            getOptionValue(args, "-s3d", "--style-3d")?.let {
                 theme.tertiaryInteractionStyle = if (it.equals("dashed")) DASHED else SOLID
             }
 
-            getOptionValue(args,"-hw", "--halo-width")?.let {
+            getOptionValue(args, "-hw", "--halo-width")?.let {
                 theme.haloWidth = it.toInt()
             }
 
-            getOptionValue(args,"-o3d", "--opacity-3d")?.let {
+            getOptionValue(args, "-o3d", "--opacity-3d")?.let {
                 theme.tertiaryOpacity = it.toInt()
             }
 
@@ -115,7 +119,7 @@ fun main(args:Array<String>) {
                 it.replaceFirst("~", System.getProperty("user.home"))
             } ?: ""
 
-            getOptionValue(args,"-f")?.let {
+            getOptionValue(args, "-f")?.let {
                 val index = args.indexOf("-f") + 1
                 val filePaths = mutableListOf<String>()
                 for (i in index until args.size) {
@@ -137,7 +141,12 @@ fun main(args:Array<String>) {
                     }?.let { secondaryStructures ->
                         secondaryStructures.forEach { ss ->
                             ss?.let {
-                                val drawing = SecondaryStructureDrawing(ss, theme = theme, workingSession = WorkingSession())
+                                val drawing =
+                                    SecondaryStructureDrawing(
+                                        ss,
+                                        theme = theme,
+                                        workingSession = WorkingSession()
+                                    )
                                 if (outputPath.equals("-")) {
                                     println(drawing.asSVG())
                                 } else {
@@ -151,11 +160,15 @@ fun main(args:Array<String>) {
                         }
                     }
                 }
-            } ?: getOptionValue(args,"-id")?.let{ database_id ->
+            } ?: getOptionValue(args, "-id")?.let{ database_id ->
                 when {
                     Regex("^RF.+").matches(database_id) -> {
                         for (ss in parseStockholm(Rfam().getEntry(database_id.trim()))) {
-                            var drawing = SecondaryStructureDrawing(secondaryStructure = ss, workingSession = WorkingSession())
+                            var drawing =
+                                SecondaryStructureDrawing(
+                                    secondaryStructure = ss,
+                                    workingSession = WorkingSession()
+                                )
                             if (outputPath.equals("-")) {
                                 println(drawing.asSVG())
                             } else {
@@ -168,7 +181,7 @@ fun main(args:Array<String>) {
                     }
                 }
             }
-            if (optionExists(args,"-s", "--save")) {
+            if (optionExists(args, "-s", "--save")) {
                 RnartistConfig.saveConfig(theme.themeParams)
             }
         } else {

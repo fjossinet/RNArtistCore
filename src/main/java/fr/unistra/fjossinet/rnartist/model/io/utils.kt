@@ -1,4 +1,4 @@
-package fr.unistra.rnartist.model.io
+package fr.unistra.fjossinet.rnartist.model.io
 
 import java.io.*
 

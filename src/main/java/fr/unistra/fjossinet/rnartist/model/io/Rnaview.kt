@@ -1,7 +1,7 @@
-package fr.unistra.rnartist.model.io
+package fr.unistra.fjossinet.rnartist.model.io
 
-import fr.unistra.rnartist.model.SecondaryStructure
-import fr.unistra.rnartist.model.TertiaryStructure
+import fr.unistra.fjossinet.rnartist.model.SecondaryStructure
+import fr.unistra.fjossinet.rnartist.model.TertiaryStructure
 import org.apache.commons.io.FileUtils
 import java.io.File
 import java.io.IOException
@@ -44,7 +44,7 @@ class Rnaview : Computation() {
                 val destFile = File(getUserDir(), "rnaview.bat")
                 if (!destFile.exists()) {
                     destFile.createNewFile()
-                    val inputUrl = Rnaview::class.java.getResource("/fr/unistra/rnartist/model/io/rnaview.bat")
+                    val inputUrl = Rnaview::class.java.getResource("/fr/unistra/fjossinet/rnartist/model/io/rnaview.bat")
                     FileUtils.copyURLToFile(inputUrl, destFile)
                 }
             } catch (e: IOException) {

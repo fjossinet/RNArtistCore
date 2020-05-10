@@ -1,8 +1,6 @@
-package fr.unistra.rnartist.model
+package fr.unistra.fjossinet.rnartist.model
 
-import fr.unistra.rnartist.model.io.parseVienna
 import java.io.Serializable
-import java.io.StringReader
 import java.util.*
 import kotlin.collections.HashSet
 
@@ -52,7 +50,7 @@ class Location:Serializable {
     }
 
     constructor(start:Int,end:Int):this() {
-        this.blocks.add(Block(start,end))
+        this.blocks.add(Block(start, end))
     }
 
     constructor(pos:Int):this(pos, pos) {
@@ -64,7 +62,12 @@ class Location:Serializable {
                 val ends = s.trim().split('-').map { it.toInt() }
                 this.blocks.add(Block(ends.first(), ends.last()))
             } else {
-                this.blocks.add(Block(s.trim().toInt(), s.trim().toInt()))
+                this.blocks.add(
+                    Block(
+                        s.trim().toInt(),
+                        s.trim().toInt()
+                    )
+                )
             }
         }
         this.blocks.sortBy { it.start }
@@ -140,7 +143,7 @@ class RNA(var name:String="A", seq:String, var source:String="Source N.A."):Seri
             this._seq[pos-1]
     }
 
-    fun subSequence(l:Location):String {
+    fun subSequence(l: Location):String {
         return this._seq.substring(l.start-1,l.end).toString()
     }
 
@@ -149,7 +152,7 @@ class RNA(var name:String="A", seq:String, var source:String="Source N.A."):Seri
     }
 }
 
-class BasePair(val location:Location, val edge5:Edge = Edge.WC, val edge3:Edge = Edge.WC, val orientation:Orientation = Orientation.cis):Serializable{
+class BasePair(val location: Location, val edge5: Edge = Edge.WC, val edge3: Edge = Edge.WC, val orientation: Orientation = Orientation.cis):Serializable{
 
     override fun toString(): String {
         return "$location $orientation:$edge5:$edge3"
@@ -159,7 +162,7 @@ class BasePair(val location:Location, val edge5:Edge = Edge.WC, val edge3:Edge =
 
 class SingleStrand(val name:String?="MySingleStrand", start:Int, end:Int):Serializable {
 
-    val location = Location(start,end)
+    val location = Location(start, end)
 
     val length:Int
         get() {
@@ -172,7 +175,7 @@ class Helix(val name:String?="MyHelix"):Serializable {
     val secondaryInteractions = HashSet<BasePair>()
     var junctionsLinked = Pair<Junction?, Junction?>(null,null)
 
-    val location:Location
+    val location: Location
         get() {
             val positionsInHelix = this.secondaryInteractions.map { bp ->  arrayOf(bp.location.start, bp.location.end) }.toTypedArray().flatten()
             return Location(positions = positionsInHelix.toIntArray())
@@ -200,7 +203,7 @@ class Helix(val name:String?="MyHelix"):Serializable {
             return ends.sorted()
         }
 
-    fun setJunction(junction:Junction) {
+    fun setJunction(junction: Junction) {
         this.junctionsLinked = if (this.junctionsLinked.first == null) this.junctionsLinked.copy(first = junction) else this.junctionsLinked.copy(second = junction)
     }
 
@@ -217,14 +220,14 @@ class Helix(val name:String?="MyHelix"):Serializable {
     }
 }
 
-class Junction(var name:String?="MyJunction", val location:Location, val helicesLinked:List<Helix>):Serializable {
+class Junction(var name:String?="MyJunction", val location: Location, val helicesLinked:List<Helix>):Serializable {
 
     val length:Int
         get() {
             return this.location.length
         }
 
-    val type:JunctionType
+    val type: JunctionType
         get() {
             return JunctionType.values().first { it.value == this.location.blocks.size }
         }
@@ -237,7 +240,7 @@ class Junction(var name:String?="MyJunction", val location:Location, val helices
 
 }
 
-class TertiaryStructure(val rna:RNA):Serializable {
+class TertiaryStructure(val rna: RNA):Serializable {
 
     val residues: MutableList<Residue3D> = mutableListOf<Residue3D>()
     var title:String? = null
@@ -286,9 +289,12 @@ abstract open class Residue3D(val name:String, val absolutePosition:Int):Seriali
     open fun setAtomCoordinates(atomName: String, x: Float, y: Float, z: Float): Atom? {
         var atomName = atomName
         atomName = atomName.replace('*', '\'')
-        if (atomName == "OP1" || atomName == "O1P") atomName = RiboNucleotide3D.O1P
-        if (atomName == "OP2" || atomName == "O2P") atomName = RiboNucleotide3D.O2P
-        if (atomName == "OP3" || atomName == "O3P") atomName = RiboNucleotide3D.O3P
+        if (atomName == "OP1" || atomName == "O1P") atomName =
+            RiboNucleotide3D.O1P
+        if (atomName == "OP2" || atomName == "O2P") atomName =
+            RiboNucleotide3D.O2P
+        if (atomName == "OP3" || atomName == "O3P") atomName =
+            RiboNucleotide3D.O3P
         val a: Atom? = this.getAtom(atomName)
         a?.setCoordinates(x, y, z)
         return a
@@ -342,7 +348,9 @@ abstract open class RiboNucleotide3D(name: String, absolutePosition: Int) : Resi
 
     init {
         sugarPucker = C3ENDO
-        for (p in P) atoms.add(Atom(p))
+        for (p in P) atoms.add(
+            Atom(p)
+        )
         atoms.add(Atom(O1P))
         atoms.add(Atom(O2P))
         atoms.add(Atom(O3P))
@@ -385,7 +393,8 @@ class Adenine3D(absolutePosition: Int) : RiboNucleotide3D("A", absolutePosition)
         val ret: MutableList<Atom> = ArrayList()
         var i = 0
         while (i < atoms.size) {
-            val a: Atom = Atom(atoms[i] as String)
+            val a: Atom =
+                Atom(atoms[i] as String)
             if (withDefaultCoordinates) a.setCoordinates((atoms[i + 1] as Float), (atoms[i + 2] as Float), (atoms[i + 3] as Float))
             ret.add(a)
             i += 4
@@ -409,7 +418,8 @@ class Cytosine3D(absolutePosition: Int) : RiboNucleotide3D("C", absolutePosition
         val ret: MutableList<Atom> = ArrayList()
         var i = 0
         while (i < atoms.size) {
-            val a: Atom = Atom(atoms[i] as String)
+            val a: Atom =
+                Atom(atoms[i] as String)
             if (withDefaultCoordinates) a.setCoordinates((atoms[i + 1] as Float), (atoms[i + 2] as Float), (atoms[i + 3] as Float))
             ret.add(a)
             i += 4
@@ -435,7 +445,8 @@ class Guanine3D(absolutePosition: Int) : RiboNucleotide3D("G", absolutePosition)
         val ret: MutableList<Atom> = ArrayList()
         var i = 0
         while (i < atoms.size) {
-            val a: Atom = Atom(atoms[i] as String)
+            val a: Atom =
+                Atom(atoms[i] as String)
             if (withDefaultCoordinates) a.setCoordinates((atoms[i + 1] as Float), (atoms[i + 2] as Float), (atoms[i + 3] as Float))
             ret.add(a)
             i += 4
@@ -459,7 +470,8 @@ class Uracil3D(absolutePosition: Int) : RiboNucleotide3D("U", absolutePosition) 
         val ret: MutableList<Atom> = ArrayList()
         var i = 0
         while (i < atoms.size) {
-            val a: Atom = Atom(atoms[i] as String)
+            val a: Atom =
+                Atom(atoms[i] as String)
             if (withDefaultCoordinates) a.setCoordinates((atoms[i + 1] as Float), (atoms[i + 2] as Float), (atoms[i + 3] as Float))
             ret.add(a)
             i += 4
@@ -498,7 +510,7 @@ class Atom(val name:String):Serializable {
 
 }
 
-class SecondaryStructure(val rna:RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null):Serializable {
+class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null):Serializable {
 
     val tertiaryInteractions = mutableSetOf<BasePair>()
     val helices = mutableListOf<Helix>()
@@ -508,7 +520,7 @@ class SecondaryStructure(val rna:RNA, bracketNotation:String? = null, basePairs:
     var pubDate:String="To be published"
     var pdbId: String? = null
     var source:String? = null
-    var tertiaryStructure:TertiaryStructure? = null
+    var tertiaryStructure: TertiaryStructure? = null
 
     val secondaryInteractions:List<BasePair>
         get() {
@@ -664,7 +676,7 @@ class SecondaryStructure(val rna:RNA, bracketNotation:String? = null, basePairs:
     fun getNextHelixEnd(position:Int): Triple<Int, Int, Helix>? {
         var minNextEnd = this.length //the next end is the lowest 3' position of an helix right after the position given as argument
         var pairedPosition = -1
-        lateinit var helix:Helix
+        lateinit var helix: Helix
 
         for (h in this.helices) {
             if (h.ends[0] > position && h.ends[0] < minNextEnd) {
@@ -710,7 +722,13 @@ class SecondaryStructure(val rna:RNA, bracketNotation:String? = null, basePairs:
                 } while (pos != h.ends[1])
 
                 if (!positionsInJunction.isEmpty())
-                    this.junctions.add(Junction(name = "J${junctionCount++}", location=Location(positions=positionsInJunction.toIntArray()), helicesLinked=helicesLinked))
+                    this.junctions.add(
+                        Junction(
+                            name = "J${junctionCount++}",
+                            location = Location(positions = positionsInJunction.toIntArray()),
+                            helicesLinked = helicesLinked
+                        )
+                    )
             }
 
             //the other side (of the river ;-) )
@@ -732,7 +750,13 @@ class SecondaryStructure(val rna:RNA, bracketNotation:String? = null, basePairs:
                 } while (pos != h.ends[3])
 
                 if (!positionsInJunction.isEmpty())
-                    this.junctions.add(Junction(name = "J${junctionCount++}", location=Location(positions=positionsInJunction.toIntArray()), helicesLinked=helicesLinked))
+                    this.junctions.add(
+                        Junction(
+                            name = "J${junctionCount++}",
+                            location = Location(positions = positionsInJunction.toIntArray()),
+                            helicesLinked = helicesLinked
+                        )
+                    )
             }
         }
     }
@@ -766,13 +790,13 @@ fun toBlocks(positions:IntArray):MutableList<Block> {
         if (sortedPositions[i]+1 == sortedPositions[i+1]) {
             length += 1
         } else {
-            blocks.add(Block(start, start+length))
+            blocks.add(Block(start, start + length))
             length = 0
             start = sortedPositions[i+1]
         }
         i += 1
     }
-    blocks.add(Block(start, start+length))
+    blocks.add(Block(start, start + length))
     return blocks
 }
 
@@ -789,21 +813,39 @@ fun toBasePairs(bracketNotation: String):MutableList<BasePair> {
             '[' -> lastLeft.add(Edge.Hoogsteen) && lastPos.add(pos)
             ')' -> {
                 val _lastPos = lastPos.removeAt(lastPos.size-1)
-                val _location =  Location(_lastPos, pos)
+                val _location = Location(_lastPos, pos)
                 val _lastLeft = lastLeft.removeAt(lastLeft.size-1)
-                basePairs.add(BasePair(location = _location, edge5 = _lastLeft, edge3 = Edge.WC))
+                basePairs.add(
+                    BasePair(
+                        location = _location,
+                        edge5 = _lastLeft,
+                        edge3 = Edge.WC
+                    )
+                )
             }
             '}' -> {
                 val _lastPos = lastPos.removeAt(lastPos.size-1)
-                val _location =  Location(_lastPos, pos)
+                val _location = Location(_lastPos, pos)
                 val _lastLeft = lastLeft.removeAt(lastLeft.size-1)
-                basePairs.add(BasePair(location = _location, edge5 = _lastLeft, edge3 = Edge.Sugar))
+                basePairs.add(
+                    BasePair(
+                        location = _location,
+                        edge5 = _lastLeft,
+                        edge3 = Edge.Sugar
+                    )
+                )
             }
             ']' -> {
                 val _lastPos = lastPos.removeAt(lastPos.size-1)
-                val _location =  Location(_lastPos, pos)
+                val _location = Location(_lastPos, pos)
                 val _lastLeft = lastLeft.removeAt(lastLeft.size-1)
-                basePairs.add(BasePair(location = _location, edge5 = _lastLeft, edge3 = Edge.Hoogsteen))
+                basePairs.add(
+                    BasePair(
+                        location = _location,
+                        edge5 = _lastLeft,
+                        edge3 = Edge.Hoogsteen
+                    )
+                )
             }
             else -> continue@loop
         }
@@ -811,7 +853,7 @@ fun toBasePairs(bracketNotation: String):MutableList<BasePair> {
     return basePairs
 }
 
-fun randomRNA(size:Int):RNA {
+fun randomRNA(size:Int): RNA {
     val residues = listOf<Char>('A','U','G','C')
     val seq = (1..size)
             .map { i -> kotlin.random.Random.nextInt(0, residues.size) }

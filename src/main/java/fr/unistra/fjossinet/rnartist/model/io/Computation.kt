@@ -1,10 +1,7 @@
-package fr.unistra.rnartist.model.io
+package fr.unistra.fjossinet.rnartist.model.io
 
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.io.OutputStreamWriter
-import java.net.URL
-import java.net.URLEncoder
 
 abstract class Computation {
 
