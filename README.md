@@ -5,9 +5,19 @@ RNArtistCore is a commandline tool and a Kotlin library to describe and plot RNA
 
 # The command-line tool
 
+You need to have the build tool [Maven](https://maven.apache.org) installed. Clone this repository and inside its root directory type:
+
+<pre>mvn install</pre>
+
+Once done, in the subdirectory named "target", you will find the file rnartistcore-{version}-jar-with-dependencies.jar. In a terminal type:
+
+<pre>java -jar rnartistcore-{version}-jar-with-dependencies.jar</pre>
+
+You can rename this file if you want.
+
 ## Usage: 
 
-<pre>java -jar rnartistcore.jar [options]  [-f file_name] [-id database_id]</pre>
+<pre>java -jar RNArtistCore-{version}-jar-with-dependencies.jar [options]  [-f file_name] [-id database_id]</pre>
 
 ## Description:
 RNArtistCore is a Java/Kotlin library and a commandline tool. As a tool, it exports an RNA secondary structure
@@ -146,6 +156,16 @@ be an integer greater of equal to 0.
 </pre>
 
 # The library
+
+You need to have the build tool [Maven](https://maven.apache.org) installed. To use RNArtistCore in any Java application, just add the below dependency in your file pom.xml:
+
+```xml
+<dependency>
+    <groupId>io.github.fjossinet.rnartist.core</groupId>
+    <artifactId>RNArtistCore</artifactId>
+    <version>{version}</version>
+</dependency>
+```
 ## Get a secondary structure
 ### from a file
 ```kotlin
