@@ -7,7 +7,7 @@ RNArtistCore is a commandline tool and a Kotlin library to describe and plot RNA
 
 You need to have the build tool [Maven](https://maven.apache.org) installed. Clone this repository and inside its root directory type:
 
-<pre>mvn install</pre>
+<pre>mvn package</pre>
 
 Once done, in the subdirectory named "target", you will find the file rnartistcore-{version}-jar-with-dependencies.jar. In a terminal type:
 
