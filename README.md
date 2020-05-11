@@ -17,7 +17,7 @@ You can rename this file if you want.
 
 ## Usage: 
 
-<pre>java -jar RNArtistCore-{version}-jar-with-dependencies.jar [options]  [-f file_name] [-id database_id]</pre>
+<pre>java -jar rnartistcore-{version}-jar-with-dependencies.jar [options]  [-f file_name] [-id database_id]</pre>
 
 ## Description:
 RNArtistCore is a Java/Kotlin library and a commandline tool. As a tool, it exports an RNA secondary structure
@@ -157,14 +157,31 @@ be an integer greater of equal to 0.
 
 # The library
 
-You need to have the build tool [Maven](https://maven.apache.org) installed. To use RNArtistCore in any Java application, just add the below dependency in your file pom.xml:
+You need to have the build tool [Maven](https://maven.apache.org) installed. 
+No stable release for now, only snapshots. To use RNArtistCore in a Java application, just add the below dependency in your file pom.xml:
 
 ```xml
-<dependency>
-    <groupId>io.github.fjossinet.rnartist.core</groupId>
-    <artifactId>RNArtistCore</artifactId>
-    <version>{version}</version>
-</dependency>
+    <repositories>
+        <repository>
+            <id>maven-snapshots</id>
+            <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.fjossinet.rnartist.core</groupId>
+            <artifactId>rnartistcore</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 ```
 ## Get a secondary structure
 ### from a file
