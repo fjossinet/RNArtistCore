@@ -147,7 +147,7 @@ fun main(args:Array<String>) {
                                         theme = theme,
                                         workingSession = WorkingSession()
                                     )
-                                if (outputPath.equals("-")) {
+                                if (outputPath.length == 0) {
                                     println(drawing.asSVG())
                                 } else {
                                     println("Processing ${path}")
@@ -169,7 +169,7 @@ fun main(args:Array<String>) {
                                     secondaryStructure = ss,
                                     workingSession = WorkingSession()
                                 )
-                            if (outputPath.equals("-")) {
+                            if (outputPath.length == 0) {
                                 println(drawing.asSVG())
                             } else {
                                 println("Processing ${ss.rna.name}")
@@ -244,7 +244,7 @@ Other Options:
     --no-browser-fix
         If you display your SVG files in a browser and observe some issues concerning the centering of residue characters, 
         try to add this option. If this doesn't fix the problem, you can improve the centering by yourself with the options 
-        "dxr" and "dyr". Use "--no-browser-fix -s" if you ahve saved the option --browser-fix.
+        "dxr" and "dyr". Use "--no-browser-fix -s" if you saved the option --browser-fix.
     
     -cA "HTML_color_code"
     -cU "HTML_color_code"
@@ -288,8 +288,8 @@ Other Options:
         has to be an integer greater of equal to 0.
         
     -o dir_name
-        The directory to output the SVG files. The directory has to exist. If - is used as dir_name, SVG data will be 
-        printed to standard output.
+        The directory to output the SVG files. The directory has to exist. If the option -o is not used, the SVG files 
+        are stored in the working directory.
         
     -o3d number
     --opacity-3d=number
@@ -302,7 +302,8 @@ Other Options:
         
     -rb number
     --residueBorder=number
-        Change the width for the border of the residues circles. The number has to be an integer greater of equal to 0.
+        Change the width/thickness for the border of the residues circles. The number has to be an integer greater of 
+        equal to 0.
         
     -s
     --save
@@ -321,8 +322,8 @@ Other Options:
     --width-2d=number
     -w3d number
     --width-3d=number
-    These options define the width for the secondary (-w2d) or the tertiary (-w3d) interactions lines. The number has to 
-    be an integer greater of equal to 0.
+    These options define the width/thickness for the secondary (-w2d) or the tertiary (-w3d) interactions lines. The 
+    number has to be an integer greater of equal to 0.
         
 Examples:
 =========

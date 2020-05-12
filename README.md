@@ -50,7 +50,7 @@ user-defined values can be saved in a configuration file and become the default 
 
     If you display your SVG files in a browser and observe some issues concerning the centering of residue characters,
     try to add this option. If this doesn't fix the problem, you can improve the centering by yourself with the options
-    "dxr" and "dyr". Use "--no-browser-fix -s" if you ahve saved the option --browser-fix.
+    "dxr" and "dyr". Use "--no-browser-fix -s" if you saved the option --browser-fix.
 
 * -cA "HTML_color_code"<br/>
   -cU "HTML_color_code"<br/>
@@ -102,8 +102,8 @@ user-defined values can be saved in a configuration file and become the default 
 
 * -o dir_name
 
-    The directory to output the SVG files. The directory has to exist. If - is used as dir_name, SVG data will
-    be printed to standard output.
+    The directory to output the SVG files. The directory has to exist. If the option -o is not used, the SVG files 
+    are stored in the working directory.
 
 * -o3d number<br/>
   --opacity-3d=number
@@ -119,7 +119,8 @@ user-defined values can be saved in a configuration file and become the default 
 * -rb number<br/>
   --residueBorder=number
   
-    Change the width for the border of the residues circles. The number has to be an integer greater of equal to 0.
+    Change the width/thickness for the border of the residues circles. The number has to be an integer greater of equal 
+    to 0.
 
 * -s<br/>
   --save
@@ -142,8 +143,8 @@ user-defined values can be saved in a configuration file and become the default 
   -w3d number<br/>
   --width-3d=number<br/>
   
-These options define the width for the secondary (-w2d) or the tertiary (-w3d) interactions lines. The number has to
-be an integer greater of equal to 0.
+    These options define the width/thickness for the secondary (-w2d) or the tertiary (-w3d) interactions lines. The 
+    number has to be an integer greater of equal to 0.
 
 ## Examples:
 <pre>
@@ -186,54 +187,33 @@ No stable release for now, only snapshots. To use RNArtistCore in a Java applica
 ## Get a secondary structure
 ### from a file
 ```kotlin
-val ss = parseBPSeq(FileReader("my_file.bpseq"))
-```
-### from scratch
-```kotlin
-val ss1 = parseVienna(StringReader(">myRNA\nCGCUGAAUUCAGCG\n((((......))))"))
-//or
-val ss2 = SecondaryStructure(RNA(name="myRNA",seq = "CGCUGAAUUCAGCG"), bracketNotation = "((((......))))")
-```
+//load the saved options and/or create default ones
+RnartistConfig.loadConfig()
+var ss:SecondaryStructure? = null
+//load from a BPSEQ file
+val bpseqFile = File(getUserDir(),"my_file.bpseq")
+if (bpseqFile.exists()) parseBPSeq(FileReader(bpseqFile))
+else {
+    //load from a Vienna String
+    ss = parseVienna(StringReader(">myRNA\nCGCUGAAUUCAGCG\n((((......))))"))
+    //create object directly
+    ss = SecondaryStructure(RNA(name = "myRNA", seq = "CGCUGAAUUCAGCG"), bracketNotation = "((((......))))")
+}
+ss?.let {
+    val theme = Theme()
+    theme.fontName = "Futura"
+    theme.secondaryInteractionWidth = 4
+    theme.residueBorder = 1
+    theme.GColor = Color(223, 1, 1)
+    var drawing = SecondaryStructureDrawing(secondaryStructure = ss, theme = theme)
 
-## Get a plot
-```kotlin
-val theme = Theme()
-//we tweak the default theme
-theme.fontName = "Futura"
-theme.secondaryInteractionWidth = 4
-theme.residueBorder = 1
-theme.GColor = Color(223, 1, 1)
-var drawing = SecondaryStructureDrawing(secondaryStructure = ss2, theme = theme)
-
-var writer = FileWriter("media/myRNA.svg")
-writer.write(drawing.asSVG())
-writer.close()
-```
-And you get:
-
-<img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA.svg" width="144">
-
-And now something larger
-```kotlin
-
-val seq = "AUACUUACCUGGCAGGGGAGAUACCAUGAUCACGAAGGUGGUUUUCCCAGGGCGAGGCUUAUCCAUUGCACUCCGGAUGUGCUGACCCCUGCGAUUUCCCCAAAUGUGGGAAACUCGACUGCAUAAUUUGUGGUAGUGGGGGACUGCGUUCGCGCUUUCCCCUG"
-val bn = "...........((((((((((.(((((..........))))))))))).(((......(((.((..........)).)).).....)))..(((.((.((.......))))...))).))))...............(((((.(((((....))))).)))))."
-
-val ss = SecondaryStructure(RNA(name="myRNA2",seq = seq), bracketNotation = bn)
-val theme = Theme()
-//we tweak the default theme
-theme.fontName = "Futura"
-theme.secondaryInteractionWidth = 4
-theme.residueBorder = 1
-theme.GColor = Color(223, 1, 1)
-val drawing = SecondaryStructureDrawing(secondaryStructure = ss, theme = theme)
-
-val writer = FileWriter("media/myRNA2.svg")
-writer.write(drawing.asSVG())
-writer.close()
+    var writer = FileWriter("media/myRNA.svg")
+    writer.write(drawing.asSVG())
+    writer.close()
+}
 ```
 And you get:
 
-<img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA2.svg" width="1376">
+<img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA.svg" width="1376">
 
 Now you can pursue with vector graphics editor like Affinity Designer or Inkscape.

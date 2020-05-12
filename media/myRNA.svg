@@ -1,8 +1,8 @@
 <svg viewBox="0 0 140 237" xmlns="http://www.w3.org/2000/svg">
-	<path d="M62.0,222.0l18.0,0.0" style="fill:none;stroke:rgb(192, 192, 192);stroke-width:4;stroke-linecap:round;" />
-	<path d="M62.0,117.0l18.0,0.0" style="fill:none;stroke:rgb(192, 192, 192);stroke-width:4;stroke-linecap:round;" />
 	<path d="M62.0,187.0l18.0,0.0" style="fill:none;stroke:rgb(192, 192, 192);stroke-width:4;stroke-linecap:round;" />
 	<path d="M62.0,152.0l18.0,0.0" style="fill:none;stroke:rgb(192, 192, 192);stroke-width:4;stroke-linecap:round;" />
+	<path d="M62.0,117.0l18.0,0.0" style="fill:none;stroke:rgb(192, 192, 192);stroke-width:4;stroke-linecap:round;" />
+	<path d="M62.0,222.0l18.0,0.0" style="fill:none;stroke:rgb(192, 192, 192);stroke-width:4;stroke-linecap:round;" />
 	<path d="M41.0,207.0l0.0,-5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
 	<path d="M41.0,172.0l0.0,-5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
 	<path d="M41.0,137.0l0.0,-5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
@@ -17,59 +17,59 @@
 	<path d="M101.0,167.0l0.0,5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
 	<path d="M101.0,202.0l0.0,5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
 	<g>
-		<circle cx="41.0" cy="222.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(255, 0, 255)" />
-		<text x="41.0" y="222.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">C</text>
+		<circle cx="41.0" cy="222.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(41, 110, 180)" />
+		<text x="34.5" y="229.0" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">C</text>
 	</g>
 	<g>
 		<circle cx="41.0" cy="187.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(223, 1, 1)" />
-		<text x="41.0" y="187.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">G</text>
+		<text x="33.0" y="194.0" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">G</text>
 	</g>
 	<g>
-		<circle cx="41.0" cy="152.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(255, 0, 255)" />
-		<text x="41.0" y="152.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">C</text>
+		<circle cx="41.0" cy="152.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(41, 110, 180)" />
+		<text x="34.5" y="159.0" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">C</text>
 	</g>
 	<g>
-		<circle cx="41.0" cy="117.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(192, 128, 128)" />
-		<text x="41.0" y="117.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">U</text>
+		<circle cx="41.0" cy="117.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(255, 208, 123)" />
+		<text x="34.0" y="124.0" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">U</text>
 	</g>
 	<g>
 		<circle cx="16.691585249916216" cy="84.42990397068479" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(223, 1, 1)" />
-		<text x="16.691585249916216" y="84.42990397068479" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">G</text>
+		<text x="8.69158935546875" y="91.429931640625" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">G</text>
 	</g>
 	<g>
-		<circle cx="20.593696764900642" cy="43.976428115753265" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(0, 192, 255)" />
-		<text x="20.593696764900642" y="43.976428115753265" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">A</text>
+		<circle cx="20.593696764900642" cy="43.976428115753265" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(177, 116, 15)" />
+		<text x="13.59368896484375" y="50.9764404296875" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">A</text>
 	</g>
 	<g>
-		<circle cx="50.679381265443" cy="16.653145531943323" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(0, 192, 255)" />
-		<text x="50.679381265443" y="16.653145531943323" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">A</text>
+		<circle cx="50.679381265443" cy="16.653145531943323" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(177, 116, 15)" />
+		<text x="43.67938232421875" y="23.65313720703125" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">A</text>
 	</g>
 	<g>
-		<circle cx="91.32061873455689" cy="16.653145531943323" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(192, 128, 128)" />
-		<text x="91.32061873455689" y="16.653145531943323" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">U</text>
+		<circle cx="91.32061873455689" cy="16.653145531943323" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(255, 208, 123)" />
+		<text x="84.32061767578125" y="23.65313720703125" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">U</text>
 	</g>
 	<g>
-		<circle cx="121.40630323509959" cy="43.97642811575338" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(192, 128, 128)" />
-		<text x="121.40630323509959" y="43.97642811575338" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">U</text>
+		<circle cx="121.40630323509959" cy="43.97642811575338" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(255, 208, 123)" />
+		<text x="114.40631103515625" y="50.9764404296875" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">U</text>
 	</g>
 	<g>
-		<circle cx="125.3084147500839" cy="84.42990397068479" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(255, 0, 255)" />
-		<text x="125.3084147500839" y="84.42990397068479" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">C</text>
+		<circle cx="125.3084147500839" cy="84.42990397068479" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(41, 110, 180)" />
+		<text x="118.80841064453125" y="91.429931640625" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">C</text>
 	</g>
 	<g>
-		<circle cx="101.0" cy="117.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(0, 192, 255)" />
-		<text x="101.0" y="117.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">A</text>
+		<circle cx="101.0" cy="117.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(177, 116, 15)" />
+		<text x="94.0" y="124.0" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">A</text>
 	</g>
 	<g>
 		<circle cx="101.0" cy="152.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(223, 1, 1)" />
-		<text x="101.0" y="152.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">G</text>
+		<text x="93.0" y="159.0" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">G</text>
 	</g>
 	<g>
-		<circle cx="101.0" cy="187.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(255, 0, 255)" />
-		<text x="101.0" y="187.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">C</text>
+		<circle cx="101.0" cy="187.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(41, 110, 180)" />
+		<text x="94.5" y="194.0" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">C</text>
 	</g>
 	<g>
 		<circle cx="101.0" cy="222.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(223, 1, 1)" />
-		<text x="101.0" y="222.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">G</text>
+		<text x="93.0" y="229.0" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">G</text>
 	</g>
 </svg>

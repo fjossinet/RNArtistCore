@@ -529,7 +529,7 @@ fun getStringBoundsRectangle2D(g: Graphics2D, title: String, font: Font): Dimens
     return Dimension(r.getWidth().toInt(), (lm.ascent-lm.descent).toInt())
 }
 
-class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, frame:Rectangle2D = Rectangle(0,0,Toolkit.getDefaultToolkit().getScreenSize().width,Toolkit.getDefaultToolkit().getScreenSize().height), val theme: Theme = Theme(), val workingSession: WorkingSession) {
+class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, frame:Rectangle2D = Rectangle(0,0,Toolkit.getDefaultToolkit().getScreenSize().width,Toolkit.getDefaultToolkit().getScreenSize().height), val theme: Theme = Theme(), val workingSession: WorkingSession = WorkingSession()) {
 
     var name:String? = null
     val branches = mutableListOf<JunctionCircle>()
