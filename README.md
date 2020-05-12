@@ -185,20 +185,15 @@ No stable release for now, only snapshots. To use RNArtistCore in a Java applica
     </dependencies>
 ```
 ## Get a secondary structure
-### from a file
 ```kotlin
 //load the saved options and/or create default ones
 RnartistConfig.loadConfig()
+RnartistConfig.exportSVGWithBrowserCompatibility(true)
 var ss:SecondaryStructure? = null
-//load from a BPSEQ file
-val bpseqFile = File(getUserDir(),"my_file.bpseq")
-if (bpseqFile.exists()) parseBPSeq(FileReader(bpseqFile))
-else {
-    //load from a Vienna String
-    ss = parseVienna(StringReader(">myRNA\nCGCUGAAUUCAGCG\n((((......))))"))
-    //create object directly
-    ss = SecondaryStructure(RNA(name = "myRNA", seq = "CGCUGAAUUCAGCG"), bracketNotation = "((((......))))")
-}
+//load from a Vienna String
+ss = parseVienna(StringReader(">myRNA\nCGCUGAAUUCAGCG\n((((......))))"))
+//create object directly
+ss = SecondaryStructure(RNA(name = "myRNA", seq = "CGCUGAAUUCAGCG"), bracketNotation = "((((......))))")
 ss?.let {
     val theme = Theme()
     theme.fontName = "Futura"
@@ -214,6 +209,32 @@ ss?.let {
 ```
 And you get:
 
-<img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA.svg" width="1376">
+<img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA.svg" width="140">
+
+```kotlin
+//load the saved options and/or create default ones
+RnartistConfig.loadConfig()
+RnartistConfig.exportSVGWithBrowserCompatibility(true)
+//load from a Vienna file
+val viennaFile = File("media/myRNA2.vienna")
+var ss2:SecondaryStructure? = null
+if (viennaFile.exists())
+    ss2 = parseVienna(FileReader(viennaFile))
+ss2?.let {
+    val theme = Theme()
+    theme.fontName = "Arial"
+    theme.secondaryInteractionWidth = 1
+    theme.residueBorder = 3
+    theme.CColor = Color.RED
+    theme.CChar = Color.WHITE
+    var drawing = SecondaryStructureDrawing(secondaryStructure = ss2, theme = theme)
+    var writer = FileWriter("media/myRNA2.svg")
+    writer.write(drawing.asSVG())
+    writer.close()
+}
+```
+And you get:
+
+<img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA2.svg" width="1380">
 
 Now you can pursue with vector graphics editor like Affinity Designer or Inkscape.

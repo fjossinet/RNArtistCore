@@ -12,16 +12,12 @@ class Test {
     fun testReadmeCode() {
         //load the saved options and/or create default ones
         RnartistConfig.loadConfig()
+        RnartistConfig.exportSVGWithBrowserCompatibility(true)
         var ss:SecondaryStructure? = null
-        //load from a BPSEQ file
-        val bpseqFile = File(getUserDir(),"my_file.bpseq")
-        if (bpseqFile.exists()) parseBPSeq(FileReader(bpseqFile))
-        else {
-            //load from a Vienna String
-            ss = parseVienna(StringReader(">myRNA\nCGCUGAAUUCAGCG\n((((......))))"))
-            //create object directly
-            ss = SecondaryStructure(RNA(name = "myRNA", seq = "CGCUGAAUUCAGCG"), bracketNotation = "((((......))))")
-        }
+        //load from a Vienna String
+        ss = parseVienna(StringReader(">myRNA\nCGCUGAAUUCAGCG\n((((......))))"))
+        //create object directly
+        ss = SecondaryStructure(RNA(name = "myRNA", seq = "CGCUGAAUUCAGCG"), bracketNotation = "((((......))))")
         ss?.let {
             val theme = Theme()
             theme.fontName = "Futura"
@@ -31,6 +27,23 @@ class Test {
             var drawing = SecondaryStructureDrawing(secondaryStructure = ss, theme = theme)
 
             var writer = FileWriter("media/myRNA.svg")
+            writer.write(drawing.asSVG())
+            writer.close()
+        }
+        //load from a Vienna file
+        val viennaFile = File("media/myRNA2.vienna")
+        var ss2:SecondaryStructure? = null
+        if (viennaFile.exists())
+            ss2 = parseVienna(FileReader(viennaFile))
+        ss2?.let {
+            val theme = Theme()
+            theme.fontName = "Arial"
+            theme.secondaryInteractionWidth = 1
+            theme.residueBorder = 3
+            theme.CColor = Color.RED
+            theme.CChar = Color.WHITE
+            var drawing = SecondaryStructureDrawing(secondaryStructure = ss2, theme = theme)
+            var writer = FileWriter("media/myRNA2.svg")
             writer.write(drawing.asSVG())
             writer.close()
         }
