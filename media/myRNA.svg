@@ -22,7 +22,7 @@
 	</g>
 	<g>
 		<circle cx="41.0" cy="187.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(223, 1, 1)" />
-		<text x="41.0" y="187.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">G</text>
+		<text x="41.0" y="187.0" text-anchor="middle" dy=".3em" style="fill:rgb(0, 0, 0);font-family:Futura;font-size:19;">G</text>
 	</g>
 	<g>
 		<circle cx="41.0" cy="152.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(41, 110, 180)" />
@@ -30,11 +30,11 @@
 	</g>
 	<g>
 		<circle cx="41.0" cy="117.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(255, 208, 123)" />
-		<text x="41.0" y="117.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">U</text>
+		<text x="41.0" y="117.0" text-anchor="middle" dy=".3em" style="fill:rgb(0, 0, 0);font-family:Futura;font-size:19;">U</text>
 	</g>
 	<g>
 		<circle cx="16.691585249916216" cy="84.42990397068479" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(223, 1, 1)" />
-		<text x="16.691585249916216" y="84.42990397068479" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">G</text>
+		<text x="16.691585249916216" y="84.42990397068479" text-anchor="middle" dy=".3em" style="fill:rgb(0, 0, 0);font-family:Futura;font-size:19;">G</text>
 	</g>
 	<g>
 		<circle cx="20.593696764900642" cy="43.976428115753265" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(177, 116, 15)" />
@@ -46,11 +46,11 @@
 	</g>
 	<g>
 		<circle cx="91.32061873455689" cy="16.653145531943323" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(255, 208, 123)" />
-		<text x="91.32061873455689" y="16.653145531943323" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">U</text>
+		<text x="91.32061873455689" y="16.653145531943323" text-anchor="middle" dy=".3em" style="fill:rgb(0, 0, 0);font-family:Futura;font-size:19;">U</text>
 	</g>
 	<g>
 		<circle cx="121.40630323509959" cy="43.97642811575338" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(255, 208, 123)" />
-		<text x="121.40630323509959" y="43.97642811575338" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">U</text>
+		<text x="121.40630323509959" y="43.97642811575338" text-anchor="middle" dy=".3em" style="fill:rgb(0, 0, 0);font-family:Futura;font-size:19;">U</text>
 	</g>
 	<g>
 		<circle cx="125.3084147500839" cy="84.42990397068479" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(41, 110, 180)" />
@@ -62,7 +62,7 @@
 	</g>
 	<g>
 		<circle cx="101.0" cy="152.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(223, 1, 1)" />
-		<text x="101.0" y="152.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">G</text>
+		<text x="101.0" y="152.0" text-anchor="middle" dy=".3em" style="fill:rgb(0, 0, 0);font-family:Futura;font-size:19;">G</text>
 	</g>
 	<g>
 		<circle cx="101.0" cy="187.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(41, 110, 180)" />
@@ -70,6 +70,6 @@
 	</g>
 	<g>
 		<circle cx="101.0" cy="222.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(223, 1, 1)" />
-		<text x="101.0" y="222.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">G</text>
+		<text x="101.0" y="222.0" text-anchor="middle" dy=".3em" style="fill:rgb(0, 0, 0);font-family:Futura;font-size:19;">G</text>
 	</g>
 </svg>

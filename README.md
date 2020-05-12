@@ -225,6 +225,8 @@ ss2?.let {
     theme.fontName = "Arial"
     theme.secondaryInteractionWidth = 1
     theme.residueBorder = 3
+    theme.UColor = Color.WHITE
+    theme.UChar = Color.BLACK
     theme.CColor = Color.RED
     theme.CChar = Color.WHITE
     var drawing = SecondaryStructureDrawing(secondaryStructure = ss2, theme = theme)
