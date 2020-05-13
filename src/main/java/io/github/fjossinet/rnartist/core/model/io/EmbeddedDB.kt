@@ -183,8 +183,8 @@ class EmbeddedDB() {
 
         for (i in secondaryStructureDrawing.secondaryStructure.secondaryInteractions) {
             interactions.add(mapOf(
-                    "start" to "${i.location.start}",
-                    "end" to "${i.location.end}",
+                    "start" to "${i.start}",
+                    "end" to "${i.end}",
                     "edge5" to i.edge5.name,
                     "edge3" to i.edge3.name,
                     "orientation" to i.orientation.name
@@ -193,8 +193,8 @@ class EmbeddedDB() {
 
         for (i in secondaryStructureDrawing.secondaryStructure.tertiaryInteractions) {
             interactions.add(mapOf(
-                    "start" to "${i.location.start}",
-                    "end" to "${i.location.end}",
+                    "start" to "${i.start}",
+                    "end" to "${i.end}",
                     "edge5" to i.edge5.name,
                     "edge3" to i.edge3.name,
                     "orientation" to i.orientation.name

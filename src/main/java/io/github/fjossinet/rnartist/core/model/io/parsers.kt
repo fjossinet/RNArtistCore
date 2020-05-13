@@ -163,16 +163,16 @@ fun parseStockholm(reader: Reader): List<SecondaryStructure> {
         var consensusSS = SecondaryStructure(rna, _bn)
 
         for (bp in consensusSS.secondaryInteractions) {
-            if (rna.seq[bp.location.start-1] == '-')
-                _bn = _bn.replaceRange(bp.location.end-1,bp.location.end,".")
-            if (rna.seq[bp.location.end-1] == '-')
-                _bn = _bn.replaceRange(bp.location.start-1,bp.location.start,".")
+            if (rna.seq[bp.start-1] == '-')
+                _bn = _bn.replaceRange(bp.end-1,bp.end,".")
+            if (rna.seq[bp.end-1] == '-')
+                _bn = _bn.replaceRange(bp.start-1,bp.start,".")
         }
         for (bp in consensusSS.tertiaryInteractions) {
-            if (rna.seq[bp.location.start-1] == '-')
-                _bn = _bn.replaceRange(bp.location.end-1,bp.location.end,".")
-            if (rna.seq[bp.location.end-1] == '-')
-                _bn = _bn.replaceRange(bp.location.start-1,bp.location.start,".")
+            if (rna.seq[bp.start-1] == '-')
+                _bn = _bn.replaceRange(bp.end-1,bp.end,".")
+            if (rna.seq[bp.end-1] == '-')
+                _bn = _bn.replaceRange(bp.start-1,bp.start,".")
         }
 
 

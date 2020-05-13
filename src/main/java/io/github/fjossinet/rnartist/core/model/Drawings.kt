@@ -566,6 +566,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
     val phosphodiesterBonds = mutableListOf<PhosphodiesterBondLine>()
     val secondaryInteractions = mutableListOf<SecondaryInteractionLine>()
     val tertiaryInteractions = mutableListOf<TertiaryInteractionLine>()
+
     val allJunctions:List<JunctionCircle>
         get() {
             val allJunctions = mutableSetOf<JunctionCircle>()
@@ -575,6 +576,27 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
             }
             return allJunctions.toList()
         }
+
+    val viewX:Double
+        get(){
+            return this.workingSession.viewX
+        }
+
+    val viewY:Double
+        get(){
+            return this.workingSession.viewY
+        }
+
+    val finalZoomLevel:Double
+        get(){
+            return this.workingSession.finalZoomLevel
+        }
+
+    val selectedResidues:MutableList<ResidueCircle>
+        get(){
+            return this.workingSession.selectedResidues
+        }
+
 
     init {
         this.secondaryStructure.rna.seq.forEachIndexed { index,char -> this.residues.add(
@@ -1738,7 +1760,7 @@ class TransWC(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolean, start
         g.color = previousColor
         if (inTertiaries)
             g.stroke = BasicStroke(
-                this.ssDrawing.workingSession.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
+                this.ssDrawing.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
                 BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_BEVEL
             )
@@ -1798,7 +1820,7 @@ class TransRightSugar(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolea
         g.color = previousColor
         if (inTertiaries)
             g.stroke = BasicStroke(
-                this.ssDrawing.workingSession.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
+                this.ssDrawing.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
                 BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_BEVEL
             )
@@ -1816,7 +1838,7 @@ class TransLeftSugar(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolean
         g.color = previousColor
         if (inTertiaries)
             g.stroke = BasicStroke(
-                this.ssDrawing.workingSession.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
+                this.ssDrawing.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
                 BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_BEVEL
             )
@@ -1856,7 +1878,7 @@ class TransHoogsteen(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolean
         g.color = previousColor
         if (inTertiaries)
             g.stroke = BasicStroke(
-                this.ssDrawing.workingSession.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
+                this.ssDrawing.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
                 BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_BEVEL
             )
@@ -1878,16 +1900,16 @@ class LWLine(ssDrawing: SecondaryStructureDrawing, inTertiaries:Boolean = false,
             ssDrawing?.let {
                 if (ssDrawing.theme.tertiaryInteractionStyle == DASHED)
                     g.stroke = BasicStroke(
-                        this.ssDrawing.workingSession.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
+                        this.ssDrawing.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
                         BasicStroke.CAP_ROUND,
                         BasicStroke.JOIN_BEVEL,
                         0F,
-                        floatArrayOf(this.ssDrawing.workingSession.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat() * 2),
+                        floatArrayOf(this.ssDrawing.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat() * 2),
                         0F
                     )
                 else
                     g.stroke = BasicStroke(
-                        this.ssDrawing.workingSession.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
+                        this.ssDrawing.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
                         BasicStroke.CAP_ROUND,
                         BasicStroke.JOIN_BEVEL
                     )
@@ -1907,10 +1929,10 @@ abstract class BaseBaseInteraction(val interaction: BasePair, val ssDrawing:Seco
     val isCanonical:Boolean
         get() {
             return this.interaction.edge5 == Edge.WC && this.interaction.edge3 == Edge.WC && this.interaction.orientation == Orientation.cis && (
-                                    this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.start)).first()?.label == SecondaryStructureElement.A && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.end)).first()?.label == SecondaryStructureElement.U ||
-                                    this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.start)).first()?.label == SecondaryStructureElement.U && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.end)).first()?.label == SecondaryStructureElement.A ||
-                                    this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.start)).first()?.label == SecondaryStructureElement.G && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.end)).first()?.label == SecondaryStructureElement.C ||
-                                    this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.start)).first()?.label == SecondaryStructureElement.C && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.end)).first()?.label == SecondaryStructureElement.G
+                                    this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.start)).first()?.label == SecondaryStructureElement.A && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.end)).first()?.label == SecondaryStructureElement.U ||
+                                    this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.start)).first()?.label == SecondaryStructureElement.U && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.end)).first()?.label == SecondaryStructureElement.A ||
+                                    this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.start)).first()?.label == SecondaryStructureElement.G && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.end)).first()?.label == SecondaryStructureElement.C ||
+                                    this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.start)).first()?.label == SecondaryStructureElement.C && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.end)).first()?.label == SecondaryStructureElement.G
                     )
         }
 
@@ -1954,15 +1976,15 @@ class SecondaryInteractionLine(interaction: BasePair, ssDrawing: SecondaryStruct
 
     fun draw(g: Graphics2D) {
         val previousStroke = g.stroke
-        g.stroke = BasicStroke(this.ssDrawing.workingSession.finalZoomLevel.toFloat()*this.ssDrawing.theme.secondaryInteractionWidth.toFloat(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
+        g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat()*this.ssDrawing.theme.secondaryInteractionWidth.toFloat(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
         g.color = this.ssDrawing.theme.SecondaryColor
-        if (!this.ssDrawing.workingSession.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.interaction.location.start-1] in this.ssDrawing.workingSession.selectedResidues) || !(this.ssDrawing.residues[this.interaction.location.end-1] in this.ssDrawing.workingSession.selectedResidues))) {
+        if (!this.ssDrawing.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.interaction.start-1] in this.ssDrawing.selectedResidues) || !(this.ssDrawing.residues[this.interaction.end-1] in this.ssDrawing.selectedResidues))) {
             g.color = Color(g.color.red, g.color.green, g.color.blue,
                 RnartistConfig.selectionFading
             )
         }
-        val center1 = this.ssDrawing.residues[this.interaction.location.start-1].center
-        val center2 = this.ssDrawing.residues[this.interaction.location.end-1].center
+        val center1 = this.ssDrawing.residues[this.interaction.start-1].center
+        val center2 = this.ssDrawing.residues[this.interaction.end-1].center
         if (center1 != null && center2 != null) {
 
             val shift = radiusConst+this.ssDrawing.theme.secondaryInteractionShift+this.ssDrawing.theme.residueBorder.toDouble()/2.0+this.ssDrawing.theme.secondaryInteractionWidth/2.0
@@ -1976,8 +1998,8 @@ class SecondaryInteractionLine(interaction: BasePair, ssDrawing: SecondaryStruct
                 this.p2 = points.second
                 this.setLWSymbols()
                 val at = AffineTransform()
-                at.translate(this.ssDrawing.workingSession.viewX, this.ssDrawing.workingSession.viewY)
-                at.scale(this.ssDrawing.workingSession.finalZoomLevel, this.ssDrawing.workingSession.finalZoomLevel)
+                at.translate(this.ssDrawing.viewX, this.ssDrawing.viewY)
+                at.scale(this.ssDrawing.finalZoomLevel, this.ssDrawing.finalZoomLevel)
                 this.lwSymbols.forEach { lwSymbol ->
                     lwSymbol.draw(g,at)
                 }
@@ -1993,8 +2015,8 @@ class SecondaryInteractionLine(interaction: BasePair, ssDrawing: SecondaryStruct
                 val distance = distance(p1, p2);
                 val symbolWidth = distance / 3.0 * deltaLWSymbols
                 if (this.isCanonical) {
-                    if (this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.start)).first()?.label == SecondaryStructureElement.G && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.end)).first()?.label == SecondaryStructureElement.C ||
-                        this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.start)).first()?.label == SecondaryStructureElement.C && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.end)).first()?.label == SecondaryStructureElement.G) {
+                    if (this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.start)).first()?.label == SecondaryStructureElement.G && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.end)).first()?.label == SecondaryStructureElement.C ||
+                        this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.start)).first()?.label == SecondaryStructureElement.C && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.end)).first()?.label == SecondaryStructureElement.G) {
                         val (p1_1, p1_2) = getPerpendicular(p1, p1, p2, symbolWidth / 2.0)
                         val (p2_1, p2_2) = getPerpendicular(p2, p1, p2, symbolWidth / 2.0)
                         this.lwSymbols.add(LWLine(this.ssDrawing, false, p1_1, p2_1))
@@ -2023,8 +2045,8 @@ class SecondaryInteractionLine(interaction: BasePair, ssDrawing: SecondaryStruct
     }
 
     fun asSVG(indentChar:String ="\t", indentLevel:Int = 1, theme: Theme, transX:Double= 0.0, transY:Double = 0.0):String {
-        val center1 = this.ssDrawing.residues[this.interaction.location.start-1].center
-        val center2 = this.ssDrawing.residues[this.interaction.location.end-1].center
+        val center1 = this.ssDrawing.residues[this.interaction.start-1].center
+        val center2 = this.ssDrawing.residues[this.interaction.end-1].center
         if (center1 != null && center2 != null) {
             val (p1, p2) = pointsFrom(
                 center1,
@@ -2043,14 +2065,14 @@ class TertiaryInteractionLine(interaction: BasePair, ssDrawing: SecondaryStructu
     fun drawHalo(g: Graphics2D) {
         val previousStroke = g.stroke
         val at = AffineTransform()
-        at.translate(this.ssDrawing.workingSession.viewX, this.ssDrawing.workingSession.viewY)
-        at.scale(this.ssDrawing.workingSession.finalZoomLevel, this.ssDrawing.workingSession.finalZoomLevel)
-        if (this.ssDrawing.workingSession.selectedResidues.isEmpty()) {
+        at.translate(this.ssDrawing.viewX, this.ssDrawing.viewY)
+        at.scale(this.ssDrawing.finalZoomLevel, this.ssDrawing.finalZoomLevel)
+        if (this.ssDrawing.selectedResidues.isEmpty()) {
             g.color = Color(ssDrawing.theme.TertiaryColor.red, ssDrawing.theme.TertiaryColor.green, ssDrawing.theme.TertiaryColor.blue, ssDrawing.theme.tertiaryOpacity)
             g.stroke =
-                BasicStroke(this.ssDrawing.workingSession.finalZoomLevel.toFloat() * ssDrawing.theme.haloWidth.toFloat())
-            g.draw(at.createTransformedShape(this.ssDrawing.residues[this.interaction.location.start - 1].circle))
-            g.draw(at.createTransformedShape(this.ssDrawing.residues[this.interaction.location.end - 1].circle))
+                BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * ssDrawing.theme.haloWidth.toFloat())
+            g.draw(at.createTransformedShape(this.ssDrawing.residues[this.interaction.start - 1].circle))
+            g.draw(at.createTransformedShape(this.ssDrawing.residues[this.interaction.end - 1].circle))
         }
         g.color = Color(
             ssDrawing.theme.TertiaryColor.red,
@@ -2064,11 +2086,11 @@ class TertiaryInteractionLine(interaction: BasePair, ssDrawing: SecondaryStructu
     fun draw(g: Graphics2D) {
         val previousStroke = g.stroke
         val at = AffineTransform()
-        at.translate(this.ssDrawing.workingSession.viewX, this.ssDrawing.workingSession.viewY)
-        at.scale(this.ssDrawing.workingSession.finalZoomLevel, this.ssDrawing.workingSession.finalZoomLevel)
-        val center1 = this.ssDrawing.residues[this.interaction.location.start-1].center
-        val center2 = this.ssDrawing.residues[this.interaction.location.end-1].center
-        if (ssDrawing.theme.tertiaryInteractionWidth != 0.0 && center1 != null && center2 != null && !this.ssDrawing.workingSession.selectedResidues.isEmpty() &&  ( (this.ssDrawing.residues[this.interaction.location.start-1] in this.ssDrawing.workingSession.selectedResidues) || (this.ssDrawing.residues[this.interaction.location.end-1] in this.ssDrawing.workingSession.selectedResidues))) {
+        at.translate(this.ssDrawing.viewX, this.ssDrawing.viewY)
+        at.scale(this.ssDrawing.finalZoomLevel, this.ssDrawing.finalZoomLevel)
+        val center1 = this.ssDrawing.residues[this.interaction.start-1].center
+        val center2 = this.ssDrawing.residues[this.interaction.end-1].center
+        if (ssDrawing.theme.tertiaryInteractionWidth != 0.0 && center1 != null && center2 != null && !this.ssDrawing.selectedResidues.isEmpty() &&  ( (this.ssDrawing.residues[this.interaction.start-1] in this.ssDrawing.selectedResidues) || (this.ssDrawing.residues[this.interaction.end-1] in this.ssDrawing.selectedResidues))) {
             g.color = Color(ssDrawing.theme.TertiaryColor.red, ssDrawing.theme.TertiaryColor.green, ssDrawing.theme.TertiaryColor.blue)
             this.setLWSymbols()
             this.lwSymbols.forEach { lwSymbol ->
@@ -2086,8 +2108,8 @@ class TertiaryInteractionLine(interaction: BasePair, ssDrawing: SecondaryStructu
 
     override fun setLWSymbols() {
         this.lwSymbols.clear()
-        val center1 = this.ssDrawing.residues[this.interaction.location.start-1].center
-        val center2 = this.ssDrawing.residues[this.interaction.location.end-1].center
+        val center1 = this.ssDrawing.residues[this.interaction.start-1].center
+        val center2 = this.ssDrawing.residues[this.interaction.end-1].center
         if (center1 != null && center2 != null) {
 
             val shift = radiusConst+ssDrawing.theme.residueBorder.toDouble()/2.0
@@ -2141,8 +2163,8 @@ class TertiaryInteractionLine(interaction: BasePair, ssDrawing: SecondaryStructu
     }
 
     fun asSVG(indentChar:String ="\t", indentLevel:Int = 1, theme: Theme, transX:Double= 0.0, transY:Double = 0.0):String {
-        val center1 = this.ssDrawing.residues[this.interaction.location.start-1].center
-        val center2 = this.ssDrawing.residues[this.interaction.location.end-1].center
+        val center1 = this.ssDrawing.residues[this.interaction.start-1].center
+        val center2 = this.ssDrawing.residues[this.interaction.end-1].center
         if (theme.tertiaryInteractionWidth != 0.0 && center1 != null && center2 != null) {
             val (p1, p2) = pointsFrom(
                 center1,
@@ -2160,9 +2182,9 @@ class PhosphodiesterBondLine(val start:Int, val end:Int, val ssDrawing: Secondar
 
     fun draw(g: Graphics2D) {
         val previousStroke = g.stroke
-        g.stroke = BasicStroke(this.ssDrawing.workingSession.finalZoomLevel.toFloat()*ssDrawing.theme.phosphoDiesterWidth.toFloat())
+        g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat()*ssDrawing.theme.phosphoDiesterWidth.toFloat())
         g.color = Color.DARK_GRAY
-        if (!this.ssDrawing.workingSession.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.start-1] in this.ssDrawing.workingSession.selectedResidues) || !(this.ssDrawing.residues[this.end-1] in this.ssDrawing.workingSession.selectedResidues))) {
+        if (!this.ssDrawing.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.start-1] in this.ssDrawing.selectedResidues) || !(this.ssDrawing.residues[this.end-1] in this.ssDrawing.selectedResidues))) {
             g.color = Color(g.color.red, g.color.green, g.color.blue,
                 RnartistConfig.selectionFading
             )
@@ -2180,8 +2202,8 @@ class PhosphodiesterBondLine(val start:Int, val end:Int, val ssDrawing: Secondar
                     p2
                 ) > spaceBetweenResidues /2.0) {
                 val at = AffineTransform()
-                at.translate(this.ssDrawing.workingSession.viewX,this.ssDrawing.workingSession.viewY)
-                at.scale(this.ssDrawing.workingSession.finalZoomLevel, this.ssDrawing.workingSession.finalZoomLevel)
+                at.translate(this.ssDrawing.viewX,this.ssDrawing.viewY)
+                at.scale(this.ssDrawing.finalZoomLevel, this.ssDrawing.finalZoomLevel)
                 g.draw(at.createTransformedShape(Line2D.Double(p1,p2)))
             }
         }

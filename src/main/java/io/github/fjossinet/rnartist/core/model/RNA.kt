@@ -154,6 +154,16 @@ class RNA(var name:String="A", seq:String, var source:String="Source N.A."):Seri
 
 class BasePair(val location: Location, val edge5: Edge = Edge.WC, val edge3: Edge = Edge.WC, val orientation: Orientation = Orientation.cis):Serializable{
 
+    val start:Int
+        get() {
+            return this.location.start
+        }
+
+    val end:Int
+        get() {
+            return this.location.end
+        }
+
     override fun toString(): String {
         return "$location $orientation:$edge5:$edge3"
     }
@@ -163,6 +173,16 @@ class BasePair(val location: Location, val edge5: Edge = Edge.WC, val edge3: Edg
 class SingleStrand(val name:String?="MySingleStrand", start:Int, end:Int):Serializable {
 
     val location = Location(start, end)
+
+    val start:Int
+        get() {
+            return this.location.start
+        }
+
+    val end:Int
+        get() {
+            return this.location.end
+        }
 
     val length:Int
         get() {
@@ -177,7 +197,7 @@ class Helix(val name:String?="MyHelix"):Serializable {
 
     val location: Location
         get() {
-            val positionsInHelix = this.secondaryInteractions.map { bp ->  arrayOf(bp.location.start, bp.location.end) }.toTypedArray().flatten()
+            val positionsInHelix = this.secondaryInteractions.map { bp ->  arrayOf(bp.start, bp.end) }.toTypedArray().flatten()
             return Location(positions = positionsInHelix.toIntArray())
         }
 
@@ -209,11 +229,11 @@ class Helix(val name:String?="MyHelix"):Serializable {
 
     fun getPairedPosition(position:Int): Int? {
         for (bp in this.secondaryInteractions) {
-            if (bp.location.start == position) {
-                return bp.location.end
+            if (bp.start == position) {
+                return bp.end
             }
-            if (bp.location.end == position) {
-                return bp.location.start
+            if (bp.end == position) {
+                return bp.start
             }
         }
         return null
@@ -545,23 +565,23 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
         }
 
         if (!bps.isEmpty()) {
-            bps.sortBy { it.location.start }
+            bps.sortBy { it.start }
             val bpInHelix = mutableSetOf<BasePair>()
             BASEPAIRS@ for (i in 0 until bps.size-1) { //for each basepair with gather the successive stacked basepairs
                 if (bps[i].edge3 == Edge.SingleHBond || bps[i].edge5 == Edge.SingleHBond) //we can increase the stringency here, like only the canonical
                     continue
-                var start1 = bps[i].location.start
-                var end1 = bps[i].location.end
+                var start1 = bps[i].start
+                var end1 = bps[i].end
                 for (h in this.helices) { //if an helix as already the same basepair, we will construct the same helix with less basepairs, so stop
                     for (bb in h.secondaryInteractions) {
-                        if (bb.location.start == start1 && bb.location.end == end1)
+                        if (bb.start == start1 && bb.end == end1)
                             continue@BASEPAIRS
                     }
                 }
                 var j = i+1
                 while (j < bps.size) {
-                    val start2 = bps[j].location.start
-                    val end2 = bps[j].location.end
+                    val start2 = bps[j].start
+                    val end2 = bps[j].end
                     if (bps[j].edge3 == Edge.SingleHBond || bps[j].edge5 == Edge.SingleHBond) { //we can increase the stringency here, like only the canonical
                         j++
                         continue
@@ -569,8 +589,8 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
                     if (start1 + 1 == start2 && end1 - 1 == end2) { //if successive basepair with the last one, extension of the current helix
                         bpInHelix.add(bps[i])
                         bpInHelix.add(bps[j])
-                        start1 = bps[j].location.start
-                        end1 = bps[j].location.end
+                        start1 = bps[j].start
+                        end1 = bps[j].end
                     } else if (start2 > start1+1) { //since the base-pairs are sorted, we will never get more succcessive stacked bp. We can restart with the next basepairs in the list
                         if (!bpInHelix.isEmpty()) {
                             val h = Helix()
@@ -647,20 +667,20 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
     fun getPairedPosition(position:Int): Int? {
         for (h in this.helices) {
             for (bp in h.secondaryInteractions) {
-                if (bp.location.start == position) {
-                    return bp.location.end
+                if (bp.start == position) {
+                    return bp.end
                 }
-                if (bp.location.end == position) {
-                    return bp.location.start
+                if (bp.end == position) {
+                    return bp.start
                 }
             }
         }
         for (bp in tertiaryInteractions) {
-            if (bp.location.start == position) {
-                return bp.location.end
+            if (bp.start == position) {
+                return bp.end
             }
-            if (bp.location.end == position) {
-                return bp.location.start
+            if (bp.end == position) {
+                return bp.start
             }
         }
         return null
@@ -763,13 +783,13 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
         for (i in 0 until this.rna.length) bn[i] = '.'
         for (helix in this.helices) {
             for (bp in helix.secondaryInteractions) {
-                bn[bp.location.start - 1] = '('
-                bn[bp.location.end - 1] = ')'
+                bn[bp.start - 1] = '('
+                bn[bp.end - 1] = ')'
             }
         }
         for (bp in this.tertiaryInteractions) {
-            bn[bp.location.start - 1] = '('
-            bn[bp.location.end - 1] = ')'
+            bn[bp.start - 1] = '('
+            bn[bp.end - 1] = ')'
         }
         return String(bn)
     }

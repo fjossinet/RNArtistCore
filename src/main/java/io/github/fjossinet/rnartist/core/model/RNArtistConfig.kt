@@ -38,7 +38,7 @@ object RnartistConfig {
                             Color.LIGHT_GRAY
                     ),
                     ThemeParameter.SecondaryColor.toString() to "#4d4d4d",
-                    ThemeParameter.TertiaryColor.toString() to "#DEA54B"
+                    ThemeParameter.TertiaryColor.toString() to "#cc3333"
             ),
 
             "Snow Lavender" to mapOf(
@@ -702,11 +702,11 @@ object RnartistConfig {
                     ThemeParameter.SecondaryColor.toString())!!,
             ThemeParameter.TertiaryColor.toString() to defaultColorSchemes.get("Persian Carolina")!!.get(
                     ThemeParameter.TertiaryColor.toString())!!,
-            ThemeParameter.ResidueBorder.toString() to "1.25",
-            ThemeParameter.PhosphodiesterWidth.toString() to "2.0",
+            ThemeParameter.ResidueBorder.toString() to "0.75",
+            ThemeParameter.PhosphodiesterWidth.toString() to "3.0",
             ThemeParameter.SecondaryInteractionWidth.toString() to "1.0",
             ThemeParameter.SecondaryInteractionShift.toString() to "1.0",
-            ThemeParameter.TertiaryInteractionWidth.toString() to "2.0",
+            ThemeParameter.TertiaryInteractionWidth.toString() to "1.0",
             ThemeParameter.HaloWidth.toString() to "10.0",
             ThemeParameter.TertiaryOpacity.toString() to "130", //alpha value goes from 0 to 255
             ThemeParameter.ResidueCharOpacity.toString() to "255", //alpha value goes from 0 to 255
