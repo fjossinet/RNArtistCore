@@ -1,5 +1,6 @@
-package io.github.fjossinet.rnartist.core.model
+package io.github.fjossinet.rnartist.core
 
+import io.github.fjossinet.rnartist.core.model.*
 import io.github.fjossinet.rnartist.core.model.io.parseBPSeq
 import io.github.fjossinet.rnartist.core.model.io.parseCT
 import io.github.fjossinet.rnartist.core.model.io.parseStockholm
@@ -27,11 +28,11 @@ fun main(args:Array<String>) {
 
             if (optionExists(args, "--browser-fix"))
                 RnartistConfig.exportSVGWithBrowserCompatibility(
-                    true
+                        true
                 )
             if (optionExists(args, "--no-browser-fix"))
                 RnartistConfig.exportSVGWithBrowserCompatibility(
-                    false
+                        false
                 )
             getOptionValue(args, "-cA")?.let {
                 if (!it.startsWith("#"))
@@ -142,11 +143,11 @@ fun main(args:Array<String>) {
                         secondaryStructures.forEach { ss ->
                             ss?.let {
                                 val drawing =
-                                    SecondaryStructureDrawing(
-                                        ss,
-                                        theme = theme,
-                                        workingSession = WorkingSession()
-                                    )
+                                        SecondaryStructureDrawing(
+                                                ss,
+                                                theme = theme,
+                                                workingSession = WorkingSession()
+                                        )
                                 if (outputPath.length == 0) {
                                     println(drawing.asSVG())
                                 } else {
@@ -165,10 +166,10 @@ fun main(args:Array<String>) {
                     Regex("^RF.+").matches(database_id) -> {
                         for (ss in parseStockholm(Rfam().getEntry(database_id.trim()))) {
                             var drawing =
-                                SecondaryStructureDrawing(
-                                    secondaryStructure = ss,
-                                    workingSession = WorkingSession()
-                                )
+                                    SecondaryStructureDrawing(
+                                            secondaryStructure = ss,
+                                            workingSession = WorkingSession()
+                                    )
                             if (outputPath.length == 0) {
                                 println(drawing.asSVG())
                             } else {
