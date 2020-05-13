@@ -37,9 +37,7 @@ object RnartistConfig {
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
-                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
-                    ),
+                    ThemeParameter.SecondaryColor.toString() to "#4d4d4d",
                     ThemeParameter.TertiaryColor.toString() to "#DEA54B"
             ),
 
@@ -182,9 +180,7 @@ object RnartistConfig {
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
-                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
-                    ),
+                    ThemeParameter.SecondaryColor.toString() to "#4d4d4d",
                     ThemeParameter.TertiaryColor.toString() to "#1789FC"
             ),
 
@@ -706,10 +702,12 @@ object RnartistConfig {
                     ThemeParameter.SecondaryColor.toString())!!,
             ThemeParameter.TertiaryColor.toString() to defaultColorSchemes.get("Persian Carolina")!!.get(
                     ThemeParameter.TertiaryColor.toString())!!,
-            ThemeParameter.ResidueBorder.toString() to "2",
-            ThemeParameter.SecondaryInteractionWidth.toString() to "4",
-            ThemeParameter.TertiaryInteractionWidth.toString() to "2",
-            ThemeParameter.HaloWidth.toString() to "10",
+            ThemeParameter.ResidueBorder.toString() to "1.25",
+            ThemeParameter.PhosphodiesterWidth.toString() to "2.0",
+            ThemeParameter.SecondaryInteractionWidth.toString() to "1.0",
+            ThemeParameter.SecondaryInteractionShift.toString() to "1.0",
+            ThemeParameter.TertiaryInteractionWidth.toString() to "2.0",
+            ThemeParameter.HaloWidth.toString() to "10.0",
             ThemeParameter.TertiaryOpacity.toString() to "130", //alpha value goes from 0 to 255
             ThemeParameter.ResidueCharOpacity.toString() to "255", //alpha value goes from 0 to 255
             ThemeParameter.TertiaryInteractionStyle.toString() to DASHED,
@@ -865,6 +863,12 @@ object RnartistConfig {
             e.addContent(0, file)
         }
     }
+
+        @JvmStatic
+   var displayTertiariesInSelection:Boolean = true
+        get() {
+                return true
+        }
 
     @JvmStatic
     var chimeraPath: String?

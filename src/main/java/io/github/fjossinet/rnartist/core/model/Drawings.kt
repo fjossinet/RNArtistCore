@@ -8,19 +8,24 @@ import java.awt.image.BufferedImage
 import kotlin.math.hypot
 
 
-val radiusConst:Double = 15.0
-val spaceAfter:Double = 5.0
+//parameters that can be modified
+val radiusConst:Double = 7.0
+val spaceBetweenResidues:Double = 5.0
+val deltaHelixWidth:Double = 5.0
+val deltaPhosphoShift:Double = 0.0
+val deltaLWSymbols:Double = 1.2
+
 val minimalCircumference:Float = 360F/((ConnectorId.values().size)* radiusConst *3).toFloat()
 val minimalRadius:Float = minimalCircumference /(2F*Math.PI).toFloat()
 val radiansToDegrees = 180 / Math.PI
 val degreesToRadians = Math.PI / 180
 
 fun helixDrawingLength(h: Helix):Double {
-    return (h.length-1).toDouble() * radiusConst * 2.0 + (h.length-1).toDouble() * spaceAfter
+    return (h.length-1).toDouble() * radiusConst * 2.0 + (h.length-1).toDouble() * spaceBetweenResidues
 }
 
 fun helixDrawingWidth():Double {
-    return radiusConst *8.0 /* each residue = 4*radius + 4*radius for the base-pair symbol (1 radius for a shape (squarre, triangle, circle, line) + 2*0.5 radius to have space between the residue circles and the symbols)*/
+    return radiusConst * deltaHelixWidth
 }
 
 class Project(var secondaryStructure: SecondaryStructure, var tertiaryStructure: TertiaryStructure?, var theme:Map<String,String>, var graphicsContext:Map<String,String>) {
@@ -73,13 +78,15 @@ class WorkingSession() {
 }
 
 interface ThemeConfigurator {
-    fun getHaloWidth():Int
+    fun getHaloWidth():Double
     fun getTertiaryOpacity():Int
     fun getResidueCharOpacity(): Int
     fun getTertiaryInteractionStyle():String
-    fun getResidueBorder():Int
-    fun getSecondaryInteractionWidth():Int
-    fun getTertiaryInteractionWidth():Int
+    fun getResidueBorder():Double
+    fun getSecondaryInteractionShift():Double
+    fun getPhosphoDiesterWidth():Double
+    fun getSecondaryInteractionWidth():Double
+    fun getTertiaryInteractionWidth():Double
     fun getDeltaXRes():Int
     fun getDeltaYRes():Int
     fun getDeltaFontSize():Int
@@ -106,13 +113,13 @@ var DASHED = "dashed"
 var SOLID = "solid"
 
 enum class ThemeParameter {
-    AColor, AChar, UColor, UChar, GColor, GChar, CColor, CChar, XColor, XChar, SecondaryColor, TertiaryColor, ResidueCharOpacity, HaloWidth, TertiaryOpacity, SecondaryInteractionWidth, TertiaryInteractionWidth, TertiaryInteractionStyle, ResidueBorder, FontName, DeltaXRes, DeltaYRes, DeltaFontSize
+    AColor, AChar, UColor, UChar, GColor, GChar, CColor, CChar, XColor, XChar, SecondaryColor, TertiaryColor, ResidueCharOpacity, HaloWidth, TertiaryOpacity, PhosphodiesterWidth, SecondaryInteractionShift, SecondaryInteractionWidth, TertiaryInteractionWidth, TertiaryInteractionStyle, ResidueBorder, FontName, DeltaXRes, DeltaYRes, DeltaFontSize
 }
 
 class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeConfigurator: ThemeConfigurator? = null) {
 
     val themeParams:MutableMap<String,String> = mutableMapOf()
-    var haloWidth: Int
+    var haloWidth: Double
         set(value) {
             this.themeParams.set(ThemeParameter.HaloWidth.toString(), "${value}")
         }
@@ -120,7 +127,7 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
             themeConfigurator?.let {
                 this.themeParams.set(ThemeParameter.HaloWidth.toString(), "${it.getHaloWidth()}")
             }
-            return Integer.parseInt(this.themeParams.get(ThemeParameter.HaloWidth.toString()))
+            return this.themeParams.get(ThemeParameter.HaloWidth.toString())!!.toDouble()
         }
     var tertiaryOpacity: Int
         set(value) {
@@ -152,7 +159,7 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
             }
             return this.themeParams.get(ThemeParameter.TertiaryInteractionStyle.toString())!!
         }
-    var residueBorder: Int
+    var residueBorder: Double
         set(value) {
             this.themeParams.set(ThemeParameter.ResidueBorder.toString(), value.toString())
         }
@@ -160,9 +167,19 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
             themeConfigurator?.let {
                 this.themeParams.set(ThemeParameter.ResidueBorder.toString(), it.getResidueBorder().toString())
             }
-            return Integer.parseInt(this.themeParams.get(ThemeParameter.ResidueBorder.toString()))
+            return this.themeParams.get(ThemeParameter.ResidueBorder.toString())!!.toDouble()
         }
-    var secondaryInteractionWidth: Int
+    var secondaryInteractionShift: Double
+        set(value) {
+            this.themeParams.set(ThemeParameter.SecondaryInteractionShift.toString(), value.toString())
+        }
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.SecondaryInteractionShift.toString(), it.getSecondaryInteractionShift().toString())
+            }
+            return this.themeParams.get(ThemeParameter.SecondaryInteractionShift.toString())!!.toDouble()
+        }
+    var secondaryInteractionWidth: Double
         set(value) {
             this.themeParams.set(ThemeParameter.SecondaryInteractionWidth.toString(), value.toString())
         }
@@ -170,9 +187,9 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
             themeConfigurator?.let {
                 this.themeParams.set(ThemeParameter.SecondaryInteractionWidth.toString(), it.getSecondaryInteractionWidth().toString())
             }
-            return Integer.parseInt(this.themeParams.get(ThemeParameter.SecondaryInteractionWidth.toString()))
+            return this.themeParams.get(ThemeParameter.SecondaryInteractionWidth.toString())!!.toDouble()
         }
-    var tertiaryInteractionWidth: Int
+    var tertiaryInteractionWidth: Double
         set(value) {
             this.themeParams.set(ThemeParameter.TertiaryInteractionWidth.toString(), value.toString())
         }
@@ -180,7 +197,17 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
             themeConfigurator?.let {
                 this.themeParams.set(ThemeParameter.TertiaryInteractionWidth.toString(), it.getTertiaryInteractionWidth().toString())
             }
-            return Integer.parseInt(this.themeParams.get(ThemeParameter.TertiaryInteractionWidth.toString()))
+            return this.themeParams.get(ThemeParameter.TertiaryInteractionWidth.toString())!!.toDouble()
+        }
+    var phosphoDiesterWidth: Double
+        set(value) {
+            this.themeParams.set(ThemeParameter.PhosphodiesterWidth.toString(), value.toString())
+        }
+        get() {
+            themeConfigurator?.let {
+                this.themeParams.set(ThemeParameter.PhosphodiesterWidth.toString(), it.getPhosphoDiesterWidth().toString())
+            }
+            return this.themeParams.get(ThemeParameter.PhosphodiesterWidth.toString())!!.toDouble()
         }
     var deltaXRes: Int
         set(value) {
@@ -190,7 +217,7 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
             themeConfigurator?.let {
                 this.themeParams.set(ThemeParameter.DeltaXRes.toString(), it.getDeltaXRes().toString())
             }
-            return Integer.parseInt(this.themeParams.get(ThemeParameter.DeltaXRes.toString()))
+            return this.themeParams.get(ThemeParameter.DeltaXRes.toString())!!.toInt()
         }
     var deltaYRes: Int
         set(value) {
@@ -200,7 +227,7 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
             themeConfigurator?.let {
                 this.themeParams.set(ThemeParameter.DeltaYRes.toString(), it.getDeltaYRes().toString())
             }
-            return Integer.parseInt(this.themeParams.get(ThemeParameter.DeltaYRes.toString()))
+            return this.themeParams.get(ThemeParameter.DeltaYRes.toString())!!.toInt()
         }
     var deltaFontSize: Int
         set(value) {
@@ -210,7 +237,7 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
             themeConfigurator?.let {
                 this.themeParams.set(ThemeParameter.DeltaFontSize.toString(), it.getDeltaFontSize().toString())
             }
-            return Integer.parseInt(this.themeParams.get(ThemeParameter.DeltaFontSize.toString()))
+            return this.themeParams.get(ThemeParameter.DeltaFontSize.toString())!!.toInt()
         }
     var AColor: Color
         set(value) {
@@ -551,7 +578,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
 
     init {
         this.secondaryStructure.rna.seq.forEachIndexed { index,char -> this.residues.add(
-            ResidueCircle(
+            ResidueCircle(this,
                 index + 1,
                 char
             )
@@ -860,12 +887,12 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
         return _residues
     }
 
-    fun getBounds():Rectangle {
+    fun getBounds():Rectangle2D {
         val minX = this.residues.minBy { it.circle!!.minX }!!.circle!!.minX-theme.residueBorder
         val minY = this.residues.minBy { it.circle!!.minY }!!.circle!!.minY-theme.residueBorder
         val maxX = this.residues.maxBy { it.circle!!.maxX }!!.circle!!.maxX+theme.residueBorder
         val maxY = this.residues.maxBy { it.circle!!.maxY }!!.circle!!.maxY+theme.residueBorder
-        return Rectangle(minX.toInt(), minY.toInt(), (maxX-minX).toInt(), (maxY-minY).toInt())
+        return Rectangle2D.Double(minX.toInt()-theme.residueBorder/2.0, minY.toInt()-theme.residueBorder/2.0, maxX-minX+theme.residueBorder, maxY-minY+theme.residueBorder)
     }
 
     fun draw (g: Graphics2D) {
@@ -912,22 +939,27 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
         }*/
 
         for (bond in this.phosphodiesterBonds) {
-            bond.draw(g, workingSession, this.theme)
+            bond.draw(g)
         }
 
 
         for (interaction in this.secondaryInteractions) {
-            interaction.draw(g, workingSession, this.theme)
+            interaction.draw(g)
         }
 
         if (!theme.quickDraw && theme.tertiaryOpacity > 0)
             for (interaction in this.tertiaryInteractions) {
-                interaction.draw(g, workingSession, this.theme)
+                interaction.drawHalo(g)
             }
 
         for (residue in this.residues) {
-            residue.draw(g, workingSession, this.theme)
+            residue.draw(g)
         }
+
+        if (!theme.quickDraw && theme.tertiaryInteractionWidth != 0.0 && !workingSession.selectedResidues.isEmpty())
+            for (interaction in this.tertiaryInteractions) {
+                interaction.draw(g)
+            }
 
     }
 
@@ -974,7 +1006,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
             helix.line.p1,
             helix.line.p1,
             helix.line.p2,
-            radiusConst * 2.0
+            helixDrawingWidth()/2.0
         )
         var cp = crossProduct(helix.line.p1, helix.line.p2, p1_5)
         if (cp < 0) {
@@ -988,7 +1020,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
             helix.line.p2,
             helix.line.p1,
             helix.line.p2,
-            radiusConst * 2.0
+            helixDrawingWidth()/2.0
         )
         cp = crossProduct(helix.line.p2, helix.line.p1, p1_3)
         if (cp > 0) {
@@ -1066,7 +1098,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
     }
 }
 
-class ResidueCircle(val absPos:Int, label:Char) {
+class ResidueCircle(val ssDrawing: SecondaryStructureDrawing, val absPos:Int, label:Char) {
 
     val label: SecondaryStructureElement
     var circle: Ellipse2D? = null
@@ -1086,24 +1118,24 @@ class ResidueCircle(val absPos:Int, label:Char) {
         }
     }
 
-    fun draw(g: Graphics2D, gc: WorkingSession, theme: Theme) {
+    fun draw(g: Graphics2D) {
         if (this.circle != null) {
             val at = AffineTransform()
-            at.translate(gc.viewX,gc.viewY)
-            at.scale(gc.finalZoomLevel, gc.finalZoomLevel)
+            at.translate(this.ssDrawing.workingSession.viewX,this.ssDrawing.workingSession.viewY)
+            at.scale(this.ssDrawing.workingSession.finalZoomLevel, this.ssDrawing.workingSession.finalZoomLevel)
             val _c = at.createTransformedShape(this.circle)
-            g.color = getColor(theme)
-            if (!gc.selectedResidues.isEmpty() && !(this in gc.selectedResidues)) {
+            g.color = getColor(this.ssDrawing.theme)
+            if (!this.ssDrawing.workingSession.selectedResidues.isEmpty() && !(this in this.ssDrawing.workingSession.selectedResidues)) {
                 g.color = Color(g.color.red, g.color.green, g.color.blue,
                     RnartistConfig.selectionFading
                 )
             }
             g.fill(_c)
-            if (!theme.quickDraw) {
+            if (!this.ssDrawing.theme.quickDraw) {
                 val previousStroke: Stroke = g.getStroke()
-                g.stroke = BasicStroke(gc.finalZoomLevel.toFloat() * theme.residueBorder)
+                g.stroke = BasicStroke(this.ssDrawing.workingSession.finalZoomLevel.toFloat() * this.ssDrawing.theme.residueBorder.toFloat())
                 g.color = Color.DARK_GRAY
-                if (!gc.selectedResidues.isEmpty() && !(this in gc.selectedResidues)) {
+                if (!this.ssDrawing.workingSession.selectedResidues.isEmpty() && !(this in this.ssDrawing.workingSession.selectedResidues)) {
                     g.color = Color(g.color.red, g.color.green, g.color.blue,
                         RnartistConfig.selectionFading
                     )
@@ -1111,23 +1143,23 @@ class ResidueCircle(val absPos:Int, label:Char) {
                 g.draw(_c)
                 g.stroke = previousStroke
             }
-            if (g.font.size > 5 && !theme.quickDraw && theme.residueCharOpacity  > 0) { //the conditions to draw a letter
+            if (g.font.size > 5 && !this.ssDrawing.theme.quickDraw && this.ssDrawing.theme.residueCharOpacity  > 0) { //the conditions to draw a letter
                 when (this.label.name) {
-                    "A" -> g.color = theme.AChar
-                    "U" -> g.color = theme.UChar
-                    "G" -> g.color = theme.GChar
-                    "C" -> g.color = theme.CChar
-                    "X" -> g.color = theme.XChar
+                    "A" -> g.color = this.ssDrawing.theme.AChar
+                    "U" -> g.color = this.ssDrawing.theme.UChar
+                    "G" -> g.color = this.ssDrawing.theme.GChar
+                    "C" -> g.color = this.ssDrawing.theme.CChar
+                    "X" -> g.color = this.ssDrawing.theme.XChar
                 }
-                g.color = Color(g.color.red, g.color.green, g.color.blue, theme.residueCharOpacity) //we fade the residue letter
-                if (!gc.selectedResidues.isEmpty() && !(this in gc.selectedResidues)) //we fade it even more if unselected
-                    g.color = Color(g.color.red, g.color.green, g.color.blue, (RnartistConfig.selectionFading /255.0*theme.residueCharOpacity).toInt()) //the residue fading of an unselected residue is reduced by x%, x is the % of decrease of selection fading (according to full opacity which is 255).
+                g.color = Color(g.color.red, g.color.green, g.color.blue, this.ssDrawing.theme.residueCharOpacity) //we fade the residue letter
+                if (!this.ssDrawing.workingSession.selectedResidues.isEmpty() && !(this in this.ssDrawing.workingSession.selectedResidues)) //we fade it even more if unselected
+                    g.color = Color(g.color.red, g.color.green, g.color.blue, (RnartistConfig.selectionFading /255.0*this.ssDrawing.theme.residueCharOpacity).toInt()) //the residue fading of an unselected residue is reduced by x%, x is the % of decrease of selection fading (according to full opacity which is 255).
                 when (this.label.name) {
-                    "A" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.ATransX + (theme.deltaXRes * gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.ATransY - (theme.deltaYRes * gc.finalZoomLevel).toFloat())
-                    "U" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.UTransX + (theme.deltaXRes * gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.UTransY - (theme.deltaYRes * gc.finalZoomLevel).toFloat())
-                    "G" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.GTransX + (theme.deltaXRes * gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.GTransY - (theme.deltaYRes * gc.finalZoomLevel).toFloat())
-                    "C" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.CTransX + (theme.deltaXRes * gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.CTransY - (theme.deltaYRes * gc.finalZoomLevel).toFloat())
-                    "X" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + theme.XTransX + (theme.deltaXRes * gc.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + theme.XTransY - (theme.deltaYRes * gc.finalZoomLevel).toFloat())
+                    "A" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + this.ssDrawing.theme.ATransX + (this.ssDrawing.theme.deltaXRes * this.ssDrawing.workingSession.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + this.ssDrawing.theme.ATransY - (this.ssDrawing.theme.deltaYRes * this.ssDrawing.workingSession.finalZoomLevel).toFloat())
+                    "U" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + this.ssDrawing.theme.UTransX + (this.ssDrawing.theme.deltaXRes * this.ssDrawing.workingSession.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + this.ssDrawing.theme.UTransY - (this.ssDrawing.theme.deltaYRes * this.ssDrawing.workingSession.finalZoomLevel).toFloat())
+                    "G" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + this.ssDrawing.theme.GTransX + (this.ssDrawing.theme.deltaXRes * this.ssDrawing.workingSession.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + this.ssDrawing.theme.GTransY - (this.ssDrawing.theme.deltaYRes * this.ssDrawing.workingSession.finalZoomLevel).toFloat())
+                    "C" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + this.ssDrawing.theme.CTransX + (this.ssDrawing.theme.deltaXRes * this.ssDrawing.workingSession.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + this.ssDrawing.theme.CTransY - (this.ssDrawing.theme.deltaYRes * this.ssDrawing.workingSession.finalZoomLevel).toFloat())
+                    "X" -> g.drawString(this.label.name, _c.bounds2D.minX.toFloat() + this.ssDrawing.theme.XTransX + (this.ssDrawing.theme.deltaXRes * this.ssDrawing.workingSession.finalZoomLevel).toFloat(), _c.bounds2D.minY.toFloat() + this.ssDrawing.theme.XTransY - (this.ssDrawing.theme.deltaYRes * this.ssDrawing.workingSession.finalZoomLevel).toFloat())
                 }
             }
         }
@@ -1661,13 +1693,270 @@ class JunctionCircle (circlesFromBranchSoFar: MutableList<Triple<Point2D, Double
 
 }
 
-class SecondaryInteractionLine(val interaction: BasePair, val ssDrawing: SecondaryStructureDrawing) {
+abstract class LWSymbol(val ssDrawing: SecondaryStructureDrawing, val inTertiaries: Boolean) {
 
-    fun draw(g: Graphics2D, gc: WorkingSession, theme: Theme) {
+    lateinit protected var shape:Shape
+
+    abstract fun draw(g: Graphics2D, at:AffineTransform)
+}
+
+abstract class WC(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolean, start_1:Point2D, start_2:Point2D, end_1:Point2D, end_2:Point2D, symbolWidth:Double):LWSymbol(ssDrawing, inTertiaries) {
+
+    init {
+        val squarre = GeneralPath()
+        squarre.moveTo(start_1.x, start_1.y)
+        squarre.lineTo(end_1.x, end_1.y)
+        squarre.lineTo(end_2.x, end_2.y)
+        squarre.lineTo(start_2.x, start_2.y)
+        squarre.lineTo(start_1.x, start_1.y)
+        squarre.closePath()
+        val centerX = squarre.bounds2D.centerX
+        val centerY = squarre.bounds2D.centerY;
+        this.shape = Ellipse2D.Double(
+            centerX - symbolWidth / 2.0,
+            centerY - symbolWidth / 2.0,
+            symbolWidth,
+            symbolWidth
+        )
+    }
+}
+
+class CisWC(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolean, start_1:Point2D, start_2:Point2D, end_1:Point2D, end_2:Point2D, symbolWidth:Double):WC(ssDrawing, inTertiaries,start_1,start_2,end_1,end_2,symbolWidth) {
+
+    override fun draw(g: Graphics2D, at:AffineTransform) {
+        g.fill(at.createTransformedShape(this.shape))
+    }
+
+}
+
+class TransWC(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolean, start_1:Point2D, start_2:Point2D, end_1:Point2D, end_2:Point2D, symbolWidth:Double):WC(ssDrawing, inTertiaries,start_1,start_2,end_1,end_2,symbolWidth) {
+
+    override fun draw(g: Graphics2D, at:AffineTransform) {
+        val previousColor = g.color
+        g.color = Color.WHITE
+        g.fill(at.createTransformedShape(this.shape))
+        g.color = previousColor
+        if (inTertiaries)
+            g.stroke = BasicStroke(
+                this.ssDrawing.workingSession.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
+                BasicStroke.CAP_ROUND,
+                BasicStroke.JOIN_BEVEL
+            )
+        g.draw(at.createTransformedShape(this.shape))
+    }
+
+}
+
+abstract class LeftSugar(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolean, start:Point2D, end_1:Point2D, end_2:Point2D):LWSymbol(ssDrawing, inTertiaries) {
+
+    init {
+        val triangle = GeneralPath()
+        triangle.moveTo(start.x, start.y)
+        triangle.lineTo(end_1.x, end_1.y)
+        triangle.lineTo(end_2.x, end_2.y)
+        triangle.lineTo(start.x, start.y)
+        triangle.closePath()
+        this.shape = triangle
+    }
+}
+
+abstract class RightSugar(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolean = false, start_1:Point2D, start_2:Point2D, end:Point2D):LWSymbol(ssDrawing, inTertiaries) {
+
+    init {
+        val triangle = GeneralPath()
+        triangle.moveTo(start_1.x, start_1.y)
+        triangle.lineTo(start_2.x, start_2.y)
+        triangle.lineTo(end.x, end.y)
+        triangle.lineTo(start_1.x, start_1.y)
+        triangle.closePath()
+        this.shape = triangle
+    }
+}
+
+class CisRightSugar(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolean = false, start_1:Point2D, start_2:Point2D, end:Point2D):RightSugar(ssDrawing, inTertiaries, start_1, start_2, end) {
+
+    override fun draw(g: Graphics2D, at:AffineTransform) {
+        g.fill(at.createTransformedShape(this.shape))
+    }
+
+}
+
+class CisLeftSugar(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolean = false, start:Point2D, end_1:Point2D, end_2:Point2D):LeftSugar(ssDrawing, inTertiaries, start, end_1, end_2) {
+
+    override fun draw(g: Graphics2D, at:AffineTransform) {
+        g.fill(at.createTransformedShape(this.shape))
+    }
+
+}
+
+class TransRightSugar(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolean = false, start_1:Point2D, start_2:Point2D, end:Point2D):RightSugar(ssDrawing, inTertiaries, start_1, start_2, end) {
+
+    override fun draw(g: Graphics2D, at:AffineTransform) {
+        val previousColor = g.color
+        g.color = Color.WHITE
+        g.fill(at.createTransformedShape(this.shape))
+        g.color = previousColor
+        if (inTertiaries)
+            g.stroke = BasicStroke(
+                this.ssDrawing.workingSession.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
+                BasicStroke.CAP_ROUND,
+                BasicStroke.JOIN_BEVEL
+            )
+        g.draw(at.createTransformedShape(this.shape))
+    }
+
+}
+
+class TransLeftSugar(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolean = false, start:Point2D, end_1:Point2D, end_2:Point2D):LeftSugar(ssDrawing, inTertiaries, start, end_1, end_2) {
+
+    override fun draw(g: Graphics2D, at:AffineTransform) {
+        val previousColor = g.color
+        g.color = Color.WHITE
+        g.fill(at.createTransformedShape(this.shape))
+        g.color = previousColor
+        if (inTertiaries)
+            g.stroke = BasicStroke(
+                this.ssDrawing.workingSession.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
+                BasicStroke.CAP_ROUND,
+                BasicStroke.JOIN_BEVEL
+            )
+        g.draw(at.createTransformedShape(this.shape))
+    }
+
+}
+
+abstract class Hoogsteen(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolean = false, start_1:Point2D, start_2:Point2D, end_1:Point2D, end_2:Point2D):LWSymbol(ssDrawing, inTertiaries) {
+
+    init {
+        val squarre = GeneralPath()
+        squarre.moveTo(start_1.x, start_1.y)
+        squarre.lineTo(end_1.x, end_1.y)
+        squarre.lineTo(end_2.x, end_2.y)
+        squarre.lineTo(start_2.x, start_2.y)
+        squarre.lineTo(start_1.x, start_1.y)
+        squarre.closePath()
+        this.shape = squarre
+    }
+}
+
+class CisHoogsteen(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolean = false, start_1:Point2D, start_2:Point2D, end_1:Point2D, end_2:Point2D):Hoogsteen(ssDrawing, inTertiaries, start_1, start_2, end_1, end_2) {
+
+    override fun draw(g: Graphics2D, at:AffineTransform) {
+        g.fill(at.createTransformedShape(this.shape))
+    }
+
+}
+
+class TransHoogsteen(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolean = false, start_1:Point2D, start_2:Point2D, end_1:Point2D, end_2:Point2D):Hoogsteen(ssDrawing, inTertiaries, start_1, start_2, end_1, end_2) {
+
+    override fun draw(g: Graphics2D, at:AffineTransform) {
+        val previousColor = g.color
+        g.color = Color.WHITE
+        g.fill(at.createTransformedShape(this.shape))
+        g.color = previousColor
+        if (inTertiaries)
+            g.stroke = BasicStroke(
+                this.ssDrawing.workingSession.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
+                BasicStroke.CAP_ROUND,
+                BasicStroke.JOIN_BEVEL
+            )
+        g.draw(at.createTransformedShape(this.shape))
+    }
+
+}
+
+class LWLine(ssDrawing: SecondaryStructureDrawing, inTertiaries:Boolean = false, start:Point2D, end:Point2D):LWSymbol(ssDrawing, inTertiaries) {
+
+    init {
+        this.shape = Line2D.Double(start,end)
+    }
+
+    override fun draw(g: Graphics2D, at:AffineTransform) {
+        if (!this.inTertiaries)
+            g.draw(at.createTransformedShape(this.shape))
+        else {
+            ssDrawing?.let {
+                if (ssDrawing.theme.tertiaryInteractionStyle == DASHED)
+                    g.stroke = BasicStroke(
+                        this.ssDrawing.workingSession.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
+                        BasicStroke.CAP_ROUND,
+                        BasicStroke.JOIN_BEVEL,
+                        0F,
+                        floatArrayOf(this.ssDrawing.workingSession.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat() * 2),
+                        0F
+                    )
+                else
+                    g.stroke = BasicStroke(
+                        this.ssDrawing.workingSession.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
+                        BasicStroke.CAP_ROUND,
+                        BasicStroke.JOIN_BEVEL
+                    )
+                g.draw(at.createTransformedShape(this.shape))
+            }
+        }
+    }
+
+}
+
+abstract class BaseBaseInteraction(val interaction: BasePair, val ssDrawing:SecondaryStructureDrawing) {
+
+    protected var p1:Point2D? = null
+    protected var p2:Point2D? = null
+    protected var lwSymbols = mutableListOf<LWSymbol>()
+
+    val isCanonical:Boolean
+        get() {
+            return this.interaction.edge5 == Edge.WC && this.interaction.edge3 == Edge.WC && this.interaction.orientation == Orientation.cis && (
+                                    this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.start)).first()?.label == SecondaryStructureElement.A && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.end)).first()?.label == SecondaryStructureElement.U ||
+                                    this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.start)).first()?.label == SecondaryStructureElement.U && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.end)).first()?.label == SecondaryStructureElement.A ||
+                                    this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.start)).first()?.label == SecondaryStructureElement.G && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.end)).first()?.label == SecondaryStructureElement.C ||
+                                    this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.start)).first()?.label == SecondaryStructureElement.C && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.end)).first()?.label == SecondaryStructureElement.G
+                    )
+        }
+
+    protected fun generateSingleSymbol(inTertiaries: Boolean= false, edge:Edge, orientation: Orientation, start:Point2D, end:Point2D, right:Boolean=true):LWSymbol {
+        val symbolWidth = distance(start,end)
+        val (start_1, start_2) = getPerpendicular(start, start, end, symbolWidth / 2.0)
+        val (end_1, end_2) = getPerpendicular(end, start, end, symbolWidth / 2.0)
+        return when (edge) {
+            Edge.WC -> {
+                when(orientation) {
+                    Orientation.cis -> CisWC(this.ssDrawing, inTertiaries, start_1, start_2, end_1, end_2, symbolWidth)
+                    Orientation.trans -> TransWC(this.ssDrawing, inTertiaries, start_1, start_2, end_1, end_2, symbolWidth)
+                    else -> CisWC(this.ssDrawing, inTertiaries, start_1, start_2, end_1, end_2, symbolWidth)
+                }
+            }
+            Edge.Hoogsteen -> {
+                when(orientation) {
+                    Orientation.cis -> CisHoogsteen(this.ssDrawing, inTertiaries, start_1, start_2, end_1, end_2)
+                    Orientation.trans -> TransHoogsteen(this.ssDrawing, inTertiaries, start_1, start_2, end_1, end_2)
+                    else -> CisHoogsteen(this.ssDrawing, inTertiaries, start_1, start_2, end_1, end_2)
+                }
+            }
+            Edge.Sugar -> {
+                when(orientation) {
+                    Orientation.cis -> if (right) CisRightSugar(this.ssDrawing, inTertiaries, start_1, start_2,end) else CisLeftSugar(this.ssDrawing, inTertiaries, start, end_1, end_2)
+                    Orientation.trans -> if (right) TransRightSugar(this.ssDrawing, inTertiaries, start_1, start_2,end) else TransLeftSugar(this.ssDrawing, inTertiaries, start, end_1, end_2)
+                    else -> if (right) CisRightSugar(this.ssDrawing, inTertiaries, start_1, start_2,end) else CisLeftSugar(this.ssDrawing, inTertiaries, start, end_1, end_2)
+                }
+            }
+            else -> { //if edge unknown
+                LWLine(this.ssDrawing, inTertiaries, start,end)
+            }
+        }
+    }
+
+    abstract fun setLWSymbols()
+
+}
+
+class SecondaryInteractionLine(interaction: BasePair, ssDrawing: SecondaryStructureDrawing): BaseBaseInteraction(interaction, ssDrawing) {
+
+    fun draw(g: Graphics2D) {
         val previousStroke = g.stroke
-        g.stroke = BasicStroke(gc.finalZoomLevel.toFloat()*theme.secondaryInteractionWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL)
-        g.color = theme.SecondaryColor
-        if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.interaction.location.start-1] in gc.selectedResidues) || !(this.ssDrawing.residues[this.interaction.location.end-1] in gc.selectedResidues))) {
+        g.stroke = BasicStroke(this.ssDrawing.workingSession.finalZoomLevel.toFloat()*this.ssDrawing.theme.secondaryInteractionWidth.toFloat(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
+        g.color = this.ssDrawing.theme.SecondaryColor
+        if (!this.ssDrawing.workingSession.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.interaction.location.start-1] in this.ssDrawing.workingSession.selectedResidues) || !(this.ssDrawing.residues[this.interaction.location.end-1] in this.ssDrawing.workingSession.selectedResidues))) {
             g.color = Color(g.color.red, g.color.green, g.color.blue,
                 RnartistConfig.selectionFading
             )
@@ -1675,17 +1964,62 @@ class SecondaryInteractionLine(val interaction: BasePair, val ssDrawing: Seconda
         val center1 = this.ssDrawing.residues[this.interaction.location.start-1].center
         val center2 = this.ssDrawing.residues[this.interaction.location.end-1].center
         if (center1 != null && center2 != null) {
-            val (p1,p2) = pointsFrom(
-                center1,
-                center2,
-                radiusConst * 1.4
-            )
-            val at = AffineTransform()
-            at.translate(gc.viewX,gc.viewY)
-            at.scale(gc.finalZoomLevel, gc.finalZoomLevel)
-            g.draw(at.createTransformedShape(Line2D.Double(p1,p2)))
+
+            val shift = radiusConst+this.ssDrawing.theme.secondaryInteractionShift+this.ssDrawing.theme.residueBorder.toDouble()/2.0+this.ssDrawing.theme.secondaryInteractionWidth/2.0
+            if (distance(center1,center2) > 2*shift) {
+                val points = pointsFrom(
+                    center1,
+                    center2,
+                    shift
+                )
+                this.p1 = points.first
+                this.p2 = points.second
+                this.setLWSymbols()
+                val at = AffineTransform()
+                at.translate(this.ssDrawing.workingSession.viewX, this.ssDrawing.workingSession.viewY)
+                at.scale(this.ssDrawing.workingSession.finalZoomLevel, this.ssDrawing.workingSession.finalZoomLevel)
+                this.lwSymbols.forEach { lwSymbol ->
+                    lwSymbol.draw(g,at)
+                }
+            }
         }
         g.stroke = previousStroke
+    }
+
+    override fun setLWSymbols()  {
+        this.lwSymbols.clear()
+        this.p1?.let { p1 ->
+            this.p2?.let { p2 ->
+                val distance = distance(p1, p2);
+                val symbolWidth = distance / 3.0 * deltaLWSymbols
+                if (this.isCanonical) {
+                    if (this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.start)).first()?.label == SecondaryStructureElement.G && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.end)).first()?.label == SecondaryStructureElement.C ||
+                        this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.start)).first()?.label == SecondaryStructureElement.C && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.location.end)).first()?.label == SecondaryStructureElement.G) {
+                        val (p1_1, p1_2) = getPerpendicular(p1, p1, p2, symbolWidth / 2.0)
+                        val (p2_1, p2_2) = getPerpendicular(p2, p1, p2, symbolWidth / 2.0)
+                        this.lwSymbols.add(LWLine(this.ssDrawing, false, p1_1, p2_1))
+                        this.lwSymbols.add(LWLine(this.ssDrawing, false, p1_2, p2_2))
+                    } else {
+                        this.lwSymbols.add(LWLine(this.ssDrawing, false, p1, p2))
+                    }
+                } else {
+                    if (this.interaction.edge5 == this.interaction.edge3) { //uniq central symbol
+                        val (p1_inner, p2_inner) = pointsFrom(p1, p2, distance-2*symbolWidth)
+                        this.lwSymbols.add(LWLine(this.ssDrawing, false, p1,p1_inner))
+                        this.lwSymbols.add(this.generateSingleSymbol(false, this.interaction.edge5, this.interaction.orientation, p1_inner,p2_inner))
+                        this.lwSymbols.add(LWLine(this.ssDrawing, false, p2_inner,p2))
+                    } else {
+                        val (p1_inner, p2_inner) = pointsFrom(p1, p2, symbolWidth)
+                        //+++++left symbol
+                        this.lwSymbols.add(this.generateSingleSymbol(false, this.interaction.edge5, this.interaction.orientation,p1 ,p1_inner, right = false))
+                        //++++++middle symbol
+                        this.lwSymbols.add(LWLine(this.ssDrawing, false, p1_inner, p2_inner))
+                        //+++++right symbol
+                        this.lwSymbols.add(this.generateSingleSymbol(false, this.interaction.edge3, this.interaction.orientation,p2_inner,p2))
+                    }
+                }
+            }
+        }
     }
 
     fun asSVG(indentChar:String ="\t", indentLevel:Int = 1, theme: Theme, transX:Double= 0.0, transY:Double = 0.0):String {
@@ -1704,49 +2038,112 @@ class SecondaryInteractionLine(val interaction: BasePair, val ssDrawing: Seconda
 
 }
 
-class TertiaryInteractionLine(val interaction: BasePair, val ssDrawing: SecondaryStructureDrawing) {
+class TertiaryInteractionLine(interaction: BasePair, ssDrawing: SecondaryStructureDrawing): BaseBaseInteraction(interaction, ssDrawing) {
 
-    fun draw(g: Graphics2D, gc: WorkingSession, theme: Theme) {
+    fun drawHalo(g: Graphics2D) {
         val previousStroke = g.stroke
         val at = AffineTransform()
-        at.translate(gc.viewX, gc.viewY)
-        at.scale(gc.finalZoomLevel, gc.finalZoomLevel)
+        at.translate(this.ssDrawing.workingSession.viewX, this.ssDrawing.workingSession.viewY)
+        at.scale(this.ssDrawing.workingSession.finalZoomLevel, this.ssDrawing.workingSession.finalZoomLevel)
+        if (this.ssDrawing.workingSession.selectedResidues.isEmpty()) {
+            g.color = Color(ssDrawing.theme.TertiaryColor.red, ssDrawing.theme.TertiaryColor.green, ssDrawing.theme.TertiaryColor.blue, ssDrawing.theme.tertiaryOpacity)
+            g.stroke =
+                BasicStroke(this.ssDrawing.workingSession.finalZoomLevel.toFloat() * ssDrawing.theme.haloWidth.toFloat())
+            g.draw(at.createTransformedShape(this.ssDrawing.residues[this.interaction.location.start - 1].circle))
+            g.draw(at.createTransformedShape(this.ssDrawing.residues[this.interaction.location.end - 1].circle))
+        }
+        g.color = Color(
+            ssDrawing.theme.TertiaryColor.red,
+            ssDrawing.theme.TertiaryColor.green,
+            ssDrawing.theme.TertiaryColor.blue,
+            255
+        )
+        g.stroke = previousStroke
+    }
+
+    fun draw(g: Graphics2D) {
+        val previousStroke = g.stroke
+        val at = AffineTransform()
+        at.translate(this.ssDrawing.workingSession.viewX, this.ssDrawing.workingSession.viewY)
+        at.scale(this.ssDrawing.workingSession.finalZoomLevel, this.ssDrawing.workingSession.finalZoomLevel)
         val center1 = this.ssDrawing.residues[this.interaction.location.start-1].center
         val center2 = this.ssDrawing.residues[this.interaction.location.end-1].center
-        if (theme.tertiaryInteractionWidth != 0 && center1 != null && center2 != null) {
-            g.color = Color(theme.TertiaryColor.red, theme.TertiaryColor.green, theme.TertiaryColor.blue, theme.tertiaryOpacity)
-            if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.interaction.location.start-1] in gc.selectedResidues) || !(this.ssDrawing.residues[this.interaction.location.end-1] in gc.selectedResidues))) {
-                g.color = Color(g.color.red, g.color.green, g.color.blue,
-                    RnartistConfig.selectionFading
-                )
+        if (ssDrawing.theme.tertiaryInteractionWidth != 0.0 && center1 != null && center2 != null && !this.ssDrawing.workingSession.selectedResidues.isEmpty() &&  ( (this.ssDrawing.residues[this.interaction.location.start-1] in this.ssDrawing.workingSession.selectedResidues) || (this.ssDrawing.residues[this.interaction.location.end-1] in this.ssDrawing.workingSession.selectedResidues))) {
+            g.color = Color(ssDrawing.theme.TertiaryColor.red, ssDrawing.theme.TertiaryColor.green, ssDrawing.theme.TertiaryColor.blue)
+            this.setLWSymbols()
+            this.lwSymbols.forEach { lwSymbol ->
+                lwSymbol.draw(g,at)
             }
-            if (theme.tertiaryInteractionStyle == DASHED)
-                g.stroke = BasicStroke(gc.finalZoomLevel.toFloat() * theme.tertiaryInteractionWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL, 0F, floatArrayOf(gc.finalZoomLevel.toFloat() * theme.tertiaryInteractionWidth * 2), 0F)
-            else
-                g.stroke = BasicStroke(gc.finalZoomLevel.toFloat()*theme.tertiaryInteractionWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL)
-            val (p1, p2) = pointsFrom(
-                center1,
-                center2,
-                radiusConst
-            )
-            g.draw(at.createTransformedShape(Line2D.Double(p1, p2)))
         }
-        g.stroke = BasicStroke(gc.finalZoomLevel.toFloat()*theme.haloWidth)
-        g.color = Color(theme.TertiaryColor.red, theme.TertiaryColor.green, theme.TertiaryColor.blue, theme.tertiaryOpacity)
-        if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.interaction.location.start-1] in gc.selectedResidues) || !(this.ssDrawing.residues[this.interaction.location.end-1] in gc.selectedResidues))) {
-            g.color = Color(g.color.red, g.color.green, g.color.blue,
-                RnartistConfig.selectionFading
-            )
-        }
-        g.draw(at.createTransformedShape(this.ssDrawing.residues[this.interaction.location.start-1].circle))
-        g.draw(at.createTransformedShape(this.ssDrawing.residues[this.interaction.location.end-1].circle))
+        g.color = Color(
+            ssDrawing.theme.TertiaryColor.red,
+            ssDrawing.theme.TertiaryColor.green,
+            ssDrawing.theme.TertiaryColor.blue,
+            255
+        )
         g.stroke = previousStroke
+    }
+
+    override fun setLWSymbols() {
+        this.lwSymbols.clear()
+        val center1 = this.ssDrawing.residues[this.interaction.location.start-1].center
+        val center2 = this.ssDrawing.residues[this.interaction.location.end-1].center
+        if (center1 != null && center2 != null) {
+
+            val shift = radiusConst+ssDrawing.theme.residueBorder.toDouble()/2.0
+            if (distance(center1,center2) > 2*shift) {
+                this.p1 = pointsFrom(
+                    center1,
+                    center2,
+                    shift
+                ).first
+
+                this.p2 = pointsFrom(
+                    center1,
+                    center2,
+                    shift+radiusConst*1.5
+                ).first
+
+                val forLine_1 = this.p2!!
+
+                this.p1?.let { p1 ->
+                    this.p2?.let { p2 ->
+                        this.lwSymbols.add(this.generateSingleSymbol(true, this.interaction.edge5, this.interaction.orientation,this.p1 as Point2D ,this.p2 as Point2D, right = false))
+                    }
+                }
+
+                this.p1 = pointsFrom(
+                    center1,
+                    center2,
+                    shift
+                ).second
+
+                this.p2 = pointsFrom(
+                    center1,
+                    center2,
+                    shift+radiusConst*1.5
+                ).second
+
+                val forLine_2 = this.p2!!
+
+                this.p1?.let { p1 ->
+                    this.p2?.let { p2 ->
+                        this.lwSymbols.add(this.generateSingleSymbol(true, this.interaction.edge5, this.interaction.orientation,this.p1 as Point2D ,this.p2 as Point2D, right = true))
+                    }
+                }
+
+                this.lwSymbols.add(LWLine(this.ssDrawing, true, forLine_1,forLine_2))
+
+
+            }
+        }
+
     }
 
     fun asSVG(indentChar:String ="\t", indentLevel:Int = 1, theme: Theme, transX:Double= 0.0, transY:Double = 0.0):String {
         val center1 = this.ssDrawing.residues[this.interaction.location.start-1].center
         val center2 = this.ssDrawing.residues[this.interaction.location.end-1].center
-        if (theme.tertiaryInteractionWidth != 0 && center1 != null && center2 != null) {
+        if (theme.tertiaryInteractionWidth != 0.0 && center1 != null && center2 != null) {
             val (p1, p2) = pointsFrom(
                 center1,
                 center2,
@@ -1761,11 +2158,11 @@ class TertiaryInteractionLine(val interaction: BasePair, val ssDrawing: Secondar
 
 class PhosphodiesterBondLine(val start:Int, val end:Int, val ssDrawing: SecondaryStructureDrawing) {
 
-    fun draw(g: Graphics2D, gc: WorkingSession, theme: Theme) {
+    fun draw(g: Graphics2D) {
         val previousStroke = g.stroke
-        g.stroke = BasicStroke(gc.finalZoomLevel.toFloat()*2)
+        g.stroke = BasicStroke(this.ssDrawing.workingSession.finalZoomLevel.toFloat()*ssDrawing.theme.phosphoDiesterWidth.toFloat())
         g.color = Color.DARK_GRAY
-        if (!gc.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.start-1] in gc.selectedResidues) || !(this.ssDrawing.residues[this.end-1] in gc.selectedResidues))) {
+        if (!this.ssDrawing.workingSession.selectedResidues.isEmpty() && ( !(this.ssDrawing.residues[this.start-1] in this.ssDrawing.workingSession.selectedResidues) || !(this.ssDrawing.residues[this.end-1] in this.ssDrawing.workingSession.selectedResidues))) {
             g.color = Color(g.color.red, g.color.green, g.color.blue,
                 RnartistConfig.selectionFading
             )
@@ -1776,15 +2173,15 @@ class PhosphodiesterBondLine(val start:Int, val end:Int, val ssDrawing: Secondar
             val (p1,p2) = pointsFrom(
                 center1,
                 center2,
-                radiusConst
+                radiusConst + deltaPhosphoShift
             )
             if (!this.ssDrawing.residues[this.start-1].circle!!.contains(p2) && distance(
                     p1,
                     p2
-                ) > spaceAfter /2.0) {
+                ) > spaceBetweenResidues /2.0) {
                 val at = AffineTransform()
-                at.translate(gc.viewX,gc.viewY)
-                at.scale(gc.finalZoomLevel, gc.finalZoomLevel)
+                at.translate(this.ssDrawing.workingSession.viewX,this.ssDrawing.workingSession.viewY)
+                at.scale(this.ssDrawing.workingSession.finalZoomLevel, this.ssDrawing.workingSession.finalZoomLevel)
                 g.draw(at.createTransformedShape(Line2D.Double(p1,p2)))
             }
         }

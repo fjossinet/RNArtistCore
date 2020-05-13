@@ -80,7 +80,7 @@ fun main(args:Array<String>) {
             }
 
             getOptionValue(args, "-rb", "--residueBorder")?.let {
-                theme.residueBorder = it.toInt()
+                theme.residueBorder = it.toDouble()
             }
 
             getOptionValue(args, "-dxr", "--deltaXRes")?.let {
@@ -96,11 +96,11 @@ fun main(args:Array<String>) {
             }
 
             getOptionValue(args, "-w2d", "--width-2d")?.let {
-                theme.secondaryInteractionWidth = it.toInt()
+                theme.secondaryInteractionWidth = it.toDouble()
             }
 
             getOptionValue(args, "-w3d", "--width-3d")?.let {
-                theme.tertiaryInteractionWidth = it.toInt()
+                theme.tertiaryInteractionWidth = it.toDouble()
             }
 
             getOptionValue(args, "-s3d", "--style-3d")?.let {
@@ -108,7 +108,7 @@ fun main(args:Array<String>) {
             }
 
             getOptionValue(args, "-hw", "--halo-width")?.let {
-                theme.haloWidth = it.toInt()
+                theme.haloWidth = it.toDouble()
             }
 
             getOptionValue(args, "-o3d", "--opacity-3d")?.let {
@@ -302,7 +302,7 @@ Other Options:
         
     -rb number
     --residueBorder=number
-        Change the width/thickness for the border of the residues circles. The number has to be an integer greater of 
+        Change the width/thickness for the border of the residues circles. The number has to be a float greater of 
         equal to 0.
         
     -s
@@ -323,7 +323,7 @@ Other Options:
     -w3d number
     --width-3d=number
     These options define the width/thickness for the secondary (-w2d) or the tertiary (-w3d) interactions lines. The 
-    number has to be an integer greater of equal to 0.
+    number has to be a float greater of equal to 0.
         
 Examples:
 =========

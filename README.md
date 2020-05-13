@@ -119,7 +119,7 @@ user-defined values can be saved in a configuration file and become the default 
 * -rb number<br/>
   --residueBorder=number
   
-    Change the width/thickness for the border of the residues circles. The number has to be an integer greater of equal 
+    Change the width/thickness for the border of the residues circles. The number has to be a float greater of equal 
     to 0.
 
 * -s<br/>
@@ -144,7 +144,7 @@ user-defined values can be saved in a configuration file and become the default 
   --width-3d=number<br/>
   
     These options define the width/thickness for the secondary (-w2d) or the tertiary (-w3d) interactions lines. The 
-    number has to be an integer greater of equal to 0.
+    number has to be a float greater of equal to 0.
 
 ## Examples:
 <pre>
@@ -197,8 +197,8 @@ ss = SecondaryStructure(RNA(name = "myRNA", seq = "CGCUGAAUUCAGCG"), bracketNota
 ss?.let {
     val theme = Theme()
     theme.fontName = "Futura"
-    theme.secondaryInteractionWidth = 4
-    theme.residueBorder = 1
+    theme.secondaryInteractionWidth = 4.0
+    theme.residueBorder = 1.0
     theme.GColor = Color(223, 1, 1)
     var drawing = SecondaryStructureDrawing(secondaryStructure = ss, theme = theme)
 
@@ -223,8 +223,8 @@ if (viennaFile.exists())
 ss2?.let {
     val theme = Theme()
     theme.fontName = "Arial"
-    theme.secondaryInteractionWidth = 1
-    theme.residueBorder = 3
+    theme.secondaryInteractionWidth = 1.0
+    theme.residueBorder = 3.0
     theme.UColor = Color.WHITE
     theme.UChar = Color.BLACK
     theme.CColor = Color.RED

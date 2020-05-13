@@ -21,8 +21,8 @@ class Test {
         ss?.let {
             val theme = Theme()
             theme.fontName = "Futura"
-            theme.secondaryInteractionWidth = 4
-            theme.residueBorder = 1
+            theme.secondaryInteractionWidth = 4.0
+            theme.residueBorder = 1.0
             theme.GColor = Color(223, 1, 1)
             var drawing = SecondaryStructureDrawing(secondaryStructure = ss, theme = theme)
 
@@ -38,8 +38,8 @@ class Test {
         ss2?.let {
             val theme = Theme()
             theme.fontName = "Arial"
-            theme.secondaryInteractionWidth = 1
-            theme.residueBorder = 3
+            theme.secondaryInteractionWidth = 1.0
+            theme.residueBorder = 3.0
             theme.UColor = Color.WHITE
             theme.UChar = Color.BLACK
             theme.CColor = Color.RED
