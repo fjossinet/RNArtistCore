@@ -118,137 +118,137 @@ enum class ThemeParameter {
 
 class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeConfigurator: ThemeConfigurator? = null) {
 
-    val themeParams:MutableMap<String,String> = mutableMapOf()
+    val params:MutableMap<String,String> = mutableMapOf()
     var haloWidth: Double
         set(value) {
-            this.themeParams.set(ThemeParameter.HaloWidth.toString(), "${value}")
+            this.params.set(ThemeParameter.HaloWidth.toString(), "${value}")
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.HaloWidth.toString(), "${it.getHaloWidth()}")
+                this.params.set(ThemeParameter.HaloWidth.toString(), "${it.getHaloWidth()}")
             }
-            return this.themeParams.get(ThemeParameter.HaloWidth.toString())!!.toDouble()
+            return this.params.get(ThemeParameter.HaloWidth.toString())!!.toDouble()
         }
     var tertiaryOpacity: Int
         set(value) {
-            this.themeParams.set(ThemeParameter.TertiaryOpacity.toString(), "${value}")
+            this.params.set(ThemeParameter.TertiaryOpacity.toString(), "${value}")
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.TertiaryOpacity.toString(), "${it.getTertiaryOpacity()}")
+                this.params.set(ThemeParameter.TertiaryOpacity.toString(), "${it.getTertiaryOpacity()}")
             }
-            return Integer.parseInt(this.themeParams.get(ThemeParameter.TertiaryOpacity.toString()))
+            return Integer.parseInt(this.params.get(ThemeParameter.TertiaryOpacity.toString()))
         }
     var residueCharOpacity: Int
         set(value) {
-            this.themeParams.set(ThemeParameter.ResidueCharOpacity.toString(), "${value}")
+            this.params.set(ThemeParameter.ResidueCharOpacity.toString(), "${value}")
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.ResidueCharOpacity.toString(), "${it.getResidueCharOpacity()}")
+                this.params.set(ThemeParameter.ResidueCharOpacity.toString(), "${it.getResidueCharOpacity()}")
             }
-            return Integer.parseInt(this.themeParams.get(ThemeParameter.ResidueCharOpacity.toString()))
+            return Integer.parseInt(this.params.get(ThemeParameter.ResidueCharOpacity.toString()))
         }
     var tertiaryInteractionStyle: String
         set(value) {
-            this.themeParams.set(ThemeParameter.TertiaryInteractionStyle.toString(), value)
+            this.params.set(ThemeParameter.TertiaryInteractionStyle.toString(), value)
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.TertiaryInteractionStyle.toString(), it.getTertiaryInteractionStyle())
+                this.params.set(ThemeParameter.TertiaryInteractionStyle.toString(), it.getTertiaryInteractionStyle())
             }
-            return this.themeParams.get(ThemeParameter.TertiaryInteractionStyle.toString())!!
+            return this.params.get(ThemeParameter.TertiaryInteractionStyle.toString())!!
         }
     var residueBorder: Double
         set(value) {
-            this.themeParams.set(ThemeParameter.ResidueBorder.toString(), value.toString())
+            this.params.set(ThemeParameter.ResidueBorder.toString(), value.toString())
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.ResidueBorder.toString(), it.getResidueBorder().toString())
+                this.params.set(ThemeParameter.ResidueBorder.toString(), it.getResidueBorder().toString())
             }
-            return this.themeParams.get(ThemeParameter.ResidueBorder.toString())!!.toDouble()
+            return this.params.get(ThemeParameter.ResidueBorder.toString())!!.toDouble()
         }
     var secondaryInteractionShift: Double
         set(value) {
-            this.themeParams.set(ThemeParameter.SecondaryInteractionShift.toString(), value.toString())
+            this.params.set(ThemeParameter.SecondaryInteractionShift.toString(), value.toString())
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.SecondaryInteractionShift.toString(), it.getSecondaryInteractionShift().toString())
+                this.params.set(ThemeParameter.SecondaryInteractionShift.toString(), it.getSecondaryInteractionShift().toString())
             }
-            return this.themeParams.get(ThemeParameter.SecondaryInteractionShift.toString())!!.toDouble()
+            return this.params.get(ThemeParameter.SecondaryInteractionShift.toString())!!.toDouble()
         }
     var secondaryInteractionWidth: Double
         set(value) {
-            this.themeParams.set(ThemeParameter.SecondaryInteractionWidth.toString(), value.toString())
+            this.params.set(ThemeParameter.SecondaryInteractionWidth.toString(), value.toString())
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.SecondaryInteractionWidth.toString(), it.getSecondaryInteractionWidth().toString())
+                this.params.set(ThemeParameter.SecondaryInteractionWidth.toString(), it.getSecondaryInteractionWidth().toString())
             }
-            return this.themeParams.get(ThemeParameter.SecondaryInteractionWidth.toString())!!.toDouble()
+            return this.params.get(ThemeParameter.SecondaryInteractionWidth.toString())!!.toDouble()
         }
     var tertiaryInteractionWidth: Double
         set(value) {
-            this.themeParams.set(ThemeParameter.TertiaryInteractionWidth.toString(), value.toString())
+            this.params.set(ThemeParameter.TertiaryInteractionWidth.toString(), value.toString())
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.TertiaryInteractionWidth.toString(), it.getTertiaryInteractionWidth().toString())
+                this.params.set(ThemeParameter.TertiaryInteractionWidth.toString(), it.getTertiaryInteractionWidth().toString())
             }
-            return this.themeParams.get(ThemeParameter.TertiaryInteractionWidth.toString())!!.toDouble()
+            return this.params.get(ThemeParameter.TertiaryInteractionWidth.toString())!!.toDouble()
         }
     var phosphoDiesterWidth: Double
         set(value) {
-            this.themeParams.set(ThemeParameter.PhosphodiesterWidth.toString(), value.toString())
+            this.params.set(ThemeParameter.PhosphodiesterWidth.toString(), value.toString())
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.PhosphodiesterWidth.toString(), it.getPhosphoDiesterWidth().toString())
+                this.params.set(ThemeParameter.PhosphodiesterWidth.toString(), it.getPhosphoDiesterWidth().toString())
             }
-            return this.themeParams.get(ThemeParameter.PhosphodiesterWidth.toString())!!.toDouble()
+            return this.params.get(ThemeParameter.PhosphodiesterWidth.toString())!!.toDouble()
         }
     var deltaXRes: Int
         set(value) {
-            this.themeParams.set(ThemeParameter.DeltaXRes.toString(), value.toString())
+            this.params.set(ThemeParameter.DeltaXRes.toString(), value.toString())
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.DeltaXRes.toString(), it.getDeltaXRes().toString())
+                this.params.set(ThemeParameter.DeltaXRes.toString(), it.getDeltaXRes().toString())
             }
-            return this.themeParams.get(ThemeParameter.DeltaXRes.toString())!!.toInt()
+            return this.params.get(ThemeParameter.DeltaXRes.toString())!!.toInt()
         }
     var deltaYRes: Int
         set(value) {
-            this.themeParams.set(ThemeParameter.DeltaYRes.toString(), value.toString())
+            this.params.set(ThemeParameter.DeltaYRes.toString(), value.toString())
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.DeltaYRes.toString(), it.getDeltaYRes().toString())
+                this.params.set(ThemeParameter.DeltaYRes.toString(), it.getDeltaYRes().toString())
             }
-            return this.themeParams.get(ThemeParameter.DeltaYRes.toString())!!.toInt()
+            return this.params.get(ThemeParameter.DeltaYRes.toString())!!.toInt()
         }
     var deltaFontSize: Int
         set(value) {
-            this.themeParams.set(ThemeParameter.DeltaFontSize.toString(), value.toString())
+            this.params.set(ThemeParameter.DeltaFontSize.toString(), value.toString())
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.DeltaFontSize.toString(), it.getDeltaFontSize().toString())
+                this.params.set(ThemeParameter.DeltaFontSize.toString(), it.getDeltaFontSize().toString())
             }
-            return this.themeParams.get(ThemeParameter.DeltaFontSize.toString())!!.toInt()
+            return this.params.get(ThemeParameter.DeltaFontSize.toString())!!.toInt()
         }
     var AColor: Color
         set(value) {
-            this.themeParams.set(
+            this.params.set(
                 ThemeParameter.AColor.toString(),
                 getHTMLColorString(value)
             )
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(
+                this.params.set(
                     ThemeParameter.AColor.toString(),
                     getHTMLColorString(
                         getAWTColor(it.getAColor())!!
@@ -256,21 +256,21 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
                 )
             }
             return getAWTColor(
-                this.themeParams.get(
+                this.params.get(
                     ThemeParameter.AColor.toString()
                 )!!
             )!!
         }
     var AChar: Color
         set(value) {
-            this.themeParams.set(
+            this.params.set(
                 ThemeParameter.AChar.toString(),
                 getHTMLColorString(value)
             )
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(
+                this.params.set(
                     ThemeParameter.AChar.toString(),
                     getHTMLColorString(
                         getAWTColor(it.getAChar())!!
@@ -278,21 +278,21 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
                 )
             }
             return getAWTColor(
-                this.themeParams.get(
+                this.params.get(
                     ThemeParameter.AChar.toString()
                 )!!
             )!!
         }
     var UColor: Color
         set(value) {
-            this.themeParams.set(
+            this.params.set(
                 ThemeParameter.UColor.toString(),
                 getHTMLColorString(value)
             )
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(
+                this.params.set(
                     ThemeParameter.UColor.toString(),
                     getHTMLColorString(
                         getAWTColor(it.getUColor())!!
@@ -300,21 +300,21 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
                 )
             }
             return getAWTColor(
-                this.themeParams.get(
+                this.params.get(
                     ThemeParameter.UColor.toString()
                 )!!
             )!!
         }
     var UChar: Color
         set(value) {
-            this.themeParams.set(
+            this.params.set(
                 ThemeParameter.UChar.toString(),
                 getHTMLColorString(value)
             )
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(
+                this.params.set(
                     ThemeParameter.UChar.toString(),
                     getHTMLColorString(
                         getAWTColor(it.getUChar())!!
@@ -322,21 +322,21 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
                 )
             }
             return getAWTColor(
-                this.themeParams.get(
+                this.params.get(
                     ThemeParameter.UChar.toString()
                 )!!
             )!!
         }
     var GColor: Color
         set(value) {
-            this.themeParams.set(
+            this.params.set(
                 ThemeParameter.GColor.toString(),
                 getHTMLColorString(value)
             )
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(
+                this.params.set(
                     ThemeParameter.GColor.toString(),
                     getHTMLColorString(
                         getAWTColor(it.getGColor())!!
@@ -344,21 +344,21 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
                 )
             }
             return getAWTColor(
-                this.themeParams.get(
+                this.params.get(
                     ThemeParameter.GColor.toString()
                 )!!
             )!!
         }
     var GChar: Color
         set(value) {
-            this.themeParams.set(
+            this.params.set(
                 ThemeParameter.GChar.toString(),
                 getHTMLColorString(value)
             )
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(
+                this.params.set(
                     ThemeParameter.GChar.toString(),
                     getHTMLColorString(
                         getAWTColor(it.getGChar())!!
@@ -366,21 +366,21 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
                 )
             }
             return getAWTColor(
-                this.themeParams.get(
+                this.params.get(
                     ThemeParameter.GChar.toString()
                 )!!
             )!!
         }
     var CColor: Color
         set(value) {
-            this.themeParams.set(
+            this.params.set(
                 ThemeParameter.CColor.toString(),
                 getHTMLColorString(value)
             )
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(
+                this.params.set(
                     ThemeParameter.CColor.toString(),
                     getHTMLColorString(
                         getAWTColor(it.getCColor())!!
@@ -388,21 +388,21 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
                 )
             }
             return getAWTColor(
-                this.themeParams.get(
+                this.params.get(
                     ThemeParameter.CColor.toString()
                 )!!
             )!!
         }
     var CChar: Color
         set(value) {
-            this.themeParams.set(
+            this.params.set(
                 ThemeParameter.CChar.toString(),
                 getHTMLColorString(value)
             )
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(
+                this.params.set(
                     ThemeParameter.CChar.toString(),
                     getHTMLColorString(
                         getAWTColor(it.getCChar())!!
@@ -410,21 +410,21 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
                 )
             }
             return getAWTColor(
-                this.themeParams.get(
+                this.params.get(
                     ThemeParameter.CChar.toString()
                 )!!
             )!!
         }
     var XColor: Color
         set(value) {
-            this.themeParams.set(
+            this.params.set(
                 ThemeParameter.XColor.toString(),
                 getHTMLColorString(value)
             )
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(
+                this.params.set(
                     ThemeParameter.XColor.toString(),
                     getHTMLColorString(
                         getAWTColor(it.getXColor())!!
@@ -432,21 +432,21 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
                 )
             }
             return getAWTColor(
-                this.themeParams.get(
+                this.params.get(
                     ThemeParameter.XColor.toString()
                 )!!
             )!!
         }
     var XChar: Color
         set(value) {
-            this.themeParams.set(
+            this.params.set(
                 ThemeParameter.XChar.toString(),
                 getHTMLColorString(value)
             )
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(
+                this.params.set(
                     ThemeParameter.XChar.toString(),
                     getHTMLColorString(
                         getAWTColor(it.getXChar())!!
@@ -454,21 +454,21 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
                 )
             }
             return getAWTColor(
-                this.themeParams.get(
+                this.params.get(
                     ThemeParameter.XChar.toString()
                 )!!
             )!!
         }
     var SecondaryColor: Color
         set(value) {
-            this.themeParams.set(
+            this.params.set(
                 ThemeParameter.SecondaryColor.toString(),
                 getHTMLColorString(value)
             )
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(
+                this.params.set(
                     ThemeParameter.SecondaryColor.toString(),
                     getHTMLColorString(
                         getAWTColor(it.getSecondaryInteractionColor())!!
@@ -476,21 +476,21 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
                 )
             }
             return getAWTColor(
-                this.themeParams.get(
+                this.params.get(
                     ThemeParameter.SecondaryColor.toString()
                 )!!
             )!!
         }
     var TertiaryColor:Color
         set(value) {
-            this.themeParams.set(
+            this.params.set(
                 ThemeParameter.TertiaryColor.toString(),
                 getHTMLColorString(value)
             )
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(
+                this.params.set(
                     ThemeParameter.TertiaryColor.toString(),
                     getHTMLColorString(
                         getAWTColor(it.getTertiaryInteractionColor())!!
@@ -498,20 +498,20 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
                 )
             }
             return getAWTColor(
-                this.themeParams.get(
+                this.params.get(
                     ThemeParameter.TertiaryColor.toString()
                 )!!
             )!!
         }
     var fontName:String
         set(value) {
-            this.themeParams.set(ThemeParameter.FontName.toString(), value)
+            this.params.set(ThemeParameter.FontName.toString(), value)
         }
         get() {
             themeConfigurator?.let {
-                this.themeParams.set(ThemeParameter.FontName.toString(), it.getFontName())
+                this.params.set(ThemeParameter.FontName.toString(), it.getFontName())
             }
-            return this.themeParams.get(ThemeParameter.FontName.toString())!!
+            return this.params.get(ThemeParameter.FontName.toString())!!
         }
     var ATransX: Float = 0F
     var ATransY: Float = 0F
@@ -531,7 +531,7 @@ class Theme(defaultParams:MutableMap<String,String> = defaultTheme, val themeCon
 
     init {
         defaultParams.forEach { (k,v) ->
-            this.themeParams.put(k,v)
+            this.params.put(k,v)
         }
     }
 
@@ -818,46 +818,46 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
         }
 
         for (singleStrand in this.singleStrands) {
-            if (singleStrand.ss.location.start == 1) {
-                if (singleStrand.ss.location.length != 1) {
+            if (singleStrand.start == 1) {
+                if (singleStrand.length != 1) {
                     val step = distance(
                         this.residues[0].center!!,
-                        this.residues[singleStrand.ss.location.end].center!!
-                    ) /(singleStrand.ss.location.length).toDouble()
-                    for (i in singleStrand.ss.location.start+1..singleStrand.ss.location.end) {
+                        this.residues[singleStrand.end].center!!
+                    ) /(singleStrand.ss.length).toDouble()
+                    for (i in singleStrand.start+1..singleStrand.end) {
                         val (p1_1,_) = pointsFrom(
                             this.residues[0].center!!,
-                            this.residues[singleStrand.ss.location.end].center!!,
-                            step * (i - singleStrand.ss.location.start).toDouble()
+                            this.residues[singleStrand.end].center!!,
+                            step * (i - singleStrand.start).toDouble()
                         )
                         this.residues[i-1].center = p1_1
                     }
                 }
-            } else if (singleStrand.ss.location.end == this.secondaryStructure.length) {
-                if (singleStrand.ss.location.length != 1) {
+            } else if (singleStrand.end == this.secondaryStructure.length) {
+                if (singleStrand.length != 1) {
                     val step = distance(
-                        this.residues[singleStrand.ss.location.start - 2].center!!,
+                        this.residues[singleStrand.start - 2].center!!,
                         this.residues[this.secondaryStructure.length - 1].center!!
-                    ) /(singleStrand.ss.location.length).toDouble()
-                    for (i in singleStrand.ss.location.start until singleStrand.ss.location.end) {
+                    ) /(singleStrand.length).toDouble()
+                    for (i in singleStrand.start until singleStrand.end) {
                         val (p1_1,_) = pointsFrom(
-                            this.residues[singleStrand.ss.location.start - 2].center!!,
+                            this.residues[singleStrand.start - 2].center!!,
                             this.residues[this.secondaryStructure.length - 1].center!!,
-                            step * (i - (singleStrand.ss.location.start - 1).toDouble())
+                            step * (i - (singleStrand.start - 1).toDouble())
                         )
                         this.residues[i-1].center = p1_1
                     }
                 }
             } else {
                 val step = distance(
-                    this.residues[singleStrand.ss.location.start - 2].center!!,
-                    this.residues[singleStrand.ss.location.end].center!!
-                ) /(singleStrand.ss.location.length+1).toDouble()
-                for (i in singleStrand.ss.location.start..singleStrand.ss.location.end) {
+                    this.residues[singleStrand.start - 2].center!!,
+                    this.residues[singleStrand.end].center!!
+                ) /(singleStrand.length+1).toDouble()
+                for (i in singleStrand.start..singleStrand.end) {
                     val (p1_1,_) = pointsFrom(
-                        this.residues[singleStrand.ss.location.start - 2].center!!,
-                        this.residues[singleStrand.ss.location.end].center!!,
-                        step * (i - (singleStrand.ss.location.start - 1).toDouble())
+                        this.residues[singleStrand.start - 2].center!!,
+                        this.residues[singleStrand.end].center!!,
+                        step * (i - (singleStrand.start - 1).toDouble())
                     )
                     this.residues[i-1].center = p1_1
                 }
@@ -899,7 +899,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
         }
     }
 
-    fun getResiduesFromAbsPositions(positions:List<Int>): List<ResidueCircle> {
+    fun getResiduesFromAbsPositions(vararg positions:Int): List<ResidueCircle> {
         val _residues:MutableList<ResidueCircle> = mutableListOf<ResidueCircle>()
         for (r: ResidueCircle in residues) {
             if (r.absPos in positions) {
@@ -960,27 +960,26 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
             ss.draw(g,gc)
         }*/
 
-        for (bond in this.phosphodiesterBonds) {
-            bond.draw(g)
+        this.phosphodiesterBonds.forEach {
+            it.draw(g)
         }
 
-
-        for (interaction in this.secondaryInteractions) {
-            interaction.draw(g)
+        this.secondaryInteractions.forEach {
+            it.draw(g)
         }
 
         if (!theme.quickDraw && theme.tertiaryOpacity > 0)
-            for (interaction in this.tertiaryInteractions) {
-                interaction.drawHalo(g)
+            this.tertiaryInteractions.forEach {
+                it.drawHalo(g)
             }
 
-        for (residue in this.residues) {
-            residue.draw(g)
+        this.residues.forEach {
+            it.draw(g)
         }
 
-        if (!theme.quickDraw && theme.tertiaryInteractionWidth != 0.0 && !workingSession.selectedResidues.isEmpty())
-            for (interaction in this.tertiaryInteractions) {
-                interaction.draw(g)
+        if (!theme.quickDraw && theme.tertiaryInteractionWidth != 0.0 && !workingSession.selectedResidues.isEmpty() && RnartistConfig.displayTertiariesInSelection)
+            this.tertiaryInteractions.forEach {
+                it.draw(g)
             }
 
     }
@@ -1221,6 +1220,25 @@ class ResidueCircle(val ssDrawing: SecondaryStructureDrawing, val absPos:Int, la
 class HelixLine(val helix: Helix, start:Point2D, end:Point2D) {
 
     val line:Line2D = Line2D.Double(start,end)
+    val location:Location
+        get() {
+            return this.helix.location
+        }
+    val start:Int
+        get() {
+            return this.helix.start
+        }
+
+    val end:Int
+        get() {
+            return this.helix.end
+        }
+
+    val length:Int
+        get() {
+            return this.helix.length
+        }
+
 
     fun draw(g: Graphics2D, gc: WorkingSession) {
         val at = AffineTransform()
@@ -1233,6 +1251,25 @@ class HelixLine(val helix: Helix, start:Point2D, end:Point2D) {
 class SingleStrandLine(val ss: SingleStrand, start:Point2D, end:Point2D) {
 
     var line = Line2D.Double(start,end)
+    val location:Location
+        get() {
+            return this.ss.location
+        }
+
+    val start:Int
+        get() {
+            return this.ss.start
+        }
+
+    val end:Int
+        get() {
+            return this.ss.end
+        }
+
+    val length:Int
+        get() {
+            return this.ss.length
+        }
 
     fun draw(g: Graphics2D, gc: WorkingSession) {
         val at = AffineTransform()
@@ -1252,7 +1289,7 @@ class JunctionCircle (circlesFromBranchSoFar: MutableList<Triple<Point2D, Double
     var layout:MutableList<ConnectorId>? = defaultLayouts[this.junction.type]?.toMutableList()
         set(value) {
             //we order the helices according to the start but with inHelix as the first one
-            val sortedHelix = this.junction.helicesLinked.sortedBy { it.location.start - this.inHelix.location.start}
+            val sortedHelix = this.junction.helicesLinked.sortedBy { it.start - this.inHelix.start}
             field = value
             //we change the entry point for each connected circle, we update the self.connectedCircles dict and we warn the connected circles that their entry point has been changed (we call their setEntryPoint() function)
             var newConnectedJunctions = mutableMapOf<ConnectorId, JunctionCircle>() //we need to store the new connections in a temp dict otherwise the update of a connection could remove an old connection stored and not already checked.
@@ -1371,6 +1408,11 @@ class JunctionCircle (circlesFromBranchSoFar: MutableList<Triple<Point2D, Double
             return this.junctionsFromBranch().maxBy{ it.circle.bounds.maxY}!!.circle.bounds.maxY
         }
 
+    val location:Location
+        get() {
+            return this.junction.location
+        }
+
     init {
         this.connectors[this.inId.value] = inPoint
         //we compute the initial radius according to the junction length and type
@@ -1378,7 +1420,7 @@ class JunctionCircle (circlesFromBranchSoFar: MutableList<Triple<Point2D, Double
         this.radius = circumference/(2F*Math.PI).toDouble()
         circlesFromBranchSoFar.add(Triple<Point2D,Double, Ellipse2D>(this.center, this.radius, this.circle)) //this array allows to get easily the shapes already drawn for the branch in order to avoid overlaps with the shapes for this junction
 
-        val sortedHelix = this.junction.helicesLinked.sortedBy { it.location.start }
+        val sortedHelix = this.junction.helicesLinked.sortedBy { it.start }
 
         var helixRank = 0
 
@@ -1925,14 +1967,27 @@ abstract class BaseBaseInteraction(val interaction: BasePair, val ssDrawing:Seco
     protected var p1:Point2D? = null
     protected var p2:Point2D? = null
     protected var lwSymbols = mutableListOf<LWSymbol>()
+    val start:Int
+        get() {
+            return this.interaction.start
+        }
+
+    val end:Int
+        get() {
+            return this.interaction.end
+        }
+    val location:Location
+        get() {
+            return this.interaction.location
+        }
 
     val isCanonical:Boolean
         get() {
             return this.interaction.edge5 == Edge.WC && this.interaction.edge3 == Edge.WC && this.interaction.orientation == Orientation.cis && (
-                                    this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.start)).first()?.label == SecondaryStructureElement.A && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.end)).first()?.label == SecondaryStructureElement.U ||
-                                    this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.start)).first()?.label == SecondaryStructureElement.U && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.end)).first()?.label == SecondaryStructureElement.A ||
-                                    this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.start)).first()?.label == SecondaryStructureElement.G && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.end)).first()?.label == SecondaryStructureElement.C ||
-                                    this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.start)).first()?.label == SecondaryStructureElement.C && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.end)).first()?.label == SecondaryStructureElement.G
+                                    this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.label == SecondaryStructureElement.A && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.label == SecondaryStructureElement.U ||
+                                    this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.label == SecondaryStructureElement.U && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.label == SecondaryStructureElement.A ||
+                                    this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.label == SecondaryStructureElement.G && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.label == SecondaryStructureElement.C ||
+                                    this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.label == SecondaryStructureElement.C && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.label == SecondaryStructureElement.G
                     )
         }
 
@@ -1969,6 +2024,7 @@ abstract class BaseBaseInteraction(val interaction: BasePair, val ssDrawing:Seco
     }
 
     abstract fun setLWSymbols()
+
 
 }
 
@@ -2015,8 +2071,8 @@ class SecondaryInteractionLine(interaction: BasePair, ssDrawing: SecondaryStruct
                 val distance = distance(p1, p2);
                 val symbolWidth = distance / 3.0 * deltaLWSymbols
                 if (this.isCanonical) {
-                    if (this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.start)).first()?.label == SecondaryStructureElement.G && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.end)).first()?.label == SecondaryStructureElement.C ||
-                        this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.start)).first()?.label == SecondaryStructureElement.C && this.ssDrawing.getResiduesFromAbsPositions(listOf(this.interaction.end)).first()?.label == SecondaryStructureElement.G) {
+                    if (this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.label == SecondaryStructureElement.G && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.label == SecondaryStructureElement.C ||
+                        this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.label == SecondaryStructureElement.C && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.label == SecondaryStructureElement.G) {
                         val (p1_1, p1_2) = getPerpendicular(p1, p1, p2, symbolWidth / 2.0)
                         val (p2_1, p2_2) = getPerpendicular(p2, p1, p2, symbolWidth / 2.0)
                         this.lwSymbols.add(LWLine(this.ssDrawing, false, p1_1, p2_1))
@@ -2088,9 +2144,7 @@ class TertiaryInteractionLine(interaction: BasePair, ssDrawing: SecondaryStructu
         val at = AffineTransform()
         at.translate(this.ssDrawing.viewX, this.ssDrawing.viewY)
         at.scale(this.ssDrawing.finalZoomLevel, this.ssDrawing.finalZoomLevel)
-        val center1 = this.ssDrawing.residues[this.interaction.start-1].center
-        val center2 = this.ssDrawing.residues[this.interaction.end-1].center
-        if (ssDrawing.theme.tertiaryInteractionWidth != 0.0 && center1 != null && center2 != null && !this.ssDrawing.selectedResidues.isEmpty() &&  ( (this.ssDrawing.residues[this.interaction.start-1] in this.ssDrawing.selectedResidues) || (this.ssDrawing.residues[this.interaction.end-1] in this.ssDrawing.selectedResidues))) {
+        if (this.ssDrawing.residues[this.interaction.start-1] in this.ssDrawing.selectedResidues && this.ssDrawing.residues[this.interaction.end-1] in this.ssDrawing.selectedResidues) {
             g.color = Color(ssDrawing.theme.TertiaryColor.red, ssDrawing.theme.TertiaryColor.green, ssDrawing.theme.TertiaryColor.blue)
             this.setLWSymbols()
             this.lwSymbols.forEach { lwSymbol ->

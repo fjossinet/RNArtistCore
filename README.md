@@ -187,7 +187,7 @@ No stable release for now, only snapshots. To use RNArtistCore in a Java applica
 ## Get a secondary structure
 ```kotlin
 //load the saved options and/or create default ones
-RnartistConfig.loadConfig()
+RnartistConfig.load()
 RnartistConfig.exportSVGWithBrowserCompatibility(true)
 var ss:SecondaryStructure? = null
 //load from a Vienna String
@@ -206,6 +206,8 @@ ss?.let {
     writer.write(drawing.asSVG())
     writer.close()
 }
+//load the saved options and/or create default ones
+RnartistConfig.save(theme.params)
 ```
 And you get:
 
@@ -213,7 +215,7 @@ And you get:
 
 ```kotlin
 //load the saved options and/or create default ones
-RnartistConfig.loadConfig()
+RnartistConfig.load()
 RnartistConfig.exportSVGWithBrowserCompatibility(true)
 //load from a Vienna file
 val viennaFile = File("media/myRNA2.vienna")

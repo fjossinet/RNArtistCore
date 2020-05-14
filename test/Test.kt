@@ -1,6 +1,4 @@
 import io.github.fjossinet.rnartist.core.model.*
-import io.github.fjossinet.rnartist.core.model.io.getUserDir
-import io.github.fjossinet.rnartist.core.model.io.parseBPSeq
 import io.github.fjossinet.rnartist.core.model.io.parseVienna
 import java.awt.Color
 import java.io.File
@@ -11,7 +9,7 @@ import java.io.StringReader
 class Test {
     fun testReadmeCode() {
         //load the saved options and/or create default ones
-        RnartistConfig.loadConfig()
+        RnartistConfig.load()
         RnartistConfig.exportSVGWithBrowserCompatibility(true)
         var ss:SecondaryStructure? = null
         //load from a Vienna String

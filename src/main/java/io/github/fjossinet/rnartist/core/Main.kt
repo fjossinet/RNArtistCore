@@ -15,11 +15,11 @@ fun main(args:Array<String>) {
         printHelp()
     }
     else {
-        RnartistConfig.loadConfig()
+        RnartistConfig.load()
         val theme = Theme()
         if (optionExists(args, "-p", "--print")) {
             println("\n#### Current user-defined options to plot the 2D structures ####")
-            for ((k,v) in theme.themeParams)
+            for ((k,v) in theme.params)
                 println("- ${k}: ${v}")
             println("-SVG WebBrowsers fix: ${RnartistConfig.exportSVGWithBrowserCompatibility()}")
             println("##################################################################\n")
@@ -183,7 +183,7 @@ fun main(args:Array<String>) {
                 }
             }
             if (optionExists(args, "-s", "--save")) {
-                RnartistConfig.saveConfig(theme.themeParams)
+                RnartistConfig.save(theme.params)
             }
         } else {
             printHelp()

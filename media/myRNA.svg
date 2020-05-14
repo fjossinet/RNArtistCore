@@ -1,75 +1,75 @@
-<svg viewBox="0 0 140 237" xmlns="http://www.w3.org/2000/svg">
-	<path d="M62.0,222.0l18.0,0.0" style="fill:none;stroke:rgb(192, 192, 192);stroke-width:4;stroke-linecap:round;" />
-	<path d="M62.0,117.0l18.0,0.0" style="fill:none;stroke:rgb(192, 192, 192);stroke-width:4;stroke-linecap:round;" />
-	<path d="M62.0,187.0l18.0,0.0" style="fill:none;stroke:rgb(192, 192, 192);stroke-width:4;stroke-linecap:round;" />
-	<path d="M62.0,152.0l18.0,0.0" style="fill:none;stroke:rgb(192, 192, 192);stroke-width:4;stroke-linecap:round;" />
-	<path d="M41.0,207.0l0.0,-5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
-	<path d="M41.0,172.0l0.0,-5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
-	<path d="M41.0,137.0l0.0,-5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
-	<path d="M32.028171287147416,104.97892311199894l-6.3647573243786155,-8.527942253313086" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
-	<path d="M18.131789248853238,69.49920363743036l1.0217035171103817,-10.592075188422541" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
-	<path d="M31.69781897208236,33.89186218518523l7.877440086178922,-7.154150722673876" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
-	<path d="M65.679381265443,16.653145531943323l10.64123746911389,0.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
-	<path d="M102.42474094173872,26.737711462511243l7.8774400861790355,7.154150722674217" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
-	<path d="M122.84650723403661,58.90712844900793l1.021703517110268,10.592075188422314" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
-	<path d="M116.33658603723131,96.45098085868585l-6.364757324378729,8.527942253313086" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
-	<path d="M101.0,132.0l0.0,5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
-	<path d="M101.0,167.0l0.0,5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
-	<path d="M101.0,202.0l0.0,5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+<svg viewBox="0 0 67 116" xmlns="http://www.w3.org/2000/svg">
+	<path d="M26.299999999999955,90.0l15.400000000000091,0.0" style="fill:none;stroke:rgb(77, 77, 77);stroke-width:4.0;stroke-linecap:round;" />
+	<path d="M26.299999999999955,71.0l15.400000000000091,0.0" style="fill:none;stroke:rgb(77, 77, 77);stroke-width:4.0;stroke-linecap:round;" />
+	<path d="M26.299999999999955,52.0l15.400000000000091,0.0" style="fill:none;stroke:rgb(77, 77, 77);stroke-width:4.0;stroke-linecap:round;" />
+	<path d="M26.299999999999955,109.0l15.400000000000091,0.0" style="fill:none;stroke:rgb(77, 77, 77);stroke-width:4.0;stroke-linecap:round;" />
+	<path d="M16.5,102.0l0.0,-5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M16.5,83.0l0.0,-5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M16.5,64.0l0.0,-5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M13.251162970519545,45.799592113749554l-1.53525373608079,-2.930032896760622" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M9.870368237010439,29.811253675740545l0.663134363615768,-3.2407328840929495" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M17.360039002806047,15.286737475246127l2.562778607961036,-2.0914737906148275" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M32.346057980894784,8.769378023227887l3.307884038210659,0.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M48.077182389233144,13.195263684631527l2.5627786079608086,2.0914737906146" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M57.46649739937391,26.570520791647596l0.6631343636155407,3.240732884092722" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M56.28409076556136,42.869559216988705l-1.5352537360810175,2.9300328967608493" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M51.5,59.0l0.0,5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M51.5,78.0l0.0,5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
+	<path d="M51.5,97.0l0.0,5.0" style="fill:none;stroke:rgb(64, 64, 64);stroke-width:2;" />
 	<g>
-		<circle cx="41.0" cy="222.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(242, 205, 93)" />
-		<text x="41.0" y="222.0" text-anchor="middle" dy=".3em" style="fill:rgb(0, 0, 0);font-family:Futura;font-size:19;">C</text>
+		<circle cx="16.5" cy="109.0" r="7.0" stroke="rgb(64, 64, 64)" stroke-width="1.0" fill="rgb(242, 205, 93)" />
+		<text x="16.5" y="109.0" text-anchor="middle" dy=".3em" style="fill:rgb(0, 0, 0);font-family:Futura;font-size:8;">C</text>
 	</g>
 	<g>
-		<circle cx="41.0" cy="187.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(223, 1, 1)" />
-		<text x="41.0" y="187.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">G</text>
+		<circle cx="16.5" cy="90.0" r="7.0" stroke="rgb(64, 64, 64)" stroke-width="1.0" fill="rgb(223, 1, 1)" />
+		<text x="16.5" y="90.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:8;">G</text>
 	</g>
 	<g>
-		<circle cx="41.0" cy="152.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(242, 205, 93)" />
-		<text x="41.0" y="152.0" text-anchor="middle" dy=".3em" style="fill:rgb(0, 0, 0);font-family:Futura;font-size:19;">C</text>
+		<circle cx="16.5" cy="71.0" r="7.0" stroke="rgb(64, 64, 64)" stroke-width="1.0" fill="rgb(242, 205, 93)" />
+		<text x="16.5" y="71.0" text-anchor="middle" dy=".3em" style="fill:rgb(0, 0, 0);font-family:Futura;font-size:8;">C</text>
 	</g>
 	<g>
-		<circle cx="41.0" cy="117.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(58, 23, 114)" />
-		<text x="41.0" y="117.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">U</text>
+		<circle cx="16.5" cy="52.0" r="7.0" stroke="rgb(64, 64, 64)" stroke-width="1.0" fill="rgb(58, 23, 114)" />
+		<text x="16.5" y="52.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:8;">U</text>
 	</g>
 	<g>
-		<circle cx="16.691585249916216" cy="84.42990397068479" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(223, 1, 1)" />
-		<text x="16.691585249916216" y="84.42990397068479" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">G</text>
+		<circle cx="8.4670722049583" cy="36.66915133073849" r="7.0" stroke="rgb(64, 64, 64)" stroke-width="1.0" fill="rgb(223, 1, 1)" />
+		<text x="8.4670722049583" y="36.66915133073849" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:8;">G</text>
 	</g>
 	<g>
-		<circle cx="20.593696764900642" cy="43.976428115753265" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(215, 65, 167)" />
-		<text x="20.593696764900642" y="43.976428115753265" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">A</text>
+		<circle cx="11.936798632678347" cy="19.712623136649654" r="7.0" stroke="rgb(64, 64, 64)" stroke-width="1.0" fill="rgb(215, 65, 167)" />
+		<text x="11.936798632678347" y="19.712623136649654" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:8;">A</text>
 	</g>
 	<g>
-		<circle cx="50.679381265443" cy="16.653145531943323" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(215, 65, 167)" />
-		<text x="50.679381265443" y="16.653145531943323" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">A</text>
+		<circle cx="25.346057980894784" cy="8.769378023227773" r="7.0" stroke="rgb(64, 64, 64)" stroke-width="1.0" fill="rgb(215, 65, 167)" />
+		<text x="25.346057980894784" y="8.769378023227773" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:8;">A</text>
 	</g>
 	<g>
-		<circle cx="91.32061873455689" cy="16.653145531943323" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(58, 23, 114)" />
-		<text x="91.32061873455689" y="16.653145531943323" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">U</text>
+		<circle cx="42.65394201910544" cy="8.769378023228" r="7.0" stroke="rgb(64, 64, 64)" stroke-width="1.0" fill="rgb(58, 23, 114)" />
+		<text x="42.65394201910544" y="8.769378023228" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:8;">U</text>
 	</g>
 	<g>
-		<circle cx="121.40630323509959" cy="43.97642811575338" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(58, 23, 114)" />
-		<text x="121.40630323509959" y="43.97642811575338" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">U</text>
+		<circle cx="56.06320136732165" cy="19.712623136649654" r="7.0" stroke="rgb(64, 64, 64)" stroke-width="1.0" fill="rgb(58, 23, 114)" />
+		<text x="56.06320136732165" y="19.712623136649654" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:8;">U</text>
 	</g>
 	<g>
-		<circle cx="125.3084147500839" cy="84.42990397068479" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(242, 205, 93)" />
-		<text x="125.3084147500839" y="84.42990397068479" text-anchor="middle" dy=".3em" style="fill:rgb(0, 0, 0);font-family:Futura;font-size:19;">C</text>
+		<circle cx="59.5329277950417" cy="36.66915133073826" r="7.0" stroke="rgb(64, 64, 64)" stroke-width="1.0" fill="rgb(242, 205, 93)" />
+		<text x="59.5329277950417" y="36.66915133073826" text-anchor="middle" dy=".3em" style="fill:rgb(0, 0, 0);font-family:Futura;font-size:8;">C</text>
 	</g>
 	<g>
-		<circle cx="101.0" cy="117.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(215, 65, 167)" />
-		<text x="101.0" y="117.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">A</text>
+		<circle cx="51.5" cy="52.0" r="7.0" stroke="rgb(64, 64, 64)" stroke-width="1.0" fill="rgb(215, 65, 167)" />
+		<text x="51.5" y="52.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:8;">A</text>
 	</g>
 	<g>
-		<circle cx="101.0" cy="152.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(223, 1, 1)" />
-		<text x="101.0" y="152.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">G</text>
+		<circle cx="51.5" cy="71.0" r="7.0" stroke="rgb(64, 64, 64)" stroke-width="1.0" fill="rgb(223, 1, 1)" />
+		<text x="51.5" y="71.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:8;">G</text>
 	</g>
 	<g>
-		<circle cx="101.0" cy="187.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(242, 205, 93)" />
-		<text x="101.0" y="187.0" text-anchor="middle" dy=".3em" style="fill:rgb(0, 0, 0);font-family:Futura;font-size:19;">C</text>
+		<circle cx="51.5" cy="90.0" r="7.0" stroke="rgb(64, 64, 64)" stroke-width="1.0" fill="rgb(242, 205, 93)" />
+		<text x="51.5" y="90.0" text-anchor="middle" dy=".3em" style="fill:rgb(0, 0, 0);font-family:Futura;font-size:8;">C</text>
 	</g>
 	<g>
-		<circle cx="101.0" cy="222.0" r="15.0" stroke="rgb(64, 64, 64)" stroke-width="1" fill="rgb(223, 1, 1)" />
-		<text x="101.0" y="222.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:19;">G</text>
+		<circle cx="51.5" cy="109.0" r="7.0" stroke="rgb(64, 64, 64)" stroke-width="1.0" fill="rgb(223, 1, 1)" />
+		<text x="51.5" y="109.0" text-anchor="middle" dy=".3em" style="fill:rgb(255, 255, 255);font-family:Futura;font-size:8;">G</text>
 	</g>
 </svg>

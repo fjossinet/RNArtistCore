@@ -201,6 +201,16 @@ class Helix(val name:String?="MyHelix"):Serializable {
             return Location(positions = positionsInHelix.toIntArray())
         }
 
+    val start:Int
+        get() {
+            return this.location.start
+        }
+
+    val end:Int
+        get() {
+            return this.location.end
+        }
+
     val length:Int
         get() {
             return this.location.length/2
