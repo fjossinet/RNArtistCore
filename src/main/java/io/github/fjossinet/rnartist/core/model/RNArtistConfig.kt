@@ -665,7 +665,9 @@ object RnartistConfig {
         )
     )
 
+    @JvmStatic
     private var document: Document? = null
+
     @JvmField
     var defaultTheme = mutableMapOf<String,String>(
         ThemeParameter.AColor.toString() to defaultColorSchemes.get("Persian Carolina")!!.get(
@@ -877,6 +879,20 @@ object RnartistConfig {
                 document!!.rootElement.addContent(Element("displayTertiariesInSelection"))
             else if (!display)
                 document!!.rootElement.removeChild("displayTertiariesInSelection")
+        }
+
+    @JvmStatic
+    var centerDisplayOnSelection:Boolean
+        get() {
+            var e = document!!.rootElement.getChild("centerDisplayOnSelection")
+            return e != null
+        }
+
+        set(center) {
+            if (center && !centerDisplayOnSelection /*the element is not already there*/)
+                document!!.rootElement.addContent(Element("centerDisplayOnSelection"))
+            else if (!center)
+                document!!.rootElement.removeChild("centerDisplayOnSelection")
         }
 
     @JvmStatic

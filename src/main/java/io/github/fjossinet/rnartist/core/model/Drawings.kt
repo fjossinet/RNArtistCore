@@ -59,7 +59,7 @@ class WorkingSession() {
         finalZoomLevel *= zoomFactor
     }
 
-    fun centerFrameOnSelection(frame: Rectangle2D) {
+    fun centerDisplayOnSelection(frame: Rectangle2D) {
         val at = AffineTransform()
         at.translate(viewX, viewY)
         at.scale(finalZoomLevel, finalZoomLevel)
@@ -2767,9 +2767,9 @@ fun centroid(points: List<Point2D>): Point2D {
         while (i < points.size) {
             centroid[0] += points[i].x
             centroid[1] += points[i].y
-            i += 2
+            i ++
         }
-        val totalPoints = points.size / 2
+        val totalPoints = points.size.toDouble()
         centroid[0] = centroid[0] / totalPoints
         centroid[1] = centroid[1] / totalPoints
         Point2D.Double(centroid[0], centroid[1])
