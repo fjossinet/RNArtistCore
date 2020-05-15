@@ -40,6 +40,17 @@ class WorkingSession() {
     var screen_capture = false
     var screen_capture_area: Rectangle2D? = null
     val selectedResidues = mutableListOf<ResidueCircle>()
+    val selectionBounds:Rectangle2D?
+        get() {
+            var selectionBounds:Rectangle2D? = null
+            for (res in this.selectedResidues) {
+                if (selectionBounds == null)
+                    selectionBounds = res.circle?.bounds2D
+                else
+                    selectionBounds = selectionBounds.createUnion(res.circle?.bounds2D)
+            }
+            return selectionBounds//TODO add the residueBorder width
+        }
 
     fun clear() {
         viewX = 0.0
@@ -57,23 +68,6 @@ class WorkingSession() {
 
     fun setZoom(zoomFactor: Double) {
         finalZoomLevel *= zoomFactor
-    }
-
-    fun centerDisplayOnSelection(frame: Rectangle2D) {
-        val at = AffineTransform()
-        at.translate(viewX, viewY)
-        at.scale(finalZoomLevel, finalZoomLevel)
-
-        val centers = mutableListOf<Point2D>()
-        for (res in this.selectedResidues) {
-            val bounds = at.createTransformedShape(res.circle).bounds2D
-            centers.add(Point2D.Double(bounds.centerX, bounds.centerY))
-        }
-
-        val centroid = centroid(centers)
-
-        viewX += frame.bounds2D.centerX - centroid.x
-        viewY += frame.bounds2D.centerY - centroid.y
     }
 }
 
@@ -558,13 +552,18 @@ fun getStringBoundsRectangle2D(g: Graphics2D, title: String, font: Font): Dimens
 
 class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, frame:Rectangle2D = Rectangle(0,0,Toolkit.getDefaultToolkit().getScreenSize().width,Toolkit.getDefaultToolkit().getScreenSize().height), val theme: Theme = Theme(), val workingSession: WorkingSession = WorkingSession()) {
 
-    var name:String? = null
+    var name:String?
+        get() {
+            return this.secondaryStructure.name
+        }
+        set(name) {
+            this.secondaryStructure.name = name
+        }
     val branches = mutableListOf<JunctionCircle>()
     val helices = mutableListOf<HelixLine>()
     val singleStrands = mutableListOf<SingleStrandLine>()
     val residues = mutableListOf<ResidueCircle>()
     val phosphodiesterBonds = mutableListOf<PhosphodiesterBondLine>()
-    val secondaryInteractions = mutableListOf<SecondaryInteractionLine>()
     val tertiaryInteractions = mutableListOf<TertiaryInteractionLine>()
 
     val allJunctions:List<JunctionCircle>
@@ -595,6 +594,11 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
     val selectedResidues:MutableList<ResidueCircle>
         get(){
             return this.workingSession.selectedResidues
+        }
+
+    val length:Int
+        get(){
+            return this.secondaryStructure.length
         }
 
 
@@ -808,7 +812,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
         for (helix in this.helices) {
             this.computeResidues(helix)
             for (interaction in helix.helix.secondaryInteractions) {
-                this.secondaryInteractions.add(
+                helix.secondaryInteractions.add(
                     SecondaryInteractionLine(
                         interaction,
                         this
@@ -869,7 +873,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
 
             for (helix in branch.helicesFromBranch()) {
                 for (interaction in helix.helix.secondaryInteractions) {
-                    this.secondaryInteractions.add(
+                    helix.secondaryInteractions.add(
                         SecondaryInteractionLine(
                             interaction,
                             this
@@ -948,23 +952,16 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
             this.theme.XTransX = (_c.bounds2D.width - r2d.width).toFloat() / 2F
             this.theme.XTransY = (_c.bounds2D.height + r2d.height).toFloat() / 2F
         }
-        /*for (jC in this.branches) {
-            jC.draw(g, gc)
-        }
-
-        for (h in this.helices) {
-            h.draw(g,gc)
-        }
-
-        for (ss in this.singleStrands) {
-            ss.draw(g,gc)
-        }*/
 
         this.phosphodiesterBonds.forEach {
             it.draw(g)
         }
 
-        this.secondaryInteractions.forEach {
+        this.helices.forEach {
+            it.draw(g)
+        }
+
+        this.branches.forEach {
             it.draw(g)
         }
 
@@ -1106,7 +1103,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
         this.theme.XTransY = (residues.first().circle!!.bounds2D.height + r2d.height).toFloat() / 2F
         val bounds = getBounds()
         val svgBuffer = StringBuffer("""<svg viewBox="0 0 ${bounds.width} ${bounds.height}" xmlns="http://www.w3.org/2000/svg">"""+"\n")
-        secondaryInteractions.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
+        //TODO secondaryInteractions.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
         phosphodiesterBonds.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
         tertiaryInteractions.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
         residues.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
@@ -1115,7 +1112,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
     }
 
     override fun toString(): String {
-        return if (this.name != null) this.name!! else this.secondaryStructure.rna.toString()
+        return this.secondaryStructure.toString()
     }
 }
 
@@ -1220,6 +1217,7 @@ class ResidueCircle(val ssDrawing: SecondaryStructureDrawing, val absPos:Int, la
 class HelixLine(val helix: Helix, start:Point2D, end:Point2D) {
 
     val line:Line2D = Line2D.Double(start,end)
+    val secondaryInteractions = mutableListOf<SecondaryInteractionLine>()
     val location:Location
         get() {
             return this.helix.location
@@ -1239,12 +1237,20 @@ class HelixLine(val helix: Helix, start:Point2D, end:Point2D) {
             return this.helix.length
         }
 
+    val name:String?
+        get() {
+            return this.helix.name
+        }
 
-    fun draw(g: Graphics2D, gc: WorkingSession) {
-        val at = AffineTransform()
+
+    fun draw(g: Graphics2D) {
+        /*val at = AffineTransform()
         at.translate(gc.viewX,gc.viewY)
         at.scale(gc.finalZoomLevel, gc.finalZoomLevel)
-        g.draw(at.createTransformedShape(this.line));
+        g.draw(at.createTransformedShape(this.line));*/
+        this.secondaryInteractions.forEach {
+            it.draw(g)
+        }
     }
 }
 
@@ -1388,6 +1394,11 @@ class JunctionCircle (circlesFromBranchSoFar: MutableList<Triple<Point2D, Double
     val inHelix = inHelix
     val previousJunction = previousJunction //allows to get some info backward. For example, useful for an InnerLoop to check the previous orientation in order to keep it if the inID is .o or .e (instead to choose .n in any case)
 
+    val name:String?
+        get() {
+            return this.junction.name
+        }
+
     val minX:Double
         get() {
             return this.junctionsFromBranch().minBy{ it.circle.bounds.minX}!!.circle.bounds.minX
@@ -1411,6 +1422,11 @@ class JunctionCircle (circlesFromBranchSoFar: MutableList<Triple<Point2D, Double
     val location:Location
         get() {
             return this.junction.location
+        }
+
+    val type:JunctionType
+        get() {
+            return this.junction.type
         }
 
     init {
@@ -1739,18 +1755,18 @@ class JunctionCircle (circlesFromBranchSoFar: MutableList<Triple<Point2D, Double
         this.layout = this.layout //a trick to warn the connected circles, and so on...
     }
 
-    fun draw(g: Graphics2D, gc: WorkingSession) {
-        val at = AffineTransform()
+    fun draw(g: Graphics2D) {
+        /*val at = AffineTransform()
         at.translate(gc.viewX,gc.viewY)
         at.scale(gc.finalZoomLevel, gc.finalZoomLevel)
-        g.draw(at.createTransformedShape(this.circle));
+        g.draw(at.createTransformedShape(this.circle));*/
 
-        for (helix in this.helices) {
-            helix.draw(g,gc)
+        this.helices.forEach {
+            it.draw(g)
         }
 
-        for ((_, junction) in this.connectedJunctions) {
-            junction.draw(g,gc)
+        this.connectedJunctions.forEach { _, junction ->
+            junction.draw(g)
         }
 
     }
@@ -2025,7 +2041,9 @@ abstract class BaseBaseInteraction(val interaction: BasePair, val ssDrawing:Seco
 
     abstract fun setLWSymbols()
 
-
+    override fun toString(): String {
+        return this.interaction.toString()
+    }
 }
 
 class SecondaryInteractionLine(interaction: BasePair, ssDrawing: SecondaryStructureDrawing): BaseBaseInteraction(interaction, ssDrawing) {
@@ -2070,7 +2088,7 @@ class SecondaryInteractionLine(interaction: BasePair, ssDrawing: SecondaryStruct
             this.p2?.let { p2 ->
                 val distance = distance(p1, p2);
                 val symbolWidth = distance / 3.0 * deltaLWSymbols
-                if (this.isCanonical) {
+                if (this.isCanonical || !RnartistConfig.displayLWSymbols) {
                     if (this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.label == SecondaryStructureElement.G && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.label == SecondaryStructureElement.C ||
                         this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.label == SecondaryStructureElement.C && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.label == SecondaryStructureElement.G) {
                         val (p1_1, p1_2) = getPerpendicular(p1, p1, p2, symbolWidth / 2.0)
@@ -2168,47 +2186,55 @@ class TertiaryInteractionLine(interaction: BasePair, ssDrawing: SecondaryStructu
 
             val shift = radiusConst+ssDrawing.theme.residueBorder.toDouble()/2.0
             if (distance(center1,center2) > 2*shift) {
-                this.p1 = pointsFrom(
-                    center1,
-                    center2,
-                    shift
-                ).first
+                if (!RnartistConfig.displayLWSymbols) {
+                    val (p1,p2) = pointsFrom(
+                            center1,
+                            center2,
+                            shift
+                    )
+                    this.lwSymbols.add(LWLine(this.ssDrawing, true, p1, p2))
+                } else {
+                    this.p1 = pointsFrom(
+                            center1,
+                            center2,
+                            shift
+                    ).first
 
-                this.p2 = pointsFrom(
-                    center1,
-                    center2,
-                    shift+radiusConst*1.5
-                ).first
+                    this.p2 = pointsFrom(
+                            center1,
+                            center2,
+                            shift + radiusConst * 1.5
+                    ).first
+                    val forLine_1 = this.p2!!
 
-                val forLine_1 = this.p2!!
-
-                this.p1?.let { p1 ->
-                    this.p2?.let { p2 ->
-                        this.lwSymbols.add(this.generateSingleSymbol(true, this.interaction.edge5, this.interaction.orientation,this.p1 as Point2D ,this.p2 as Point2D, right = false))
+                    this.p1?.let { p1 ->
+                        this.p2?.let { p2 ->
+                            this.lwSymbols.add(this.generateSingleSymbol(true, this.interaction.edge5, this.interaction.orientation, this.p1 as Point2D, this.p2 as Point2D, right = false))
+                        }
                     }
-                }
 
-                this.p1 = pointsFrom(
-                    center1,
-                    center2,
-                    shift
-                ).second
+                    this.p1 = pointsFrom(
+                            center1,
+                            center2,
+                            shift
+                    ).second
 
-                this.p2 = pointsFrom(
-                    center1,
-                    center2,
-                    shift+radiusConst*1.5
-                ).second
+                    this.p2 = pointsFrom(
+                            center1,
+                            center2,
+                            shift + radiusConst * 1.5
+                    ).second
 
-                val forLine_2 = this.p2!!
+                    val forLine_2 = this.p2!!
 
-                this.p1?.let { p1 ->
-                    this.p2?.let { p2 ->
-                        this.lwSymbols.add(this.generateSingleSymbol(true, this.interaction.edge5, this.interaction.orientation,this.p1 as Point2D ,this.p2 as Point2D, right = true))
+                    this.p1?.let { p1 ->
+                        this.p2?.let { p2 ->
+                            this.lwSymbols.add(this.generateSingleSymbol(true, this.interaction.edge5, this.interaction.orientation, this.p1 as Point2D, this.p2 as Point2D, right = true))
+                        }
                     }
-                }
 
-                this.lwSymbols.add(LWLine(this.ssDrawing, true, forLine_1,forLine_2))
+                    this.lwSymbols.add(LWLine(this.ssDrawing, true, forLine_1, forLine_2))
+                }
 
 
             }
@@ -2229,7 +2255,6 @@ class TertiaryInteractionLine(interaction: BasePair, ssDrawing: SecondaryStructu
         }
         return ""
     }
-
 }
 
 class PhosphodiesterBondLine(val start:Int, val end:Int, val ssDrawing: SecondaryStructureDrawing) {
@@ -2755,23 +2780,4 @@ fun getHTMLColorString(color: Color): String {
             (if (red.length == 1) "0$red" else red) +
             (if (green.length == 1) "0$green" else green) +
             if (blue.length == 1) "0$blue" else blue
-}
-
-fun centroid(points: List<Point2D>): Point2D {
-    return if (points.size == 1) {
-        points.first()
-    }
-    else {
-        val centroid = doubleArrayOf(0.0, 0.0)
-        var i = 0
-        while (i < points.size) {
-            centroid[0] += points[i].x
-            centroid[1] += points[i].y
-            i ++
-        }
-        val totalPoints = points.size.toDouble()
-        centroid[0] = centroid[0] / totalPoints
-        centroid[1] = centroid[1] / totalPoints
-        Point2D.Double(centroid[0], centroid[1])
-    }
 }

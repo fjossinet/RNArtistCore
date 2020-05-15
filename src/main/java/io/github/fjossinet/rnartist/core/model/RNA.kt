@@ -14,7 +14,9 @@ class Block(start:Int,end:Int):Serializable {
     fun contains(position:Int) = position in start..end
 
     override fun toString(): String {
-        return "$start-$end"
+        if (length == 1)
+            return "$start"
+        return "$start:$length"
     }
 }
 
@@ -98,6 +100,12 @@ class Location:Serializable {
 
 
     fun contains(position:Int) = this.blocks.any { it.contains(position) }
+
+    override fun toString(): String {
+        return this.description
+    }
+
+
 }
 
 class RNA(var name:String="A", seq:String, var source:String="Source N.A."):Serializable {
@@ -165,7 +173,10 @@ class BasePair(val location: Location, val edge5: Edge = Edge.WC, val edge3: Edg
         }
 
     override fun toString(): String {
-        return "$location $orientation:$edge5:$edge3"
+        if (edge5 == Edge.SingleHBond && edge3 == Edge.SingleHBond) {
+            return  "$edge5"
+        }
+        return "$orientation:$edge5:$edge3"
     }
 
 }
@@ -192,7 +203,7 @@ class SingleStrand(val name:String?="MySingleStrand", start:Int, end:Int):Serial
 
 class Helix(val name:String?="MyHelix"):Serializable {
 
-    val secondaryInteractions = HashSet<BasePair>()
+    val secondaryInteractions = mutableListOf<BasePair>()
     var junctionsLinked = Pair<Junction?, Junction?>(null,null)
 
     val location: Location
@@ -539,6 +550,7 @@ class Atom(val name:String):Serializable {
 
 class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null):Serializable {
 
+    var name:String? = null
     val tertiaryInteractions = mutableSetOf<BasePair>()
     val helices = mutableListOf<Helix>()
     val junctions = mutableListOf<Junction>()
@@ -603,7 +615,7 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
                         end1 = bps[j].end
                     } else if (start2 > start1+1) { //since the base-pairs are sorted, we will never get more succcessive stacked bp. We can restart with the next basepairs in the list
                         if (!bpInHelix.isEmpty()) {
-                            val h = Helix()
+                            val h = Helix("H${this.helices.size+1}")
                             for (bp in bpInHelix) {
                                 h.secondaryInteractions.add(bp)
                             }
@@ -615,7 +627,7 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
                     j++
                 }
                 if (!bpInHelix.isEmpty()) {
-                    val h = Helix()
+                    val h = Helix("H${this.helices.size+1}")
                     for (bp in bpInHelix) {
                         h.secondaryInteractions.add(bp)
                     }
@@ -624,7 +636,7 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
                 }
             }
             if (!bpInHelix.isEmpty()) {
-                val h = Helix()
+                val h = Helix("H${this.helices.size+1}")
                 for (bp in bpInHelix) {
                     h.secondaryInteractions.add(bp)
                 }
@@ -802,6 +814,10 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
             bn[bp.end - 1] = ')'
         }
         return String(bn)
+    }
+
+    override fun toString(): String {
+        return if (this.name != null) this.name!! else this.rna.toString()
     }
 
 }

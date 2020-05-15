@@ -743,6 +743,7 @@ object RnartistConfig {
                 getRnartistRelease()
             )
             root.addContent(Element("displayTertiariesInSelection"))
+            root.addContent(Element("displayLWSymbols"))
             document = Document(root)
         }
         recoverWebsite()
@@ -893,6 +894,34 @@ object RnartistConfig {
                 document!!.rootElement.addContent(Element("centerDisplayOnSelection"))
             else if (!center)
                 document!!.rootElement.removeChild("centerDisplayOnSelection")
+        }
+
+    @JvmStatic
+    var fitDisplayOnSelection:Boolean
+        get() {
+            var e = document!!.rootElement.getChild("fitDisplayOnSelection")
+            return e != null
+        }
+
+        set(center) {
+            if (center && !fitDisplayOnSelection /*the element is not already there*/)
+                document!!.rootElement.addContent(Element("fitDisplayOnSelection"))
+            else if (!center)
+                document!!.rootElement.removeChild("fitDisplayOnSelection")
+        }
+
+    @JvmStatic
+    var displayLWSymbols:Boolean
+        get() {
+            var e = document!!.rootElement.getChild("displayLWSymbols")
+            return e != null
+        }
+
+        set(display) {
+            if (display && !displayLWSymbols /*the element is not already there*/)
+                document!!.rootElement.addContent(Element("displayLWSymbols"))
+            else if (!display)
+                document!!.rootElement.removeChild("displayLWSymbols")
         }
 
     @JvmStatic
