@@ -148,15 +148,11 @@ fun main(args:Array<String>) {
                                                 theme = theme,
                                                 workingSession = WorkingSession()
                                         )
-                                if (outputPath.length == 0) {
-                                    println(drawing.asSVG())
-                                } else {
-                                    println("Processing ${path}")
-                                    val tokens = path.split("/").last().split(".")
-                                    val writer = PrintWriter(File(File(outputPath).getAbsolutePath(), "${tokens.subList(0, tokens.size - 1).joinToString(separator = ".")}.svg"))
-                                    writer.write(drawing.asSVG())
-                                    writer.close()
-                                }
+                                println("Processing ${path}")
+                                val tokens = path.split("/").last().split(".")
+                                val writer = PrintWriter(File(File(outputPath).getAbsolutePath(), "${tokens.subList(0, tokens.size - 1).joinToString(separator = ".")}.svg"))
+                                writer.write(drawing.asSVG())
+                                writer.close()
                             }
                         }
                     }
@@ -170,14 +166,10 @@ fun main(args:Array<String>) {
                                             secondaryStructure = ss,
                                             workingSession = WorkingSession()
                                     )
-                            if (outputPath.length == 0) {
-                                println(drawing.asSVG())
-                            } else {
-                                println("Processing ${ss.rna.name}")
-                                var writer = FileWriter(File(File(outputPath).getAbsolutePath(), "${ss.rna.name.replace('/', '_')}.svg"))
-                                writer.write(drawing.asSVG())
-                                writer.close()
-                            }
+                            println("Processing ${ss.rna.name}")
+                            var writer = FileWriter(File(File(outputPath).getAbsolutePath(), "${ss.rna.name.replace('/', '_')}.svg"))
+                            writer.write(drawing.asSVG())
+                            writer.close()
                         }
                     }
                 }

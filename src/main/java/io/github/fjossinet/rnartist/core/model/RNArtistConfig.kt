@@ -709,7 +709,7 @@ object RnartistConfig {
         ThemeParameter.SecondaryInteractionWidth.toString() to "1.0",
         ThemeParameter.SecondaryInteractionShift.toString() to "1.0",
         ThemeParameter.TertiaryInteractionWidth.toString() to "1.0",
-        ThemeParameter.HaloWidth.toString() to "10.0",
+        ThemeParameter.HaloWidth.toString() to "5.0",
         ThemeParameter.TertiaryOpacity.toString() to "130", //alpha value goes from 0 to 255
         ThemeParameter.ResidueCharOpacity.toString() to "255", //alpha value goes from 0 to 255
         ThemeParameter.TertiaryInteractionStyle.toString() to DASHED,

@@ -965,7 +965,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
             it.draw(g)
         }
 
-        if (!theme.quickDraw && theme.tertiaryOpacity > 0)
+        if (!theme.quickDraw && theme.tertiaryOpacity > 0 && selectedResidues.isEmpty())
             this.tertiaryInteractions.forEach {
                 it.drawHalo(g)
             }
@@ -1813,14 +1813,14 @@ class TransWC(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolean, start
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
         val previousColor = g.color
-        g.color = Color.WHITE
+        g.color = Color(Color.WHITE.red, Color.WHITE.green, Color.WHITE.blue, if (inTertiaries) ssDrawing.theme.tertiaryOpacity else 255)
         g.fill(at.createTransformedShape(this.shape))
         g.color = previousColor
         if (inTertiaries)
             g.stroke = BasicStroke(
                 this.ssDrawing.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
                 BasicStroke.CAP_ROUND,
-                BasicStroke.JOIN_BEVEL
+                BasicStroke.JOIN_ROUND
             )
         g.draw(at.createTransformedShape(this.shape))
     }
@@ -1873,14 +1873,14 @@ class TransRightSugar(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolea
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
         val previousColor = g.color
-        g.color = Color.WHITE
+        g.color = Color(Color.WHITE.red, Color.WHITE.green, Color.WHITE.blue,  if (inTertiaries) ssDrawing.theme.tertiaryOpacity else 255)
         g.fill(at.createTransformedShape(this.shape))
         g.color = previousColor
         if (inTertiaries)
             g.stroke = BasicStroke(
                 this.ssDrawing.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
                 BasicStroke.CAP_ROUND,
-                BasicStroke.JOIN_BEVEL
+                BasicStroke.JOIN_ROUND
             )
         g.draw(at.createTransformedShape(this.shape))
     }
@@ -1891,14 +1891,14 @@ class TransLeftSugar(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolean
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
         val previousColor = g.color
-        g.color = Color.WHITE
+        g.color = Color(Color.WHITE.red, Color.WHITE.green, Color.WHITE.blue, if (inTertiaries) ssDrawing.theme.tertiaryOpacity else 255)
         g.fill(at.createTransformedShape(this.shape))
         g.color = previousColor
         if (inTertiaries)
             g.stroke = BasicStroke(
                 this.ssDrawing.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
                 BasicStroke.CAP_ROUND,
-                BasicStroke.JOIN_BEVEL
+                BasicStroke.JOIN_ROUND
             )
         g.draw(at.createTransformedShape(this.shape))
     }
@@ -1931,14 +1931,14 @@ class TransHoogsteen(ssDrawing: SecondaryStructureDrawing, inTertiaries: Boolean
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
         val previousColor = g.color
-        g.color = Color.WHITE
+        g.color = Color(Color.WHITE.red, Color.WHITE.green, Color.WHITE.blue, if (inTertiaries) ssDrawing.theme.tertiaryOpacity else 255)
         g.fill(at.createTransformedShape(this.shape))
         g.color = previousColor
         if (inTertiaries)
             g.stroke = BasicStroke(
                 this.ssDrawing.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
                 BasicStroke.CAP_ROUND,
-                BasicStroke.JOIN_BEVEL
+                BasicStroke.JOIN_ROUND
             )
         g.draw(at.createTransformedShape(this.shape))
     }
@@ -1960,7 +1960,7 @@ class LWLine(ssDrawing: SecondaryStructureDrawing, inTertiaries:Boolean = false,
                     g.stroke = BasicStroke(
                         this.ssDrawing.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
                         BasicStroke.CAP_ROUND,
-                        BasicStroke.JOIN_BEVEL,
+                        BasicStroke.JOIN_ROUND,
                         0F,
                         floatArrayOf(this.ssDrawing.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat() * 2),
                         0F
@@ -1969,7 +1969,7 @@ class LWLine(ssDrawing: SecondaryStructureDrawing, inTertiaries:Boolean = false,
                     g.stroke = BasicStroke(
                         this.ssDrawing.finalZoomLevel.toFloat() * ssDrawing.theme.tertiaryInteractionWidth.toFloat(),
                         BasicStroke.CAP_ROUND,
-                        BasicStroke.JOIN_BEVEL
+                        BasicStroke.JOIN_ROUND
                     )
                 g.draw(at.createTransformedShape(this.shape))
             }
@@ -2141,13 +2141,13 @@ class TertiaryInteractionLine(interaction: BasePair, ssDrawing: SecondaryStructu
         val at = AffineTransform()
         at.translate(this.ssDrawing.viewX, this.ssDrawing.viewY)
         at.scale(this.ssDrawing.finalZoomLevel, this.ssDrawing.finalZoomLevel)
-        if (this.ssDrawing.selectedResidues.isEmpty()) {
-            g.color = Color(ssDrawing.theme.TertiaryColor.red, ssDrawing.theme.TertiaryColor.green, ssDrawing.theme.TertiaryColor.blue, ssDrawing.theme.tertiaryOpacity)
-            g.stroke =
-                BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * ssDrawing.theme.haloWidth.toFloat())
-            g.draw(at.createTransformedShape(this.ssDrawing.residues[this.interaction.start - 1].circle))
-            g.draw(at.createTransformedShape(this.ssDrawing.residues[this.interaction.end - 1].circle))
-        }
+        g.color = Color(ssDrawing.theme.TertiaryColor.red, ssDrawing.theme.TertiaryColor.green, ssDrawing.theme.TertiaryColor.blue, ssDrawing.theme.tertiaryOpacity)
+        val shift = this.ssDrawing.theme.haloWidth+this.ssDrawing.theme.residueBorder/2.0
+        val newWidth = (this.ssDrawing.residues[this.interaction.start - 1].circle!!.width) + 2*shift
+        var newCircle = Ellipse2D.Double(this.ssDrawing.residues[this.interaction.start - 1].circle!!.centerX-newWidth/2.0, this.ssDrawing.residues[this.interaction.start - 1].circle!!.centerY-newWidth/2.0, newWidth,newWidth)
+        g.fill(at.createTransformedShape(newCircle))
+        newCircle = Ellipse2D.Double(this.ssDrawing.residues[this.interaction.end - 1].circle!!.centerX-newWidth/2.0, this.ssDrawing.residues[this.interaction.end - 1].circle!!.centerY-newWidth/2.0 , newWidth,newWidth)
+        g.fill(at.createTransformedShape(newCircle))
         g.color = Color(
             ssDrawing.theme.TertiaryColor.red,
             ssDrawing.theme.TertiaryColor.green,
@@ -2163,7 +2163,7 @@ class TertiaryInteractionLine(interaction: BasePair, ssDrawing: SecondaryStructu
         at.translate(this.ssDrawing.viewX, this.ssDrawing.viewY)
         at.scale(this.ssDrawing.finalZoomLevel, this.ssDrawing.finalZoomLevel)
         if (this.ssDrawing.residues[this.interaction.start-1] in this.ssDrawing.selectedResidues && this.ssDrawing.residues[this.interaction.end-1] in this.ssDrawing.selectedResidues) {
-            g.color = Color(ssDrawing.theme.TertiaryColor.red, ssDrawing.theme.TertiaryColor.green, ssDrawing.theme.TertiaryColor.blue)
+            g.color = Color(ssDrawing.theme.TertiaryColor.red, ssDrawing.theme.TertiaryColor.green, ssDrawing.theme.TertiaryColor.blue, ssDrawing.theme.tertiaryOpacity)
             this.setLWSymbols()
             this.lwSymbols.forEach { lwSymbol ->
                 lwSymbol.draw(g,at)
