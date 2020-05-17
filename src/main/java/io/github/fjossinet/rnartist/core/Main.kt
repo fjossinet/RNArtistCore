@@ -149,8 +149,8 @@ fun main(args:Array<String>) {
                                                 workingSession = WorkingSession()
                                         )
                                 println("Processing ${path}")
-                                val tokens = path.split("/").last().split(".")
-                                val writer = PrintWriter(File(File(outputPath).getAbsolutePath(), "${tokens.subList(0, tokens.size - 1).joinToString(separator = ".")}.svg"))
+                                val tokens = path.split(File.separator).last().split(".")
+                                val writer = PrintWriter(File(File(outputPath).canonicalPath, "${tokens.subList(0, tokens.size - 1).joinToString(separator = ".")}.svg"))
                                 writer.write(drawing.asSVG())
                                 writer.close()
                             }
@@ -167,7 +167,7 @@ fun main(args:Array<String>) {
                                             workingSession = WorkingSession()
                                     )
                             println("Processing ${ss.rna.name}")
-                            var writer = FileWriter(File(File(outputPath).getAbsolutePath(), "${ss.rna.name.replace('/', '_')}.svg"))
+                            var writer = FileWriter(File(File(outputPath).canonicalPath, "${ss.rna.name.replace('/', '_')}.svg"))
                             writer.write(drawing.asSVG())
                             writer.close()
                         }
