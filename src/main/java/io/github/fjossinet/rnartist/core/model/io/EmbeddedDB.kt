@@ -135,8 +135,8 @@ class EmbeddedDB() {
                 interactions.add(
                     BasePair(
                         Location(
-                            (interaction.get("start") as String).toInt(),
-                            (interaction.get("end") as String).toInt()
+                            Location((interaction.get("start") as String).toInt()),
+                            Location((interaction.get("end") as String).toInt())
                         ),
                         Edge.valueOf(interaction.get("edge5") as String),
                         Edge.valueOf(interaction.get("edge3") as String),

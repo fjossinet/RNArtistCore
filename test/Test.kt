@@ -29,21 +29,22 @@ class Test {
             writer.close()
         }
         //load from a Vienna file
-        val viennaFile = File("media/myRNA2.vienna")
+        val viennaFile = File("media/rna.vienna")
         var ss2:SecondaryStructure? = null
         if (viennaFile.exists())
             ss2 = parseVienna(FileReader(viennaFile))
         ss2?.let {
             val theme = Theme()
             theme.fontName = "Arial"
+            theme.phosphoDiesterWidth = 3.0
             theme.secondaryInteractionWidth = 1.0
-            theme.residueBorder = 3.0
+            theme.residueBorder = 0.5
             theme.UColor = Color.WHITE
             theme.UChar = Color.BLACK
             theme.CColor = Color.RED
             theme.CChar = Color.WHITE
             var drawing = SecondaryStructureDrawing(secondaryStructure = ss2, theme = theme)
-            var writer = FileWriter("media/myRNA2.svg")
+            var writer = FileWriter("media/rna.svg")
             writer.write(drawing.asSVG())
             writer.close()
         }

@@ -1103,7 +1103,14 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
         this.theme.XTransY = (residues.first().circle!!.bounds2D.height + r2d.height).toFloat() / 2F
         val bounds = getBounds()
         val svgBuffer = StringBuffer("""<svg viewBox="0 0 ${bounds.width} ${bounds.height}" xmlns="http://www.w3.org/2000/svg">"""+"\n")
-        //TODO secondaryInteractions.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
+        helices.map { helix ->
+            helix.secondaryInteractions.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
+        }
+        allJunctions.map { junction ->
+            junction.helices.map { helix ->
+                helix.secondaryInteractions.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
+            }
+        }
         phosphodiesterBonds.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
         tertiaryInteractions.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
         residues.map { it.asSVG(indentLevel = 1, theme = theme, transX = -bounds.minX, transY = -bounds.minY)}.forEach { svgBuffer.append(it) }
@@ -2298,7 +2305,7 @@ class PhosphodiesterBondLine(val start:Int, val end:Int, val ssDrawing: Secondar
                 center2,
                 radiusConst
             )
-            return indentChar.repeat(indentLevel) + """<path d="M${p1.x+transX},${p1.y+transY}l${p2.x-p1.x},${p2.y-p1.y}" style="fill:none;stroke:rgb(${Color.DARK_GRAY.red}, ${Color.DARK_GRAY.green}, ${Color.DARK_GRAY.blue});stroke-width:2;" />""" + "\n"
+            return indentChar.repeat(indentLevel) + """<path d="M${p1.x+transX},${p1.y+transY}l${p2.x-p1.x},${p2.y-p1.y}" style="fill:none;stroke:rgb(${Color.DARK_GRAY.red}, ${Color.DARK_GRAY.green}, ${Color.DARK_GRAY.blue});stroke-width:${theme.phosphoDiesterWidth};" />""" + "\n"
         }
         return ""
     }

@@ -856,7 +856,7 @@ fun toBasePairs(bracketNotation: String):MutableList<BasePair> {
             '[' -> lastLeft.add(Edge.Hoogsteen) && lastPos.add(pos)
             ')' -> {
                 val _lastPos = lastPos.removeAt(lastPos.size-1)
-                val _location = Location(_lastPos, pos)
+                val _location = Location(Location(_lastPos), Location(pos))
                 val _lastLeft = lastLeft.removeAt(lastLeft.size-1)
                 basePairs.add(
                     BasePair(
@@ -868,7 +868,7 @@ fun toBasePairs(bracketNotation: String):MutableList<BasePair> {
             }
             '}' -> {
                 val _lastPos = lastPos.removeAt(lastPos.size-1)
-                val _location = Location(_lastPos, pos)
+                val _location = Location(Location(_lastPos), Location(pos))
                 val _lastLeft = lastLeft.removeAt(lastLeft.size-1)
                 basePairs.add(
                     BasePair(
@@ -880,7 +880,7 @@ fun toBasePairs(bracketNotation: String):MutableList<BasePair> {
             }
             ']' -> {
                 val _lastPos = lastPos.removeAt(lastPos.size-1)
-                val _location = Location(_lastPos, pos)
+                val _location = Location(Location(_lastPos), Location(pos))
                 val _lastLeft = lastLeft.removeAt(lastLeft.size-1)
                 basePairs.add(
                     BasePair(
