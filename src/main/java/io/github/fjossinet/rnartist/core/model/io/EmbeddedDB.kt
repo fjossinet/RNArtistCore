@@ -160,12 +160,17 @@ class EmbeddedDB() {
         )
     }
 
-    fun addTheme(name:String, author:String, theme: Theme):NitriteId {
+    fun addTheme(name:String, theme: Theme):NitriteId {
         val doc = createDocument("name",name)
-        doc.put("author", author)
-        doc.put("theme", theme)
+        doc.put("params", theme.params.toMutableMap())
         val r = this.userDB.getCollection("Themes").insert(doc)
         return r.first()
+    }
+
+    fun getTheme(id:NitriteId):Theme {
+        val doc = this.userDB.getCollection("Themes").getById(id) as Document
+        val theme = Theme(defaultParams = doc.get("params") as MutableMap<String, String>);
+        return theme
     }
 
     fun getThemes():NitriteCollection {

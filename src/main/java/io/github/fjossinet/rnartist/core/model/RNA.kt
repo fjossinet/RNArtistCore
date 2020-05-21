@@ -48,7 +48,7 @@ class Location:Serializable {
             return this.blocks.joinToString { it.toString() }
         }
 
-    private constructor() {
+    constructor() {
     }
 
     constructor(start:Int,end:Int):this() {
@@ -181,7 +181,7 @@ class BasePair(val location: Location, val edge5: Edge = Edge.WC, val edge3: Edg
 
 }
 
-class SingleStrand(val name:String?="MySingleStrand", start:Int, end:Int):Serializable {
+class SingleStrand(val name:String="MySingleStrand", start:Int, end:Int):Serializable {
 
     val location = Location(start, end)
 
@@ -201,7 +201,7 @@ class SingleStrand(val name:String?="MySingleStrand", start:Int, end:Int):Serial
         }
 }
 
-class Helix(val name:String?="MyHelix"):Serializable {
+class Helix(val name:String="MyHelix"):Serializable {
 
     val secondaryInteractions = mutableListOf<BasePair>()
     var junctionsLinked = Pair<Junction?, Junction?>(null,null)
@@ -261,7 +261,7 @@ class Helix(val name:String?="MyHelix"):Serializable {
     }
 }
 
-class Junction(var name:String?="MyJunction", val location: Location, val helicesLinked:List<Helix>):Serializable {
+class Junction(var name:String="MyJunction", val location: Location, val helicesLinked:List<Helix>):Serializable {
 
     val length:Int
         get() {
@@ -271,6 +271,14 @@ class Junction(var name:String?="MyJunction", val location: Location, val helice
     val type: JunctionType
         get() {
             return JunctionType.values().first { it.value == this.location.blocks.size }
+        }
+
+    val locationWithoutSecondaries:Location
+        get() {
+            val j = Location()
+            for (b in this.location.blocks)
+                j.blocks.add(Block(b.start+1, b.end-1))
+            return j
         }
 
     init {
@@ -550,7 +558,7 @@ class Atom(val name:String):Serializable {
 
 class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null):Serializable {
 
-    var name:String? = null
+    var name:String = "2D for ${this.rna.name}"
     val tertiaryInteractions = mutableSetOf<BasePair>()
     val helices = mutableListOf<Helix>()
     val junctions = mutableListOf<Junction>()
