@@ -130,7 +130,7 @@ var DASHED = "dashed"
 var SOLID = "solid"
 
 enum class ThemeParameter {
-    AColor, AChar, UColor, UChar, GColor, GChar, CColor, CChar, XColor, XChar, SecondaryColor, TertiaryColor, ResidueCharOpacity, HaloWidth, TertiaryOpacity, PhosphodiesterWidth, SecondaryInteractionShift, SecondaryInteractionWidth, TertiaryInteractionWidth, TertiaryInteractionStyle, ResidueBorder, FontName, DeltaXRes, DeltaYRes, DeltaFontSize
+    AColor, AChar, UColor, UChar, GColor, GChar, CColor, CChar, XColor, XChar, SecondaryColor, TertiaryColor, ResidueCharOpacity, HaloWidth, TertiaryOpacity, PhosphodiesterWidth, SecondaryInteractionShift, SecondaryInteractionWidth, TertiaryInteractionWidth, TertiaryInteractionStyle, ResidueBorder, FontName, DeltaXRes, DeltaYRes, DeltaFontSize, DisplayLWSymbols
 }
 
 interface ThemeConfiguratorListener {
@@ -242,6 +242,10 @@ class Theme(defaultParams:MutableMap<String,String> = defaultThemeParams):ThemeC
     var fontName:String? = null
         get() {
             return this.params.get(ThemeParameter.FontName.toString())
+        }
+    var displayLWSymbols:Boolean? = null
+        get() {
+            return this.params.get(ThemeParameter.DisplayLWSymbols.toString())?.equals("yes")
         }
     var ATransX: Float = 0F
     var ATransY: Float = 0F
@@ -409,6 +413,10 @@ abstract class SecondaryStructureElement(val ssDrawing:SecondaryStructureDrawing
         return if (this.theme.fontName != null) this.theme.fontName!! else if (this.parent != null) (this.parent as SecondaryStructureElement).getFontName() else ssDrawing.theme.fontName!!
     }
 
+    fun displayLWSymbols():Boolean {
+        return if (this.theme.displayLWSymbols != null) this.theme.displayLWSymbols!! else if (this.parent != null) (this.parent as SecondaryStructureElement).displayLWSymbols() else ssDrawing.theme.displayLWSymbols!!
+    }
+
     fun getSinglePositions(): IntArray {
         return this.location.positions.toIntArray()
     }
@@ -534,7 +542,14 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                 var circles = mutableListOf<Triple<Point2D, Double, Ellipse2D>>()
                 var lines = mutableListOf<List<Point2D>>()
 
-                lastBranchConstructed = JunctionCircle(null,
+                val h = HelixLine(null,
+                        this,
+                        nextHelix.third,
+                        bottom,
+                        top
+                )
+
+                lastBranchConstructed = JunctionCircle(h,
                     this,
                     circles,
                     lines,
@@ -545,14 +560,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                     junction
                 )
 
-                this.helices.add(
-                    HelixLine(null,
-                        this,
-                        nextHelix.third,
-                        bottom,
-                        top
-                    )
-                )
+                this.helices.add(h)
 
                 if (residuesBeforeHelix > 0) {
                     this.singleStrands.add(
@@ -666,7 +674,14 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                 circles = arrayListOf<Triple<Point2D, Double, Ellipse2D>>()
                 lines = arrayListOf<List<Point2D>>()
 
-                lastBranchConstructed = JunctionCircle(null,
+                val h = HelixLine(null,
+                        this,
+                        nextHelix.third,
+                        bottom,
+                        top
+                )
+
+                lastBranchConstructed = JunctionCircle(h,
                     this,
                     circles,
                     lines,
@@ -677,14 +692,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                     junction
                 )
 
-                this.helices.add(
-                    HelixLine(null,
-                        this,
-                        nextHelix.third,
-                        bottom,
-                        top
-                    )
-                )
+                this.helices.add(h)
 
                 this.branches.add(lastBranchConstructed)
             }
@@ -770,11 +778,19 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
         }
 
         for (r in this.residues) {
-            for (h in this.allHelices) {
+            OUTER@for (h in this.allHelices) {
                 for (interaction in h.secondaryInteractions)
-                if (interaction.location.contains(r.absPos))   {
-                    r.parent = interaction
-                    break;
+                    if (interaction.location.contains(r.absPos))   {
+                        r.parent = interaction
+                        break@OUTER;
+                    }
+            }
+            if (r.parent == null) {
+                for (j in this.allJunctions) {
+                    if (j.locationWithoutSecondaries.contains(r.absPos))   {
+                        r.parent = j
+                        break;
+                    }
                 }
             }
         }
@@ -1241,14 +1257,7 @@ class JunctionCircle (parent: SecondaryStructureElement?, ssDrawing: SecondarySt
                                     break
                                 }
                             }
-                            /*this.helices.add(
-                                HelixLine(this,
-                                    ssDrawing,
-                                    helix,
-                                    this.connectors[outId.value],
-                                    inPoint
-                                )
-                            )*/
+
                             connectedJunction.value.setEntryPoint(
                                 oppositeConnectorId(
                                     outId
@@ -1272,14 +1281,7 @@ class JunctionCircle (parent: SecondaryStructureElement?, ssDrawing: SecondarySt
                                     break
                                 }
                             }
-                            /*this.helices.add(
-                                HelixLine(this,
-                                    ssDrawing,
-                                    helix,
-                                    this.connectors[outId.value],
-                                    inPoint
-                                )
-                            )*/
+
                             connectedJunction.value.setEntryPoint(
                                 getConnectorId(
                                     (outId.value + ConnectorId.values().size / 2) % ConnectorId.values().size
@@ -1582,13 +1584,14 @@ class JunctionCircle (parent: SecondaryStructureElement?, ssDrawing: SecondarySt
                 this.layout!!.set(helixRank-1,
                     getConnectorId((outId!!.value + ConnectorId.values().size - inId.value) % ConnectorId.values().size)
                 )
-                this.helices.add(
-                    HelixLine(null,
+                val h = HelixLine(this,
                         ssDrawing,
                         helix,
                         this.connectors[outId.value],
                         inPoint
-                    )
+                )
+                this.helices.add(
+                    h
                 )
 
                 var points = mutableListOf<Point2D>(this.connectors[outId.value])
@@ -1608,7 +1611,7 @@ class JunctionCircle (parent: SecondaryStructureElement?, ssDrawing: SecondarySt
 
                 linesFromBranchSoFar.add(points)
 
-                this.connectedJunctions[outId] = JunctionCircle(null,
+                this.connectedJunctions[outId] = JunctionCircle(h,
                     ssDrawing,
                     circlesFromBranchSoFar = circlesFromBranchSoFar,
                     linesFromBranchSoFar = linesFromBranchSoFar,
@@ -2046,7 +2049,7 @@ class SecondaryInteractionLine(parent: SecondaryStructureElement?, interaction: 
             this.p2?.let { p2 ->
                 val distance = distance(p1, p2);
                 val symbolWidth = distance / 3.0 * deltaLWSymbols
-                if (this.isCanonical || !RnartistConfig.displayLWSymbols) {
+                if (this.isCanonical || !displayLWSymbols()) {
                     if (this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.label == SecondaryStructureType.G && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.label == SecondaryStructureType.C ||
                         this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.label == SecondaryStructureType.C && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.label == SecondaryStructureType.G) {
                         val (p1_1, p1_2) = getPerpendicular(p1, p1, p2, symbolWidth / 2.0)
@@ -2141,7 +2144,7 @@ class TertiaryInteractionLine(parent: SecondaryStructureElement?, interaction: B
 
             val shift = radiusConst+this.getResidueBorder().toDouble()/2.0
             if (distance(center1,center2) > 2*shift) {
-                if (!RnartistConfig.displayLWSymbols) {
+                if (!displayLWSymbols()) {
                     val (p1,p2) = pointsFrom(
                             center1,
                             center2,

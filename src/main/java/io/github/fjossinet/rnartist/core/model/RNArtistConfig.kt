@@ -26,676 +26,677 @@ object RnartistConfig {
     @JvmField
     val defaultColorSchemes: Map<String, Theme> = mapOf(
 
-        "Persian Carolina" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#D741A7",
-            ThemeParameter.UColor.toString() to "#3A1772",
-            ThemeParameter.GColor.toString() to "#5398BE",
-            ThemeParameter.CColor.toString() to "#F2CD5D",
-            ThemeParameter.CChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to "#4d4d4d",
-            ThemeParameter.TertiaryColor.toString() to "#cc3333"
-        )),
+            "Persian Carolina" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#D741A7",
+                    ThemeParameter.UColor.toString() to "#3A1772",
+                    ThemeParameter.GColor.toString() to "#5398BE",
+                    ThemeParameter.CColor.toString() to "#F2CD5D",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to "#4d4d4d",
+                    ThemeParameter.TertiaryColor.toString() to "#cc3333"
+            )),
 
-        "Snow Lavender" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#A31621",
-            ThemeParameter.UColor.toString() to "#FCF7F8",
-            ThemeParameter.UChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.GColor.toString() to "#CED3DC",
-            ThemeParameter.GChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.CColor.toString() to "#4E8098",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#90C2E7"
-        )),
+            "Snow Lavender" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#A31621",
+                    ThemeParameter.UColor.toString() to "#FCF7F8",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.GColor.toString() to "#CED3DC",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.CColor.toString() to "#4E8098",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#90C2E7"
+            )),
 
-        "Fuzzy French" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#731DD8",
-            ThemeParameter.UColor.toString() to "#48A9A6",
-            ThemeParameter.GColor.toString() to "#E4DFDA",
-            ThemeParameter.GChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.CColor.toString() to "#D4B483",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#C1666B"
-        )),
+            "Fuzzy French" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#731DD8",
+                    ThemeParameter.UColor.toString() to "#48A9A6",
+                    ThemeParameter.GColor.toString() to "#E4DFDA",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.CColor.toString() to "#D4B483",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#C1666B"
+            )),
 
-        "Chestnut Navajo" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#CA2E55",
-            ThemeParameter.UColor.toString() to "#FFE0B5",
-            ThemeParameter.UChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.GColor.toString() to "#8A6552",
-            ThemeParameter.CColor.toString() to "#462521",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#BDB246"
-        )),
+            "Chestnut Navajo" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#CA2E55",
+                    ThemeParameter.UColor.toString() to "#FFE0B5",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.GColor.toString() to "#8A6552",
+                    ThemeParameter.CColor.toString() to "#462521",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#BDB246"
+            )),
 
-        "Irresistible Turquoise" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#9D44B5",
-            ThemeParameter.UColor.toString() to "#B5446E",
-            ThemeParameter.GColor.toString() to "#525252",
-            ThemeParameter.CColor.toString() to "#BADEFC",
-            ThemeParameter.CChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#0AFFED"
-        )),
+            "Irresistible Turquoise" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#9D44B5",
+                    ThemeParameter.UColor.toString() to "#B5446E",
+                    ThemeParameter.GColor.toString() to "#525252",
+                    ThemeParameter.CColor.toString() to "#BADEFC",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#0AFFED"
+            )),
 
-        "Charm Jungle" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#E08DAC",
-            ThemeParameter.UColor.toString() to "#6A7FDB",
-            ThemeParameter.GColor.toString() to "#57E2E5",
-            ThemeParameter.GChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.CColor.toString() to "#45CB85",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#153131"
-        )),
+            "Charm Jungle" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#E08DAC",
+                    ThemeParameter.UColor.toString() to "#6A7FDB",
+                    ThemeParameter.GColor.toString() to "#57E2E5",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.CColor.toString() to "#45CB85",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#153131"
+            )),
 
-        "Atomic Xanadu" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#EF946C",
-            ThemeParameter.UColor.toString() to "#C4A77D",
-            ThemeParameter.UChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.GColor.toString() to "#70877F",
-            ThemeParameter.CColor.toString() to "#454372",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#2F2963"
-        )),
+            "Atomic Xanadu" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#EF946C",
+                    ThemeParameter.UColor.toString() to "#C4A77D",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.GColor.toString() to "#70877F",
+                    ThemeParameter.CColor.toString() to "#454372",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#2F2963"
+            )),
 
-        "Pale Coral" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#987284",
-            ThemeParameter.UColor.toString() to "#75B9BE",
-            ThemeParameter.GColor.toString() to "#D0D6B5",
-            ThemeParameter.GChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.CColor.toString() to "#F9B5AC",
-            ThemeParameter.CChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#EE7674"
-        )),
+            "Pale Coral" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#987284",
+                    ThemeParameter.UColor.toString() to "#75B9BE",
+                    ThemeParameter.GColor.toString() to "#D0D6B5",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.CColor.toString() to "#F9B5AC",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#EE7674"
+            )),
 
-        "Golden Honolulu" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#B1740F",
-            ThemeParameter.UColor.toString() to "#FFD07B",
-            ThemeParameter.UChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.GColor.toString() to "#FDB833",
-            ThemeParameter.GChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.CColor.toString() to "#296EB4",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to "#4d4d4d",
-            ThemeParameter.TertiaryColor.toString() to "#1789FC"
-        )),
+            "Golden Honolulu" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#B1740F",
+                    ThemeParameter.UColor.toString() to "#FFD07B",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.GColor.toString() to "#FDB833",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.CColor.toString() to "#296EB4",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to "#4d4d4d",
+                    ThemeParameter.TertiaryColor.toString() to "#1789FC"
+            )),
 
-        "Maximum Salmon" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#301A4B",
-            ThemeParameter.UColor.toString() to "#6DB1BF",
-            ThemeParameter.GColor.toString() to "#FFEAEC",
-            ThemeParameter.GChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.CColor.toString() to "#F39A9D",
-            ThemeParameter.CChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#3F6C51"
-        )),
+            "Maximum Salmon" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#301A4B",
+                    ThemeParameter.UColor.toString() to "#6DB1BF",
+                    ThemeParameter.GColor.toString() to "#FFEAEC",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.CColor.toString() to "#F39A9D",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#3F6C51"
+            )),
 
-        "Pacific Dream" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#42F2F7",
-            ThemeParameter.AChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.UColor.toString() to "#46ACC2",
-            ThemeParameter.GColor.toString() to "#498C8A",
-            ThemeParameter.CColor.toString() to "#4B6858",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#4D4730"
-        )),
+            "Pacific Dream" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#42F2F7",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.UColor.toString() to "#46ACC2",
+                    ThemeParameter.GColor.toString() to "#498C8A",
+                    ThemeParameter.CColor.toString() to "#4B6858",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#4D4730"
+            )),
 
-        "New York Camel" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#ECC8AF",
-            ThemeParameter.AChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.UColor.toString() to "#E7AD99",
-            ThemeParameter.UChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.GColor.toString() to "#CE796B",
-            ThemeParameter.CColor.toString() to "#C18C5D",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#495867"
-        )),
+            "New York Camel" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#ECC8AF",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.UColor.toString() to "#E7AD99",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.GColor.toString() to "#CE796B",
+                    ThemeParameter.CColor.toString() to "#C18C5D",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#495867"
+            )),
 
-        "Screamin' Olive" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#494947",
-            ThemeParameter.UColor.toString() to "#35FF69",
-            ThemeParameter.UChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.GColor.toString() to "#44CCFF",
-            ThemeParameter.CColor.toString() to "#7494EA",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#D138BF"
-        )),
+            "Screamin' Olive" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#494947",
+                    ThemeParameter.UColor.toString() to "#35FF69",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.GColor.toString() to "#44CCFF",
+                    ThemeParameter.CColor.toString() to "#7494EA",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#D138BF"
+            )),
 
-        "Aero Green" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#FCFFFD",
-            ThemeParameter.AChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.UColor.toString() to "#64B6AC",
-            ThemeParameter.GColor.toString() to "#C0FDFB",
-            ThemeParameter.GChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.CColor.toString() to "#DAFFEF",
-            ThemeParameter.CChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#5D737E"
-        )),
+            "Aero Green" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#FCFFFD",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.UColor.toString() to "#64B6AC",
+                    ThemeParameter.GColor.toString() to "#C0FDFB",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.CColor.toString() to "#DAFFEF",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#5D737E"
+            )),
 
-        "Baby Lilac" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#9D858D",
-            ThemeParameter.UColor.toString() to "#BBA0B2",
-            ThemeParameter.GColor.toString() to "#A4A8D1",
-            ThemeParameter.CColor.toString() to "#A4BFEB",
-            ThemeParameter.CChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#8CABBE"
-        )),
+            "Baby Lilac" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#9D858D",
+                    ThemeParameter.UColor.toString() to "#BBA0B2",
+                    ThemeParameter.GColor.toString() to "#A4A8D1",
+                    ThemeParameter.CColor.toString() to "#A4BFEB",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#8CABBE"
+            )),
 
-        "Celeste Olivine" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#9CFFFA",
-            ThemeParameter.AChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.UColor.toString() to "#ACF39D",
-            ThemeParameter.UChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.GColor.toString() to "#B0C592",
-            ThemeParameter.CColor.toString() to "#A97C73",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#AF3E4D"
-        )),
+            "Celeste Olivine" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#9CFFFA",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.UColor.toString() to "#ACF39D",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.GColor.toString() to "#B0C592",
+                    ThemeParameter.CColor.toString() to "#A97C73",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#AF3E4D"
+            )),
 
-        "Blood Celadon" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#A7D49B",
-            ThemeParameter.AChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.UColor.toString() to "#92AC86",
-            ThemeParameter.GColor.toString() to "#696047",
-            ThemeParameter.CColor.toString() to "#55251D",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#5A1807"
-        )),
+            "Blood Celadon" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#A7D49B",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.UColor.toString() to "#92AC86",
+                    ThemeParameter.GColor.toString() to "#696047",
+                    ThemeParameter.CColor.toString() to "#55251D",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#5A1807"
+            )),
 
-        "Space Blizzard" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#25283D",
-            ThemeParameter.UColor.toString() to "#8F3985",
-            ThemeParameter.GColor.toString() to "#98DFEA",
-            ThemeParameter.GChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.CColor.toString() to "#EFD9CE",
-            ThemeParameter.CChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#07BEB8"
-        )),
+            "Space Blizzard" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#25283D",
+                    ThemeParameter.UColor.toString() to "#8F3985",
+                    ThemeParameter.GColor.toString() to "#98DFEA",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.CColor.toString() to "#EFD9CE",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#07BEB8"
+            )),
 
-        "Midnight Paradise" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#EF476F",
-            ThemeParameter.UColor.toString() to "#FFD166",
-            ThemeParameter.UChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.GColor.toString() to "#06D6A0",
-            ThemeParameter.CColor.toString() to "#118AB2",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#073B4C"
-        )),
+            "Midnight Paradise" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#EF476F",
+                    ThemeParameter.UColor.toString() to "#FFD166",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.GColor.toString() to "#06D6A0",
+                    ThemeParameter.CColor.toString() to "#118AB2",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#073B4C"
+            )),
 
-        "African Lavender" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#D8D8F6",
-            ThemeParameter.AChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.UColor.toString() to "#B18FCF",
-            ThemeParameter.GColor.toString() to "#978897",
-            ThemeParameter.CColor.toString() to "#494850",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#2C2C34"
-        )),
+            "African Lavender" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#D8D8F6",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.UColor.toString() to "#B18FCF",
+                    ThemeParameter.GColor.toString() to "#978897",
+                    ThemeParameter.CColor.toString() to "#494850",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#2C2C34"
+            )),
 
-        "Charcoal Lazuli" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#2F4858",
-            ThemeParameter.UColor.toString() to "#33658A",
-            ThemeParameter.GColor.toString() to "#86BBD8",
-            ThemeParameter.CColor.toString() to "#F6AE2D",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#F26419"
-        )),
+            "Charcoal Lazuli" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#2F4858",
+                    ThemeParameter.UColor.toString() to "#33658A",
+                    ThemeParameter.GColor.toString() to "#86BBD8",
+                    ThemeParameter.CColor.toString() to "#F6AE2D",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#F26419"
+            )),
 
-        "Tyrian Yale" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#E3B505",
-            ThemeParameter.AChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.UColor.toString() to "#95190C",
-            ThemeParameter.GColor.toString() to "#610345",
-            ThemeParameter.CColor.toString() to "#107E7D",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#044B7F"
-        )),
+            "Tyrian Yale" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#E3B505",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.UColor.toString() to "#95190C",
+                    ThemeParameter.GColor.toString() to "#610345",
+                    ThemeParameter.CColor.toString() to "#107E7D",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#044B7F"
+            )),
 
-        "Cheese Cinnabar" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#EF3E36",
-            ThemeParameter.UColor.toString() to "#17BEBB",
-            ThemeParameter.GColor.toString() to "#2E282A",
-            ThemeParameter.CColor.toString() to "#EDB88B",
-            ThemeParameter.CChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#FAD8D6"
-        )),
+            "Cheese Cinnabar" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#EF3E36",
+                    ThemeParameter.UColor.toString() to "#17BEBB",
+                    ThemeParameter.GColor.toString() to "#2E282A",
+                    ThemeParameter.CColor.toString() to "#EDB88B",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#FAD8D6"
+            )),
 
-        "Razzmic Granite" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#CDF7F6",
-            ThemeParameter.AChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.UColor.toString() to "#8FB8DE",
-            ThemeParameter.UChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.GColor.toString() to "#9A94BC",
-            ThemeParameter.CColor.toString() to "#9B5094",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#6A605C"
-        )),
+            "Razzmic Granite" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#CDF7F6",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.UColor.toString() to "#8FB8DE",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.GColor.toString() to "#9A94BC",
+                    ThemeParameter.CColor.toString() to "#9B5094",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#6A605C"
+            )),
 
-        "Aero Violet" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#BDEDE0",
-            ThemeParameter.AChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.UColor.toString() to "#BBDBD1",
-            ThemeParameter.UChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.GColor.toString() to "#B6B8D6",
-            ThemeParameter.GChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.CColor.toString() to "#7E78D2",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#6F58C9"
-        )),
+            "Aero Violet" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#BDEDE0",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.UColor.toString() to "#BBDBD1",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.GColor.toString() to "#B6B8D6",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.CColor.toString() to "#7E78D2",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#6F58C9"
+            )),
 
-        "Jet Flame" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#000000",
-            ThemeParameter.UColor.toString() to "#353531",
-            ThemeParameter.GColor.toString() to "#FF9505",
-            ThemeParameter.CColor.toString() to "#016FB9",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#EC4E20"
-        )),
+            "Jet Flame" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#000000",
+                    ThemeParameter.UColor.toString() to "#353531",
+                    ThemeParameter.GColor.toString() to "#FF9505",
+                    ThemeParameter.CColor.toString() to "#016FB9",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#EC4E20"
+            )),
 
-        "Opal Blue" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#12263A",
-            ThemeParameter.UColor.toString() to "#06BCC1",
-            ThemeParameter.GColor.toString() to "#C5D8D1",
-            ThemeParameter.GChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.CColor.toString() to "#F4EDEA",
-            ThemeParameter.CChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#F4D1AE"
-        )),
+            "Opal Blue" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#12263A",
+                    ThemeParameter.UColor.toString() to "#06BCC1",
+                    ThemeParameter.GColor.toString() to "#C5D8D1",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.CColor.toString() to "#F4EDEA",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#F4D1AE"
+            )),
 
-        "Pumpkin Vegas" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#FA7921",
-            ThemeParameter.UColor.toString() to "#FE9920",
-            ThemeParameter.UChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.GColor.toString() to "#B9A44C",
-            ThemeParameter.GChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.CColor.toString() to "#566E3D",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#0C4767"
-        )),
+            "Pumpkin Vegas" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#FA7921",
+                    ThemeParameter.UColor.toString() to "#FE9920",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.GColor.toString() to "#B9A44C",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.CColor.toString() to "#566E3D",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#0C4767"
+            )),
 
-        "Cyber Tropical" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#000F08",
-            ThemeParameter.UColor.toString() to "#136F63",
-            ThemeParameter.GColor.toString() to "#E0CA3C",
-            ThemeParameter.GChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.CColor.toString() to "#F34213",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#3E2F5B"
-        )),
+            "Cyber Tropical" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#000F08",
+                    ThemeParameter.UColor.toString() to "#136F63",
+                    ThemeParameter.GColor.toString() to "#E0CA3C",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.CColor.toString() to "#F34213",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#3E2F5B"
+            )),
 
-        "Polished Piggy" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#FF9FB2",
-            ThemeParameter.AChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.UColor.toString() to "#FBDCE2",
-            ThemeParameter.UChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.GColor.toString() to "#0ACDFF",
-            ThemeParameter.CColor.toString() to "#60AB9A",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#DEDEE0"
-        )),
+            "Polished Piggy" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#FF9FB2",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.UColor.toString() to "#FBDCE2",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.GColor.toString() to "#0ACDFF",
+                    ThemeParameter.CColor.toString() to "#60AB9A",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#DEDEE0"
+            )),
 
-        "Burnished Melon" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#484A47",
-            ThemeParameter.UColor.toString() to "#5C6D70",
-            ThemeParameter.GColor.toString() to "#A37774",
-            ThemeParameter.CColor.toString() to "#E88873",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#E0AC9D"
-        )),
+            "Burnished Melon" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#484A47",
+                    ThemeParameter.UColor.toString() to "#5C6D70",
+                    ThemeParameter.GColor.toString() to "#A37774",
+                    ThemeParameter.CColor.toString() to "#E88873",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#E0AC9D"
+            )),
 
-        "Spanish Tea" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#88D18A",
-            ThemeParameter.AChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.UColor.toString() to "#CCDDB7",
-            ThemeParameter.UChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.GColor.toString() to "#6A5B6E",
-            ThemeParameter.CColor.toString() to "#F0B7B3",
-            ThemeParameter.CChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#A833B9"
-        )),
+            "Spanish Tea" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#88D18A",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.UColor.toString() to "#CCDDB7",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.GColor.toString() to "#6A5B6E",
+                    ThemeParameter.CColor.toString() to "#F0B7B3",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#A833B9"
+            )),
 
-        "Russian Sandy" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#F2DC5D",
-            ThemeParameter.AChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.UColor.toString() to "#F2A359",
-            ThemeParameter.UChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.GColor.toString() to "#DB9065",
-            ThemeParameter.GChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.CColor.toString() to "#A4031F",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#240B36"
-        )),
+            "Russian Sandy" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#F2DC5D",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.UColor.toString() to "#F2A359",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.GColor.toString() to "#DB9065",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.CColor.toString() to "#A4031F",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#240B36"
+            )),
 
-        "Crimson Maroon" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#D62839",
-            ThemeParameter.UColor.toString() to "#BA324F",
-            ThemeParameter.GColor.toString() to "#175676",
-            ThemeParameter.CColor.toString() to "#4BA3C3",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#CCE6F4"
-        )),
+            "Crimson Maroon" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#D62839",
+                    ThemeParameter.UColor.toString() to "#BA324F",
+                    ThemeParameter.GColor.toString() to "#175676",
+                    ThemeParameter.CColor.toString() to "#4BA3C3",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#CCE6F4"
+            )),
 
-        "Rust Purple" to Theme(defaultParams = mutableMapOf(
-            ThemeParameter.AColor.toString() to "#FCDE9C",
-            ThemeParameter.AChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.UColor.toString() to "#FFA552",
-            ThemeParameter.UChar.toString() to getHTMLColorString(
-                Color.BLACK
-            ),
-            ThemeParameter.GColor.toString() to "#BA5624",
-            ThemeParameter.CColor.toString() to "#381D2A",
-            ThemeParameter.XColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                Color.LIGHT_GRAY
-            ),
-            ThemeParameter.TertiaryColor.toString() to "#C4D6B0"
-        ))
+            "Rust Purple" to Theme(defaultParams = mutableMapOf(
+                    ThemeParameter.AColor.toString() to "#FCDE9C",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.UColor.toString() to "#FFA552",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.GColor.toString() to "#BA5624",
+                    ThemeParameter.CColor.toString() to "#381D2A",
+                    ThemeParameter.XColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.TertiaryColor.toString() to "#C4D6B0"
+            ))
     )
 
     @JvmStatic
     private var document: Document? = null
 
     @JvmField
-    var defaultThemeParams = mutableMapOf<String,String>(
-        ThemeParameter.AColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.AColor!!),
-        ThemeParameter.AChar.toString() to getHTMLColorString(Color.WHITE),
-        ThemeParameter.UColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.UColor!!),
-        ThemeParameter.UChar.toString() to getHTMLColorString(Color.WHITE),
-        ThemeParameter.GColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.GColor!!),
-        ThemeParameter.GChar.toString() to getHTMLColorString(Color.WHITE),
-        ThemeParameter.CColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.CColor!!),
-        ThemeParameter.CChar.toString() to getHTMLColorString(Color.WHITE),
-        ThemeParameter.XColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.XColor!!),
-        ThemeParameter.XChar.toString() to getHTMLColorString(Color.WHITE),
-        ThemeParameter.SecondaryColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.SecondaryColor!!),
-        ThemeParameter.TertiaryColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.TertiaryColor!!),
-        ThemeParameter.ResidueBorder.toString() to "0.75",
-        ThemeParameter.PhosphodiesterWidth.toString() to "3.0",
-        ThemeParameter.SecondaryInteractionWidth.toString() to "1.0",
-        ThemeParameter.SecondaryInteractionShift.toString() to "1.0",
-        ThemeParameter.TertiaryInteractionWidth.toString() to "1.0",
-        ThemeParameter.HaloWidth.toString() to "5.0",
-        ThemeParameter.TertiaryOpacity.toString() to "130", //alpha value goes from 0 to 255
-        ThemeParameter.ResidueCharOpacity.toString() to "255", //alpha value goes from 0 to 255
-        ThemeParameter.TertiaryInteractionStyle.toString() to DASHED,
-        ThemeParameter.FontName.toString() to "Arial",
-        ThemeParameter.DeltaXRes.toString() to "0",
-        ThemeParameter.DeltaYRes.toString() to "0",
-        ThemeParameter.DeltaFontSize.toString() to "0"
+    var defaultThemeParams = mutableMapOf(
+            ThemeParameter.AColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.AColor!!),
+            ThemeParameter.AChar.toString() to getHTMLColorString(Color.WHITE),
+            ThemeParameter.UColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.UColor!!),
+            ThemeParameter.UChar.toString() to getHTMLColorString(Color.WHITE),
+            ThemeParameter.GColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.GColor!!),
+            ThemeParameter.GChar.toString() to getHTMLColorString(Color.WHITE),
+            ThemeParameter.CColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.CColor!!),
+            ThemeParameter.CChar.toString() to getHTMLColorString(Color.WHITE),
+            ThemeParameter.XColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.XColor!!),
+            ThemeParameter.XChar.toString() to getHTMLColorString(Color.WHITE),
+            ThemeParameter.SecondaryColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.SecondaryColor!!),
+            ThemeParameter.TertiaryColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.TertiaryColor!!),
+            ThemeParameter.ResidueBorder.toString() to "0.75",
+            ThemeParameter.PhosphodiesterWidth.toString() to "3.0",
+            ThemeParameter.SecondaryInteractionWidth.toString() to "1.0",
+            ThemeParameter.SecondaryInteractionShift.toString() to "1.0",
+            ThemeParameter.TertiaryInteractionWidth.toString() to "1.0",
+            ThemeParameter.HaloWidth.toString() to "5.0",
+            ThemeParameter.TertiaryOpacity.toString() to "130", //alpha value goes from 0 to 255
+            ThemeParameter.ResidueCharOpacity.toString() to "255", //alpha value goes from 0 to 255
+            ThemeParameter.TertiaryInteractionStyle.toString() to DASHED,
+            ThemeParameter.FontName.toString() to "Arial",
+            ThemeParameter.DeltaXRes.toString() to "0",
+            ThemeParameter.DeltaYRes.toString() to "0",
+            ThemeParameter.DeltaFontSize.toString() to "0",
+            ThemeParameter.DisplayLWSymbols.toString() to "yes"
     )
 
     @JvmStatic
@@ -710,7 +711,7 @@ object RnartistConfig {
                 val drawing = document!!.getRootElement().getChild("theme")
                 if (drawing != null) {
                     for (c in drawing.getChildren()) {
-                        defaultThemeParams[(c as Element).name] =  c.text
+                        defaultThemeParams[(c as Element).name] = c.text
                     }
                 }
             } catch (e: JDOMException) {
@@ -719,7 +720,7 @@ object RnartistConfig {
         } else {
             val root = Element("rnartist-config")
             root.setAttribute("release",
-                getRnartistRelease()
+                    getRnartistRelease()
             )
             root.addContent(Element("displayTertiariesInSelection"))
             root.addContent(Element("displayLWSymbols"))
@@ -730,7 +731,7 @@ object RnartistConfig {
 
     @JvmStatic
     @Throws(IOException::class)
-    fun save(theme:Map<String,String>?) {
+    fun save(theme: Map<String, String>?) {
         theme?.let {
             var drawing = document!!.rootElement.getChild("theme")
             if (drawing == null) {
@@ -743,7 +744,7 @@ object RnartistConfig {
                 val e = Element(k)
                 e.setText(v)
                 drawing.addContent(e)
-                defaultThemeParams[k] =  v //we don't forget to save it in the defaultTheme map
+                defaultThemeParams[k] = v //we don't forget to save it in the defaultTheme map
             }
         }
         val outputter = XMLOutputter(Format.getPrettyFormat())
@@ -764,20 +765,20 @@ object RnartistConfig {
     private fun recoverWebsite() {
         val client: HttpClient = HttpClient.newHttpClient()
         val request = HttpRequest.newBuilder()
-            .uri(URI.create("https://raw.githubusercontent.com/fjossinet/RNArtist/master/properties.json"))
-            .build()
+                .uri(URI.create("https://raw.githubusercontent.com/fjossinet/RNArtist/master/properties.json"))
+                .build()
         try {
             val response: HttpResponse<String> = client.send(request,
-                HttpResponse.BodyHandlers.ofString())
+                    HttpResponse.BodyHandlers.ofString())
             val properties = Gson().fromJson<GlobalProperties>(response.body() as String, GlobalProperties::class.java)
             website = "http://${properties.website}"
-        } catch (e:Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
     @JvmStatic
-    var website:String? = null
+    var website: String? = null
 
     @JvmStatic
     var fragmentsLibrary: String?
@@ -848,12 +849,11 @@ object RnartistConfig {
     }
 
     @JvmStatic
-    var displayTertiariesInSelection:Boolean
+    var displayTertiariesInSelection: Boolean
         get() {
             var e = document!!.rootElement.getChild("displayTertiariesInSelection")
             return e != null
         }
-
         set(display) {
             if (display && !displayTertiariesInSelection /*the element is not already there*/)
                 document!!.rootElement.addContent(Element("displayTertiariesInSelection"))
@@ -862,12 +862,11 @@ object RnartistConfig {
         }
 
     @JvmStatic
-    var centerDisplayOnSelection:Boolean
+    var centerDisplayOnSelection: Boolean
         get() {
             var e = document!!.rootElement.getChild("centerDisplayOnSelection")
             return e != null
         }
-
         set(center) {
             if (center && !centerDisplayOnSelection /*the element is not already there*/)
                 document!!.rootElement.addContent(Element("centerDisplayOnSelection"))
@@ -876,12 +875,11 @@ object RnartistConfig {
         }
 
     @JvmStatic
-    var fitDisplayOnSelection:Boolean
+    var fitDisplayOnSelection: Boolean
         get() {
             var e = document!!.rootElement.getChild("fitDisplayOnSelection")
             return e != null
         }
-
         set(center) {
             if (center && !fitDisplayOnSelection /*the element is not already there*/)
                 document!!.rootElement.addContent(Element("fitDisplayOnSelection"))
@@ -890,12 +888,11 @@ object RnartistConfig {
         }
 
     @JvmStatic
-    var displayLWSymbols:Boolean
+    var displayLWSymbols: Boolean
         get() {
             var e = document!!.rootElement.getChild("displayLWSymbols")
             return e != null
         }
-
         set(display) {
             if (display && !displayLWSymbols /*the element is not already there*/)
                 document!!.rootElement.addContent(Element("displayLWSymbols"))
@@ -1014,7 +1011,7 @@ object RnartistConfig {
     fun getRnartistRelease(): String? {
         return try {
             val format = SimpleDateFormat("MMM dd, yyyy")
-            "RNArtist Development Release (" + format.format(Calendar.getInstance().time)+")"
+            "RNArtist Development Release (" + format.format(Calendar.getInstance().time) + ")"
         } catch (e: java.lang.Exception) {
             null
         }
