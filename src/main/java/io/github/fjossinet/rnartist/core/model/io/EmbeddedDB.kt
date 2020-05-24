@@ -172,6 +172,12 @@ class EmbeddedDB() {
         this.userDB.getCollection("Themes").remove(doc)
     }
 
+    fun updateTheme(id:NitriteId, params:MutableMap<String,String>) {
+        val doc = this.userDB.getCollection("Themes").getById(id) as Document
+        doc.put("params", params.toMutableMap())
+        this.userDB.getCollection("Themes").update(doc)
+    }
+
     fun getTheme(id:NitriteId):Theme {
         val doc = this.userDB.getCollection("Themes").getById(id) as Document
         val theme = Theme(defaultParams = doc.get("params") as MutableMap<String, String>);
