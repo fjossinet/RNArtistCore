@@ -324,6 +324,11 @@ abstract class SecondaryStructureElement(val ssDrawing:SecondaryStructureDrawing
             return Theme(params)
         }
 
+    /**
+     *  this function clears all the params for the themes attached to this element and any secondary structure subelement.
+     */
+    abstract fun clearThemes();
+
     fun getAColor():Color {
         return if (this.theme.AColor != null) this.theme.AColor!! else if (this !is HelixLine && this !is JunctionCircle && this.parent != null) (this.parent as SecondaryStructureElement).getAColor() else ssDrawing.theme.AColor!!
     }
@@ -523,9 +528,9 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                 val remaining:Float = (this.secondaryStructure.length - currentPos + 1).toFloat()
                 if (remaining > 0) {
                     this.singleStrands.add(
-                        SingleStrandLine(null,
+                        SingleStrandLine(
                             this,
-                            SingleStrand(
+                            SingleStrand(name="SS${this.singleStrands.size+1}",
                                 start = currentPos,
                                 end = this.secondaryStructure.length
                             ),
@@ -578,9 +583,9 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
 
                 if (residuesBeforeHelix > 0) {
                     this.singleStrands.add(
-                        SingleStrandLine(null,
+                        SingleStrandLine(
                             this,
-                            SingleStrand(
+                            SingleStrand(name="SS${this.singleStrands.size+1}",
                                 start = currentPos + 1,
                                 end = residuesBeforeHelix
                             ),
@@ -667,9 +672,9 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
 
                 if (currentPos+1 <= nextHelix.first-1) {
                     this.singleStrands.add(
-                        SingleStrandLine(null,
+                        SingleStrandLine(
                             this,
-                            SingleStrand(
+                            SingleStrand(name="SS${this.singleStrands.size+1}",
                                 start = currentPos + 1,
                                 end = nextHelix.first - 1
                             ),
@@ -807,6 +812,14 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                     }
                 }
             }
+            if (r.parent == null) {
+                for (ss in this.singleStrands) {
+                    if (ss.location.contains(r.absPos))   {
+                        r.parent = ss
+                        break;
+                    }
+                }
+            }
         }
 
         for (i in 1 until this.secondaryStructure.length) {
@@ -839,6 +852,24 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                 )
             )
         }
+    }
+
+    /**
+     *  this function clears all the params for the themes attached to this element and any secondary structure subelement.
+     */
+    fun clearThemes() {
+        for (jc in this.allJunctions)
+            jc.clearThemes()
+        for (h in this.allHelices)
+            h.clearThemes()
+        for (i in this.secondaryInteractions)
+            i.clearThemes()
+        for (i in this.tertiaryInteractions)
+            i.clearThemes()
+        for (p in this.phosphodiesterBonds)
+            p.clearThemes()
+        for (r in this.residues)
+            r.clearThemes()
     }
 
     fun getResiduesFromAbsPositions(vararg positions:Int): List<ResidueCircle> {
@@ -1155,6 +1186,10 @@ class ResidueCircle(parent: SecondaryStructureElement?, ssDrawing: SecondaryStru
         }
     }
 
+    override fun clearThemes() {
+        this.theme.params.clear()
+    }
+
     fun getColor():Color {
        return when (this.label) {
             SecondaryStructureType.A -> this.getAColor()
@@ -1212,6 +1247,13 @@ class HelixLine(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructur
             return bounds
         }
 
+    override fun clearThemes() {
+        this.theme.params.clear()
+        for (i in this.secondaryInteractions) {
+            i.clearThemes()
+        }
+    }
+
     fun draw(g: Graphics2D, at:AffineTransform) {
         this.secondaryInteractions.forEach {
             it.draw(g, at)
@@ -1219,7 +1261,7 @@ class HelixLine(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructur
     }
 }
 
-class SingleStrandLine(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, val ss: SingleStrand, start:Point2D, end:Point2D): SecondaryStructureElement(ssDrawing, parent, ss.name, ss.location) {
+class SingleStrandLine(ssDrawing: SecondaryStructureDrawing, val ss: SingleStrand, start:Point2D, end:Point2D): SecondaryStructureElement(ssDrawing, null, ss.name, ss.location) {
 
     var line = Line2D.Double(start,end)
 
@@ -1242,6 +1284,9 @@ class SingleStrandLine(parent: SecondaryStructureElement?, ssDrawing: SecondaryS
 
     fun draw(g: Graphics2D, at:AffineTransform) {
         g.draw(at.createTransformedShape(this.line))
+    }
+
+    override fun clearThemes() {
     }
 }
 
@@ -1742,13 +1787,31 @@ class JunctionCircle (parent: SecondaryStructureElement?, ssDrawing: SecondarySt
 
     }
 
+    override fun clearThemes() {
+        this.theme.params.clear()
+        for (r in this.ssDrawing.getResiduesFromAbsPositions(*this.getSinglePositions()))
+            r.clearThemes()
+    }
+
 }
 
 abstract class LWSymbol(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, name:String, location:Location, val inTertiaries: Boolean):SecondaryStructureElement(ssDrawing, parent, name, location) {
 
     lateinit protected var shape:Shape
 
-    abstract fun draw(g: Graphics2D, at:AffineTransform)
+    open fun draw(g: Graphics2D, at:AffineTransform) {
+        g.color = this.getSecondaryColor()
+        if (!this.ssDrawing.selection.isEmpty() && !this.isSelected) {
+            g.color = Color(g.color.red, g.color.green, g.color.blue,
+                    if (inTertiaries) (RnartistConfig.selectionFading /255.0*this.getTertiaryOpacity()).toInt() else RnartistConfig.selectionFading
+            )
+        } else
+            g.color = Color(g.color.red, g.color.green, g.color.blue,
+                    if (inTertiaries) this.getTertiaryOpacity() else 255
+            )
+    }
+
+    abstract fun setSymbol(p1:Point2D, p2: Point2D)
 
     override val bounds2D: Rectangle2D?
         get() = this.shape.bounds2D
@@ -1758,11 +1821,17 @@ abstract class LWSymbol(parent: SecondaryStructureElement?, ssDrawing: Secondary
     override val isSelected: Boolean
         get() = this in this.ssDrawing.selection || if (this.parent!=null) this.parent!!.isSelected else false
 
+    override fun clearThemes() {
+        this.theme.params.clear()
+    }
 }
 
-abstract class WC(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, name:String, location:Location, inTertiaries: Boolean, start_1:Point2D, start_2:Point2D, end_1:Point2D, end_2:Point2D, symbolWidth:Double):LWSymbol(parent, ssDrawing, name, location, inTertiaries) {
+abstract class WC(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, name:String, location:Location, inTertiaries: Boolean):LWSymbol(parent, ssDrawing, name, location, inTertiaries) {
 
-    init {
+    override fun setSymbol(start: Point2D, end: Point2D) {
+        val symbolWidth = distance(start,end)
+        val (start_1, start_2) = getPerpendicular(start, start, end, symbolWidth / 2.0)
+        val (end_1, end_2) = getPerpendicular(end, start, end, symbolWidth / 2.0)
         val squarre = GeneralPath()
         squarre.moveTo(start_1.x, start_1.y)
         squarre.lineTo(end_1.x, end_1.y)
@@ -1773,17 +1842,18 @@ abstract class WC(parent: SecondaryStructureElement?, ssDrawing: SecondaryStruct
         val centerX = squarre.bounds2D.centerX
         val centerY = squarre.bounds2D.centerY;
         this.shape = Ellipse2D.Double(
-            centerX - symbolWidth / 2.0,
-            centerY - symbolWidth / 2.0,
-            symbolWidth,
-            symbolWidth
+                centerX - symbolWidth / 2.0,
+                centerY - symbolWidth / 2.0,
+                symbolWidth,
+                symbolWidth
         )
     }
 }
 
-class CisWC(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location, inTertiaries: Boolean, start_1:Point2D, start_2:Point2D, end_1:Point2D, end_2:Point2D, symbolWidth:Double):WC(parent, ssDrawing, "cisWC", location, inTertiaries, start_1, start_2, end_1, end_2, symbolWidth) {
+class CisWC(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location, inTertiaries: Boolean):WC(parent, ssDrawing, "cisWC", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
+        super.draw(g, at)
         g.fill(at.createTransformedShape(this.shape))
     }
 
@@ -1792,18 +1862,21 @@ class CisWC(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDra
     }
 }
 
-class TransWC(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location, inTertiaries: Boolean, start_1:Point2D, start_2:Point2D, end_1:Point2D, end_2:Point2D, symbolWidth:Double):WC(parent, ssDrawing, "transWC", location, inTertiaries, start_1, start_2, end_1, end_2, symbolWidth) {
+class TransWC(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location, inTertiaries: Boolean):WC(parent, ssDrawing, "transWC", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
-        val previousColor = g.color
-        g.color = Color(Color.WHITE.red, Color.WHITE.green, Color.WHITE.blue, if (inTertiaries) this.getTertiaryOpacity() else 255)
-        g.fill(at.createTransformedShape(this.shape))
-        g.color = previousColor
+        super.draw(g, at)
         if (inTertiaries)
             g.stroke = BasicStroke(
                 this.ssDrawing.finalZoomLevel.toFloat() * this.getTertiaryInteractionWidth().toFloat(),
                 BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_ROUND
+            )
+        else
+            g.stroke = BasicStroke(
+                    this.ssDrawing.finalZoomLevel.toFloat() * this.getSecondaryInteractionWidth().toFloat(),
+                    BasicStroke.CAP_ROUND,
+                    BasicStroke.JOIN_ROUND
             )
         g.draw(at.createTransformedShape(this.shape))
     }
@@ -1814,9 +1887,12 @@ class TransWC(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureD
 
 }
 
-abstract class LeftSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, name:String, location:Location, inTertiaries: Boolean, start:Point2D, end_1:Point2D, end_2:Point2D):LWSymbol(parent, ssDrawing, name, location, inTertiaries) {
+abstract class LeftSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, name:String, location:Location, inTertiaries: Boolean):LWSymbol(parent, ssDrawing, name, location, inTertiaries) {
 
-    init {
+    override fun setSymbol(start: Point2D, end: Point2D) {
+        val symbolWidth = distance(start,end)
+        val (start_1, start_2) = getPerpendicular(start, start, end, symbolWidth / 2.0)
+        val (end_1, end_2) = getPerpendicular(end, start, end, symbolWidth / 2.0)
         val triangle = GeneralPath()
         triangle.moveTo(start.x, start.y)
         triangle.lineTo(end_1.x, end_1.y)
@@ -1827,9 +1903,12 @@ abstract class LeftSugar(parent: SecondaryStructureElement?, ssDrawing: Secondar
     }
 }
 
-abstract class RightSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, name:String, location:Location, inTertiaries: Boolean = false, start_1:Point2D, start_2:Point2D, end:Point2D):LWSymbol(parent, ssDrawing, name, location, inTertiaries) {
+abstract class RightSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, name:String, location:Location, inTertiaries: Boolean = false): LWSymbol(parent, ssDrawing, name, location, inTertiaries) {
 
-    init {
+    override fun setSymbol(start: Point2D, end: Point2D) {
+        val symbolWidth = distance(start,end)
+        val (start_1, start_2) = getPerpendicular(start, start, end, symbolWidth / 2.0)
+        val (end_1, end_2) = getPerpendicular(end, start, end, symbolWidth / 2.0)
         val triangle = GeneralPath()
         triangle.moveTo(start_1.x, start_1.y)
         triangle.lineTo(start_2.x, start_2.y)
@@ -1841,9 +1920,10 @@ abstract class RightSugar(parent: SecondaryStructureElement?, ssDrawing: Seconda
 
 }
 
-class CisRightSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location, inTertiaries: Boolean = false, start_1:Point2D, start_2:Point2D, end:Point2D):RightSugar(parent, ssDrawing, "cisSugar", location, inTertiaries, start_1, start_2, end) {
+class CisRightSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location, inTertiaries: Boolean = false): RightSugar(parent, ssDrawing, "cisSugar", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
+        super.draw(g, at)
         g.fill(at.createTransformedShape(this.shape))
     }
 
@@ -1853,9 +1933,10 @@ class CisRightSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStru
 
 }
 
-class CisLeftSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location, inTertiaries: Boolean = false, start:Point2D, end_1:Point2D, end_2:Point2D):LeftSugar(parent, ssDrawing, "cisSugar", location, inTertiaries, start, end_1, end_2) {
+class CisLeftSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location, inTertiaries: Boolean = false): LeftSugar(parent, ssDrawing, "cisSugar", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
+        super.draw(g, at)
         g.fill(at.createTransformedShape(this.shape))
     }
 
@@ -1865,18 +1946,21 @@ class CisLeftSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStruc
 
 }
 
-class TransRightSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location, inTertiaries: Boolean = false, start_1:Point2D, start_2:Point2D, end:Point2D):RightSugar(parent, ssDrawing, "transSugar", location, inTertiaries, start_1, start_2, end) {
+class TransRightSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location, inTertiaries: Boolean = false): RightSugar(parent, ssDrawing, "transSugar", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
-        val previousColor = g.color
-        g.color = Color(Color.WHITE.red, Color.WHITE.green, Color.WHITE.blue,  if (inTertiaries) this.getTertiaryOpacity() else 255)
-        g.fill(at.createTransformedShape(this.shape))
-        g.color = previousColor
+        super.draw(g, at)
         if (inTertiaries)
             g.stroke = BasicStroke(
                 this.ssDrawing.finalZoomLevel.toFloat() * this.getTertiaryInteractionWidth().toFloat(),
                 BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_ROUND
+            )
+        else
+            g.stroke = BasicStroke(
+                    this.ssDrawing.finalZoomLevel.toFloat() * this.getSecondaryInteractionWidth().toFloat(),
+                    BasicStroke.CAP_ROUND,
+                    BasicStroke.JOIN_ROUND
             )
         g.draw(at.createTransformedShape(this.shape))
     }
@@ -1887,18 +1971,21 @@ class TransRightSugar(parent: SecondaryStructureElement?, ssDrawing: SecondarySt
 
 }
 
-class TransLeftSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location, inTertiaries: Boolean = false, start:Point2D, end_1:Point2D, end_2:Point2D):LeftSugar(parent, ssDrawing, "transSugar", location, inTertiaries, start, end_1, end_2) {
+class TransLeftSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location, inTertiaries: Boolean = false):LeftSugar(parent, ssDrawing, "transSugar", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
-        val previousColor = g.color
-        g.color = Color(Color.WHITE.red, Color.WHITE.green, Color.WHITE.blue, if (inTertiaries) this.getTertiaryOpacity() else 255)
-        g.fill(at.createTransformedShape(this.shape))
-        g.color = previousColor
+        super.draw(g, at)
         if (inTertiaries)
             g.stroke = BasicStroke(
                 this.ssDrawing.finalZoomLevel.toFloat() * this.getTertiaryInteractionWidth().toFloat(),
                 BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_ROUND
+            )
+        else
+            g.stroke = BasicStroke(
+                    this.ssDrawing.finalZoomLevel.toFloat() * this.getSecondaryInteractionWidth().toFloat(),
+                    BasicStroke.CAP_ROUND,
+                    BasicStroke.JOIN_ROUND
             )
         g.draw(at.createTransformedShape(this.shape))
     }
@@ -1909,9 +1996,12 @@ class TransLeftSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStr
 
 }
 
-abstract class Hoogsteen(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, name:String, location:Location, inTertiaries: Boolean = false, start_1:Point2D, start_2:Point2D, end_1:Point2D, end_2:Point2D):LWSymbol(parent, ssDrawing, name, location, inTertiaries) {
+abstract class Hoogsteen(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, name:String, location:Location, inTertiaries: Boolean = false):LWSymbol(parent, ssDrawing, name, location, inTertiaries) {
 
-    init {
+    override fun setSymbol(start: Point2D, end: Point2D) {
+        val symbolWidth = distance(start,end)
+        val (start_1, start_2) = getPerpendicular(start, start, end, symbolWidth / 2.0)
+        val (end_1, end_2) = getPerpendicular(end, start, end, symbolWidth / 2.0)
         val squarre = GeneralPath()
         squarre.moveTo(start_1.x, start_1.y)
         squarre.lineTo(end_1.x, end_1.y)
@@ -1921,11 +2011,14 @@ abstract class Hoogsteen(parent: SecondaryStructureElement?, ssDrawing: Secondar
         squarre.closePath()
         this.shape = squarre
     }
+
+
 }
 
-class CisHoogsteen(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location, inTertiaries: Boolean = false, start_1:Point2D, start_2:Point2D, end_1:Point2D, end_2:Point2D):Hoogsteen(parent, ssDrawing, "cisHoogsteen", location, inTertiaries, start_1, start_2, end_1, end_2) {
+class CisHoogsteen(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location, inTertiaries: Boolean = false):Hoogsteen(parent, ssDrawing, "cisHoogsteen", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
+        super.draw(g, at)
         g.fill(at.createTransformedShape(this.shape))
     }
 
@@ -1935,18 +2028,21 @@ class CisHoogsteen(parent: SecondaryStructureElement?, ssDrawing: SecondaryStruc
 
 }
 
-class TransHoogsteen(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location, inTertiaries: Boolean = false, start_1:Point2D, start_2:Point2D, end_1:Point2D, end_2:Point2D):Hoogsteen(parent, ssDrawing, "transHoogsteen", location, inTertiaries, start_1, start_2, end_1, end_2) {
+class TransHoogsteen(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location, inTertiaries: Boolean = false):Hoogsteen(parent, ssDrawing, "transHoogsteen", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
-        val previousColor = g.color
-        g.color = Color(Color.WHITE.red, Color.WHITE.green, Color.WHITE.blue, if (inTertiaries) this.getTertiaryOpacity() else 255)
-        g.fill(at.createTransformedShape(this.shape))
-        g.color = previousColor
+        super.draw(g, at)
         if (inTertiaries)
             g.stroke = BasicStroke(
                 this.ssDrawing.finalZoomLevel.toFloat() * this.getTertiaryInteractionWidth().toFloat(),
                 BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_ROUND
+            )
+        else
+            g.stroke = BasicStroke(
+                    this.ssDrawing.finalZoomLevel.toFloat() * this.getSecondaryInteractionWidth().toFloat(),
+                    BasicStroke.CAP_ROUND,
+                    BasicStroke.JOIN_ROUND
             )
         g.draw(at.createTransformedShape(this.shape))
     }
@@ -1957,15 +2053,41 @@ class TransHoogsteen(parent: SecondaryStructureElement?, ssDrawing: SecondaryStr
 
 }
 
-class LWLine(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location, inTertiaries:Boolean = false, start:Point2D, end:Point2D):LWSymbol(parent, ssDrawing, "Line", location, inTertiaries) {
+enum class VSymbolPos {
+    BOTTOM, MIDDLE, TOP
+}
 
-    init {
-        this.shape = Line2D.Double(start,end)
+class LWLine(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location, inTertiaries:Boolean = false, val vpos:VSymbolPos = VSymbolPos.MIDDLE  ):LWSymbol(parent, ssDrawing, "Line", location, inTertiaries) {
+
+    override fun setSymbol(p1: Point2D, p2: Point2D) {
+        val distance = distance(p1, p2);
+        val symbolWidth = distance
+        when (this.vpos) {
+            VSymbolPos.TOP -> {
+                val (p1_1, p1_2) = getPerpendicular(p1, p1, p2, symbolWidth / 6.0)
+                val (p2_1, p2_2) = getPerpendicular(p2, p1, p2, symbolWidth / 6.0)
+                this.shape = Line2D.Double(p1_1, p2_1)
+            }
+            VSymbolPos.BOTTOM -> {
+                val (p1_1, p1_2) = getPerpendicular(p1, p1, p2, symbolWidth / 6.0)
+                val (p2_1, p2_2) = getPerpendicular(p2, p1, p2, symbolWidth / 6.0)
+                this.shape = Line2D.Double(p1_2, p2_2)
+            }
+            else -> this.shape = Line2D.Double(p1,p2)
+        }
+
     }
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
-        if (!this.inTertiaries)
+        super.draw(g, at)
+        if (!this.inTertiaries) {
+            g.stroke = BasicStroke(
+                    this.ssDrawing.finalZoomLevel.toFloat() * this.getSecondaryInteractionWidth().toFloat(),
+                    BasicStroke.CAP_ROUND,
+                    BasicStroke.JOIN_ROUND
+            )
             g.draw(at.createTransformedShape(this.shape))
+        }
         else {
             ssDrawing?.let {
                 if (this.getTertiaryInteractionStyle() == DASHED)
@@ -1999,6 +2121,7 @@ abstract class BaseBaseInteraction(parent: SecondaryStructureElement?, val inter
     protected var p1:Point2D? = null
     protected var p2:Point2D? = null
     var lwSymbols = mutableListOf<LWSymbol>()
+    var regularSymbols = mutableListOf<LWSymbol>()
     val residue:ResidueCircle
         get() {
             return ssDrawing.getResiduesFromAbsPositions(this.start).first()
@@ -2027,42 +2150,53 @@ abstract class BaseBaseInteraction(parent: SecondaryStructureElement?, val inter
                     )
         }
 
-    protected fun generateSingleSymbol(location:Location, inTertiaries: Boolean= false, edge:Edge, orientation: Orientation, start:Point2D, end:Point2D, right:Boolean=true):LWSymbol {
-        val symbolWidth = distance(start,end)
-        val (start_1, start_2) = getPerpendicular(start, start, end, symbolWidth / 2.0)
-        val (end_1, end_2) = getPerpendicular(end, start, end, symbolWidth / 2.0)
+    val isDoublePaired:Boolean
+        get() = this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.label == SecondaryStructureType.G && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.label == SecondaryStructureType.C ||
+                this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.label == SecondaryStructureType.C && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.label == SecondaryStructureType.G
+
+    protected fun generateSingleSymbol(location:Location, inTertiaries: Boolean= false, edge:Edge, orientation: Orientation, right:Boolean=true):LWSymbol {
         return when (edge) {
             Edge.WC -> {
                 when(orientation) {
-                    Orientation.cis -> CisWC(this, this.ssDrawing, location, inTertiaries, start_1, start_2, end_1, end_2, symbolWidth)
-                    Orientation.trans -> TransWC(this, this.ssDrawing, location, inTertiaries, start_1, start_2, end_1, end_2, symbolWidth)
-                    else -> CisWC(this, this.ssDrawing, location, inTertiaries, start_1, start_2, end_1, end_2, symbolWidth)
+                    Orientation.cis -> CisWC(this, this.ssDrawing, location, inTertiaries)
+                    Orientation.trans -> TransWC(this, this.ssDrawing, location, inTertiaries)
+                    else -> CisWC(this, this.ssDrawing, location, inTertiaries)
                 }
             }
             Edge.Hoogsteen -> {
                 when(orientation) {
-                    Orientation.cis -> CisHoogsteen(this, this.ssDrawing, location, inTertiaries, start_1, start_2, end_1, end_2)
-                    Orientation.trans -> TransHoogsteen(this, this.ssDrawing, location, inTertiaries, start_1, start_2, end_1, end_2)
-                    else -> CisHoogsteen(this, this.ssDrawing, location, inTertiaries, start_1, start_2, end_1, end_2)
+                    Orientation.cis -> CisHoogsteen(this, this.ssDrawing, location, inTertiaries)
+                    Orientation.trans -> TransHoogsteen(this, this.ssDrawing, location, inTertiaries)
+                    else -> CisHoogsteen(this, this.ssDrawing, location, inTertiaries)
                 }
             }
             Edge.Sugar -> {
                 when(orientation) {
-                    Orientation.cis -> if (right) CisRightSugar(this, this.ssDrawing, location, inTertiaries, start_1, start_2,end) else CisLeftSugar(this, this.ssDrawing, location, inTertiaries, start, end_1, end_2)
-                    Orientation.trans -> if (right) TransRightSugar(this, this.ssDrawing, location, inTertiaries, start_1, start_2,end) else TransLeftSugar(this, this.ssDrawing, location, inTertiaries, start, end_1, end_2)
-                    else -> if (right) CisRightSugar(this, this.ssDrawing, location, inTertiaries, start_1, start_2,end) else CisLeftSugar(this, this.ssDrawing, location, inTertiaries, start, end_1, end_2)
+                    Orientation.cis -> if (right) CisRightSugar(this, this.ssDrawing, location, inTertiaries) else CisLeftSugar(this, this.ssDrawing, location, inTertiaries)
+                    Orientation.trans -> if (right) TransRightSugar(this, this.ssDrawing, location, inTertiaries) else TransLeftSugar(this, this.ssDrawing, location, inTertiaries)
+                    else -> if (right) CisRightSugar(this, this.ssDrawing, location, inTertiaries) else CisLeftSugar(this, this.ssDrawing, location, inTertiaries)
                 }
             }
             else -> { //if edge unknown
-                LWLine(this, this.ssDrawing, location, inTertiaries, start,end)
+                LWLine(this, this.ssDrawing, location, inTertiaries)
             }
         }
     }
 
-    abstract fun setLWSymbols()
-
     override fun toString(): String {
         return this.interaction.toString()
+    }
+
+    override fun clearThemes() {
+        this.theme.params.clear()
+        this.residue.clearThemes()
+        this.pairedResidue.clearThemes()
+        for (s in this.regularSymbols) {
+            s.clearThemes()
+        }
+        for (s in this.lwSymbols) {
+            s.clearThemes()
+        }
     }
 }
 
@@ -2080,20 +2214,40 @@ class SecondaryInteractionLine(parent: SecondaryStructureElement?, interaction: 
     override val isSelected: Boolean
         get() = this in this.ssDrawing.selection || if (this.parent!=null) this.parent!!.isSelected else false
 
+    init {
+        this.regularSymbols.add(LWLine(this, this.ssDrawing, this.location, false))
+        if (this.isCanonical) {
+            if (isDoublePaired) {
+                this.lwSymbols.add(LWLine(this, this.ssDrawing, this.location, false, vpos = VSymbolPos.TOP))
+                this.lwSymbols.add(LWLine(this, this.ssDrawing, this.location, false, vpos = VSymbolPos.BOTTOM))
+            } else
+                this.lwSymbols.add(LWLine(this, this.ssDrawing, this.location, false))
+        } else {
+            if (this.interaction.edge5 == this.interaction.edge3) { //uniq central symbol
+                //+++++left symbol
+                this.lwSymbols.add(LWLine(this, this.ssDrawing, Location(this.location.start),false))
+                //++++++middle symbol
+                this.lwSymbols.add(this.generateSingleSymbol(this.location, false, this.interaction.edge5, this.interaction.orientation))
+                //+++++right symbol
+                this.lwSymbols.add(LWLine(this, this.ssDrawing, Location(this.location.end),false))
+            } else {
+                //+++++left symbol
+                this.lwSymbols.add(this.generateSingleSymbol( Location(this.location.start),false, this.interaction.edge5, this.interaction.orientation, right = false))
+                //++++++middle symbol
+                this.lwSymbols.add(LWLine(this, this.ssDrawing, this.location, false))
+                //+++++right symbol
+                this.lwSymbols.add(this.generateSingleSymbol(Location(this.location.end),false, this.interaction.edge3, this.interaction.orientation))
+            }
+        }
+    }
+
     fun draw(g: Graphics2D, at:AffineTransform) {
         val previousStroke = g.stroke
         g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat()*this.getSecondaryInteractionWidth().toFloat(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
-        g.color = this.getSecondaryColor()
-        if (!this.ssDrawing.selection.isEmpty() && !this.isSelected) {
-            g.color = Color(g.color.red, g.color.green, g.color.blue,
-                RnartistConfig.selectionFading
-            )
-        }
         val center1 = this.residue.center
         val center2 = this.pairedResidue.center
 
         if (center1 != null && center2 != null) {
-
             val shift = radiusConst+this.getSecondaryInteractionShift()+this.getResidueBorder()/2.0+this.getSecondaryInteractionWidth()/2.0
             if (distance(center1,center2) > 2*shift) {
                 val points = pointsFrom(
@@ -2103,49 +2257,57 @@ class SecondaryInteractionLine(parent: SecondaryStructureElement?, interaction: 
                 )
                 this.p1 = points.first
                 this.p2 = points.second
-                this.setLWSymbols()
-                this.lwSymbols.forEach { lwSymbol ->
-                    lwSymbol.draw(g,at)
+                if (!displayLWSymbols()) {
+                    regularSymbols.forEach { nonLwSymbol ->
+                        nonLwSymbol.setSymbol(this.p1 as Point2D, this.p2 as Point2D)
+                        nonLwSymbol.draw(g, at)
+                    }
+                } else {
+                    if (this.isCanonical) {
+                        if (isDoublePaired) {
+                            this.lwSymbols[0].setSymbol(this.p1 as Point2D, this.p2 as Point2D)
+                            this.lwSymbols[0].draw(g, at)
+
+                            this.lwSymbols[1].setSymbol(this.p1 as Point2D, this.p2 as Point2D)
+                            this.lwSymbols[1].draw(g, at)
+                        } else {
+                            this.lwSymbols[0].setSymbol(this.p1 as Point2D, this.p2 as Point2D)
+                            this.lwSymbols[0].draw(g, at)
+                        }
+                    } else {
+                        val distance = distance(this.p1 as Point2D, this.p2 as Point2D)
+                        val symbolWidth = distance / 3.0
+                        if (interaction.edge5 == interaction.edge3) {
+                            val (p1_inner, p2_inner) = pointsFrom(p1 as Point2D, p2 as Point2D, symbolWidth / 2.0)
+
+                            this.lwSymbols[0].setSymbol(p1!!, p1_inner)
+                            this.lwSymbols[0].draw(g, at)
+
+                            this.lwSymbols[2].setSymbol(p2_inner, p2!!)
+                            this.lwSymbols[2].draw(g, at)
+
+                            //to have the central symbol above
+                            this.lwSymbols[1].setSymbol(p1_inner, p2_inner)
+                            this.lwSymbols[1].draw(g, at)
+
+                        } else {
+                            val (p1_inner, p2_inner) =  pointsFrom(p1 as Point2D, p2 as Point2D, symbolWidth + symbolWidth / 4.0)
+                            this.lwSymbols[0].setSymbol(p1!!, p1_inner)
+                            this.lwSymbols[0].draw(g, at)
+
+                            this.lwSymbols[2].setSymbol(p2_inner, p2!!)
+                            this.lwSymbols[2].draw(g, at)
+
+                            //to have the central symbol above
+                            this.lwSymbols[1].setSymbol(p1_inner, p2_inner)
+                            this.lwSymbols[1].draw(g, at)
+
+                        }
+                    }
                 }
             }
         }
         g.stroke = previousStroke
-    }
-
-    override fun setLWSymbols()  {
-        this.lwSymbols.clear()
-        this.p1?.let { p1 ->
-            this.p2?.let { p2 ->
-                val distance = distance(p1, p2);
-                val symbolWidth = distance / 3.0 * deltaLWSymbols
-                if (this.isCanonical || !displayLWSymbols()) {
-                    if (this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.label == SecondaryStructureType.G && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.label == SecondaryStructureType.C ||
-                        this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.label == SecondaryStructureType.C && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.label == SecondaryStructureType.G) {
-                        val (p1_1, p1_2) = getPerpendicular(p1, p1, p2, symbolWidth / 2.0)
-                        val (p2_1, p2_2) = getPerpendicular(p2, p1, p2, symbolWidth / 2.0)
-                        this.lwSymbols.add(LWLine(this, this.ssDrawing, this.location, false, p1_1, p2_1))
-                        this.lwSymbols.add(LWLine(this, this.ssDrawing, this.location,false, p1_2, p2_2))
-                    } else {
-                        this.lwSymbols.add(LWLine(this, this.ssDrawing, this.location,false, p1, p2))
-                    }
-                } else {
-                    if (this.interaction.edge5 == this.interaction.edge3) { //uniq central symbol
-                        val (p1_inner, p2_inner) = pointsFrom(p1, p2, distance-2*symbolWidth)
-                        this.lwSymbols.add(LWLine(this, this.ssDrawing, Location(this.location.start),false, p1,p1_inner))
-                        this.lwSymbols.add(this.generateSingleSymbol(this.location, false, this.interaction.edge5, this.interaction.orientation, p1_inner,p2_inner))
-                        this.lwSymbols.add(LWLine(this, this.ssDrawing, Location(this.location.end),false, p2_inner,p2))
-                    } else {
-                        val (p1_inner, p2_inner) = pointsFrom(p1, p2, symbolWidth)
-                        //+++++left symbol
-                        this.lwSymbols.add(this.generateSingleSymbol( Location(this.location.start),false, this.interaction.edge5, this.interaction.orientation,p1 ,p1_inner, right = false))
-                        //++++++middle symbol
-                        this.lwSymbols.add(LWLine(this, this.ssDrawing, this.location, false, p1_inner, p2_inner))
-                        //+++++right symbol
-                        this.lwSymbols.add(this.generateSingleSymbol(Location(this.location.end),false, this.interaction.edge3, this.interaction.orientation,p2_inner,p2))
-                    }
-                }
-            }
-        }
     }
 
     fun asSVG(indentChar:String ="\t", indentLevel:Int = 1, theme: Theme, transX:Double= 0.0, transY:Double = 0.0):String {
@@ -2178,9 +2340,21 @@ class TertiaryInteractionLine(parent: SecondaryStructureElement?, interaction: B
     override val isSelected: Boolean
         get() = this in this.ssDrawing.selection || this.residue in this.ssDrawing.selection && this.pairedResidue in this.ssDrawing.selection
 
+    init {
+        this.regularSymbols.add(LWLine(this, this.ssDrawing, this.location, true))
+        //+++++left symbol
+        this.lwSymbols.add(this.generateSingleSymbol( Location(this.location.start),true, this.interaction.edge5, this.interaction.orientation, right = false))
+        //++++++middle symbol
+        this.lwSymbols.add(LWLine(this, this.ssDrawing, this.location, true))
+        //+++++right symbol
+        this.lwSymbols.add(this.generateSingleSymbol(Location(this.location.end),true, this.interaction.edge3, this.interaction.orientation))
+    }
+
     fun drawHalo(g: Graphics2D, at:AffineTransform) {
         val previousStroke = g.stroke
         g.color = Color(this.getTertiaryColor().red, this.getTertiaryColor().green, this.getTertiaryColor().blue, this.getTertiaryOpacity())
+        if (!this.ssDrawing.selection.isEmpty() && !this.isSelected) //we fade it even more if unselected
+            g.color = Color(g.color.red, g.color.green, g.color.blue, (RnartistConfig.selectionFading /255.0*this.getTertiaryOpacity()).toInt()) //the fading of an unselected interaction is reduced by x%, x is the % of decrease of selection fading (according to full opacity which is 255).
         val shift = this.getHaloWidth()+this.getResidueBorder()/2.0
         val newWidth = (this.ssDrawing.residues[this.interaction.start - 1].circle!!.width) + 2*shift
         var newCircle = Ellipse2D.Double(this.ssDrawing.residues[this.interaction.start - 1].circle!!.centerX-newWidth/2.0, this.ssDrawing.residues[this.interaction.start - 1].circle!!.centerY-newWidth/2.0, newWidth,newWidth)
@@ -2198,11 +2372,72 @@ class TertiaryInteractionLine(parent: SecondaryStructureElement?, interaction: B
 
     fun draw(g: Graphics2D, at:AffineTransform) {
         val previousStroke = g.stroke
-        if (this.ssDrawing.residues[this.interaction.start-1] in this.ssDrawing.selection && this.ssDrawing.residues[this.interaction.end-1] in this.ssDrawing.selection) {
+        if (this.isSelected) {
             g.color = Color(this.getTertiaryColor().red, this.getTertiaryColor().green, this.getTertiaryColor().blue, this.getTertiaryOpacity())
-            this.setLWSymbols()
-            this.lwSymbols.forEach { lwSymbol ->
-                lwSymbol.draw(g,at)
+            val center1 = this.ssDrawing.residues[this.interaction.start-1].center
+            val center2 = this.ssDrawing.residues[this.interaction.end-1].center
+            if (center1 != null && center2 != null) {
+
+                val shift = radiusConst + this.getResidueBorder().toDouble() / 2.0
+                if (distance(center1, center2) > 2 * shift) {
+                    val (p1,p2) = pointsFrom(
+                            center1,
+                            center2,
+                            shift
+                    )
+                    if (!displayLWSymbols()) {
+                        regularSymbols.forEach { nonLwSymbol ->
+                            nonLwSymbol.setSymbol(p1,p2)
+                            nonLwSymbol.draw(g, at)
+                        }
+                    } else {
+                        this.p1 = pointsFrom(
+                                center1,
+                                center2,
+                                shift
+                        ).first
+
+                        this.p2 = pointsFrom(
+                                center1,
+                                center2,
+                                shift + radiusConst * 1.5
+                        ).first
+                        val forLine_1 = this.p2!!
+
+                        this.p1?.let { p1 ->
+                            this.p2?.let { p2 ->
+                                this.lwSymbols[0].setSymbol(this.p1 as Point2D, this.p2 as Point2D)
+                                this.lwSymbols[0].draw(g, at)
+                            }
+                        }
+
+                        this.p1 = pointsFrom(
+                                center1,
+                                center2,
+                                shift
+                        ).second
+
+                        this.p2 = pointsFrom(
+                                center1,
+                                center2,
+                                shift + radiusConst * 1.5
+                        ).second
+
+                        val forLine_2 = this.p2!!
+
+                        this.p1?.let { p1 ->
+                            this.p2?.let { p2 ->
+                                this.lwSymbols[2].setSymbol(this.p1 as Point2D, this.p2 as Point2D)
+                                this.lwSymbols[2].draw(g, at)
+                            }
+                        }
+
+                        //+++++ central line linking the two symbols
+                        this.lwSymbols[1].setSymbol(forLine_1, forLine_2)
+                        this.lwSymbols[1].draw(g, at)
+
+                    }
+                }
             }
         }
         g.color = Color(
@@ -2212,68 +2447,6 @@ class TertiaryInteractionLine(parent: SecondaryStructureElement?, interaction: B
             255
         )
         g.stroke = previousStroke
-    }
-
-    override fun setLWSymbols() {
-        val center1 = this.ssDrawing.residues[this.interaction.start-1].center
-        val center2 = this.ssDrawing.residues[this.interaction.end-1].center
-        if (center1 != null && center2 != null) {
-
-            val shift = radiusConst+this.getResidueBorder().toDouble()/2.0
-            if (distance(center1,center2) > 2*shift) {
-                if (!displayLWSymbols()) {
-                    val (p1,p2) = pointsFrom(
-                            center1,
-                            center2,
-                            shift
-                    )
-                    this.lwSymbols.add(LWLine(this, this.ssDrawing, this.location,true, p1, p2))
-                } else {
-                    this.p1 = pointsFrom(
-                            center1,
-                            center2,
-                            shift
-                    ).first
-
-                    this.p2 = pointsFrom(
-                            center1,
-                            center2,
-                            shift + radiusConst * 1.5
-                    ).first
-                    val forLine_1 = this.p2!!
-
-                    this.p1?.let { p1 ->
-                        this.p2?.let { p2 ->
-                            this.lwSymbols.add(this.generateSingleSymbol(Location(this.location.start), true, this.interaction.edge5, this.interaction.orientation, this.p1 as Point2D, this.p2 as Point2D, right = false))
-                        }
-                    }
-
-                    this.p1 = pointsFrom(
-                            center1,
-                            center2,
-                            shift
-                    ).second
-
-                    this.p2 = pointsFrom(
-                            center1,
-                            center2,
-                            shift + radiusConst * 1.5
-                    ).second
-
-                    val forLine_2 = this.p2!!
-
-                    this.p1?.let { p1 ->
-                        this.p2?.let { p2 ->
-                            this.lwSymbols.add(this.generateSingleSymbol(this.location, true, this.interaction.edge5, this.interaction.orientation, this.p1 as Point2D, this.p2 as Point2D, right = true))
-                        }
-                    }
-
-                    this.lwSymbols.add(LWLine(this, this.ssDrawing, Location(this.location.end), true, forLine_1, forLine_2))
-                }
-
-            }
-        }
-
     }
 
     fun asSVG(indentChar:String ="\t", indentLevel:Int = 1, theme: Theme, transX:Double= 0.0, transY:Double = 0.0):String {
@@ -2289,6 +2462,7 @@ class TertiaryInteractionLine(parent: SecondaryStructureElement?, interaction: B
         }
         return ""
     }
+
 }
 
 class PhosphodiesterBondLine(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location:Location): SecondaryStructureElement(ssDrawing, parent, "PhosphoDiester Bond", location) {
@@ -2362,6 +2536,10 @@ class PhosphodiesterBondLine(parent: SecondaryStructureElement?, ssDrawing: Seco
             return indentChar.repeat(indentLevel) + """<path d="M${p1.x+transX},${p1.y+transY}l${p2.x-p1.x},${p2.y-p1.y}" style="fill:none;stroke:rgb(${Color.DARK_GRAY.red}, ${Color.DARK_GRAY.green}, ${Color.DARK_GRAY.blue});stroke-width:${this.getPhosphodiesterWidth()};" />""" + "\n"
         }
         return ""
+    }
+
+    override fun clearThemes() {
+        this.theme.params.clear()
     }
 }
 

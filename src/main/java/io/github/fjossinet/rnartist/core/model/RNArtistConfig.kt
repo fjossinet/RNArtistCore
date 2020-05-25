@@ -28,8 +28,17 @@ object RnartistConfig {
 
             "Persian Carolina" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#D741A7",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#3A1772",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#5398BE",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#F2CD5D",
                     ThemeParameter.CChar.toString() to getHTMLColorString(
                             Color.BLACK
@@ -37,12 +46,20 @@ object RnartistConfig {
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
-                    ThemeParameter.SecondaryColor.toString() to "#4d4d4d",
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
+                    ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
+                            Color.DARK_GRAY
+                    ),
                     ThemeParameter.TertiaryColor.toString() to "#cc3333"
             )),
 
             "Snow Lavender" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#A31621",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#FCF7F8",
                     ThemeParameter.UChar.toString() to getHTMLColorString(
                             Color.BLACK
@@ -52,53 +69,92 @@ object RnartistConfig {
                             Color.BLACK
                     ),
                     ThemeParameter.CColor.toString() to "#4E8098",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#90C2E7"
             )),
 
             "Fuzzy French" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#731DD8",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#48A9A6",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#E4DFDA",
                     ThemeParameter.GChar.toString() to getHTMLColorString(
                             Color.BLACK
                     ),
                     ThemeParameter.CColor.toString() to "#D4B483",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#C1666B"
             )),
 
             "Chestnut Navajo" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#CA2E55",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#FFE0B5",
                     ThemeParameter.UChar.toString() to getHTMLColorString(
                             Color.BLACK
                     ),
                     ThemeParameter.GColor.toString() to "#8A6552",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#462521",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#BDB246"
             )),
 
             "Irresistible Turquoise" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#9D44B5",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#B5446E",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#525252",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#BADEFC",
                     ThemeParameter.CChar.toString() to getHTMLColorString(
                             Color.BLACK
@@ -106,49 +162,82 @@ object RnartistConfig {
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#0AFFED"
             )),
 
             "Charm Jungle" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#E08DAC",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#6A7FDB",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#57E2E5",
                     ThemeParameter.GChar.toString() to getHTMLColorString(
                             Color.BLACK
                     ),
                     ThemeParameter.CColor.toString() to "#45CB85",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#153131"
             )),
 
             "Atomic Xanadu" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#EF946C",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#C4A77D",
                     ThemeParameter.UChar.toString() to getHTMLColorString(
                             Color.BLACK
                     ),
                     ThemeParameter.GColor.toString() to "#70877F",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#454372",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#2F2963"
             )),
 
             "Pale Coral" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#987284",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#75B9BE",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#D0D6B5",
                     ThemeParameter.GChar.toString() to getHTMLColorString(
                             Color.BLACK
@@ -160,14 +249,20 @@ object RnartistConfig {
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#EE7674"
             )),
 
             "Golden Honolulu" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#B1740F",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#FFD07B",
                     ThemeParameter.UChar.toString() to getHTMLColorString(
                             Color.BLACK
@@ -177,8 +272,14 @@ object RnartistConfig {
                             Color.BLACK
                     ),
                     ThemeParameter.CColor.toString() to "#296EB4",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
+                    ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
                     ),
                     ThemeParameter.SecondaryColor.toString() to "#4d4d4d",
                     ThemeParameter.TertiaryColor.toString() to "#1789FC"
@@ -186,7 +287,13 @@ object RnartistConfig {
 
             "Maximum Salmon" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#301A4B",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#6DB1BF",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#FFEAEC",
                     ThemeParameter.GChar.toString() to getHTMLColorString(
                             Color.BLACK
@@ -198,8 +305,11 @@ object RnartistConfig {
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#3F6C51"
             )),
@@ -210,13 +320,22 @@ object RnartistConfig {
                             Color.BLACK
                     ),
                     ThemeParameter.UColor.toString() to "#46ACC2",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#498C8A",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#4B6858",
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#4D4730"
             )),
@@ -231,29 +350,50 @@ object RnartistConfig {
                             Color.BLACK
                     ),
                     ThemeParameter.GColor.toString() to "#CE796B",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#C18C5D",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#495867"
             )),
 
             "Screamin' Olive" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#494947",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#35FF69",
                     ThemeParameter.UChar.toString() to getHTMLColorString(
                             Color.BLACK
                     ),
                     ThemeParameter.GColor.toString() to "#44CCFF",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#7494EA",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#D138BF"
             )),
@@ -264,6 +404,9 @@ object RnartistConfig {
                             Color.BLACK
                     ),
                     ThemeParameter.UColor.toString() to "#64B6AC",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#C0FDFB",
                     ThemeParameter.GChar.toString() to getHTMLColorString(
                             Color.BLACK
@@ -275,16 +418,28 @@ object RnartistConfig {
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#5D737E"
             )),
 
             "Baby Lilac" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#9D858D",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#BBA0B2",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#A4A8D1",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#A4BFEB",
                     ThemeParameter.CChar.toString() to getHTMLColorString(
                             Color.BLACK
@@ -292,8 +447,11 @@ object RnartistConfig {
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#8CABBE"
             )),
@@ -308,12 +466,21 @@ object RnartistConfig {
                             Color.BLACK
                     ),
                     ThemeParameter.GColor.toString() to "#B0C592",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.CColor.toString() to "#A97C73",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#AF3E4D"
             )),
@@ -324,20 +491,38 @@ object RnartistConfig {
                             Color.BLACK
                     ),
                     ThemeParameter.UColor.toString() to "#92AC86",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#696047",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#55251D",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#5A1807"
             )),
 
             "Space Blizzard" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#25283D",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#8F3985",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#98DFEA",
                     ThemeParameter.GChar.toString() to getHTMLColorString(
                             Color.BLACK
@@ -349,25 +534,40 @@ object RnartistConfig {
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#07BEB8"
             )),
 
             "Midnight Paradise" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#EF476F",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#FFD166",
                     ThemeParameter.UChar.toString() to getHTMLColorString(
                             Color.BLACK
                     ),
                     ThemeParameter.GColor.toString() to "#06D6A0",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#118AB2",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#073B4C"
             )),
@@ -378,27 +578,54 @@ object RnartistConfig {
                             Color.BLACK
                     ),
                     ThemeParameter.UColor.toString() to "#B18FCF",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#978897",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#494850",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#2C2C34"
             )),
 
             "Charcoal Lazuli" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#2F4858",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#33658A",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#86BBD8",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#F6AE2D",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#F26419"
             )),
@@ -409,21 +636,42 @@ object RnartistConfig {
                             Color.BLACK
                     ),
                     ThemeParameter.UColor.toString() to "#95190C",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#610345",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#107E7D",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#044B7F"
             )),
 
             "Cheese Cinnabar" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#EF3E36",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#17BEBB",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#2E282A",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#EDB88B",
                     ThemeParameter.CChar.toString() to getHTMLColorString(
                             Color.BLACK
@@ -431,8 +679,11 @@ object RnartistConfig {
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#FAD8D6"
             )),
@@ -447,12 +698,21 @@ object RnartistConfig {
                             Color.BLACK
                     ),
                     ThemeParameter.GColor.toString() to "#9A94BC",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#9B5094",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#6A605C"
             )),
@@ -471,32 +731,59 @@ object RnartistConfig {
                             Color.BLACK
                     ),
                     ThemeParameter.CColor.toString() to "#7E78D2",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#6F58C9"
             )),
 
             "Jet Flame" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#000000",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#353531",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#FF9505",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#016FB9",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#EC4E20"
             )),
 
             "Opal Blue" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#12263A",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#06BCC1",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#C5D8D1",
                     ThemeParameter.GChar.toString() to getHTMLColorString(
                             Color.BLACK
@@ -508,14 +795,20 @@ object RnartistConfig {
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#F4D1AE"
             )),
 
             "Pumpkin Vegas" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#FA7921",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#FE9920",
                     ThemeParameter.UChar.toString() to getHTMLColorString(
                             Color.BLACK
@@ -525,28 +818,46 @@ object RnartistConfig {
                             Color.BLACK
                     ),
                     ThemeParameter.CColor.toString() to "#566E3D",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#0C4767"
             )),
 
             "Cyber Tropical" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#000F08",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#136F63",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#E0CA3C",
                     ThemeParameter.GChar.toString() to getHTMLColorString(
                             Color.BLACK
                     ),
                     ThemeParameter.CColor.toString() to "#F34213",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#3E2F5B"
             )),
@@ -561,26 +872,50 @@ object RnartistConfig {
                             Color.BLACK
                     ),
                     ThemeParameter.GColor.toString() to "#0ACDFF",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#60AB9A",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#DEDEE0"
             )),
 
             "Burnished Melon" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#484A47",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#5C6D70",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#A37774",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#E88873",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#E0AC9D"
             )),
@@ -595,6 +930,9 @@ object RnartistConfig {
                             Color.BLACK
                     ),
                     ThemeParameter.GColor.toString() to "#6A5B6E",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#F0B7B3",
                     ThemeParameter.CChar.toString() to getHTMLColorString(
                             Color.BLACK
@@ -602,8 +940,11 @@ object RnartistConfig {
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#A833B9"
             )),
@@ -622,25 +963,46 @@ object RnartistConfig {
                             Color.BLACK
                     ),
                     ThemeParameter.CColor.toString() to "#A4031F",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#240B36"
             )),
 
             "Crimson Maroon" to Theme(defaultParams = mutableMapOf(
                     ThemeParameter.AColor.toString() to "#D62839",
+                    ThemeParameter.AChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.UColor.toString() to "#BA324F",
+                    ThemeParameter.UChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.GColor.toString() to "#175676",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#4BA3C3",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#CCE6F4"
             )),
@@ -655,12 +1017,21 @@ object RnartistConfig {
                             Color.BLACK
                     ),
                     ThemeParameter.GColor.toString() to "#BA5624",
+                    ThemeParameter.GChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.CColor.toString() to "#381D2A",
+                    ThemeParameter.CChar.toString() to getHTMLColorString(
+                            Color.WHITE
+                    ),
                     ThemeParameter.XColor.toString() to getHTMLColorString(
                             Color.LIGHT_GRAY
                     ),
+                    ThemeParameter.XChar.toString() to getHTMLColorString(
+                            Color.BLACK
+                    ),
                     ThemeParameter.SecondaryColor.toString() to getHTMLColorString(
-                            Color.LIGHT_GRAY
+                            Color.DARK_GRAY
                     ),
                     ThemeParameter.TertiaryColor.toString() to "#C4D6B0"
             ))
@@ -672,15 +1043,15 @@ object RnartistConfig {
     @JvmField
     var defaultThemeParams = mutableMapOf(
             ThemeParameter.AColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.AColor!!),
-            ThemeParameter.AChar.toString() to getHTMLColorString(Color.WHITE),
+            ThemeParameter.AChar.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.AChar!!),
             ThemeParameter.UColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.UColor!!),
-            ThemeParameter.UChar.toString() to getHTMLColorString(Color.WHITE),
+            ThemeParameter.UChar.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.UChar!!),
             ThemeParameter.GColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.GColor!!),
-            ThemeParameter.GChar.toString() to getHTMLColorString(Color.WHITE),
+            ThemeParameter.GChar.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.GChar!!),
             ThemeParameter.CColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.CColor!!),
-            ThemeParameter.CChar.toString() to getHTMLColorString(Color.WHITE),
+            ThemeParameter.CChar.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.CChar!!),
             ThemeParameter.XColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.XColor!!),
-            ThemeParameter.XChar.toString() to getHTMLColorString(Color.WHITE),
+            ThemeParameter.XChar.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.XChar!!),
             ThemeParameter.SecondaryColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.SecondaryColor!!),
             ThemeParameter.TertiaryColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.TertiaryColor!!),
             ThemeParameter.ResidueBorder.toString() to "0.75",
@@ -688,8 +1059,8 @@ object RnartistConfig {
             ThemeParameter.SecondaryInteractionWidth.toString() to "1.0",
             ThemeParameter.SecondaryInteractionShift.toString() to "1.0",
             ThemeParameter.TertiaryInteractionWidth.toString() to "1.0",
-            ThemeParameter.HaloWidth.toString() to "5.0",
-            ThemeParameter.TertiaryOpacity.toString() to "130", //alpha value goes from 0 to 255
+            ThemeParameter.HaloWidth.toString() to "2.5",
+            ThemeParameter.TertiaryOpacity.toString() to "75", //alpha value goes from 0 to 255
             ThemeParameter.ResidueCharOpacity.toString() to "255", //alpha value goes from 0 to 255
             ThemeParameter.TertiaryInteractionStyle.toString() to DASHED,
             ThemeParameter.FontName.toString() to "Arial",
