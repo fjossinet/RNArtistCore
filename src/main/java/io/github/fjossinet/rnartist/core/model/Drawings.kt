@@ -38,7 +38,7 @@ class WorkingSession() {
     var finalZoomLevel = 1.0
     var screen_capture = false
     var screen_capture_area: Rectangle2D? = null
-    val selection = mutableListOf<SecondaryStructureElement>()
+    val selection = mutableListOf<ResidueCircle>() //this is used to fade residues, interactions and phophobonds if not selected
     val selectionBounds:Rectangle2D?
         get() {
             var selectionBounds:Rectangle2D? = null
@@ -80,14 +80,63 @@ class WorkingSession() {
     }
 }
 
+fun transparentColor(source:Color, alpha:Int) = Color(source.red, source.green, source.blue, alpha);
+
+@JvmField
+var DASHED = "dashed"
+@JvmField
+var SOLID = "solid"
+
+enum class ThemeParameter {
+    AColor, AChar, UColor, UChar, GColor, GChar, CColor, CChar, XColor, XChar, SecondaryColor, TertiaryColor, ResidueCharOpacity, HaloWidth, TertiaryOpacity, PhosphodiesterWidth, SecondaryInteractionShift, SecondaryInteractionWidth, TertiaryInteractionWidth, TertiaryInteractionStyle, ResidueBorder, FontName, DeltaXRes, DeltaYRes, DeltaFontSize, DisplayLWSymbols
+}
+
+
+interface ThemeConfiguratorListener {
+
+    /**
+     * Theme parameter add
+     */
+    fun themeChange(parameter: ThemeParameter, value:String)
+    fun themeChange(parameter: ThemeParameter, value:Color)
+    fun themeChange(parameter: ThemeParameter, value:Double)
+    fun themeChange(parameter: ThemeParameter, value:Int)
+
+    /**
+     * Theme parameter removal
+     */
+    fun themeChange(parameter: ThemeParameter)
+
+    /**
+     * Full Theme modification
+     */
+    fun applyTheme(theme:Theme)
+    fun clearTheme();
+}
+
 interface ThemeConfigurator {
     fun addThemeConfiguratorListener(listener:ThemeConfiguratorListener)
     fun removeThemeConfiguratorListener(listener:ThemeConfiguratorListener)
+    fun removeThemeConfiguratorListeners()
+
+    /**
+     * Theme parameter add
+     */
     fun fireThemeChange(param:ThemeParameter, newValue:String)
     fun fireThemeChange(param:ThemeParameter, newValue:Int)
     fun fireThemeChange(param:ThemeParameter, newValue:Double)
     fun fireThemeChange(param:ThemeParameter, newValue:Color)
-    fun removeThemeConfiguratorListeners()
+
+    /**
+     * Theme parameter removal
+     */
+    fun fireThemeChange(param:ThemeParameter)
+
+    /**
+     * Full Theme modification
+     */
+    fun applyTheme(theme:Theme)
+    fun clearTheme()
 }
 
 abstract class AbstractThemeConfigurator():ThemeConfigurator {
@@ -108,47 +157,47 @@ abstract class AbstractThemeConfigurator():ThemeConfigurator {
     }
 
     override fun fireThemeChange(param: ThemeParameter, newValue: String) {
-            this.themeConfiguratorListeners.forEach {
-                it.newParameterValue(param, newValue)
-            }
+        this.themeConfiguratorListeners.forEach {
+            it.themeChange(param, newValue)
+        }
     }
 
     override fun fireThemeChange(param: ThemeParameter, newValue: Int) {
-            this.themeConfiguratorListeners.forEach {
-                it.newParameterValue(param, newValue)
-            }
+        this.themeConfiguratorListeners.forEach {
+            it.themeChange(param, newValue)
+        }
     }
 
     override fun fireThemeChange(param: ThemeParameter, newValue: Double) {
-            this.themeConfiguratorListeners.forEach {
-                it.newParameterValue(param, newValue)
-            }
+        this.themeConfiguratorListeners.forEach {
+            it.themeChange(param, newValue)
+        }
     }
 
     override fun fireThemeChange(param: ThemeParameter, newValue: Color) {
-            this.themeConfiguratorListeners.forEach {
-                it.newParameterValue(param, newValue)
-            }
+        this.themeConfiguratorListeners.forEach {
+            it.themeChange(param, newValue)
+        }
     }
 
-}
+    override fun fireThemeChange(param:ThemeParameter) {
+        this.themeConfiguratorListeners.forEach {
+            it.themeChange(param)
+        }
+    }
 
-fun transparentColor(source:Color, alpha:Int) = Color(source.red, source.green, source.blue, alpha);
+    override fun applyTheme(theme:Theme) {
+        this.themeConfiguratorListeners.forEach {
+            it.applyTheme(Theme(defaultParams = theme.params.toMutableMap())) //each listener needs to have its own theme isntance to modify them independently afterwards
+        }
+    }
 
-@JvmField
-var DASHED = "dashed"
-@JvmField
-var SOLID = "solid"
+    override fun clearTheme() {
+        this.themeConfiguratorListeners.forEach {
+            it.clearTheme()
+        }
+    }
 
-enum class ThemeParameter {
-    AColor, AChar, UColor, UChar, GColor, GChar, CColor, CChar, XColor, XChar, SecondaryColor, TertiaryColor, ResidueCharOpacity, HaloWidth, TertiaryOpacity, PhosphodiesterWidth, SecondaryInteractionShift, SecondaryInteractionWidth, TertiaryInteractionWidth, TertiaryInteractionStyle, ResidueBorder, FontName, DeltaXRes, DeltaYRes, DeltaFontSize, DisplayLWSymbols
-}
-
-interface ThemeConfiguratorListener {
-    fun newParameterValue(parameter: ThemeParameter, value:String)
-    fun newParameterValue(parameter: ThemeParameter, value:Color)
-    fun newParameterValue(parameter: ThemeParameter, value:Double)
-    fun newParameterValue(parameter: ThemeParameter, value:Int)
 }
 
 class Theme(defaultParams:MutableMap<String,String> = defaultThemeParams) {
@@ -288,7 +337,8 @@ abstract class SecondaryStructureElement(val ssDrawing:SecondaryStructureDrawing
 
     abstract val type:String
 
-    abstract val isSelected:Boolean
+    val residues:List<ResidueCircle>
+        get() = this.ssDrawing.getResiduesFromAbsPositions(*this.location.positions.toIntArray())
 
     //return a new Theme merging the parameters defined in this element an all its parents
     val mergedTheme: Theme
@@ -323,11 +373,6 @@ abstract class SecondaryStructureElement(val ssDrawing:SecondaryStructureDrawing
             )
             return Theme(params)
         }
-
-    /**
-     *  this function clears all the params for the themes attached to this element and any secondary structure subelement.
-     */
-    abstract fun clearThemes();
 
     fun getAColor():Color {
         return if (this.theme.AColor != null) this.theme.AColor!! else if (this !is HelixLine && this !is JunctionCircle && this.parent != null) (this.parent as SecondaryStructureElement).getAColor() else ssDrawing.theme.AColor!!
@@ -437,21 +482,29 @@ abstract class SecondaryStructureElement(val ssDrawing:SecondaryStructureDrawing
         return this.location.positions.toIntArray()
     }
 
-    override fun newParameterValue(parameter: ThemeParameter, value: String) {
+    override fun themeChange(parameter: ThemeParameter, value: String) {
         this.theme.params.put(parameter.toString(), value)
 
     }
 
-    override fun newParameterValue(parameter: ThemeParameter, value: Color) {
+    override fun themeChange(parameter: ThemeParameter, value: Color) {
         this.theme.params.put(parameter.toString(), getHTMLColorString(value))
     }
 
-    override fun newParameterValue(parameter: ThemeParameter, value: Double) {
+    override fun themeChange(parameter: ThemeParameter, value: Double) {
         this.theme.params.put(parameter.toString(), value.toString())
     }
 
-    override fun newParameterValue(parameter: ThemeParameter, value: Int) {
+    override fun themeChange(parameter: ThemeParameter, value: Int) {
         this.theme.params.put(parameter.toString(), value.toString())
+    }
+
+    override fun themeChange(parameter: ThemeParameter) {
+        this.theme.params.remove(parameter.toString())
+    }
+
+    override fun applyTheme(theme: Theme) {
+        this.theme = theme
     }
 
 }
@@ -500,7 +553,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
     val finalZoomLevel:Double
         get() = this.workingSession.finalZoomLevel
 
-    val selection:MutableList<SecondaryStructureElement>
+    val selection:MutableList<ResidueCircle>
         get() = this.workingSession.selection
 
     val length:Int
@@ -854,24 +907,6 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
         }
     }
 
-    /**
-     *  this function clears all the params for the themes attached to this element and any secondary structure subelement.
-     */
-    fun clearThemes() {
-        for (jc in this.allJunctions)
-            jc.clearThemes()
-        for (h in this.allHelices)
-            h.clearThemes()
-        for (i in this.secondaryInteractions)
-            i.clearThemes()
-        for (i in this.tertiaryInteractions)
-            i.clearThemes()
-        for (p in this.phosphodiesterBonds)
-            p.clearThemes()
-        for (r in this.residues)
-            r.clearThemes()
-    }
-
     fun getResiduesFromAbsPositions(vararg positions:Int): List<ResidueCircle> {
         val _residues:MutableList<ResidueCircle> = mutableListOf<ResidueCircle>()
         for (r: ResidueCircle in residues) {
@@ -939,15 +974,14 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                 it.drawHalo(g, at)
             }
 
+        if (!theme.quickDraw)
+            this.tertiaryInteractions.forEach {
+                it.draw(g, at)
+            }
+
         this.residues.forEach {
             it.draw(g, at)
         }
-
-        if (!theme.quickDraw && RnartistConfig.displayTertiariesInSelection)
-            this.tertiaryInteractions.forEach {
-                if (it.getTertiaryInteractionWidth() != 0.0)
-                    it.draw(g, at)
-            }
 
     }
 
@@ -980,6 +1014,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                         j.center,
                         step * (i - b.start).toDouble()
                     )
+                    this.residues[i-1].updated = true
                 }
             }
         }
@@ -1004,6 +1039,8 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
             this.residues[helix.helix.ends[0]-1].center = p2_3
             this.residues[helix.helix.ends[3]-1].center = p1_5
         }
+        this.residues[helix.helix.ends[0]-1].updated = true
+        this.residues[helix.helix.ends[3]-1].updated = true
         val (p1_3,p2_5) = getPerpendicular(
             helix.line.p2,
             helix.line.p1,
@@ -1018,6 +1055,8 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
             this.residues[helix.helix.ends[1]-1].center = p2_5
             this.residues[helix.helix.ends[2]-1].center = p1_3
         }
+        this.residues[helix.helix.ends[1]-1].updated = true
+        this.residues[helix.helix.ends[2]-1].updated = true
 
         val step = helixDrawingLength(helix.helix).toDouble()/(helix.helix.length-1).toDouble()
 
@@ -1028,6 +1067,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                 step * (i - helix.helix.ends[0]).toDouble()
             )
             this.residues[i-1].center = p1_1
+            this.residues[i-1].updated = true
         }
 
         for (i in helix.helix.ends[2]+1 until helix.helix.ends[3]) {
@@ -1037,6 +1077,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                 step * (i - helix.helix.ends[2]).toDouble()
             )
             this.residues[i-1].center = p1_1
+            this.residues[i-1].updated = true
         }
     }
 
@@ -1092,25 +1133,54 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
         return this.secondaryStructure.toString()
     }
 
-    override fun newParameterValue(parameter: ThemeParameter, value: String) {
+    override fun themeChange(parameter: ThemeParameter, value: String) {
         this.theme.params.put(parameter.toString(), value)
     }
 
-    override fun newParameterValue(parameter: ThemeParameter, value: Color) {
+    override fun themeChange(parameter: ThemeParameter, value: Color) {
         this.theme.params.put(parameter.toString(), getHTMLColorString(value))
     }
 
-    override fun newParameterValue(parameter: ThemeParameter, value: Double) {
+    override fun themeChange(parameter: ThemeParameter, value: Double) {
         this.theme.params.put(parameter.toString(), value.toString())
     }
 
-    override fun newParameterValue(parameter: ThemeParameter, value: Int) {
+    override fun themeChange(parameter: ThemeParameter, value: Int) {
         this.theme.params.put(parameter.toString(), value.toString())
+    }
+
+    override fun themeChange(parameter: ThemeParameter) {
+        //we restore the default parameter value, the full 2D needs to have any theme parameter defined. No deletion allowed.
+        this.theme.params.put(parameter.toString(), RnartistConfig.defaultThemeParams.getValue(parameter.toString()))
+    }
+
+    override fun applyTheme(theme: Theme) {
+        this.theme = theme
+    }
+
+    /**
+     *  this function clears all the params for the themes attached to this element and any secondary structure subelement.
+     */
+    override fun clearTheme() {
+        this.theme = Theme() //we come back to the default theme
+        for (jc in this.allJunctions)
+            jc.clearTheme()
+        for (h in this.allHelices)
+            h.clearTheme()
+        for (i in this.secondaryInteractions)
+            i.clearTheme()
+        for (i in this.tertiaryInteractions)
+            i.clearTheme()
+        for (p in this.phosphodiesterBonds)
+            p.clearTheme()
+        for (r in this.residues)
+            r.clearTheme()
     }
 }
 
 class ResidueCircle(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, absPos:Int, label:Char): SecondaryStructureElement(ssDrawing, parent, ""+label, Location(absPos)) {
 
+    var updated = true //to force the recomputation of interaction symbols
     val absPos:Int
         get() = this.location.start
 
@@ -1129,8 +1199,8 @@ class ResidueCircle(parent: SecondaryStructureElement?, ssDrawing: SecondaryStru
 
     override val type: String  = "Residue"
 
-    override val isSelected: Boolean
-        get() = this in this.ssDrawing.selection || if (this.parent!=null) this.parent!!.isSelected else false
+    val isSelected: Boolean
+        get() = this in this.ssDrawing.selection
 
     init {
         when(label) {
@@ -1184,9 +1254,10 @@ class ResidueCircle(parent: SecondaryStructureElement?, ssDrawing: SecondaryStru
                 }
             }
         }
+        this.updated = false
     }
 
-    override fun clearThemes() {
+    override fun clearTheme() {
         this.theme.params.clear()
     }
 
@@ -1234,9 +1305,6 @@ class HelixLine(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructur
     val length:Int
         get() = this.helix.length
 
-    override val isSelected: Boolean
-        get() = this in this.ssDrawing.selection
-
     override val type: String  = "Helix"
 
     override val bounds2D: Rectangle2D?
@@ -1247,10 +1315,10 @@ class HelixLine(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructur
             return bounds
         }
 
-    override fun clearThemes() {
+    override fun clearTheme() {
         this.theme.params.clear()
         for (i in this.secondaryInteractions) {
-            i.clearThemes()
+            i.clearTheme()
         }
     }
 
@@ -1279,14 +1347,14 @@ class SingleStrandLine(ssDrawing: SecondaryStructureDrawing, val ss: SingleStran
 
     override val type: String  = "Single Strand"
 
-    override val isSelected: Boolean
-        get() = this in this.ssDrawing.selection
-
     fun draw(g: Graphics2D, at:AffineTransform) {
         g.draw(at.createTransformedShape(this.line))
     }
 
-    override fun clearThemes() {
+    override fun clearTheme() {
+        this.theme.params.clear()
+        for (r in this.ssDrawing.getResiduesFromAbsPositions(*this.getSinglePositions()))
+            r.clearTheme()
     }
 }
 
@@ -1442,9 +1510,6 @@ class JunctionCircle (parent: SecondaryStructureElement?, ssDrawing: SecondarySt
             }
             return typeName
         }
-
-    override val isSelected: Boolean
-        get() = this in this.ssDrawing.selection
 
     init {
         this.connectors[this.inId.value] = inPoint
@@ -1787,41 +1852,55 @@ class JunctionCircle (parent: SecondaryStructureElement?, ssDrawing: SecondarySt
 
     }
 
-    override fun clearThemes() {
+    override fun clearTheme() {
         this.theme.params.clear()
         for (r in this.ssDrawing.getResiduesFromAbsPositions(*this.getSinglePositions()))
-            r.clearThemes()
+            r.clearTheme()
     }
 
 }
 
 abstract class LWSymbol(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, name:String, location:Location, val inTertiaries: Boolean):SecondaryStructureElement(ssDrawing, parent, name, location) {
 
-    lateinit protected var shape:Shape
+    protected var shape:Shape? = null
 
     open fun draw(g: Graphics2D, at:AffineTransform) {
-        g.color = this.getSecondaryColor()
-        if (!this.ssDrawing.selection.isEmpty() && !this.isSelected) {
-            g.color = Color(g.color.red, g.color.green, g.color.blue,
-                    if (inTertiaries) (RnartistConfig.selectionFading /255.0*this.getTertiaryOpacity()).toInt() else RnartistConfig.selectionFading
-            )
-        } else
-            g.color = Color(g.color.red, g.color.green, g.color.blue,
-                    if (inTertiaries) this.getTertiaryOpacity() else 255
-            )
+        if (inTertiaries) {
+            g.color = Color(this.getTertiaryColor().red, this.getTertiaryColor().green, this.getTertiaryColor().blue, this.getTertiaryOpacity())
+            if (this.getTertiaryInteractionStyle() == DASHED)
+                g.stroke = BasicStroke(
+                        this.ssDrawing.finalZoomLevel.toFloat() * this.getTertiaryInteractionWidth().toFloat(),
+                        BasicStroke.CAP_ROUND,
+                        BasicStroke.JOIN_ROUND,
+                        0F,
+                        floatArrayOf(this.ssDrawing.finalZoomLevel.toFloat() * this.getTertiaryInteractionWidth().toFloat() * 2),
+                        0F
+                )
+            else
+                g.stroke = BasicStroke(
+                        this.ssDrawing.finalZoomLevel.toFloat() * this.getTertiaryInteractionWidth().toFloat(),
+                        BasicStroke.CAP_ROUND,
+                        BasicStroke.JOIN_ROUND
+                )
+        }
+        else {
+            g.color = Color(this.getSecondaryColor().red, this.getSecondaryColor().green, this.getSecondaryColor().blue, if ((this.parent as BaseBaseInteraction).selected)  255 else RnartistConfig.selectionFading)
+                g.stroke = BasicStroke(
+                        this.ssDrawing.finalZoomLevel.toFloat() * this.getSecondaryInteractionWidth().toFloat(),
+                        BasicStroke.CAP_ROUND,
+                        BasicStroke.JOIN_ROUND
+                )
+        }
     }
 
     abstract fun setSymbol(p1:Point2D, p2: Point2D)
 
     override val bounds2D: Rectangle2D?
-        get() = this.shape.bounds2D
+        get() = this.shape?.bounds2D
 
     override val type: String  = "LW Symbol"
 
-    override val isSelected: Boolean
-        get() = this in this.ssDrawing.selection || if (this.parent!=null) this.parent!!.isSelected else false
-
-    override fun clearThemes() {
+    override fun clearTheme() {
         this.theme.params.clear()
     }
 }
@@ -1854,7 +1933,9 @@ class CisWC(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDra
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
         super.draw(g, at)
-        g.fill(at.createTransformedShape(this.shape))
+        this.shape?.let {
+            g.fill(at.createTransformedShape(this.shape))
+        }
     }
 
     override fun toString(): String {
@@ -1866,19 +1947,9 @@ class TransWC(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureD
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
         super.draw(g, at)
-        if (inTertiaries)
-            g.stroke = BasicStroke(
-                this.ssDrawing.finalZoomLevel.toFloat() * this.getTertiaryInteractionWidth().toFloat(),
-                BasicStroke.CAP_ROUND,
-                BasicStroke.JOIN_ROUND
-            )
-        else
-            g.stroke = BasicStroke(
-                    this.ssDrawing.finalZoomLevel.toFloat() * this.getSecondaryInteractionWidth().toFloat(),
-                    BasicStroke.CAP_ROUND,
-                    BasicStroke.JOIN_ROUND
-            )
-        g.draw(at.createTransformedShape(this.shape))
+        this.shape?.let {
+            g.draw(at.createTransformedShape(this.shape))
+        }
     }
 
     override fun toString(): String {
@@ -1924,7 +1995,9 @@ class CisRightSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStru
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
         super.draw(g, at)
-        g.fill(at.createTransformedShape(this.shape))
+        this.shape?.let {
+            g.fill(at.createTransformedShape(this.shape))
+        }
     }
 
     override fun toString(): String {
@@ -1937,7 +2010,10 @@ class CisLeftSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStruc
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
         super.draw(g, at)
-        g.fill(at.createTransformedShape(this.shape))
+        this.shape?.let {
+            g.fill(at.createTransformedShape(this.shape))
+        }
+
     }
 
     override fun toString(): String {
@@ -1950,19 +2026,9 @@ class TransRightSugar(parent: SecondaryStructureElement?, ssDrawing: SecondarySt
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
         super.draw(g, at)
-        if (inTertiaries)
-            g.stroke = BasicStroke(
-                this.ssDrawing.finalZoomLevel.toFloat() * this.getTertiaryInteractionWidth().toFloat(),
-                BasicStroke.CAP_ROUND,
-                BasicStroke.JOIN_ROUND
-            )
-        else
-            g.stroke = BasicStroke(
-                    this.ssDrawing.finalZoomLevel.toFloat() * this.getSecondaryInteractionWidth().toFloat(),
-                    BasicStroke.CAP_ROUND,
-                    BasicStroke.JOIN_ROUND
-            )
-        g.draw(at.createTransformedShape(this.shape))
+        this.shape?.let {
+            g.draw(at.createTransformedShape(this.shape))
+        }
     }
 
     override fun toString(): String {
@@ -1975,19 +2041,9 @@ class TransLeftSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStr
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
         super.draw(g, at)
-        if (inTertiaries)
-            g.stroke = BasicStroke(
-                this.ssDrawing.finalZoomLevel.toFloat() * this.getTertiaryInteractionWidth().toFloat(),
-                BasicStroke.CAP_ROUND,
-                BasicStroke.JOIN_ROUND
-            )
-        else
-            g.stroke = BasicStroke(
-                    this.ssDrawing.finalZoomLevel.toFloat() * this.getSecondaryInteractionWidth().toFloat(),
-                    BasicStroke.CAP_ROUND,
-                    BasicStroke.JOIN_ROUND
-            )
-        g.draw(at.createTransformedShape(this.shape))
+        this.shape?.let {
+            g.draw(at.createTransformedShape(this.shape))
+        }
     }
 
     override fun toString(): String {
@@ -2019,7 +2075,9 @@ class CisHoogsteen(parent: SecondaryStructureElement?, ssDrawing: SecondaryStruc
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
         super.draw(g, at)
-        g.fill(at.createTransformedShape(this.shape))
+        this.shape?.let {
+            g.fill(at.createTransformedShape(this.shape))
+        }
     }
 
     override fun toString(): String {
@@ -2032,19 +2090,9 @@ class TransHoogsteen(parent: SecondaryStructureElement?, ssDrawing: SecondaryStr
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
         super.draw(g, at)
-        if (inTertiaries)
-            g.stroke = BasicStroke(
-                this.ssDrawing.finalZoomLevel.toFloat() * this.getTertiaryInteractionWidth().toFloat(),
-                BasicStroke.CAP_ROUND,
-                BasicStroke.JOIN_ROUND
-            )
-        else
-            g.stroke = BasicStroke(
-                    this.ssDrawing.finalZoomLevel.toFloat() * this.getSecondaryInteractionWidth().toFloat(),
-                    BasicStroke.CAP_ROUND,
-                    BasicStroke.JOIN_ROUND
-            )
-        g.draw(at.createTransformedShape(this.shape))
+        this.shape?.let {
+            g.draw(at.createTransformedShape(this.shape))
+        }
     }
 
     override fun toString(): String {
@@ -2080,33 +2128,8 @@ class LWLine(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDr
 
     override fun draw(g: Graphics2D, at:AffineTransform) {
         super.draw(g, at)
-        if (!this.inTertiaries) {
-            g.stroke = BasicStroke(
-                    this.ssDrawing.finalZoomLevel.toFloat() * this.getSecondaryInteractionWidth().toFloat(),
-                    BasicStroke.CAP_ROUND,
-                    BasicStroke.JOIN_ROUND
-            )
+        this.shape?.let {
             g.draw(at.createTransformedShape(this.shape))
-        }
-        else {
-            ssDrawing?.let {
-                if (this.getTertiaryInteractionStyle() == DASHED)
-                    g.stroke = BasicStroke(
-                        this.ssDrawing.finalZoomLevel.toFloat() * this.getTertiaryInteractionWidth().toFloat(),
-                        BasicStroke.CAP_ROUND,
-                        BasicStroke.JOIN_ROUND,
-                        0F,
-                        floatArrayOf(this.ssDrawing.finalZoomLevel.toFloat() * this.getTertiaryInteractionWidth().toFloat() * 2),
-                        0F
-                    )
-                else
-                    g.stroke = BasicStroke(
-                        this.ssDrawing.finalZoomLevel.toFloat() * this.getTertiaryInteractionWidth().toFloat(),
-                        BasicStroke.CAP_ROUND,
-                        BasicStroke.JOIN_ROUND
-                    )
-                g.draw(at.createTransformedShape(this.shape))
-            }
         }
     }
 
@@ -2122,6 +2145,9 @@ abstract class BaseBaseInteraction(parent: SecondaryStructureElement?, val inter
     protected var p2:Point2D? = null
     var lwSymbols = mutableListOf<LWSymbol>()
     var regularSymbols = mutableListOf<LWSymbol>()
+
+    abstract val selected: Boolean
+
     val residue:ResidueCircle
         get() {
             return ssDrawing.getResiduesFromAbsPositions(this.start).first()
@@ -2187,15 +2213,15 @@ abstract class BaseBaseInteraction(parent: SecondaryStructureElement?, val inter
         return this.interaction.toString()
     }
 
-    override fun clearThemes() {
+    override fun clearTheme() {
         this.theme.params.clear()
-        this.residue.clearThemes()
-        this.pairedResidue.clearThemes()
+        this.residue.clearTheme()
+        this.pairedResidue.clearTheme()
         for (s in this.regularSymbols) {
-            s.clearThemes()
+            s.clearTheme()
         }
         for (s in this.lwSymbols) {
-            s.clearThemes()
+            s.clearTheme()
         }
     }
 }
@@ -2209,10 +2235,10 @@ class SecondaryInteractionLine(parent: SecondaryStructureElement?, interaction: 
             return bounds
         }
 
-    override val type: String = "Secondary Interaction"
+    override val selected: Boolean
+        get() = this.ssDrawing.selection.isEmpty() || this.residue in this.ssDrawing.selection && this.pairedResidue in this.ssDrawing.selection
 
-    override val isSelected: Boolean
-        get() = this in this.ssDrawing.selection || if (this.parent!=null) this.parent!!.isSelected else false
+    override val type: String = "Secondary Interaction"
 
     init {
         this.regularSymbols.add(LWLine(this, this.ssDrawing, this.location, false))
@@ -2242,72 +2268,67 @@ class SecondaryInteractionLine(parent: SecondaryStructureElement?, interaction: 
     }
 
     fun draw(g: Graphics2D, at:AffineTransform) {
-        val previousStroke = g.stroke
-        g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat()*this.getSecondaryInteractionWidth().toFloat(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
-        val center1 = this.residue.center
-        val center2 = this.pairedResidue.center
+        if (residue.updated) {//the paired residue is de facto updated too
+            val center1 = this.residue.center
+            val center2 = this.pairedResidue.center
 
-        if (center1 != null && center2 != null) {
-            val shift = radiusConst+this.getSecondaryInteractionShift()+this.getResidueBorder()/2.0+this.getSecondaryInteractionWidth()/2.0
-            if (distance(center1,center2) > 2*shift) {
-                val points = pointsFrom(
-                    center1,
-                    center2,
-                    shift
-                )
-                this.p1 = points.first
-                this.p2 = points.second
-                if (!displayLWSymbols()) {
+            if (center1 != null && center2 != null) {
+                val shift = radiusConst + this.getSecondaryInteractionShift() + this.getResidueBorder() / 2.0 + this.getSecondaryInteractionWidth() / 2.0
+                if (distance(center1, center2) > 2 * shift) {
+                    val points = pointsFrom(
+                            center1,
+                            center2,
+                            shift
+                    )
+                    this.p1 = points.first
+                    this.p2 = points.second
                     regularSymbols.forEach { nonLwSymbol ->
                         nonLwSymbol.setSymbol(this.p1 as Point2D, this.p2 as Point2D)
-                        nonLwSymbol.draw(g, at)
                     }
-                } else {
                     if (this.isCanonical) {
                         if (isDoublePaired) {
                             this.lwSymbols[0].setSymbol(this.p1 as Point2D, this.p2 as Point2D)
-                            this.lwSymbols[0].draw(g, at)
-
                             this.lwSymbols[1].setSymbol(this.p1 as Point2D, this.p2 as Point2D)
-                            this.lwSymbols[1].draw(g, at)
                         } else {
                             this.lwSymbols[0].setSymbol(this.p1 as Point2D, this.p2 as Point2D)
-                            this.lwSymbols[0].draw(g, at)
                         }
                     } else {
                         val distance = distance(this.p1 as Point2D, this.p2 as Point2D)
                         val symbolWidth = distance / 3.0
                         if (interaction.edge5 == interaction.edge3) {
                             val (p1_inner, p2_inner) = pointsFrom(p1 as Point2D, p2 as Point2D, symbolWidth / 2.0)
-
                             this.lwSymbols[0].setSymbol(p1!!, p1_inner)
-                            this.lwSymbols[0].draw(g, at)
-
                             this.lwSymbols[2].setSymbol(p2_inner, p2!!)
-                            this.lwSymbols[2].draw(g, at)
-
-                            //to have the central symbol above
                             this.lwSymbols[1].setSymbol(p1_inner, p2_inner)
-                            this.lwSymbols[1].draw(g, at)
 
                         } else {
-                            val (p1_inner, p2_inner) =  pointsFrom(p1 as Point2D, p2 as Point2D, symbolWidth + symbolWidth / 4.0)
+                            val (p1_inner, p2_inner) = pointsFrom(p1 as Point2D, p2 as Point2D, symbolWidth + symbolWidth / 4.0)
                             this.lwSymbols[0].setSymbol(p1!!, p1_inner)
-                            this.lwSymbols[0].draw(g, at)
-
                             this.lwSymbols[2].setSymbol(p2_inner, p2!!)
-                            this.lwSymbols[2].draw(g, at)
-
-                            //to have the central symbol above
                             this.lwSymbols[1].setSymbol(p1_inner, p2_inner)
-                            this.lwSymbols[1].draw(g, at)
-
                         }
                     }
                 }
             }
         }
-        g.stroke = previousStroke
+
+        if (!displayLWSymbols())
+
+            regularSymbols.forEach { nonLwSymbol ->
+                val _previousColor = g.color
+                val _previousStroke = g.stroke
+                nonLwSymbol.draw(g, at)
+                g.color = _previousColor
+                g.stroke = _previousStroke
+            }
+        else
+            this.lwSymbols.forEach { lwSymbol ->
+                val _previousColor = g.color
+                val _previousStroke = g.stroke
+                lwSymbol.draw(g, at)
+                g.color = _previousColor
+                g.stroke = _previousStroke
+            }
     }
 
     fun asSVG(indentChar:String ="\t", indentLevel:Int = 1, theme: Theme, transX:Double= 0.0, transY:Double = 0.0):String {
@@ -2335,10 +2356,10 @@ class TertiaryInteractionLine(parent: SecondaryStructureElement?, interaction: B
             return bounds
         }
 
-    override val type: String = "Tertiary Interaction"
+    override val selected: Boolean
+        get() = this.residue in this.ssDrawing.selection || this.pairedResidue in this.ssDrawing.selection
 
-    override val isSelected: Boolean
-        get() = this in this.ssDrawing.selection || this.residue in this.ssDrawing.selection && this.pairedResidue in this.ssDrawing.selection
+    override val type: String = "Tertiary Interaction"
 
     init {
         this.regularSymbols.add(LWLine(this, this.ssDrawing, this.location, true))
@@ -2351,102 +2372,107 @@ class TertiaryInteractionLine(parent: SecondaryStructureElement?, interaction: B
     }
 
     fun drawHalo(g: Graphics2D, at:AffineTransform) {
-        val previousStroke = g.stroke
         g.color = Color(this.getTertiaryColor().red, this.getTertiaryColor().green, this.getTertiaryColor().blue, this.getTertiaryOpacity())
-        if (!this.ssDrawing.selection.isEmpty() && !this.isSelected) //we fade it even more if unselected
-            g.color = Color(g.color.red, g.color.green, g.color.blue, (RnartistConfig.selectionFading /255.0*this.getTertiaryOpacity()).toInt()) //the fading of an unselected interaction is reduced by x%, x is the % of decrease of selection fading (according to full opacity which is 255).
+
         val shift = this.getHaloWidth()+this.getResidueBorder()/2.0
         val newWidth = (this.ssDrawing.residues[this.interaction.start - 1].circle!!.width) + 2*shift
         var newCircle = Ellipse2D.Double(this.ssDrawing.residues[this.interaction.start - 1].circle!!.centerX-newWidth/2.0, this.ssDrawing.residues[this.interaction.start - 1].circle!!.centerY-newWidth/2.0, newWidth,newWidth)
         g.fill(at.createTransformedShape(newCircle))
-        newCircle = Ellipse2D.Double(this.ssDrawing.residues[this.interaction.end - 1].circle!!.centerX-newWidth/2.0, this.ssDrawing.residues[this.interaction.end - 1].circle!!.centerY-newWidth/2.0 , newWidth,newWidth)
-        g.fill(at.createTransformedShape(newCircle))
+
         g.color = Color(
             this.getTertiaryColor().red,
             this.getTertiaryColor().green,
             this.getTertiaryColor().blue,
             255
         )
-        g.stroke = previousStroke
     }
 
     fun draw(g: Graphics2D, at:AffineTransform) {
-        val previousStroke = g.stroke
-        if (this.isSelected) {
-            g.color = Color(this.getTertiaryColor().red, this.getTertiaryColor().green, this.getTertiaryColor().blue, this.getTertiaryOpacity())
-            val center1 = this.ssDrawing.residues[this.interaction.start-1].center
-            val center2 = this.ssDrawing.residues[this.interaction.end-1].center
+
+        if (this.residue.updated || this.pairedResidue.updated) {
+            val center1 = this.residue.center
+            val center2 = this.pairedResidue.center
             if (center1 != null && center2 != null) {
 
                 val shift = radiusConst + this.getResidueBorder().toDouble() / 2.0
                 if (distance(center1, center2) > 2 * shift) {
-                    val (p1,p2) = pointsFrom(
+                    val (p1, p2) = pointsFrom(
                             center1,
                             center2,
                             shift
                     )
-                    if (!displayLWSymbols()) {
-                        regularSymbols.forEach { nonLwSymbol ->
-                            nonLwSymbol.setSymbol(p1,p2)
-                            nonLwSymbol.draw(g, at)
-                        }
-                    } else {
-                        this.p1 = pointsFrom(
-                                center1,
-                                center2,
-                                shift
-                        ).first
 
-                        this.p2 = pointsFrom(
-                                center1,
-                                center2,
-                                shift + radiusConst * 1.5
-                        ).first
-                        val forLine_1 = this.p2!!
-
-                        this.p1?.let { p1 ->
-                            this.p2?.let { p2 ->
-                                this.lwSymbols[0].setSymbol(this.p1 as Point2D, this.p2 as Point2D)
-                                this.lwSymbols[0].draw(g, at)
-                            }
-                        }
-
-                        this.p1 = pointsFrom(
-                                center1,
-                                center2,
-                                shift
-                        ).second
-
-                        this.p2 = pointsFrom(
-                                center1,
-                                center2,
-                                shift + radiusConst * 1.5
-                        ).second
-
-                        val forLine_2 = this.p2!!
-
-                        this.p1?.let { p1 ->
-                            this.p2?.let { p2 ->
-                                this.lwSymbols[2].setSymbol(this.p1 as Point2D, this.p2 as Point2D)
-                                this.lwSymbols[2].draw(g, at)
-                            }
-                        }
-
-                        //+++++ central line linking the two symbols
-                        this.lwSymbols[1].setSymbol(forLine_1, forLine_2)
-                        this.lwSymbols[1].draw(g, at)
-
+                    regularSymbols.forEach { nonLwSymbol ->
+                        nonLwSymbol.setSymbol(p1, p2)
                     }
+
+                    //LW Symbols now
+                    this.p1 = pointsFrom(
+                            center1,
+                            center2,
+                            shift
+                    ).first
+
+                    this.p2 = pointsFrom(
+                            center1,
+                            center2,
+                            shift + radiusConst * 1.5
+                    ).first
+                    val forLine_1 = this.p2!!
+
+                    this.p1?.let { p1 ->
+                        this.p2?.let { p2 ->
+                            this.lwSymbols[0].setSymbol(this.p1 as Point2D, this.p2 as Point2D)
+                        }
+                    }
+
+                    this.p1 = pointsFrom(
+                            center1,
+                            center2,
+                            shift
+                    ).second
+
+                    this.p2 = pointsFrom(
+                            center1,
+                            center2,
+                            shift + radiusConst * 1.5
+                    ).second
+
+                    val forLine_2 = this.p2!!
+
+                    this.p1?.let { p1 ->
+                        this.p2?.let { p2 ->
+                            this.lwSymbols[2].setSymbol(this.p1 as Point2D, this.p2 as Point2D)
+                        }
+                    }
+
+                    //+++++ central line linking the two symbols
+                    this.lwSymbols[1].setSymbol(forLine_1, forLine_2)
+
                 }
             }
         }
-        g.color = Color(
-            this.getTertiaryColor().red,
-            this.getTertiaryColor().green,
-            this.getTertiaryColor().blue,
-            255
-        )
-        g.stroke = previousStroke
+
+        if (getTertiaryInteractionWidth() != 0.0 && this.selected) {
+
+            val previousColor = g.color
+            g.color = Color(this.getTertiaryColor().red, this.getTertiaryColor().green, this.getTertiaryColor().blue, this.getTertiaryOpacity())
+
+            if (!displayLWSymbols())
+                regularSymbols.forEach { nonLwSymbol ->
+                    val _previousColor = g.color
+                    nonLwSymbol.draw(g, at)
+                    g.color = _previousColor
+                }
+            else
+                lwSymbols.forEach { lwSymbol ->
+                    val _previousColor = g.color
+                    lwSymbol.draw(g, at)
+                    g.color = _previousColor
+                }
+
+            g.color = previousColor
+         }
     }
 
     fun asSVG(indentChar:String ="\t", indentLevel:Int = 1, theme: Theme, transX:Double= 0.0, transY:Double = 0.0):String {
@@ -2493,15 +2519,15 @@ class PhosphodiesterBondLine(parent: SecondaryStructureElement?, ssDrawing: Seco
 
     override val type: String= "PhosphoDiester Bond"
 
-    override val isSelected: Boolean
-        get() = this in ssDrawing.selection || if (this.parent!=null) this.parent!!.isSelected else false
+    val selected: Boolean
+        get() = this.residue in this.ssDrawing.selection && this.nextResidue in this.ssDrawing.selection
 
 
     fun draw(g: Graphics2D, at:AffineTransform) {
         val previousStroke = g.stroke
         g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat()*this.getPhosphodiesterWidth().toFloat())
         g.color = Color.DARK_GRAY
-        if (!this.ssDrawing.selection.isEmpty() && !this.isSelected) {
+        if (!this.ssDrawing.selection.isEmpty() && !this.selected) {
             g.color = Color(g.color.red, g.color.green, g.color.blue,
                 RnartistConfig.selectionFading
             )
@@ -2538,7 +2564,7 @@ class PhosphodiesterBondLine(parent: SecondaryStructureElement?, ssDrawing: Seco
         return ""
     }
 
-    override fun clearThemes() {
+    override fun clearTheme() {
         this.theme.params.clear()
     }
 }

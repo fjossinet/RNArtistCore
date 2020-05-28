@@ -3,6 +3,7 @@ package io.github.fjossinet.rnartist.core.model
 import com.google.gson.Gson
 import io.github.fjossinet.rnartist.core.model.io.getUserDir
 import org.apache.commons.lang3.tuple.MutablePair
+import org.dizitart.no2.NitriteId
 import org.jdom2.Document
 import org.jdom2.Element
 import org.jdom2.JDOMException
@@ -1040,6 +1041,9 @@ object RnartistConfig {
     @JvmStatic
     private var document: Document? = null
 
+    @JvmStatic
+    var lastThemeSavedId: org.apache.commons.lang3.tuple.Pair<String, NitriteId>? = null
+
     @JvmField
     var defaultThemeParams = mutableMapOf(
             ThemeParameter.AColor.toString() to getHTMLColorString(defaultColorSchemes.get("Persian Carolina")!!.AColor!!),
@@ -1079,9 +1083,11 @@ object RnartistConfig {
             val builder = SAXBuilder()
             try {
                 document = builder.build(configFile)
-                val drawing = document!!.getRootElement().getChild("theme")
-                if (drawing != null) {
-                    for (c in drawing.getChildren()) {
+                val theme = document!!.getRootElement().getChild("theme")
+                if (theme != null) {
+                    if (theme.hasAttributes())
+                        lastThemeSavedId = org.apache.commons.lang3.tuple.Pair.of(theme.getAttributeValue("name"), NitriteId.createId(theme.getAttributeValue("id").toLong()))
+                    for (c in theme.getChildren()) {
                         defaultThemeParams[(c as Element).name] = c.text
                     }
                 }
@@ -1095,6 +1101,7 @@ object RnartistConfig {
             )
             root.addContent(Element("displayTertiariesInSelection"))
             root.addContent(Element("displayLWSymbols"))
+            root.addContent(Element("save-current-theme-on-exit"))
             document = Document(root)
         }
         recoverWebsite()
@@ -1102,19 +1109,24 @@ object RnartistConfig {
 
     @JvmStatic
     @Throws(IOException::class)
-    fun save(theme: Map<String, String>?) {
+    fun save(theme: Map<String, String>?, savedTheme: org.apache.commons.lang3.tuple.Pair<String, NitriteId>?) {
         theme?.let {
-            var drawing = document!!.rootElement.getChild("theme")
-            if (drawing == null) {
-                drawing = Element("theme")
-                document!!.rootElement.addContent(drawing)
-            } else
-                drawing.removeContent()
-
+            var themeElement = document!!.rootElement.getChild("theme")
+            if (themeElement == null) {
+                themeElement = Element("theme")
+                document!!.rootElement.addContent(themeElement)
+            } else {
+                themeElement.removeContent()
+                themeElement.attributes.clear()
+            }
+            savedTheme?.let { //the current theme was a saved one. We keep this information to recover it next launch
+                themeElement.setAttribute("name", savedTheme.key)
+                themeElement.setAttribute("id", savedTheme.value.idValue.toString())
+            }
             for ((k, v) in theme) {
                 val e = Element(k)
                 e.setText(v)
-                drawing.addContent(e)
+                themeElement.addContent(e)
                 defaultThemeParams[k] = v //we don't forget to save it in the defaultTheme map
             }
         }
@@ -1324,6 +1336,20 @@ object RnartistConfig {
             document!!.rootElement.addContent(Element("export-SVG-with-browser-compatibility"))
         else if (!compatibility)
             document!!.rootElement.removeChild("export-SVG-with-browser-compatibility")
+    }
+
+    @JvmStatic
+    fun saveCurrentThemeOnExit(): Boolean {
+        var e = document!!.rootElement.getChild("save-current-theme-on-exit")
+        return e != null
+    }
+
+    @JvmStatic
+    fun saveCurrentThemeOnExit(save: Boolean) {
+        if (save && !saveCurrentThemeOnExit() /*the element is not already there*/)
+            document!!.rootElement.addContent(Element("save-current-theme-on-exit"))
+        else if (!save)
+            document!!.rootElement.removeChild("save-current-theme-on-exit")
     }
 
     @JvmStatic

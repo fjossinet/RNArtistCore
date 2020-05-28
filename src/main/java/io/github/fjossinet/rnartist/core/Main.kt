@@ -175,7 +175,7 @@ fun main(args:Array<String>) {
                 }
             }
             if (optionExists(args, "-s", "--save")) {
-                RnartistConfig.save(theme.params)
+                RnartistConfig.save(theme.params, null)
             }
         } else {
             printHelp()
