@@ -19,8 +19,9 @@ fun main(args:Array<String>) {
         val theme = Theme()
         if (optionExists(args, "-p", "--print")) {
             println("\n#### Current user-defined options to plot the 2D structures ####")
-            for ((k,v) in theme.params)
-                println("- ${k}: ${v}")
+            for ((elementType,parameters) in theme.configurations)
+                for ((name,value) in parameters)
+                    println("-${elementType} ${name}: ${value}")
             println("-SVG WebBrowsers fix: ${RnartistConfig.exportSVGWithBrowserCompatibility()}")
             println("##################################################################\n")
         }
@@ -36,47 +37,47 @@ fun main(args:Array<String>) {
                 )
             getOptionValue(args, "-cA")?.let {
                 if (!it.startsWith("#"))
-                    theme.AColor = getAWTColor("#$it")!!
+                    theme.setConfigurationFor(SecondaryStructureType.A, DrawingConfigurationParameter.Color,"#$it")
                 else
-                    theme.AColor = getAWTColor(it)!!
+                    theme.setConfigurationFor(SecondaryStructureType.A, DrawingConfigurationParameter.Color,"$it")
             }
 
             getOptionValue(args, "-cU")?.let {
                 if (!it.startsWith("#"))
-                    theme.UColor = getAWTColor("#$it")!!
+                    theme.setConfigurationFor(SecondaryStructureType.U, DrawingConfigurationParameter.Color,"#$it")
                 else
-                    theme.UColor = getAWTColor(it)!!
+                    theme.setConfigurationFor(SecondaryStructureType.U, DrawingConfigurationParameter.Color,"$it")
             }
 
             getOptionValue(args, "-cG")?.let {
                 if (!it.startsWith("#"))
-                    theme.GColor = getAWTColor("#$it")!!
+                    theme.setConfigurationFor(SecondaryStructureType.G, DrawingConfigurationParameter.Color,"#$it")
                 else
-                    theme.GColor = getAWTColor(it)!!
+                    theme.setConfigurationFor(SecondaryStructureType.G, DrawingConfigurationParameter.Color,"$it")
             }
 
             getOptionValue(args, "-cC")?.let {
                 if (!it.startsWith("#"))
-                    theme.CColor = getAWTColor("#$it")!!
+                    theme.setConfigurationFor(SecondaryStructureType.C, DrawingConfigurationParameter.Color,"#$it")
                 else
-                    theme.CColor = getAWTColor(it)!!
+                    theme.setConfigurationFor(SecondaryStructureType.C, DrawingConfigurationParameter.Color,"$it")
             }
 
             getOptionValue(args, "-c2d")?.let {
                 if (!it.startsWith("#"))
-                    theme.SecondaryColor = getAWTColor("#$it")!!
+                    theme.setConfigurationFor(SecondaryStructureType.SecondaryInteraction, DrawingConfigurationParameter.Color,"#$it")
                 else
-                    theme.SecondaryColor = getAWTColor(it)!!
+                    theme.setConfigurationFor(SecondaryStructureType.SecondaryInteraction, DrawingConfigurationParameter.Color,"$it")
             }
 
             getOptionValue(args, "-c3d")?.let {
                 if (!it.startsWith("#"))
-                    theme.TertiaryColor = getAWTColor("#$it")!!
+                    theme.setConfigurationFor(SecondaryStructureType.TertiaryInteraction, DrawingConfigurationParameter.Color,"#$it")
                 else
-                    theme.TertiaryColor = getAWTColor(it)!!
+                    theme.setConfigurationFor(SecondaryStructureType.TertiaryInteraction, DrawingConfigurationParameter.Color,"$it")
             }
 
-            getOptionValue(args, "--font")?.let {
+            /*getOptionValue(args, "--font")?.let {
                 theme.fontName = it
             }
 
@@ -114,7 +115,7 @@ fun main(args:Array<String>) {
 
             getOptionValue(args, "-o3d", "--opacity-3d")?.let {
                 theme.tertiaryOpacity = it.toInt()
-            }
+            }*/
 
             val outputPath = getOptionValue(args, "-o")?.let {
                 it.replaceFirst("~", System.getProperty("user.home"))
@@ -175,7 +176,7 @@ fun main(args:Array<String>) {
                 }
             }
             if (optionExists(args, "-s", "--save")) {
-                RnartistConfig.save(theme.params, null)
+                //RnartistConfig.save(theme.params, null)
             }
         } else {
             printHelp()

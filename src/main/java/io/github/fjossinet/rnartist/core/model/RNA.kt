@@ -82,22 +82,18 @@ class Location:Serializable {
     constructor(l1: Location, l2: Location):this((l1.positions + l2.positions).distinct().sorted().toIntArray()) {
     }
 
-    fun addPosition(position:Int) {
-        val mutableSet = this.positions.toMutableSet()
-        mutableSet.add(position)
-        this.blocks.clear()
-        this.blocks.addAll(toBlocks(mutableSet.toIntArray()))
-    }
-
-    fun remove(l: Location) {
-        val difference: Location = this.differenceOf(l)
-        this.blocks = difference.blocks
+    fun addLocation(l:Location):Location {
+        val mutableSet = mutableSetOf<Int>()
+        for (pos in l.positions)
+            mutableSet.add(pos)
+        for (pos in this.positions)
+            mutableSet.add(pos)
+        return Location(mutableSet.toIntArray())
     }
 
     fun differenceOf(l: Location): Location {
         return Location((this.positions - l.positions).toIntArray())
     }
-
 
     fun contains(position:Int) = this.blocks.any { it.contains(position) }
 
@@ -201,6 +197,26 @@ class SingleStrand(val name:String="MySingleStrand", start:Int, end:Int):Seriali
         }
 }
 
+class Pknot(val name:String="MyPknot", helix1:Helix, helix2:Helix):Serializable {
+
+    val tertiaryInteractions = mutableListOf<BasePair>()
+    val helix:Helix
+
+    init {
+        this.helix = if (helix1.length > helix2.length) helix1 else helix2
+        val helixToRemove = if (helix1.length > helix2.length) helix2 else helix1
+        this.tertiaryInteractions.addAll(helixToRemove.secondaryInteractions)
+    }
+
+    val location: Location
+        get() {
+            var l = helix.location
+            for (interaction in this.tertiaryInteractions)
+                l = l.addLocation(interaction.location)
+            return l
+        }
+}
+
 class Helix(val name:String="MyHelix"):Serializable {
 
     val secondaryInteractions = mutableListOf<BasePair>()
@@ -282,9 +298,8 @@ class Junction(var name:String="MyJunction", val location: Location, val helices
         }
 
     init {
-        for (h in helicesLinked) {
+        for (h in helicesLinked)
             h.setJunction(this)
-        }
     }
 
 }
@@ -561,6 +576,7 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
     var name:String = "2D for ${this.rna.name}"
     val tertiaryInteractions = mutableSetOf<BasePair>()
     val helices = mutableListOf<Helix>()
+    val pknots = mutableListOf<Pknot>()
     val junctions = mutableListOf<Junction>()
     var title:String? = null
     var authors:String? = null
@@ -666,25 +682,25 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
                 }
             }
 
-            var pknots = mutableListOf<Helix>()
-            I@ for (i in 0 until this.helices.size-1) {
+            I@for (i in 0 until this.helices.size-1) {
                 for (j in i+1 until this.helices.size) {
                     if (this.helices[i].location.start > this.helices[j].location.start && this.helices[i].location.start < this.helices[j].location.end && this.helices[i].location.end > this.helices[j].location.end || this.helices[j].location.start > this.helices[i].location.start && this.helices[j].location.start < this.helices[i].location.end && this.helices[j].location.end > this.helices[i].location.end) {
-                        pknots.add(if (this.helices[i].length > this.helices[j].length) this.helices[j] else this.helices[i])
+                        this.pknots.add(Pknot("PK${this.pknots.size+1}", this.helices[i], this.helices[j]))
                         continue@I
                     }
                 }
             }
 
-            for (pknot in pknots) {
-                this.helices.removeAll { it == pknot}
+            for (pknot in this.pknots) {
+                this.helices.removeAll { !it.secondaryInteractions.intersect(pknot.tertiaryInteractions).isEmpty()}
+                bps.removeAll {pknot.tertiaryInteractions.contains(it)}
             }
 
-            //now the tertiary interactions
+            //now the remaining interactions as tertiary interactions
             bps.removeAll {secondaryInteractions.contains(it)}
-            for (bp in bps) {
+            for (bp in bps)
                 this.tertiaryInteractions.add(bp)
-            }
+
             //now the junctions
             this.findJunctions()
         }

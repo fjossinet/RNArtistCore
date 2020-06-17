@@ -162,7 +162,7 @@ class EmbeddedDB() {
 
     fun addTheme(name:String, theme: Theme):NitriteId {
         val doc = createDocument("name",name)
-        doc.put("params", theme.params.toMutableMap())
+        doc.put("params", theme.configurations.toMutableMap())
         val r = this.userDB.getCollection("Themes").insert(doc)
         return r.first()
     }
@@ -172,7 +172,7 @@ class EmbeddedDB() {
         this.userDB.getCollection("Themes").remove(doc)
     }
 
-    fun updateTheme(id:NitriteId, params:MutableMap<String,String>) {
+    fun updateTheme(id:NitriteId, params:MutableMap<String,Map<String,String>>) {
         val doc = this.userDB.getCollection("Themes").getById(id) as Document
         doc.put("params", params.toMutableMap())
         this.userDB.getCollection("Themes").update(doc)
@@ -180,7 +180,7 @@ class EmbeddedDB() {
 
     fun getTheme(id:NitriteId):Theme {
         val doc = this.userDB.getCollection("Themes").getById(id) as Document
-        val theme = Theme(defaultParams = doc.get("params") as MutableMap<String, String>);
+        val theme = Theme();
         return theme
     }
 
@@ -224,8 +224,6 @@ class EmbeddedDB() {
             //j.layout
             //j.radius
         }
-        //save infos to clone the design (DrawingConfiguration)
-        doc.put("drawingConfiguration", secondaryStructureDrawing.theme)
         //save infos to clone the GraphicsContext (zoom, translation)
         doc.put("graphicsContext", mutableMapOf<String,String>(
                 "viewX" to "${secondaryStructureDrawing.workingSession.viewX}",

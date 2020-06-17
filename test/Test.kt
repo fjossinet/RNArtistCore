@@ -1,6 +1,5 @@
 import io.github.fjossinet.rnartist.core.model.*
 import io.github.fjossinet.rnartist.core.model.io.parseVienna
-import java.awt.Color
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
@@ -18,10 +17,10 @@ class Test {
         ss = SecondaryStructure(RNA(name = "myRNA", seq = "CGCUGAAUUCAGCG"), bracketNotation = "((((......))))")
         ss?.let {
             val theme = Theme()
-            theme.fontName = "Futura"
-            theme.secondaryInteractionWidth = 4.0
-            theme.residueBorder = 1.0
-            theme.GColor = Color(223, 1, 1)
+            theme.setConfigurationFor(null, DrawingConfigurationParameter.FontName,"Futura")
+            theme.setConfigurationFor(null, DrawingConfigurationParameter.LineWidth, "1.0")
+            theme.setConfigurationFor(SecondaryStructureType.A, DrawingConfigurationParameter.LineWidth, "3.0")
+            theme.setConfigurationFor(SecondaryStructureType.G, DrawingConfigurationParameter.Color, "#FFDF0101")
             var drawing = SecondaryStructureDrawing(secondaryStructure = ss, theme = theme)
 
             var writer = FileWriter("media/myRNA.svg")
@@ -35,14 +34,14 @@ class Test {
             ss2 = parseVienna(FileReader(viennaFile))
         ss2?.let {
             val theme = Theme()
-            theme.fontName = "Arial"
+            /*theme.fontName = "Arial"
             theme.phosphoDiesterWidth = 3.0
             theme.secondaryInteractionWidth = 1.0
             theme.residueBorder = 0.5
             theme.UColor = Color.WHITE
             theme.UChar = Color.BLACK
             theme.CColor = Color.RED
-            theme.CChar = Color.WHITE
+            theme.CChar = Color.WHITE*/
             var drawing = SecondaryStructureDrawing(secondaryStructure = ss2, theme = theme)
             var writer = FileWriter("media/rna.svg")
             writer.write(drawing.asSVG())
