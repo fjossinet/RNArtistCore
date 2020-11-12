@@ -308,7 +308,7 @@ fun getStringBoundsRectangle2D(g: Graphics2D, title: String, font: Font): Dimens
     return Dimension(r.getWidth().toInt(), (lm.ascent - lm.descent).toInt())
 }
 
-abstract class SecondaryStructureElement(val ssDrawing: SecondaryStructureDrawing, var parent: SecondaryStructureElement?, val name: String, val location: Location, var type: SecondaryStructureType) : DrawingConfigurationListener {
+abstract class DrawingElement(val ssDrawing: SecondaryStructureDrawing, var parent: DrawingElement?, val name: String, val location: Location, var type: SecondaryStructureType) : DrawingConfigurationListener {
 
     var drawingConfiguration: DrawingConfiguration
 
@@ -344,23 +344,23 @@ abstract class SecondaryStructureElement(val ssDrawing: SecondaryStructureDrawin
     }
 
     fun getTertiaryInteractionStyle(): String {
-        return if (this.drawingConfiguration.tertiaryInteractionStyle != null) this.drawingConfiguration.tertiaryInteractionStyle!! else if (this !is HelixDrawing && this !is JunctionDrawing && this.parent != null) (this.parent as SecondaryStructureElement).getTertiaryInteractionStyle() else ssDrawing.drawingConfiguration.tertiaryInteractionStyle!!
+        return if (this.drawingConfiguration.tertiaryInteractionStyle != null) this.drawingConfiguration.tertiaryInteractionStyle!! else if (this !is HelixDrawing && this !is JunctionDrawing && this.parent != null) (this.parent as DrawingElement).getTertiaryInteractionStyle() else ssDrawing.drawingConfiguration.tertiaryInteractionStyle!!
     }
 
     fun getDeltaXRes(): Int {
-        return if (this.drawingConfiguration.deltaXRes != null) this.drawingConfiguration.deltaXRes!! else if (this !is HelixDrawing && this !is JunctionDrawing && this.parent != null) (this.parent as SecondaryStructureElement).getDeltaXRes() else ssDrawing.drawingConfiguration.deltaXRes!!
+        return if (this.drawingConfiguration.deltaXRes != null) this.drawingConfiguration.deltaXRes!! else if (this !is HelixDrawing && this !is JunctionDrawing && this.parent != null) (this.parent as DrawingElement).getDeltaXRes() else ssDrawing.drawingConfiguration.deltaXRes!!
     }
 
     fun getDeltaYRes(): Int {
-        return if (this.drawingConfiguration.deltaYRes != null) this.drawingConfiguration.deltaYRes!! else if (this !is HelixDrawing && this !is JunctionDrawing && this.parent != null) (this.parent as SecondaryStructureElement).getDeltaYRes() else ssDrawing.drawingConfiguration.deltaYRes!!
+        return if (this.drawingConfiguration.deltaYRes != null) this.drawingConfiguration.deltaYRes!! else if (this !is HelixDrawing && this !is JunctionDrawing && this.parent != null) (this.parent as DrawingElement).getDeltaYRes() else ssDrawing.drawingConfiguration.deltaYRes!!
     }
 
     fun getDeltaFontSize(): Int {
-        return if (this.drawingConfiguration.deltaFontSize != null) this.drawingConfiguration.deltaFontSize!! else if (this !is HelixDrawing && this !is JunctionDrawing && this.parent != null) (this.parent as SecondaryStructureElement).getDeltaFontSize() else ssDrawing.drawingConfiguration.deltaFontSize!!
+        return if (this.drawingConfiguration.deltaFontSize != null) this.drawingConfiguration.deltaFontSize!! else if (this !is HelixDrawing && this !is JunctionDrawing && this.parent != null) (this.parent as DrawingElement).getDeltaFontSize() else ssDrawing.drawingConfiguration.deltaFontSize!!
     }
 
     fun getFontName(): String {
-        return if (this.drawingConfiguration.fontName != null) this.drawingConfiguration.fontName!! else if (this !is HelixDrawing && this !is JunctionDrawing && this.parent != null) (this.parent as SecondaryStructureElement).getFontName() else ssDrawing.drawingConfiguration.fontName!!
+        return if (this.drawingConfiguration.fontName != null) this.drawingConfiguration.fontName!! else if (this !is HelixDrawing && this !is JunctionDrawing && this.parent != null) (this.parent as DrawingElement).getFontName() else ssDrawing.drawingConfiguration.fontName!!
     }
 
     fun getSinglePositions(): IntArray {
@@ -477,7 +477,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
     val allTertiaryInteractions: List<TertiaryInteractionDrawing>
         get() {
             if (this.pknots.isEmpty())
-                return this.allTertiaryInteractions
+                return this.tertiaryInteractions
             val allTertiaryInteractions =  mutableListOf<TertiaryInteractionDrawing>()
             allTertiaryInteractions.addAll(this.tertiaryInteractions)
             for (pknot in this.pknots)
@@ -969,17 +969,12 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
         }
 
         if (!quickDraw) {
-            this.workingSession.selectedResidues.forEach {
-                it.drawSelectionHalo(g, at)
+            val area:Area = Area()
+            this.workingSession.selectedResidues.forEach { r ->
+                area.add(r.drawSelectionHalo(g, at))
             }
-            this.allSecondaryInteractions.forEach {
-                if (it.selected)
-                    it.drawSelectionHalo(g, at)
-            }
-            this.allTertiaryInteractions.forEach {
-                if (it.selected)
-                    it.drawSelectionHalo(g, at)
-            }
+            g.color = RnartistConfig.selectionColor
+            g.fill(area)
         }
 
         this.helices.forEach {
@@ -1252,7 +1247,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
 
 }
 
-abstract class ResidueDrawing(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, absPos: Int, name: String, type: SecondaryStructureType) : SecondaryStructureElement(ssDrawing, parent, name, Location(absPos), type) {
+abstract class ResidueDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, absPos: Int, name: String, type: SecondaryStructureType) : DrawingElement(ssDrawing, parent, name, Location(absPos), type) {
 
     var updated = true //to force the recomputation of interaction symbols
     val absPos: Int
@@ -1272,14 +1267,14 @@ abstract class ResidueDrawing(parent: SecondaryStructureElement?, ssDrawing: Sec
     val selected: Boolean
         get() = this in this.ssDrawing.selection
 
-    fun drawSelectionHalo(g: Graphics2D, at: AffineTransform) {
+    fun drawSelectionHalo(g: Graphics2D, at: AffineTransform): Area? {
         if (this.circle != null) {
             val _c = at.createTransformedShape(this.circle)
-            g.color = RnartistConfig.selectionColor
             val newWidth = (_c.bounds2D.width) + this.getLineWidth() / 2.0 + this.ssDrawing.finalZoomLevel.toFloat() * RnartistConfig.selectionSize.toFloat()/2f
             var newCircle = Ellipse2D.Double(_c.bounds2D.centerX - newWidth / 2.0, _c.bounds2D.centerY - newWidth / 2.0, newWidth, newWidth)
-            g.fill(newCircle)
+            return Area(newCircle)
         }
+        return null
     }
 
     override fun draw(g: Graphics2D, at: AffineTransform) {
@@ -1384,7 +1379,7 @@ abstract class ResidueDrawing(parent: SecondaryStructureElement?, ssDrawing: Sec
 
 }
 
-class A(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, absPos: Int) : ResidueDrawing(parent, ssDrawing, absPos, "A", SecondaryStructureType.A) {
+class A(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, absPos: Int) : ResidueDrawing(parent, ssDrawing, absPos, "A", SecondaryStructureType.A) {
 
     override fun asSVG(indentChar: String, indentLevel: Int, transX: Double, transY: Double): String {
         val buff = StringBuffer(indentChar.repeat(indentLevel) + "<g>\n")
@@ -1405,7 +1400,7 @@ class A(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing
     }
 }
 
-class U(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, absPos: Int) : ResidueDrawing(parent, ssDrawing, absPos, "U", SecondaryStructureType.U) {
+class U(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, absPos: Int) : ResidueDrawing(parent, ssDrawing, absPos, "U", SecondaryStructureType.U) {
 
     override fun asSVG(indentChar: String, indentLevel: Int, transX: Double, transY: Double): String {
         val buff = StringBuffer(indentChar.repeat(indentLevel) + "<g>\n")
@@ -1428,7 +1423,7 @@ class U(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing
 }
 
 
-class G(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, absPos: Int) : ResidueDrawing(parent, ssDrawing, absPos, "G", SecondaryStructureType.G) {
+class G(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, absPos: Int) : ResidueDrawing(parent, ssDrawing, absPos, "G", SecondaryStructureType.G) {
 
     override fun asSVG(indentChar: String, indentLevel: Int, transX: Double, transY: Double): String {
         val buff = StringBuffer(indentChar.repeat(indentLevel) + "<g>\n")
@@ -1449,7 +1444,7 @@ class G(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing
     }
 }
 
-class C(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, absPos: Int) : ResidueDrawing(parent, ssDrawing, absPos, "C", SecondaryStructureType.C) {
+class C(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, absPos: Int) : ResidueDrawing(parent, ssDrawing, absPos, "C", SecondaryStructureType.C) {
 
     override fun asSVG(indentChar: String, indentLevel: Int, transX: Double, transY: Double): String {
         val buff = StringBuffer(indentChar.repeat(indentLevel) + "<g>\n")
@@ -1472,7 +1467,7 @@ class C(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing
 }
 
 
-class X(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, absPos: Int) : ResidueDrawing(parent, ssDrawing, absPos, "X", SecondaryStructureType.X) {
+class X(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, absPos: Int) : ResidueDrawing(parent, ssDrawing, absPos, "X", SecondaryStructureType.X) {
 
     override fun asSVG(indentChar: String, indentLevel: Int, transX: Double, transY: Double): String {
         val buff = StringBuffer(indentChar.repeat(indentLevel) + "<g>\n")
@@ -1493,7 +1488,7 @@ class X(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing
     }
 }
 
-class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, val pknot: Pknot) : SecondaryStructureElement(ssDrawing, null, pknot.name, pknot.location, SecondaryStructureType.PKnot) {
+class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, val pknot: Pknot) : DrawingElement(ssDrawing, null, pknot.name, pknot.location, SecondaryStructureType.PKnot) {
 
     val tertiaryInteractions = mutableListOf<TertiaryInteractionDrawing>()
     lateinit var helix: HelixDrawing
@@ -1535,7 +1530,7 @@ class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, val pknot: Pknot) : Sec
     }
 }
 
-class HelixDrawing(parent: PKnotDrawing? = null, ssDrawing: SecondaryStructureDrawing, val helix: Helix, start: Point2D, end: Point2D) : SecondaryStructureElement(ssDrawing, parent, helix.name, helix.location, SecondaryStructureType.Helix) {
+class HelixDrawing(parent: PKnotDrawing? = null, ssDrawing: SecondaryStructureDrawing, val helix: Helix, start: Point2D, end: Point2D) : DrawingElement(ssDrawing, parent, helix.name, helix.location, SecondaryStructureType.Helix) {
 
     var line: Line2D = Line2D.Double(start, end)
     val secondaryInteractions = mutableListOf<SecondaryInteractionDrawing>()
@@ -1603,7 +1598,7 @@ class HelixDrawing(parent: PKnotDrawing? = null, ssDrawing: SecondaryStructureDr
     }
 }
 
-class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleStrand, start: Point2D, end: Point2D) : SecondaryStructureElement(ssDrawing, null, ss.name, ss.location, SecondaryStructureType.SingleStrand) {
+class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleStrand, start: Point2D, end: Point2D) : DrawingElement(ssDrawing, null, ss.name, ss.location, SecondaryStructureType.SingleStrand) {
 
     var line = Line2D.Double(start, end)
     val phosphoBonds = mutableListOf<PhosphodiesterBondDrawing>()
@@ -1660,7 +1655,7 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
     }
 }
 
-class JunctionDrawing(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, circlesFromBranchSoFar: MutableList<Triple<Point2D, Double, Ellipse2D>>, linesFromBranchSoFar: MutableList<List<Point2D>>, previousJunction: JunctionDrawing? = null, var inId: ConnectorId, inPoint: Point2D, inHelix: Helix, val junction: Junction) : SecondaryStructureElement(ssDrawing, parent, junction.name, junction.location, SecondaryStructureType.Junction) {
+class JunctionDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, circlesFromBranchSoFar: MutableList<Triple<Point2D, Double, Ellipse2D>>, linesFromBranchSoFar: MutableList<List<Point2D>>, previousJunction: JunctionDrawing? = null, var inId: ConnectorId, inPoint: Point2D, inHelix: Helix, val junction: Junction) : DrawingElement(ssDrawing, parent, junction.name, junction.location, SecondaryStructureType.Junction) {
 
     val noOverlapWithLines = true
     val noOverlapWithCircles = true
@@ -2179,7 +2174,7 @@ class JunctionDrawing(parent: SecondaryStructureElement?, ssDrawing: SecondarySt
     }
 }
 
-abstract class LWSymbolDrawing(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, name: String, location: Location, val inTertiaries: Boolean, type: SecondaryStructureType = SecondaryStructureType.LWSymbol) : SecondaryStructureElement(ssDrawing, parent, name, location, type) {
+abstract class LWSymbolDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, name: String, location: Location, val inTertiaries: Boolean, type: SecondaryStructureType = SecondaryStructureType.LWSymbol) : DrawingElement(ssDrawing, parent, name, location, type) {
 
     protected var shape: Shape? = null
 
@@ -2211,17 +2206,6 @@ abstract class LWSymbolDrawing(parent: SecondaryStructureElement?, ssDrawing: Se
         }
     }
 
-    fun drawSelectionHalo(g: Graphics2D, at: AffineTransform) {
-        g.color = RnartistConfig.selectionColor
-        g.stroke = BasicStroke(
-                this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()+this.ssDrawing.finalZoomLevel.toFloat() * RnartistConfig.selectionSize.toFloat()/2f,
-                BasicStroke.CAP_ROUND,
-                BasicStroke.JOIN_ROUND
-        )
-        if (this.shape != null)
-            g.draw(at.createTransformedShape(this.shape))
-    }
-
     abstract fun setSymbol(p1: Point2D, p2: Point2D)
 
     override val bounds2D: Rectangle2D?
@@ -2240,7 +2224,7 @@ abstract class LWSymbolDrawing(parent: SecondaryStructureElement?, ssDrawing: Se
     }
 }
 
-abstract class WC(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, name: String, location: Location, inTertiaries: Boolean) : LWSymbolDrawing(parent, ssDrawing, name, location, inTertiaries) {
+abstract class WC(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, name: String, location: Location, inTertiaries: Boolean) : LWSymbolDrawing(parent, ssDrawing, name, location, inTertiaries) {
 
     override fun setSymbol(start: Point2D, end: Point2D) {
         val symbolWidth = distance(start, end)
@@ -2268,7 +2252,7 @@ abstract class WC(parent: SecondaryStructureElement?, ssDrawing: SecondaryStruct
     }
 }
 
-class CisWC(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean) : WC(parent, ssDrawing, "cisWC", location, inTertiaries) {
+class CisWC(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean) : WC(parent, ssDrawing, "cisWC", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at: AffineTransform) {
         super.draw(g, at)
@@ -2278,7 +2262,7 @@ class CisWC(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDra
     }
 }
 
-class TransWC(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean) : WC(parent, ssDrawing, "transWC", location, inTertiaries) {
+class TransWC(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean) : WC(parent, ssDrawing, "transWC", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at: AffineTransform) {
         super.draw(g, at)
@@ -2289,7 +2273,7 @@ class TransWC(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureD
 
 }
 
-abstract class LeftSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, name: String, location: Location, inTertiaries: Boolean) : LWSymbolDrawing(parent, ssDrawing, name, location, inTertiaries) {
+abstract class LeftSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, name: String, location: Location, inTertiaries: Boolean) : LWSymbolDrawing(parent, ssDrawing, name, location, inTertiaries) {
 
     override fun setSymbol(start: Point2D, end: Point2D) {
         val symbolWidth = distance(start, end)
@@ -2309,7 +2293,7 @@ abstract class LeftSugar(parent: SecondaryStructureElement?, ssDrawing: Secondar
     }
 }
 
-abstract class RightSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, name: String, location: Location, inTertiaries: Boolean = false) : LWSymbolDrawing(parent, ssDrawing, name, location, inTertiaries) {
+abstract class RightSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, name: String, location: Location, inTertiaries: Boolean = false) : LWSymbolDrawing(parent, ssDrawing, name, location, inTertiaries) {
 
     override fun setSymbol(start: Point2D, end: Point2D) {
         val symbolWidth = distance(start, end)
@@ -2330,7 +2314,7 @@ abstract class RightSugar(parent: SecondaryStructureElement?, ssDrawing: Seconda
 
 }
 
-class CisRightSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : RightSugar(parent, ssDrawing, "cisSugar", location, inTertiaries) {
+class CisRightSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : RightSugar(parent, ssDrawing, "cisSugar", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at: AffineTransform) {
         super.draw(g, at)
@@ -2341,7 +2325,7 @@ class CisRightSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStru
 
 }
 
-class CisLeftSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : LeftSugar(parent, ssDrawing, "cisSugar", location, inTertiaries) {
+class CisLeftSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : LeftSugar(parent, ssDrawing, "cisSugar", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at: AffineTransform) {
         super.draw(g, at)
@@ -2353,7 +2337,7 @@ class CisLeftSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStruc
 
 }
 
-class TransRightSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : RightSugar(parent, ssDrawing, "transSugar", location, inTertiaries) {
+class TransRightSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : RightSugar(parent, ssDrawing, "transSugar", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at: AffineTransform) {
         super.draw(g, at)
@@ -2364,7 +2348,7 @@ class TransRightSugar(parent: SecondaryStructureElement?, ssDrawing: SecondarySt
 
 }
 
-class TransLeftSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : LeftSugar(parent, ssDrawing, "transSugar", location, inTertiaries) {
+class TransLeftSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : LeftSugar(parent, ssDrawing, "transSugar", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at: AffineTransform) {
         super.draw(g, at)
@@ -2375,7 +2359,7 @@ class TransLeftSugar(parent: SecondaryStructureElement?, ssDrawing: SecondaryStr
 
 }
 
-abstract class Hoogsteen(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, name: String, location: Location, inTertiaries: Boolean = false) : LWSymbolDrawing(parent, ssDrawing, name, location, inTertiaries) {
+abstract class Hoogsteen(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, name: String, location: Location, inTertiaries: Boolean = false) : LWSymbolDrawing(parent, ssDrawing, name, location, inTertiaries) {
 
     override fun setSymbol(start: Point2D, end: Point2D) {
         val symbolWidth = distance(start, end)
@@ -2398,7 +2382,7 @@ abstract class Hoogsteen(parent: SecondaryStructureElement?, ssDrawing: Secondar
 
 }
 
-class CisHoogsteen(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : Hoogsteen(parent, ssDrawing, "cisHoogsteen", location, inTertiaries) {
+class CisHoogsteen(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : Hoogsteen(parent, ssDrawing, "cisHoogsteen", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at: AffineTransform) {
         super.draw(g, at)
@@ -2409,7 +2393,7 @@ class CisHoogsteen(parent: SecondaryStructureElement?, ssDrawing: SecondaryStruc
 
 }
 
-class TransHoogsteen(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : Hoogsteen(parent, ssDrawing, "transHoogsteen", location, inTertiaries) {
+class TransHoogsteen(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : Hoogsteen(parent, ssDrawing, "transHoogsteen", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at: AffineTransform) {
         super.draw(g, at)
@@ -2424,7 +2408,7 @@ enum class VSymbolPos {
     BOTTOM, MIDDLE, TOP
 }
 
-class LWLine(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false, type: SecondaryStructureType = SecondaryStructureType.LWSymbol, val vpos: VSymbolPos = VSymbolPos.MIDDLE) : LWSymbolDrawing(parent, ssDrawing, "Line", location, inTertiaries, type) {
+class LWLine(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false, type: SecondaryStructureType = SecondaryStructureType.LWSymbol, val vpos: VSymbolPos = VSymbolPos.MIDDLE) : LWSymbolDrawing(parent, ssDrawing, "Line", location, inTertiaries, type) {
 
     override fun setSymbol(p1: Point2D, p2: Point2D) {
         val distance = distance(p1, p2);
@@ -2458,7 +2442,7 @@ class LWLine(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDr
 
 }
 
-abstract class BaseBaseInteractionDrawing(parent: SecondaryStructureElement?, val interaction: BasePair, ssDrawing: SecondaryStructureDrawing, type: SecondaryStructureType) : SecondaryStructureElement(ssDrawing, parent, interaction.toString(), interaction.location, type) {
+abstract class BaseBaseInteractionDrawing(parent: DrawingElement?, val interaction: BasePair, ssDrawing: SecondaryStructureDrawing, type: SecondaryStructureType) : DrawingElement(ssDrawing, parent, interaction.toString(), interaction.location, type) {
 
     protected var p1: Point2D? = null
     protected var p2: Point2D? = null
@@ -2499,17 +2483,6 @@ abstract class BaseBaseInteractionDrawing(parent: SecondaryStructureElement?, va
 
     val selected: Boolean
         get() = !this.ssDrawing.selection.isEmpty() && this.residue.selected && this.pairedResidue.selected
-
-    fun drawSelectionHalo(g: Graphics2D, at: AffineTransform) {
-        regularSymbols.forEach { regularSymbol ->
-            if (regularSymbol.getLineWidth() > 0)
-                regularSymbol.drawSelectionHalo(g, at)
-        }
-        lwSymbols.forEach { lwSymbol ->
-            if (lwSymbol.getLineWidth() > 0)
-                lwSymbol.drawSelectionHalo(g, at)
-        }
-    }
 
     protected fun generateSingleSymbol(location: Location, inTertiaries: Boolean = false, edge: Edge, orientation: Orientation, right: Boolean = true): LWSymbolDrawing {
         return when (edge) {
@@ -2582,7 +2555,7 @@ abstract class BaseBaseInteractionDrawing(parent: SecondaryStructureElement?, va
     }
 }
 
-class SecondaryInteractionDrawing(parent: SecondaryStructureElement?, interaction: BasePair, ssDrawing: SecondaryStructureDrawing) : BaseBaseInteractionDrawing(parent, interaction, ssDrawing, SecondaryStructureType.SecondaryInteraction) {
+class SecondaryInteractionDrawing(parent: DrawingElement?, interaction: BasePair, ssDrawing: SecondaryStructureDrawing) : BaseBaseInteractionDrawing(parent, interaction, ssDrawing, SecondaryStructureType.SecondaryInteraction) {
 
     override val bounds2D: Rectangle2D?
         get() {
@@ -2824,7 +2797,7 @@ class TertiaryInteractionDrawing(parent: PKnotDrawing? = null, interaction: Base
 
 }
 
-class PhosphodiesterBondDrawing(parent: SecondaryStructureElement?, ssDrawing: SecondaryStructureDrawing, location: Location) : SecondaryStructureElement(ssDrawing, parent, "PhosphoDiester Bond", location, SecondaryStructureType.PhosphodiesterBond) {
+class PhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location) : DrawingElement(ssDrawing, parent, "PhosphoDiester Bond", location, SecondaryStructureType.PhosphodiesterBond) {
 
     val residue: ResidueDrawing
         get() = this.ssDrawing.getResiduesFromAbsPositions(this.start).first()

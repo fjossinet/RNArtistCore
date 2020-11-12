@@ -20,7 +20,7 @@ class Test {
             theme.setConfigurationFor(null, DrawingConfigurationParameter.FontName,"Futura")
             theme.setConfigurationFor(null, DrawingConfigurationParameter.LineWidth, "1.0")
             theme.setConfigurationFor(SecondaryStructureType.A, DrawingConfigurationParameter.LineWidth, "3.0")
-            theme.setConfigurationFor(SecondaryStructureType.G, DrawingConfigurationParameter.Color, "#FFDF0101")
+            theme.setConfigurationFor(SecondaryStructureType.G, DrawingConfigurationParameter.Color, "#FFDF01")
             var drawing = SecondaryStructureDrawing(secondaryStructure = ss, theme = theme)
 
             var writer = FileWriter("media/myRNA.svg")
