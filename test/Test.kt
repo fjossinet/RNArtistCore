@@ -19,13 +19,13 @@ class Test {
             val theme = Theme()
             theme.setConfigurationFor(null, DrawingConfigurationParameter.FontName,"Futura")
             theme.setConfigurationFor(null, DrawingConfigurationParameter.LineWidth, "1.0")
-            theme.setConfigurationFor(SecondaryStructureType.A, DrawingConfigurationParameter.LineWidth, "3.0")
-            theme.setConfigurationFor(SecondaryStructureType.G, DrawingConfigurationParameter.Color, "#FFDF01")
+            theme.setConfigurationFor(SecondaryStructureType.AShape, DrawingConfigurationParameter.LineWidth, "3.0")
+            theme.setConfigurationFor(SecondaryStructureType.GShape, DrawingConfigurationParameter.Color, "#FFDF01")
             var drawing = SecondaryStructureDrawing(secondaryStructure = ss, theme = theme)
 
-            var writer = FileWriter("media/myRNA.svg")
-            writer.write(drawing.asSVG())
-            writer.close()
+            //var writer = FileWriter("media/myRNA.svg")
+            //writer.write(drawing.asSVG())
+            //writer.close()
         }
         //load from a Vienna file
         val viennaFile = File("media/rna.vienna")
@@ -43,9 +43,9 @@ class Test {
             theme.CColor = Color.RED
             theme.CChar = Color.WHITE*/
             var drawing = SecondaryStructureDrawing(secondaryStructure = ss2, theme = theme)
-            var writer = FileWriter("media/rna.svg")
-            writer.write(drawing.asSVG())
-            writer.close()
+            //var writer = FileWriter("media/rna.svg")
+            //writer.write(drawing.asSVG())
+            //writer.close()
         }
     }
 }
