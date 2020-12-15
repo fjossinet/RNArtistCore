@@ -242,6 +242,7 @@ class Helix(val name:String="MyHelix"):Serializable {
         get() {
             return this.location.length/2
         }
+
     val ends:List<Int>
         get() {
             val ends = arrayListOf<Int>()
@@ -571,7 +572,7 @@ class Atom(val name:String):Serializable {
 
 }
 
-class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null):Serializable {
+class  SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null):Serializable {
 
     var name:String = "2D for ${this.rna.name}"
     val tertiaryInteractions = mutableSetOf<BasePair>()

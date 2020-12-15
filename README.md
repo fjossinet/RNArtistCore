@@ -180,7 +180,7 @@ No stable release for now, only snapshots. To use RNArtistCore in a Java applica
         <dependency>
             <groupId>io.github.fjossinet.rnartist.core</groupId>
             <artifactId>rnartistcore</artifactId>
-            <version>0.1.0-SNAPSHOT</version>
+            <version>0.1.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 ```
