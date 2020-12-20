@@ -1158,11 +1158,11 @@ object RnartistConfig {
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.Color.toString() to "#353531"
+                        DrawingConfigurationParameter.Color.toString() to "#FF9505"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.Color.toString() to "#FF9505"
+                        DrawingConfigurationParameter.Color.toString() to "#353531"
                     )
         ),
         "Opal Blue" to mapOf<String, Map<String, String>>(
@@ -1288,7 +1288,7 @@ object RnartistConfig {
 
     var defaultConfiguration = mutableMapOf<String, String>(
         DrawingConfigurationParameter.Color.toString() to getHTMLColorString(Color.DARK_GRAY),
-        DrawingConfigurationParameter.LineWidth.toString() to "0.5",
+        DrawingConfigurationParameter.LineWidth.toString() to "1.5",
         DrawingConfigurationParameter.LineShift.toString() to "1.0",
         DrawingConfigurationParameter.Opacity.toString() to "255", //alpha value goes from 0 to 255
         DrawingConfigurationParameter.TertiaryInteractionStyle.toString() to DASHED,
@@ -1428,8 +1428,7 @@ object RnartistConfig {
         e?.removeChildren("file")
     }
 
-    data class GlobalProperties(var website: String) {
-    }
+    data class GlobalProperties(var website: String)
 
     @JvmStatic
     private fun recoverWebsite() {
@@ -1584,12 +1583,16 @@ object RnartistConfig {
                 e = Element("external-viewers")
                 e.addContent(Element("chimera-path"))
                 document!!.rootElement.addContent(e)
-                if (osName.startsWith("Mac OS")) {
-                    e.getChild("chimera-path").text = "/Applications/Chimera.app/Contents/MacOS/chimera"
-                } else if (osName.startsWith("Windows")) {
-                    e.getChild("chimera-path").text = "C:\\Program Files\\Chimera\\bin\\chimera.exe"
-                } else {
-                    e.getChild("chimera-path").text = "/usr/local/chimera/bin/chimera"
+                when {
+                    osName.startsWith("Mac OS") -> {
+                        e.getChild("chimera-path").text = "/Applications/Chimera.app/Contents/MacOS/chimera"
+                    }
+                    osName.startsWith("Windows") -> {
+                        e.getChild("chimera-path").text = "C:\\Program Files\\Chimera\\bin\\chimera.exe"
+                    }
+                    else -> {
+                        e.getChild("chimera-path").text = "/usr/local/chimera/bin/chimera"
+                    }
                 }
             } else {
                 val _e = e.getChild("chimera-path")
@@ -1603,10 +1606,7 @@ object RnartistConfig {
 
     @JvmStatic
     var userID: String?
-        get() {
-            var e = document!!.rootElement.getChild("userID")
-            return if (e == null) null else e.text
-        }
+        get() = document!!.rootElement.getChild("userID")?.text
         set(userID) {
             var e: Element? = document!!.rootElement.getChild("userID")
             if (e == null) {
@@ -1646,7 +1646,7 @@ object RnartistConfig {
 
     @JvmStatic
     var selectionColor: Color
-        get() = getAWTColor(selectionColorCode, selectionOpacity)!!
+        get() = getAWTColor(selectionColorCode, selectionOpacity)
         set(value) {
             selectionColorCode = getHTMLColorString(value)
             selectionOpacity = value.alpha

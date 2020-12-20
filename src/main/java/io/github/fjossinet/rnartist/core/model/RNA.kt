@@ -101,7 +101,6 @@ class Location:Serializable {
         return this.description
     }
 
-
 }
 
 class RNA(var name:String="A", seq:String, var source:String="Source N.A."):Serializable {
@@ -119,7 +118,7 @@ class RNA(var name:String="A", seq:String, var source:String="Source N.A."):Seri
         }
 
     fun addResidue(residue:String) {
-        val unModifiedNucleotide = modifiedNucleotides.get(residue);
+        val unModifiedNucleotide = modifiedNucleotides[residue];
         if (unModifiedNucleotide != null)
             this._seq.append(unModifiedNucleotide);
         else {
@@ -137,6 +136,8 @@ class RNA(var name:String="A", seq:String, var source:String="Source N.A."):Seri
                 this._seq.append("X")
             else if ("N".equals(residue))
                 this._seq.append("N")
+            else
+                throw Exception("Unknown Residue ${residue}")
         }
     }
 
@@ -197,15 +198,22 @@ class SingleStrand(val name:String="MySingleStrand", start:Int, end:Int):Seriali
         }
 }
 
-class Pknot(val name:String="MyPknot", helix1:Helix, helix2:Helix):Serializable {
+class Pknot(val name:String="MyPknot", helix1:Helix, helix2:Helix, pknotsSoFar: MutableList<Pknot>):Serializable {
 
     val tertiaryInteractions = mutableListOf<BasePair>()
     val helix:Helix
 
     init {
-        this.helix = if (helix1.length > helix2.length) helix1 else helix2
-        val helixToRemove = if (helix1.length > helix2.length) helix2 else helix1
-        this.tertiaryInteractions.addAll(helixToRemove.secondaryInteractions)
+        if (!pknotsSoFar.filter { it.helix == helix1 }.isEmpty()) {
+            this.helix = helix1
+            this.tertiaryInteractions.addAll(helix2.secondaryInteractions)
+        } else if (!pknotsSoFar.filter { it.helix == helix2 }.isEmpty()) {
+            this.helix = helix2
+            this.tertiaryInteractions.addAll(helix1.secondaryInteractions)
+        } else {
+            this.helix = if (helix1.end - helix1.start > helix2.end - helix2.start) helix2 else helix1
+            this.tertiaryInteractions.addAll((if (helix1.end - helix1.start > helix2.end - helix2.start) helix1 else helix2).secondaryInteractions)
+        }
     }
 
     val location: Location
@@ -314,22 +322,20 @@ class TertiaryStructure(val rna: RNA):Serializable {
     var pdbId: String? = null
     var source:String? = null
 
-    fun addResidue3D(absolutePosition: Int): Residue3D? {
-        var r: Residue3D? = when(this.rna.getResidue(absolutePosition)) {
+    fun addResidue3D(absolutePosition: Int): Residue3D {
+        var r: Residue3D = when(this.rna.getResidue(absolutePosition)) {
             'A' -> Adenine3D(absolutePosition)
             'U' -> Uracil3D(absolutePosition)
             'G' -> Guanine3D(absolutePosition)
             'C' -> Cytosine3D(absolutePosition)
-            else -> null
+            else -> UnknownResidue3D(absolutePosition)
         }
-        if (r != null) {
-            this.removeResidue3D(absolutePosition)
-            residues.add(r)
-        }
+        this.removeResidue3D(absolutePosition)
+        residues.add(r)
         return r
     }
 
-    fun removeResidue3D(absolutePosition: Int) {
+    private fun removeResidue3D(absolutePosition: Int) {
         for (r in residues)
             if (r.absolutePosition == absolutePosition) {
                 residues.remove(r)
@@ -364,7 +370,7 @@ abstract class Residue3D(val name:String, val absolutePosition:Int):Serializable
         return a
     }
 
-    fun getAtom(atomName: String): Atom? {
+    private fun getAtom(atomName: String): Atom? {
         for (a in atoms) if (a.name == atomName) return a
         return null
     }
@@ -438,6 +444,8 @@ abstract class RiboNucleotide3D(name: String, absolutePosition: Int) : Residue3D
         atoms.addAll(getDefaultBaseAtoms(false))
     }
 }
+
+class UnknownResidue3D(absolutePosition: Int) : Residue3D("X", absolutePosition)
 
 class Adenine3D(absolutePosition: Int) : RiboNucleotide3D("A", absolutePosition) {
     override fun getDefaultBaseAtoms(withDefaultCoordinates: Boolean): List<Atom> {
@@ -572,13 +580,13 @@ class Atom(val name:String):Serializable {
 
 }
 
-class  SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null):Serializable {
+class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null):Serializable {
 
     var name:String = "2D for ${this.rna.name}"
     val tertiaryInteractions = mutableSetOf<BasePair>()
     val helices = mutableListOf<Helix>()
     val pknots = mutableListOf<Pknot>()
-    val junctions = mutableListOf<Junction>()
+    private val junctions = mutableListOf<Junction>()
     var title:String? = null
     var authors:String? = null
     var pubDate:String="To be published"
@@ -603,12 +611,16 @@ class  SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePair
     init {
         var bps: MutableList<BasePair>
 
-        if (basePairs != null) {
-            bps = basePairs.toMutableList()
-        } else if (bracketNotation != null) {
-            bps = toBasePairs(bracketNotation)
-        } else {
-            bps = arrayListOf<BasePair>()
+        bps = when {
+            basePairs != null -> {
+                basePairs.toMutableList()
+            }
+            bracketNotation != null -> {
+                toBasePairs(bracketNotation)
+            }
+            else -> {
+                arrayListOf<BasePair>()
+            }
         }
 
         if (!bps.isEmpty()) {
@@ -669,6 +681,8 @@ class  SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePair
                 bpInHelix.clear()
             }
 
+            //since a residue can interact through 3 edges, it can be in several helices (it makes two different interactions, each one consecutive to another one, and then making two different helices)
+            //then we need to check if several helices contains the same position, and keep the longest one
             for (i in 0 until this.rna.length) {
                 var pknots = mutableListOf<Helix>()
                 for (h in this.helices) {
@@ -683,27 +697,53 @@ class  SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePair
                 }
             }
 
-            I@for (i in 0 until this.helices.size-1) {
-                for (j in i+1 until this.helices.size) {
-                    if (this.helices[i].location.start > this.helices[j].location.start && this.helices[i].location.start < this.helices[j].location.end && this.helices[i].location.end > this.helices[j].location.end || this.helices[j].location.start > this.helices[i].location.start && this.helices[j].location.start < this.helices[i].location.end && this.helices[j].location.end > this.helices[i].location.end) {
-                        this.pknots.add(Pknot("PK${this.pknots.size+1}", this.helices[i], this.helices[j]))
-                        continue@I
+
+            var foundPknot: Boolean
+
+            do {
+                foundPknot = false
+                I@ for (i in 0 until this.helices.size - 1) {
+                    for (j in i + 1 until this.helices.size) {
+                        if (this.helices[i].location.start > this.helices[j].location.start && this.helices[i].location.start < this.helices[j].location.end && this.helices[i].location.end > this.helices[j].location.end || this.helices[j].location.start > this.helices[i].location.start && this.helices[j].location.start < this.helices[i].location.end && this.helices[j].location.end > this.helices[i].location.end) {
+                            this.pknots.add(
+                                Pknot(
+                                    "PK${this.pknots.size + 1}",
+                                    this.helices[i],
+                                    this.helices[j],
+                                    this.pknots
+                                )
+                            )
+                            foundPknot = true
+                            break@I
+                        }
                     }
                 }
+
+                for (pknot in this.pknots) {
+                    this.helices.removeAll { !it.secondaryInteractions.intersect(pknot.tertiaryInteractions).isEmpty() }
+                    bps.removeAll { pknot.tertiaryInteractions.contains(it) }
+                }
+
+                //now the remaining interactions as tertiary interactions
+                bps.removeAll { secondaryInteractions.contains(it) }
+                for (bp in bps)
+                    this.tertiaryInteractions.add(bp)
+
+            } while (foundPknot)
+
+            /*var s = "-".repeat(rna.length).split("").toMutableList()
+
+            this.helices.forEach {
+                println("${it.name} ${it.location}")
+                s[it.location.start] = "[${it.name}"
+                s[it.location.end] = "${it.name}]"
             }
 
-            for (pknot in this.pknots) {
-                this.helices.removeAll { !it.secondaryInteractions.intersect(pknot.tertiaryInteractions).isEmpty()}
-                bps.removeAll {pknot.tertiaryInteractions.contains(it)}
-            }
-
-            //now the remaining interactions as tertiary interactions
-            bps.removeAll {secondaryInteractions.contains(it)}
-            for (bp in bps)
-                this.tertiaryInteractions.add(bp)
+            print(s.distinct().joinToString("-"))*/
 
             //now the junctions
             this.findJunctions()
+
         }
 
     }
@@ -743,12 +783,12 @@ class  SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePair
         lateinit var helix: Helix
 
         for (h in this.helices) {
-            if (h.ends[0] > position && h.ends[0] < minNextEnd) {
+            if (h.ends[0] in (position + 1) until minNextEnd) {
                 minNextEnd = h.ends[0]
                 pairedPosition = h.ends[3]
                 helix = h
             }
-            if (h.ends[2] > position && h.ends[2] < minNextEnd) {
+            if (h.ends[2] in (position + 1) until minNextEnd) {
                 minNextEnd = h.ends[2]
                 pairedPosition = h.ends[1]
                 helix = h
@@ -760,7 +800,7 @@ class  SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePair
         return Triple(minNextEnd, pairedPosition, helix)
     }
 
-    fun findJunctions() {
+    private fun findJunctions() {
         this.junctions.clear()
         var junctionCount = 0
         for (h in this.helices) {
@@ -842,7 +882,7 @@ class  SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePair
     }
 
     override fun toString(): String {
-        return if (this.name != null) this.name!! else this.rna.toString()
+        return this.name
     }
 
 }
@@ -1392,5 +1432,8 @@ val modifiedNucleotides: MutableMap<String, String> = mutableMapOf<String, Strin
     "3AT" to "A",
     "DM1" to "X",
     "DM2" to "X",
-    "DM5" to "X"
+    "DM5" to "X",
+    "B8N" to "X",
+    "4AC" to "C",
+    "6MZ" to "A"
 )

@@ -2,14 +2,14 @@ package io.github.fjossinet.rnartist.core.model.io
 
 import java.io.*
 
-fun getTmpDirectory(): File? {
+fun getTmpDirectory(): File {
     val tmpDir = File(StringBuffer(getUserDir().absolutePath).append(System.getProperty("file.separator")).append("tmp").toString())
     if (!tmpDir.exists()) tmpDir.mkdir()
     return tmpDir
 }
 
 @Throws(IOException::class)
-fun createTemporaryFile(fileName: String): File? {
+fun createTemporaryFile(fileName: String): File {
     val f = File(getTmpDirectory(), fileName + System.nanoTime())
     f.createNewFile()
     f.deleteOnExit()
@@ -17,7 +17,7 @@ fun createTemporaryFile(fileName: String): File? {
 }
 
 @Throws(IOException::class)
-fun createTemporaryFile(dir: File?, fileName: String): File? {
+fun createTemporaryFile(dir: File?, fileName: String): File {
     val f = File(dir, fileName + System.nanoTime())
     f.createNewFile()
     f.deleteOnExit()
@@ -42,7 +42,7 @@ fun copyFile(source: File, target: File) {
             target.mkdir()
         }
         val children = source.list()
-        for (i in children.indices) {
+        children?.indices?.forEach { i ->
             copyFile(File(source, children[i]), File(target, children[i]))
         }
     } else {

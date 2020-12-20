@@ -53,10 +53,10 @@ class PDB() {
 <orgPdbCompositeQuery version="1.0">"""
 
         if (experimental_method == "X-RAY") {
-            if (refinementLevel != 0)
-                post_data += "\n<queryRefinement>\n<queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
+            post_data += if (refinementLevel != 0)
+                "\n<queryRefinement>\n<queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
             else
-                post_data += "\n<queryRefinement>\n<queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
+                "\n<queryRefinement>\n<queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
             post_data += """
     <orgPdbQuery>
         <version>head</version>
@@ -70,10 +70,10 @@ class PDB() {
             refinementLevel += 1
         }
         if (max_date != null ||  min_date != null) {
-            if (refinementLevel != 0)
-                post_data += "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
+            post_data += if (refinementLevel != 0)
+                "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
             else
-                post_data += "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
+                "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
 
             post_data += """
     <orgPdbQuery>
@@ -94,10 +94,10 @@ class PDB() {
         }
 
         for (w in title_contains) {
-            if (refinementLevel != 0)
-                post_data += "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
+            post_data += if (refinementLevel != 0)
+                "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
             else
-                post_data += "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
+                "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
 
             post_data += """
     <orgPdbQuery> 
@@ -113,10 +113,10 @@ class PDB() {
         }
 
        if (!keywords.isEmpty()) {
-            if (refinementLevel != 0)
-                post_data += "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
-            else
-                post_data += "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
+           post_data += if (refinementLevel != 0)
+               "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
+           else
+               "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
 
             post_data += """
     <orgPdbQuery> 
@@ -131,10 +131,10 @@ class PDB() {
         }
 
         if (!pdb_ids.isEmpty()) {
-            if (refinementLevel != 0)
-                post_data += "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
+            post_data += if (refinementLevel != 0)
+                "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
             else
-                post_data += "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
+                "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
 
             post_data += """
     <orgPdbQuery> 
@@ -148,10 +148,10 @@ class PDB() {
             refinementLevel += 1
         }
 
-        if (refinementLevel != 0)
-            post_data += "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
+        post_data += if (refinementLevel != 0)
+            "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
         else
-            post_data += "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
+            "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
 
         post_data += """
     <orgPdbQuery>
@@ -165,10 +165,10 @@ class PDB() {
         refinementLevel += 1
 
         for (author in authors) {
-            if (refinementLevel != 0)
-                post_data += "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
+            post_data += if (refinementLevel != 0)
+                "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
             else
-                post_data += "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
+                "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
 
             post_data += """
     <orgPdbQuery>
@@ -183,10 +183,10 @@ class PDB() {
             refinementLevel += 1
         }
 
-        if (refinementLevel != 0)
-            post_data += "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
+        post_data += if (refinementLevel != 0)
+            "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
         else
-            post_data += "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
+            "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
 
 
         post_data += """
@@ -218,8 +218,6 @@ class PDB() {
             wr.flush();
 
             BufferedReader(InputStreamReader(inputStream)).use {
-                val response = StringBuffer()
-
                 var inputLine = it.readLine()
                 while (inputLine != null) {
                     pdbIds.add(inputLine)
@@ -252,10 +250,10 @@ class PDB() {
                 continue
             }
             if (embeddedDB.getPDBSecondaryStructure(id).isEmpty()) {
-                for (ts in parsePDB(pdb.getEntry(id))!!.iterator()) {
+                for (ts in parsePDB(pdb.getEntry(id)).iterator()) {
                     ts.pdbId = id
                     try {
-                        rnaview.annotate(ts)?.let { ss ->
+                        rnaview.annotate(ts).forEach { ss ->
                             ss.pdbId = ts.pdbId
                             ss.title = ts.title
                             ss.authors = ts.authors
@@ -339,7 +337,7 @@ class NDB {
                 continue
             }
             try {
-                for (ts in parsePDB(this.getEntry(fileName))!!.iterator()) {
+                for (ts in parsePDB(this.getEntry(fileName)).iterator()) {
                     ts.pdbId = id
                     if (embeddedDB.getPDBSecondaryStructure(id, ts.rna.name) != null) {
                         println("chain " + ts.rna.name + " for " + id + " already stored") //we can have several times the same chain in the PDB
@@ -351,7 +349,7 @@ class NDB {
                         continue
                     }
                     try {
-                        rnaview.annotate(ts)?.let { ss ->
+                        rnaview.annotate(ts).forEach { ss ->
                             ss.pdbId = ts.pdbId
                             ss.title = ts.title
                             ss.authors = ts.authors

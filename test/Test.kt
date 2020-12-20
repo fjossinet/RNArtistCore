@@ -1,4 +1,7 @@
 import io.github.fjossinet.rnartist.core.model.*
+import io.github.fjossinet.rnartist.core.model.io.Rnaview
+import io.github.fjossinet.rnartist.core.model.io.parsePDB
+import io.github.fjossinet.rnartist.core.model.io.parseRnaml
 import io.github.fjossinet.rnartist.core.model.io.parseVienna
 import java.io.File
 import java.io.FileReader
@@ -6,8 +9,8 @@ import java.io.FileWriter
 import java.io.StringReader
 
 class Test {
-    fun testReadmeCode() {
-        //load the saved options and/or create default ones
+    fun testBracketNotation() {
+        /*//load the saved options and/or create default ones
         RnartistConfig.load()
         RnartistConfig.exportSVGWithBrowserCompatibility(true)
         var ss:SecondaryStructure? = null
@@ -34,18 +37,22 @@ class Test {
             ss2 = parseVienna(FileReader(viennaFile))
         ss2?.let {
             val theme = Theme()
-            /*theme.fontName = "Arial"
+            *//*theme.fontName = "Arial"
             theme.phosphoDiesterWidth = 3.0
             theme.secondaryInteractionWidth = 1.0
             theme.residueBorder = 0.5
             theme.UColor = Color.WHITE
             theme.UChar = Color.BLACK
             theme.CColor = Color.RED
-            theme.CChar = Color.WHITE*/
+            theme.CChar = Color.WHITE*//*
             var drawing = SecondaryStructureDrawing(secondaryStructure = ss2, theme = theme)
             //var writer = FileWriter("media/rna.svg")
             //writer.write(drawing.asSVG())
             //writer.close()
-        }
+        }*/
+    }
+
+    fun testPknot() {
+        //parseRnaml(File("/Users/fjossinet/tmp/rnaview662408467971093.xml"))
     }
 }

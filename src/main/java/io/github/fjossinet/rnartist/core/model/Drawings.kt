@@ -20,6 +20,20 @@ val minimalRadius: Float = minimalCircumference / (2F * Math.PI).toFloat()
 val radiansToDegrees = 180 / Math.PI
 val degreesToRadians = Math.PI / 180
 
+@JvmField
+var DASHED = "dashed"
+
+@JvmField
+var SOLID = "solid"
+
+enum class SecondaryStructureType {
+    Full2D, A, U, G, C, X, AShape, UShape, GShape, CShape, XShape, SecondaryInteraction, TertiaryInteraction, InteractionSymbol, PhosphodiesterBond, Helix, PKnot, Junction, SingleStrand, LWSymbol, Numbering
+}
+
+enum class DrawingConfigurationParameter {
+    FullDetails, Color, LineWidth, LineShift, Opacity, TertiaryInteractionStyle, FontName, DeltaXRes, DeltaYRes, DeltaFontSize
+}
+
 fun helixDrawingLength(h: Helix): Double {
     return (h.length - 1).toDouble() * radiusConst * 2.0 + (h.length - 1).toDouble() * spaceBetweenResidues
 }
@@ -28,9 +42,7 @@ fun helixDrawingWidth(): Double {
     return radiusConst * deltaHelixWidth
 }
 
-class Project(var secondaryStructure: SecondaryStructure, var tertiaryStructure: TertiaryStructure?, var theme: Map<String, String>, var graphicsContext: Map<String, String>) {
-
-}
+class Project(var secondaryStructure: SecondaryStructure, var tertiaryStructure: TertiaryStructure?, var theme: Map<String, String>, var graphicsContext: Map<String, String>)
 
 class WorkingSession() {
     var viewX = 0.0
@@ -38,15 +50,20 @@ class WorkingSession() {
     var finalZoomLevel = 1.0
     var screen_capture = false
     var screen_capture_area: Rectangle2D? = null
+
+    val branchesDrawn = mutableListOf<JunctionDrawing>()
+    val phosphoBondsLinkingBranchesDrawn = mutableListOf<BranchesLinkingPhosphodiesterBondDrawing>()
+    val singleStrandsDrawn = mutableListOf<SingleStrandDrawing>()
+
     val selectedResidues = mutableListOf<ResidueDrawing>()
     val selectionBounds: Rectangle2D?
         get() {
             var selectionBounds: Rectangle2D? = null
             for (element in this.selectedResidues) {
-                if (selectionBounds == null)
-                    selectionBounds = element.bounds2D
+                selectionBounds = if (selectionBounds == null)
+                    element.bounds2D
                 else
-                    selectionBounds = selectionBounds.createUnion(element.bounds2D)
+                    selectionBounds.createUnion(element.bounds2D)
             }
             return selectionBounds
         }
@@ -57,7 +74,7 @@ class WorkingSession() {
                 return selectedAbsPositions
             selectedAbsPositions.addAll(this.selectedResidues.first().location.positions)
             for (i in 1 until this.selectedResidues.size)
-                selectedAbsPositions.addAll(this.selectedResidues.get(i).location.positions)
+                selectedAbsPositions.addAll(this.selectedResidues[i].location.positions)
             return selectedAbsPositions.distinct().sorted()
         }
 
@@ -82,16 +99,6 @@ class WorkingSession() {
 
 fun transparentColor(source: Color, alpha: Int) = Color(source.red, source.green, source.blue, alpha);
 
-@JvmField
-var DASHED = "dashed"
-
-@JvmField
-var SOLID = "solid"
-
-enum class DrawingConfigurationParameter {
-    Color, LineWidth, LineShift, Opacity, TertiaryInteractionStyle, FontName, DeltaXRes, DeltaYRes, DeltaFontSize, FullDetails
-}
-
 class Theme(defaultConfigurations: MutableMap<String, Map<String, String>> = defaultTheme) {
 
     var configurations: MutableMap<String, MutableMap<String, String>> = mutableMapOf()
@@ -104,21 +111,19 @@ class Theme(defaultConfigurations: MutableMap<String, Map<String, String>> = def
     }
 
     private fun setConfigurationFor(elementType: String, parameter: String, parameterValue: String) {
-        if (elementType == null) {
-            if (!configurations.containsKey(SecondaryStructureType.Full2D.toString()))
-                configurations[SecondaryStructureType.Full2D.toString()] = mutableMapOf<String, String>()
-            configurations[SecondaryStructureType.Full2D.toString()]!![parameter] = parameterValue
-        } else {
-            if (!configurations.containsKey(elementType))
-                configurations[elementType] = mutableMapOf<String, String>()
-            configurations[elementType]!![parameter] = parameterValue
-        }
+        if (!configurations.containsKey(elementType))
+            configurations[elementType] = mutableMapOf<String, String>()
+        configurations[elementType]!![parameter] = parameterValue
     }
 
     init {
         for ((elementType, parameters) in defaultConfigurations.entries)
             for ((name, value) in parameters.entries)
                 this.setConfigurationFor(elementType = elementType, parameter = name, parameterValue = value)
+    }
+
+    fun clear() {
+        this.configurations.clear()
     }
 }
 
@@ -127,34 +132,34 @@ class DrawingConfiguration(defaultParams: MutableMap<String, String> = defaultCo
     val params: MutableMap<String, String> = mutableMapOf()
 
     var opacity: Int? = null
-        get() = this.params.get(DrawingConfigurationParameter.Opacity.toString())?.toInt()
+        get() = this.params[DrawingConfigurationParameter.Opacity.toString()]?.toInt()
 
     var fullDetails: Boolean? = null
-        get() = this.params.get(DrawingConfigurationParameter.FullDetails.toString())?.toBoolean()
+        get() = this.params[DrawingConfigurationParameter.FullDetails.toString()]?.toBoolean()
 
     var tertiaryInteractionStyle: String? = null
-        get() = this.params.get(DrawingConfigurationParameter.TertiaryInteractionStyle.toString())
+        get() = this.params[DrawingConfigurationParameter.TertiaryInteractionStyle.toString()]
 
     var lineShift: Double? = null
-        get() = this.params.get(DrawingConfigurationParameter.LineShift.toString())?.toDouble()
+        get() = this.params[DrawingConfigurationParameter.LineShift.toString()]?.toDouble()
 
     var deltaXRes: Int? = null
-        get() = this.params.get(DrawingConfigurationParameter.DeltaXRes.toString())?.toInt()
+        get() = this.params[DrawingConfigurationParameter.DeltaXRes.toString()]?.toInt()
 
     var deltaYRes: Int? = null
-        get() = this.params.get(DrawingConfigurationParameter.DeltaYRes.toString())?.toInt()
+        get() = this.params[DrawingConfigurationParameter.DeltaYRes.toString()]?.toInt()
 
     var deltaFontSize: Int? = null
-        get() = this.params.get(DrawingConfigurationParameter.DeltaFontSize.toString())?.toInt()
+        get() = this.params[DrawingConfigurationParameter.DeltaFontSize.toString()]?.toInt()
 
     var lineWidth: Double? = null
-        get() = this.params.get(DrawingConfigurationParameter.LineWidth.toString())?.toDouble()
+        get() = this.params[DrawingConfigurationParameter.LineWidth.toString()]?.toDouble()
 
     var color: Color? = null
-        get() = this.params.get(DrawingConfigurationParameter.Color.toString())?.let { getAWTColor(it) }
+        get() = this.params[DrawingConfigurationParameter.Color.toString()]?.let { getAWTColor(it) }
 
     var fontName: String? = null
-        get() = this.params.get(DrawingConfigurationParameter.FontName.toString())
+        get() = this.params[DrawingConfigurationParameter.FontName.toString()]
 
     var displayResidueNames = true
     var fontStyle = Font.PLAIN
@@ -202,7 +207,7 @@ abstract class DrawingElement(val ssDrawing: SecondaryStructureDrawing, var pare
     open val residues: List<ResidueDrawing>
         get() = this.ssDrawing.getResiduesFromAbsPositions(*this.location.positions.toIntArray())
 
-    abstract fun draw(g: Graphics2D, at: AffineTransform)
+    abstract fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D)
 
     abstract fun asSVG(indentChar: String = "\t", indentLevel: Int = 1, transX: Double = 0.0, transY: Double = 0.0): String
 
@@ -259,7 +264,7 @@ abstract class DrawingElement(val ssDrawing: SecondaryStructureDrawing, var pare
 
 class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, frame: Rectangle2D = Rectangle(0, 0, Toolkit.getDefaultToolkit().getScreenSize().width, Toolkit.getDefaultToolkit().getScreenSize().height), theme: Theme = Theme(), val workingSession: WorkingSession = WorkingSession()) {
 
-    val phosphoBonds = mutableListOf<PhosphodiesterBondDrawing>() //bonds linking branch-branch and single-strand-branch
+    val phosphoBonds = mutableListOf<BranchesLinkingPhosphodiesterBondDrawing>() //bonds linking branch-branch and single-strand-branch
     var name: String
         get() = this.secondaryStructure.name
         set(name) {
@@ -362,12 +367,10 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
     val allHelices: List<HelixDrawing>
         get() {
             val allHelices = mutableListOf<HelixDrawing>()
-            for (branch in this.branches) {
+            for (branch in this.branches)
                 allHelices.addAll(branch.helicesFromBranch())
-            }
-            for (pknot in this.pknots) {
+            for (pknot in this.pknots)
                 allHelices.add(pknot.helix)
-            }
             return allHelices.sortedBy { it.start }
         }
 
@@ -404,7 +407,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
         //we start the drawing with the helices with no junction on one side
         var currentPos = 0
         lateinit var lastBranchConstructed: JunctionDrawing
-        lateinit var bottom: Point2D
+        var bottom = Point2D.Double(frame.width / 2, frame.height - 50)
         lateinit var top: Point2D
 
         do {
@@ -440,7 +443,6 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
             val residuesBeforeHelix = nextHelix.first - currentPos - 1
 
             if (currentPos == 0) {
-                bottom = Point2D.Double(frame.width / 2, frame.height - 50)
                 top = Point2D.Double(frame.width / 2, frame.height - 50 - helixDrawingLength(
                         nextHelix.third
                 ))
@@ -474,11 +476,11 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                                             start = currentPos + 1,
                                             end = residuesBeforeHelix
                                     ),
-                                    bottom,
                                     if (this.fitToResiduesBetweenBranches) Point2D.Double(
-                                            bottom.x - radiusConst * 2 * (residuesBeforeHelix + 1),
-                                            bottom.y
-                                    ) else Point2D.Double(bottom.x - 200, bottom.y)
+                                        bottom.x - radiusConst * 2 * (residuesBeforeHelix + 1),
+                                        bottom.y
+                                    ) else Point2D.Double(bottom.x - 200, bottom.y),
+                                        bottom
                             )
                     )
                     this.residues[0].center = if (this.fitToResiduesBetweenBranches) Point2D.Double(bottom.x - radiusConst * 2 * (residuesBeforeHelix + 1), bottom.y) else Point2D.Double(bottom.x - 200, bottom.y)
@@ -619,8 +621,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
             //inside an helix
             for (h in this.allHelices) {
                 if (h.location.contains(i) && h.location.contains(i + 1)) {
-                    phosphoBond = PhosphodiesterBondDrawing(h, this, Location(Location(i), Location(i + 1)))
-                    h.phosphoBonds.add(phosphoBond)
+                    phosphoBond = HelicalPhosphodiesterBondDrawing(h, this, Location(Location(i), Location(i + 1)))
                     break;
                 }
             }
@@ -666,9 +667,10 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                                 }
                             }
                         }
-                        if (phosphoBond == null)
+                        if (phosphoBond == null) {
                             phosphoBond = PhosphodiesterBondDrawing(j, this, Location(Location(i), Location(i + 1)))
-                        j.phosphoBonds.add(phosphoBond)
+                            j.phosphoBonds.add(phosphoBond)
+                        }
                         break;
                     }
                 }
@@ -690,16 +692,14 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                         for (j in this.branches)
                             if (j.inHelix.location.contains(i+1)) {
                                 phosphoBond =
-                                    SingleStrandLinkingBranchPhosphodiesterBondDrawing(null, this, Location(Location(i), Location(i + 1)), i+1)
-                                this.phosphoBonds.add(phosphoBond)
+                                    SingleStrandLinkingBranchPhosphodiesterBondDrawing(ss, this, Location(Location(i), Location(i + 1)), i+1)
                                 break@SINGLESTRANDS;
                             }
                     } else if (ss.location.contains(i + 1)) {
                         for (j in this.branches)
                             if (j.inHelix.location.contains(i)) {
                                 phosphoBond =
-                                    SingleStrandLinkingBranchPhosphodiesterBondDrawing(null, this, Location(Location(i), Location(i + 1)), i)
-                                this.phosphoBonds.add(phosphoBond)
+                                    SingleStrandLinkingBranchPhosphodiesterBondDrawing(ss, this, Location(Location(i), Location(i + 1)), i)
                                 break@SINGLESTRANDS;
                             }
                     }
@@ -708,14 +708,11 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
 
             //linking two helices starting a branch
             if (phosphoBond == null) {
-                (this.branches)
                 BRANCHES@for (j in this.branches)
                     if (j.inHelix.location.contains(i)) {
                         for (k in this.branches)
                             if (k.inHelix.location.contains(i+1)) {
-                                phosphoBond =
-                                    BranchesLinkingPhosphodiesterBondDrawing(null, this, Location(Location(i), Location(i + 1)))
-                                this.phosphoBonds.add(phosphoBond)
+                                    BranchesLinkingPhosphodiesterBondDrawing(this, Location(Location(i), Location(i + 1)), j, k)
                                 break@BRANCHES;
                             }
 
@@ -734,55 +731,79 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
         }
 
         //+++++ now we compute the pknots
-        for (pknot in this.secondaryStructure.pknots)
-            this.pknots.add(PKnotDrawing(this, pknot))
+        for (pknot in this.secondaryStructure.pknots) {
+            val pknotDrawing = PKnotDrawing(this, pknot)
+            this.pknots.add(pknotDrawing)
+        }
 
         for (branch in this.branches)
             this.computeResidues(branch)
 
-        for (singleStrand in this.singleStrands) {
-            if (singleStrand.start == 1) {
-                if (singleStrand.length != 1) {
-                    val step = distance(
+        if (this.singleStrands.size == 1 && this.allHelices.isEmpty()) { // an RNA made with a single single-strand.
+            val singleStrand = this.singleStrands.first()
+            this.residues[0].center = Point2D.Double(bottom.x - radiusConst * 2 * (singleStrand.length/2.0 + 1), bottom.y)
+            for (i in singleStrand.start + 1..singleStrand.end)
+                this.residues[i - 1].center = Point2D.Double(this.residues[i - 2].center.x + radiusConst*2.0, this.residues[i - 2].center.y)
+        }
+
+        else {
+            for (singleStrand in this.singleStrands) {
+                for ((i,branch) in this.branches.withIndex())
+                    if (branch.inHelix.location.end == singleStrand.location.start-1) {
+                        singleStrand.previousBranch = branch
+                        if (i+1 < this.branches.size)
+                            singleStrand.nextBranch = this.branches.get(i+1)
+                        break
+                    } else if (branch.inHelix.location.start == singleStrand.location.end+1) {
+                        singleStrand.nextBranch = branch
+                        if (i-1 >=0)
+                            singleStrand.previousBranch = this.branches.get(i-1)
+                        break
+                    }
+
+                if (singleStrand.start == 1) {
+                    if (singleStrand.length != 1) {
+                        val step = distance(
                             this.residues[0].center,
                             this.residues[singleStrand.end].center
-                    ) / (singleStrand.ss.length).toDouble()
-                    for (i in singleStrand.start + 1..singleStrand.end) {
-                        val (p1_1, _) = pointsFrom(
+                        ) / (singleStrand.ss.length).toDouble()
+                        for (i in singleStrand.start + 1..singleStrand.end) {
+                            val (p1_1, _) = pointsFrom(
                                 this.residues[0].center,
                                 this.residues[singleStrand.end].center,
                                 step * (i - singleStrand.start).toDouble()
-                        )
-                        this.residues[i - 1].center = p1_1
+                            )
+                            this.residues[i - 1].center = p1_1
+                        }
                     }
-                }
-            } else if (singleStrand.end == this.secondaryStructure.length) {
-                if (singleStrand.length != 1) {
-                    val step = distance(
+                } else if (singleStrand.end == this.secondaryStructure.length) {
+                    if (singleStrand.length != 1) {
+                        val step = distance(
                             this.residues[singleStrand.start - 2].center,
                             this.residues[this.secondaryStructure.length - 1].center
-                    ) / (singleStrand.length).toDouble()
-                    for (i in singleStrand.start until singleStrand.end) {
-                        val (p1_1, _) = pointsFrom(
+                        ) / (singleStrand.length).toDouble()
+                        for (i in singleStrand.start until singleStrand.end) {
+                            val (p1_1, _) = pointsFrom(
                                 this.residues[singleStrand.start - 2].center,
                                 this.residues[this.secondaryStructure.length - 1].center,
                                 step * (i - (singleStrand.start - 1).toDouble())
-                        )
-                        this.residues[i - 1].center = p1_1
+                            )
+                            this.residues[i - 1].center = p1_1
+                        }
                     }
-                }
-            } else {
-                val step = distance(
+                } else {
+                    val step = distance(
                         this.residues[singleStrand.start - 2].center,
                         this.residues[singleStrand.end].center
-                ) / (singleStrand.length + 1).toDouble()
-                for (i in singleStrand.start..singleStrand.end) {
-                    val (p1_1, _) = pointsFrom(
+                    ) / (singleStrand.length + 1).toDouble()
+                    for (i in singleStrand.start..singleStrand.end) {
+                        val (p1_1, _) = pointsFrom(
                             this.residues[singleStrand.start - 2].center,
                             this.residues[singleStrand.end].center,
                             step * (i - (singleStrand.start - 1).toDouble())
-                    )
-                    this.residues[i - 1].center = p1_1
+                        )
+                        this.residues[i - 1].center = p1_1
+                    }
                 }
             }
         }
@@ -835,22 +856,22 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
     }
 
     fun getBounds(): Rectangle2D {
-        val minX = this.residues.minBy { it.circle!!.minX }!!.circle!!.minX - drawingConfiguration.lineWidth!!
-        val minY = this.residues.minBy { it.circle!!.minY }!!.circle!!.minY - drawingConfiguration.lineWidth!!
-        val maxX = this.residues.maxBy { it.circle!!.maxX }!!.circle!!.maxX + drawingConfiguration.lineWidth!!
-        val maxY = this.residues.maxBy { it.circle!!.maxY }!!.circle!!.maxY + drawingConfiguration.lineWidth!!
+        val minX = this.residues.minBy { it.circle.minX }!!.circle.minX - drawingConfiguration.lineWidth!!
+        val minY = this.residues.minBy { it.circle.minY }!!.circle.minY - drawingConfiguration.lineWidth!!
+        val maxX = this.residues.maxBy { it.circle.maxX }!!.circle.maxX + drawingConfiguration.lineWidth!!
+        val maxY = this.residues.maxBy { it.circle.maxY }!!.circle.maxY + drawingConfiguration.lineWidth!!
         return Rectangle2D.Double(minX.toInt() - drawingConfiguration.lineWidth!! / 2.0, minY.toInt() - drawingConfiguration.lineWidth!! / 2.0, maxX - minX + drawingConfiguration.lineWidth!!, maxY - minY + drawingConfiguration.lineWidth!!)
     }
 
     fun getSelectionBounds(): Rectangle2D {
-        val minX = this.selection.minBy { it.circle!!.minX }!!.circle!!.minX - drawingConfiguration.lineWidth!!
-        val minY = this.selection.minBy { it.circle!!.minY }!!.circle!!.minY - drawingConfiguration.lineWidth!!
-        val maxX = this.selection.maxBy { it.circle!!.maxX }!!.circle!!.maxX + drawingConfiguration.lineWidth!!
-        val maxY = this.selection.maxBy { it.circle!!.maxY }!!.circle!!.maxY + drawingConfiguration.lineWidth!!
+        val minX = this.selection.minBy { it.circle.minX }!!.circle.minX - drawingConfiguration.lineWidth!!
+        val minY = this.selection.minBy { it.circle.minY }!!.circle.minY - drawingConfiguration.lineWidth!!
+        val maxX = this.selection.maxBy { it.circle.maxX }!!.circle.maxX + drawingConfiguration.lineWidth!!
+        val maxY = this.selection.maxBy { it.circle.maxY }!!.circle.maxY + drawingConfiguration.lineWidth!!
         return Rectangle2D.Double(minX.toInt() - drawingConfiguration.lineWidth!! / 2.0, minY.toInt() - drawingConfiguration.lineWidth!! / 2.0, maxX - minX + drawingConfiguration.lineWidth!!, maxY - minY + drawingConfiguration.lineWidth!!)
     }
 
-    fun draw(g: Graphics2D, at:AffineTransform) {
+    fun draw(g: Graphics2D, at:AffineTransform, drawingArea: Rectangle2D) {
         if (!quickDraw) {
             val _c = at.createTransformedShape(this.residues.first().circle)
             drawingConfiguration.fontSize = computeOptimalFontSize(
@@ -880,7 +901,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
 
             val area:Area = Area()
             this.workingSession.selectedResidues.toList().forEach { r ->
-                r.drawSelectionHalo(g, at)?.let {
+                r.getSelectionHalo(at)?.let {
                     area.add(it)
                 }
             }
@@ -888,25 +909,85 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
             g.fill(area)
         }
 
-        this.singleStrands.forEach {
-            it.draw(g, at)
+        this.workingSession.branchesDrawn.clear()
+        this.workingSession.singleStrandsDrawn.clear()
+        this.workingSession.phosphoBondsLinkingBranchesDrawn.clear()
+
+        if (this.singleStrands.isEmpty() && this.phosphoBonds.isEmpty())
+            this.workingSession.branchesDrawn.addAll(this.branches)
+
+        for (ss in this.singleStrands) {
+            val s = Point2D.Double(0.0, 0.0)
+            val e = Point2D.Double(0.0, 0.0)
+            at.transform(ss.line.p1, s)
+            at.transform(ss.line.p2, e)
+            if (e.x < 0.0)
+                continue
+            if (s.x > drawingArea.width)
+                break
+            if (s.x >= 0.0 && s.x <= drawingArea.width || e.x >= 0.0 && e.x <= drawingArea.width || s.x < 0.0 && e.x > drawingArea.width) {
+                ss.previousBranch?.let {
+                    this.workingSession.branchesDrawn.add(it)
+                }
+                ss.nextBranch?.let {
+                    this.workingSession.branchesDrawn.add(it)
+                }
+                //the y coordinate allows to decide if the single-strand will be drawn
+                if (s.y >= 0.0 && s.y <= drawingArea.height ) //not necessary to check the end point
+                    this.workingSession.singleStrandsDrawn.add(ss)
+                    ss.draw(g, at, drawingArea)
+            }
         }
 
-        this.branches.forEach {
-            it.draw(g, at)
+        for (phospho in this.phosphoBonds) {
+            val s = Point2D.Double(0.0, 0.0)
+            val e = Point2D.Double(0.0, 0.0)
+            at.transform((phospho.previousBranch.parent as HelixDrawing).line.p1, s)
+            at.transform((phospho.nextBranch.parent as HelixDrawing).line.p1, e)
+            if (e.x < 0.0)
+                continue
+            if (s.x > drawingArea.width)
+                break
+            if (s.x >= 0.0 && s.x <= drawingArea.width || e.x >= 0.0 && e.x <= drawingArea.width || s.x < 0.0 && e.x > drawingArea.width) {
+                phospho.previousBranch?.let {
+                    this.workingSession.branchesDrawn.add(it)
+                }
+                phospho.nextBranch?.let {
+                    this.workingSession.branchesDrawn.add(it)
+                }
+                //the y coordinate allows to decide if the single-strand will be drawn
+                if (s.y >= 0.0 && s.y <= drawingArea.height ) //not necessary to check the end point
+                    this.workingSession.phosphoBondsLinkingBranchesDrawn.add(phospho)
+                phospho.draw(g, at, drawingArea)
+            }
         }
 
-        this.phosphoBonds.forEach {
-            it.draw(g, at)
+        this.workingSession.branchesDrawn.forEach {
+            JUNCTIONSFROMBRANCHES@for (j in it.junctionsFromBranch()) {
+                val p = Point2D.Double(0.0, 0.0)
+                at.transform((j.parent!! as HelixDrawing).line.p1, p)
+                if (p.x >= 0.0 && p.x <= drawingArea.width && p.y >= 0.0 && p.y <= drawingArea.height) {
+                    j.draw(g, at, drawingArea)
+                    continue@JUNCTIONSFROMBRANCHES
+                }
+                val helices = mutableListOf<HelixDrawing>()
+                helices.addAll(j.outHelices)
+                for (h in helices) {
+                    at.transform(h.line.p1, p)
+                    if (p.x >= 0.0 && p.x <= drawingArea.width && p.y >= 0.0 && p.y <= drawingArea.height) {
+                        j.draw(g, at, drawingArea)
+                        continue@JUNCTIONSFROMBRANCHES
+                    }
+                }
+            }
         }
 
-        if (!quickDraw) {
+        if (false) {
             this.allTertiaryInteractions.forEach {
-                it.draw(g, at)
+                it.draw(g, at, drawingArea)
             }
             this.residuesUpdated.clear()
         }
-
 
     }
 
@@ -949,7 +1030,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
     /**
     Compute the coordinates for all the residues in an helix
      */
-    fun computeResidues(helix: HelixDrawing) {
+    private fun computeResidues(helix: HelixDrawing) {
         val (p1_5, p2_3) = getPerpendicular(
                 helix.line.p1,
                 helix.line.p1,
@@ -1019,25 +1100,25 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                 WorkingSession(),
                 drawingConfiguration,
                 "A",
-                residues.first().circle!!.width,
-                residues.first().circle!!.height
+                residues.first().circle.width,
+                residues.first().circle.height
         )
         val font = Font(drawingConfiguration.fontName, drawingConfiguration.fontStyle, drawingConfiguration.fontSize)
         var r2d = getStringBoundsRectangle2D(g, "A", font)
-        this.ATransX = (residues.first().circle!!.bounds2D.width - r2d.width).toFloat() / 2F
-        this.ATransY = (residues.first().circle!!.bounds2D.height + r2d.height).toFloat() / 2F
+        this.ATransX = (residues.first().circle.bounds2D.width - r2d.width).toFloat() / 2F
+        this.ATransY = (residues.first().circle.bounds2D.height + r2d.height).toFloat() / 2F
         r2d = getStringBoundsRectangle2D(g, "U", font)
-        this.UTransX = (residues.first().circle!!.bounds2D.width - r2d.width).toFloat() / 2F
-        this.UTransY = (residues.first().circle!!.bounds2D.height + r2d.height).toFloat() / 2F
+        this.UTransX = (residues.first().circle.bounds2D.width - r2d.width).toFloat() / 2F
+        this.UTransY = (residues.first().circle.bounds2D.height + r2d.height).toFloat() / 2F
         r2d = getStringBoundsRectangle2D(g, "G", font)
-        this.GTransX = (residues.first().circle!!.bounds2D.width - r2d.width).toFloat() / 2F
-        this.GTransY = (residues.first().circle!!.bounds2D.height + r2d.height).toFloat() / 2F
+        this.GTransX = (residues.first().circle.bounds2D.width - r2d.width).toFloat() / 2F
+        this.GTransY = (residues.first().circle.bounds2D.height + r2d.height).toFloat() / 2F
         r2d = getStringBoundsRectangle2D(g, "C", font)
-        this.CTransX = (residues.first().circle!!.bounds2D.width - r2d.width).toFloat() / 2F
-        this.CTransY = (residues.first().circle!!.bounds2D.height + r2d.height).toFloat() / 2F
+        this.CTransX = (residues.first().circle.bounds2D.width - r2d.width).toFloat() / 2F
+        this.CTransY = (residues.first().circle.bounds2D.height + r2d.height).toFloat() / 2F
         r2d = getStringBoundsRectangle2D(g, "X", font)
-        this.XTransX = (residues.first().circle!!.bounds2D.width - r2d.width).toFloat() / 2F
-        this.XTransY = (residues.first().circle!!.bounds2D.height + r2d.height).toFloat() / 2F
+        this.XTransX = (residues.first().circle.bounds2D.width - r2d.width).toFloat() / 2F
+        this.XTransY = (residues.first().circle.bounds2D.height + r2d.height).toFloat() / 2F
 
         val bounds = getBounds()
         val svgBuffer = StringBuffer("""<svg viewBox="0 0 ${bounds.width} ${bounds.height}" xmlns="http://www.w3.org/2000/svg">""" + "\n")
@@ -1111,7 +1192,7 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
     var center: Point2D = Point2D.Double(0.0,0.0)
         set(value) {
             field = value
-            this.circle = Ellipse2D.Double(value!!.x - radiusConst, value.y - radiusConst, (radiusConst * 2F).toDouble(), (radiusConst * 2F).toDouble())
+            this.circle = Ellipse2D.Double(value.x - radiusConst, value.y - radiusConst, (radiusConst * 2F).toDouble(), (radiusConst * 2F).toDouble())
         }
 
     override val bounds2D: Rectangle2D
@@ -1120,17 +1201,23 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
     override val selected: Boolean
         get() = this in this.ssDrawing.selection
 
-    fun drawSelectionHalo(g: Graphics2D, at: AffineTransform): Area? {
-        if (this.isFullDetails()) {
+    fun getSelectionHalo(at: AffineTransform): Area? {
+        return if (this.isFullDetails() || this.residueLetter.isFullDetails()) {
             val _c = at.createTransformedShape(this.circle)
-            val newWidth = (_c.bounds2D.width) + this.getLineWidth() / 2.0 + this.ssDrawing.finalZoomLevel.toFloat() * RnartistConfig.selectionSize.toFloat()/2f
-            var newCircle = Ellipse2D.Double(_c.bounds2D.centerX - newWidth / 2.0, _c.bounds2D.centerY - newWidth / 2.0, newWidth, newWidth)
-            return Area(newCircle)
-        }
-        return null
+            val newWidth =
+                (_c.bounds2D.width) + this.getLineWidth() / 2.0 + this.ssDrawing.finalZoomLevel.toFloat() * RnartistConfig.selectionSize.toFloat() / 2f
+            var newCircle = Ellipse2D.Double(
+                _c.bounds2D.centerX - newWidth / 2.0,
+                _c.bounds2D.centerY - newWidth / 2.0,
+                newWidth,
+                newWidth
+            )
+            Area(newCircle)
+        } else
+            null
     }
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (this.isFullDetails()) {
             val _c = at.createTransformedShape(this.circle)
             g.color = this.getColor()
@@ -1148,11 +1235,11 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
                 this.drawNumbering(g, at)
         }
         if (g.font.size > 5 && this.getOpacity() > 0) { //the conditions to draw a letter
-            this.residueLetter.draw(g, at)
+            this.residueLetter.draw(g, at, drawingArea)
         }
     }
 
-    protected fun drawNumbering(g: Graphics2D, at: AffineTransform) {
+    private fun drawNumbering(g: Graphics2D, at: AffineTransform) {
         g.color = Color(Color.DARK_GRAY.red, Color.DARK_GRAY.green, Color.DARK_GRAY.blue,
                 this.getOpacity()
         )
@@ -1220,7 +1307,7 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
 
     override fun asSVG(indentChar: String, indentLevel: Int, transX: Double, transY: Double): String {
         val buff = StringBuffer(indentChar.repeat(indentLevel) + "<g>\n")
-        buff.append(indentChar.repeat(indentLevel + 1) + """<circle cx="${this.circle!!.centerX + transX}" cy="${this.circle!!.centerY + transY}" r="${(this.parent as ResidueDrawing).circle!!.width / 2}" stroke="rgb(${Color.DARK_GRAY.red}, ${Color.DARK_GRAY.green}, ${Color.DARK_GRAY.blue})" stroke-width="${this.getLineWidth()}" fill="rgb(${getColor().red}, ${getColor().green}, ${getColor().blue})" />""" + "\n")
+        buff.append(indentChar.repeat(indentLevel + 1) + """<circle cx="${this.circle.centerX + transX}" cy="${this.circle.centerY + transY}" r="${(this.parent as ResidueDrawing).circle.width / 2}" stroke="rgb(${Color.DARK_GRAY.red}, ${Color.DARK_GRAY.green}, ${Color.DARK_GRAY.blue})" stroke-width="${this.getLineWidth()}" fill="rgb(${getColor().red}, ${getColor().green}, ${getColor().blue})" />""" + "\n")
         buff.append(this.residueLetter.asSVG())
         buff.append(indentChar.repeat(indentLevel) + "</g>\n")
         return buff.toString()
@@ -1270,15 +1357,15 @@ class A(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
         val buff = StringBuffer(indentChar.repeat(indentLevel))
         val color = this.getColor()
         if (RnartistConfig.exportSVGWithBrowserCompatibility())
-            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle!!.centerX + transX + this.getDeltaXRes()}" y="${(this.parent as ResidueDrawing).circle!!.centerY + transY + this.getDeltaYRes()}" text-anchor="middle" dy=".3em" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${this.drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
+            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle.centerX + transX + this.getDeltaXRes()}" y="${(this.parent as ResidueDrawing).circle.centerY + transY + this.getDeltaYRes()}" text-anchor="middle" dy=".3em" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${this.drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
         else
-            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle!!.bounds2D.minX.toFloat() + transX + this.getDeltaXRes() + ssDrawing.ATransX}" y="${(this.parent as ResidueDrawing).circle!!.bounds2D.minY.toFloat() + transY + this.getDeltaYRes() + ssDrawing.ATransY}" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
+            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle.bounds2D.minX.toFloat() + transX + this.getDeltaXRes() + ssDrawing.ATransX}" y="${(this.parent as ResidueDrawing).circle.bounds2D.minY.toFloat() + transY + this.getDeltaYRes() + ssDrawing.ATransY}" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
         return buff.toString()
     }
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (this.isFullDetails()) {
-            val c = at.createTransformedShape((this.parent as ResidueDrawing).circle!!)
+            val c = at.createTransformedShape((this.parent as ResidueDrawing).circle)
             g.color = this.getColor()
             g.drawString(
                 this.type.name,
@@ -1296,15 +1383,15 @@ class U(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
         val color = this.getColor()
 
         if (RnartistConfig.exportSVGWithBrowserCompatibility())
-            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle!!.centerX + transX + this.getDeltaXRes()}" y="${(this.parent as ResidueDrawing).circle!!.centerY + transY + this.getDeltaYRes()}" text-anchor="middle" dy=".3em" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${this.drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
+            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle.centerX + transX + this.getDeltaXRes()}" y="${(this.parent as ResidueDrawing).circle.centerY + transY + this.getDeltaYRes()}" text-anchor="middle" dy=".3em" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${this.drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
         else
-            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle!!.bounds2D.minX.toFloat() + transX + this.getDeltaXRes() + ssDrawing.UTransX}" y="${(this.parent as ResidueDrawing).circle!!.bounds2D.minY.toFloat() + transY + this.getDeltaYRes() + ssDrawing.UTransY}" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
+            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle.bounds2D.minX.toFloat() + transX + this.getDeltaXRes() + ssDrawing.UTransX}" y="${(this.parent as ResidueDrawing).circle.bounds2D.minY.toFloat() + transY + this.getDeltaYRes() + ssDrawing.UTransY}" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
         return buff.toString()
     }
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (this.isFullDetails()) {
-            val c = at.createTransformedShape((this.parent as ResidueDrawing).circle!!)
+            val c = at.createTransformedShape((this.parent as ResidueDrawing).circle)
             g.color = this.getColor()
             g.drawString(
                 this.type.name,
@@ -1324,15 +1411,15 @@ class G(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
         val color = this.getColor()
 
         if (RnartistConfig.exportSVGWithBrowserCompatibility())
-            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle!!.centerX + transX + this.getDeltaXRes()}" y="${(this.parent as ResidueDrawing).circle!!.centerY + transY + this.getDeltaYRes()}" text-anchor="middle" dy=".3em" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${this.drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
+            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle.centerX + transX + this.getDeltaXRes()}" y="${(this.parent as ResidueDrawing).circle.centerY + transY + this.getDeltaYRes()}" text-anchor="middle" dy=".3em" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${this.drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
         else
-            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle!!.bounds2D.minX.toFloat() + transX + this.getDeltaXRes() + ssDrawing.GTransX}" y="${(this.parent as ResidueDrawing).circle!!.bounds2D.minY.toFloat() + transY + this.getDeltaYRes() + ssDrawing.GTransY}" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
+            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle.bounds2D.minX.toFloat() + transX + this.getDeltaXRes() + ssDrawing.GTransX}" y="${(this.parent as ResidueDrawing).circle.bounds2D.minY.toFloat() + transY + this.getDeltaYRes() + ssDrawing.GTransY}" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
         return buff.toString()
     }
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (this.isFullDetails()) {
-            val c = at.createTransformedShape((this.parent as ResidueDrawing).circle!!)
+            val c = at.createTransformedShape((this.parent as ResidueDrawing).circle)
             g.color = this.getColor()
             g.drawString(
                 this.type.name,
@@ -1350,15 +1437,15 @@ class C(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
         val color = this.getColor()
 
         if (RnartistConfig.exportSVGWithBrowserCompatibility())
-            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle!!.centerX + transX + this.getDeltaXRes()}" y="${(this.parent as ResidueDrawing).circle!!.centerY + transY + this.getDeltaYRes()}" text-anchor="middle" dy=".3em" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${this.drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
+            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle.centerX + transX + this.getDeltaXRes()}" y="${(this.parent as ResidueDrawing).circle.centerY + transY + this.getDeltaYRes()}" text-anchor="middle" dy=".3em" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${this.drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
         else
-            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle!!.bounds2D.minX.toFloat() + transX + this.getDeltaXRes() + ssDrawing.CTransX}" y="${(this.parent as ResidueDrawing).circle!!.bounds2D.minY.toFloat() + transY + this.getDeltaYRes() + ssDrawing.CTransY}" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
+            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle.bounds2D.minX.toFloat() + transX + this.getDeltaXRes() + ssDrawing.CTransX}" y="${(this.parent as ResidueDrawing).circle.bounds2D.minY.toFloat() + transY + this.getDeltaYRes() + ssDrawing.CTransY}" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
         return buff.toString()
     }
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (this.isFullDetails()) {
-            val c = at.createTransformedShape((this.parent as ResidueDrawing).circle!!)
+            val c = at.createTransformedShape((this.parent as ResidueDrawing).circle)
             g.color = this.getColor()
             g.drawString(
                 this.type.name,
@@ -1378,15 +1465,15 @@ class X(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
         val color = this.getColor()
 
         if (RnartistConfig.exportSVGWithBrowserCompatibility())
-            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle!!.centerX + transX + this.getDeltaXRes()}" y="${(this.parent as ResidueDrawing).circle!!.centerY + transY + this.getDeltaYRes()}" text-anchor="middle" dy=".3em" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${this.drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
+            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle.centerX + transX + this.getDeltaXRes()}" y="${(this.parent as ResidueDrawing).circle.centerY + transY + this.getDeltaYRes()}" text-anchor="middle" dy=".3em" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${this.drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
         else
-            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle!!.bounds2D.minX.toFloat() + transX + this.getDeltaXRes() + ssDrawing.XTransX}" y="${(this.parent as ResidueDrawing).circle!!.bounds2D.minY.toFloat() + transY + this.getDeltaYRes() + ssDrawing.XTransY}" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
+            buff.append(indentChar.repeat(indentLevel + 1) + """<text x="${(this.parent as ResidueDrawing).circle.bounds2D.minX.toFloat() + transX + this.getDeltaXRes() + ssDrawing.XTransX}" y="${(this.parent as ResidueDrawing).circle.bounds2D.minY.toFloat() + transY + this.getDeltaYRes() + ssDrawing.XTransY}" style="fill:rgb(${color.red}, ${color.green}, ${color.blue});font-family:${this.getFontName()};font-size:${drawingConfiguration.fontSize};">${this.type.name}</text>""" + "\n")
         return buff.toString()
     }
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (this.isFullDetails()) {
-            val c = at.createTransformedShape((this.parent as ResidueDrawing).circle!!)
+            val c = at.createTransformedShape((this.parent as ResidueDrawing).circle)
             g.color = this.getColor()
             g.drawString(
                 this.type.name,
@@ -1397,7 +1484,7 @@ class X(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
     }
 }
 
-class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, val pknot: Pknot) : DrawingElement(ssDrawing, null, pknot.name, pknot.location, SecondaryStructureType.PKnot) {
+class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, private val pknot: Pknot) : DrawingElement(ssDrawing, null, pknot.name, pknot.location, SecondaryStructureType.PKnot) {
 
     val tertiaryInteractions = mutableListOf<TertiaryInteractionDrawing>()
     lateinit var helix: HelixDrawing
@@ -1410,19 +1497,24 @@ class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, val pknot: Pknot) : Dra
             return bounds2D
         }
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
-        this.helix.draw(g, at)
-        for (interaction in this.tertiaryInteractions)
-            interaction.draw(g, at)
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
+        this.helix.draw(g, at, drawingArea)
+        if (this.isFullDetails())
+            for (interaction in this.tertiaryInteractions)
+                interaction.draw(g, at, drawingArea)
+        else {
+            TODO("Draw all the tertiaries in a more simple way, like a single thick line or something")
+        }
     }
 
     init {
-        for (h in ssDrawing.allHelices)
+        for (h in ssDrawing.allHelices) {
             if (h.helix.equals(pknot.helix)) {
                 this.helix = h
                 h.parent = this
                 break
             }
+        }
 
         for (interaction in pknot.tertiaryInteractions) {
             this.tertiaryInteractions.add(TertiaryInteractionDrawing(this,
@@ -1472,7 +1564,7 @@ class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructure
         get() {
             var bounds = this.secondaryInteractions.first().bounds2D
             for (i in 1 until this.secondaryInteractions.size)
-                bounds = bounds.createUnion(this.secondaryInteractions.get(i).bounds2D)
+                bounds = bounds.createUnion(this.secondaryInteractions[i].bounds2D)
             return bounds
         }
 
@@ -1485,7 +1577,7 @@ class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructure
         }
     }
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         val previousStroke = g.stroke
         g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
             BasicStroke.JOIN_ROUND)
@@ -1495,10 +1587,10 @@ class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructure
             g.draw(at.createTransformedShape(this.line))
         } else {
             this.phosphoBonds.forEach {
-                it.draw(g, at)
+                it.draw(g, at, drawingArea)
             }
             this.secondaryInteractions.forEach {
-                it.draw(g, at)
+                it.draw(g, at, drawingArea)
             }
         }
 
@@ -1524,10 +1616,13 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
     val length: Int
         get() = this.ss.length
 
+    var previousBranch:JunctionDrawing? = null
+    var nextBranch:JunctionDrawing? = null
+
     override val bounds2D: Rectangle2D
         get() = this.line.bounds2D
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         val previousStroke = g.stroke
         g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
             BasicStroke.JOIN_ROUND)
@@ -1536,15 +1631,16 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
             g.draw(at.createTransformedShape(this.line))
         }
         else if (!this.isFullDetails()) { //a line fitted to the display mode of the residues at the end
-            val residues = this.ssDrawing.getResiduesFromAbsPositions(this.location.start-1, this.location.start, this.location.end, this.location.end+1)
-            val center1 = if (this.location.start == 1) residues.first().center else (
-                if ((residues.first().parent?.parent as HelixDrawing).isFullDetails()) residues.first().center else (residues.first().parent?.parent as HelixDrawing).line.p1
+            val firstResidue = if (this.location.start == 1) this.residues.first() else this.ssDrawing.getResiduesFromAbsPositions(this.location.start -1).first()
+            val lastResidue = if (this.location.end == this.ssDrawing.length) this.residues.last() else this.ssDrawing.getResiduesFromAbsPositions(this.location.end+1).first()
+            val center1 = if (this.location.start == 1) firstResidue.center else (
+                if (firstResidue.parent!!.parent!!.isFullDetails()) firstResidue.center else (firstResidue.parent?.parent as HelixDrawing).line.p1
             )
-            val center2 = if (this.location.end == this.ssDrawing.length) residues.last().center else (
-                    if ((residues.last().parent?.parent as HelixDrawing).isFullDetails()) residues.last().center else (residues.last().parent?.parent as HelixDrawing).line.p1
+            val center2 = if (this.location.end == this.ssDrawing.length) lastResidue.center else (
+                    if (lastResidue.parent!!.parent!!.isFullDetails()) lastResidue.center else (lastResidue.parent?.parent as HelixDrawing).line.p1
                     )
 
-            if (!this.residues.first().isFullDetails() && !this.residues.first().residueLetter.isFullDetails() && !this.residues.last().isFullDetails() && !this.residues.last().residueLetter.isFullDetails()) {
+            if (!firstResidue.isFullDetails() && !firstResidue.residueLetter.isFullDetails() && !lastResidue.isFullDetails() && !lastResidue.residueLetter.isFullDetails()) {
                 g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
             } else {
                 val (p1, p2) = pointsFrom(
@@ -1552,16 +1648,16 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
                     center2,
                     radiusConst + deltaPhosphoShift
                 )
-                g.draw(at.createTransformedShape(Line2D.Double(if (this.residues.first().isFullDetails() || this.residues.first().residueLetter.isFullDetails()) p1 else center1, if (this.residues.last().isFullDetails() || this.residues.last().residueLetter.isFullDetails()) p2 else center2)))
+                g.draw(at.createTransformedShape(Line2D.Double(if (firstResidue.isFullDetails() || firstResidue.residueLetter.isFullDetails()) p1 else center1, if (lastResidue.isFullDetails() || lastResidue.residueLetter.isFullDetails()) p2 else center2)))
             }
         }
         else {
             this.phosphoBonds.forEach {
-                it.draw(g, at)
+                it.draw(g, at, drawingArea)
             }
 
             this.residues.forEach {
-                it.draw(g, at)
+                it.draw(g, at, drawingArea)
             }
         }
         g.stroke = previousStroke
@@ -1582,14 +1678,14 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
 
 class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing, circlesFromBranchSoFar: MutableList<Triple<Point2D, Double, Ellipse2D>>, linesFromBranchSoFar: MutableList<List<Point2D>>, previousJunction: JunctionDrawing? = null, var inId: ConnectorId, inPoint: Point2D, val inHelix: Helix, val junction: Junction) : DrawingElement(ssDrawing, parent, junction.name, junction.location, SecondaryStructureType.Junction) {
 
-    val noOverlapWithLines = true
-    val noOverlapWithCircles = true
+    private val noOverlapWithLines = true
+    private val noOverlapWithCircles = true
     override val residues: List<ResidueDrawing>
         get() = this.ssDrawing.getResiduesFromAbsPositions(*this.locationWithoutSecondaries.positions.toIntArray())
     var outHelices = mutableListOf<HelixDrawing>()
     var connectedJunctions = mutableMapOf<ConnectorId, JunctionDrawing>()
     val phosphoBonds = mutableListOf<PhosphodiesterBondDrawing>()
-    val connectors: Array<Point2D> = Array(ConnectorId.values().size, { Point2D.Float(0F, 0F) }) //the connector points on the circle
+    private val connectors: Array<Point2D> = Array(ConnectorId.values().size, { Point2D.Float(0F, 0F) }) //the connector points on the circle
 
     override val selected: Boolean
         get() = !this.residues.any { !it.selected }
@@ -1692,7 +1788,7 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
         }
     lateinit var center: Point2D
     lateinit var circle: Ellipse2D
-    val previousJunction = previousJunction //allows to get some info backward. For example, useful for an InnerLoop to check the previous orientation in order to keep it if the inID is .o or .e (instead to choose .n in any case)
+    private val previousJunction = previousJunction //allows to get some info backward. For example, useful for an InnerLoop to check the previous orientation in order to keep it if the inID is .o or .e (instead to choose .n in any case)
 
     val minX: Double
         get() {
@@ -1761,10 +1857,10 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
                     ConnectorId.oso -> outId =
                             ConnectorId.n
                     ConnectorId.o ->
-                        if (this.previousJunction != null && this.previousJunction.inId.value > ConnectorId.o.value && this.previousJunction.inId.value < ConnectorId.e.value) { //we want the same orientation than for the previous junction
-                            outId = ConnectorId.s
+                        outId = if (this.previousJunction != null && this.previousJunction.inId.value > ConnectorId.o.value && this.previousJunction.inId.value < ConnectorId.e.value) { //we want the same orientation than for the previous junction
+                            ConnectorId.s
                         } else {
-                            outId = ConnectorId.n
+                            ConnectorId.n
                         }
                     ConnectorId.ono -> outId =
                             ConnectorId.s
@@ -1781,10 +1877,10 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
                     ConnectorId.ene -> outId =
                             ConnectorId.s
                     ConnectorId.e ->
-                        if (this.previousJunction != null && this.previousJunction.inId.value > ConnectorId.o.value && this.previousJunction.inId.value < ConnectorId.e.value) { //we want the same orientation than for the previous junction
-                            outId = ConnectorId.s
+                        outId = if (this.previousJunction != null && this.previousJunction.inId.value > ConnectorId.o.value && this.previousJunction.inId.value < ConnectorId.e.value) { //we want the same orientation than for the previous junction
+                            ConnectorId.s
                         } else {
-                            outId = ConnectorId.n
+                            ConnectorId.n
                         }
                     ConnectorId.ese -> outId =
                             ConnectorId.n
@@ -1808,20 +1904,18 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
                 var from: ConnectorId
                 var to: ConnectorId
 
-                if (helixRank == 1) {
-                    from =
-                            getConnectorId((inId.value + 1) % ConnectorId.values().size)
+                from = if (helixRank == 1) {
+                    getConnectorId((inId.value + 1) % ConnectorId.values().size)
                 } else {
-                    from =
-                            getConnectorId((getOutId(helixRank - 1)!!.value + 1) % ConnectorId.values().size)
+                    getConnectorId((getOutId(helixRank - 1)!!.value + 1) % ConnectorId.values().size)
                 }
 
-                if (helixRank == sortedHelix.size - 1) {
+                to = if (helixRank == sortedHelix.size - 1) {
                     val newRawValue = if (inId.value - 1 < 0) ConnectorId.values().size - 1 else inId.value - 1
-                    to = getConnectorId(newRawValue)
+                    getConnectorId(newRawValue)
                 } else {
                     val newRawValue = if (getOutId(helixRank + 1)!!.value - 1 < 0) ConnectorId.values().size - 1 else getOutId(helixRank + 1)!!.value - 1
-                    to = getConnectorId(newRawValue)
+                    getConnectorId(newRawValue)
                 }
 
                 var orientationsToTest = mutableListOf<ConnectorId>(outId) //we test outId first before to check the remaining orientations in order to avoid any overlap (if possible)
@@ -1893,11 +1987,11 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
                     nextPoints.add(points.second)
 
                     if (helix.length > 2) {
-                        for (i in 1..helix.length - 2) {
+                        for (j in 1..helix.length - 2) {
                             val p = pointsFrom(
                                     this.connectors[outId.value],
                                     inPoint,
-                                    i.toFloat() * helixDrawingLength(
+                                    j.toFloat() * helixDrawingLength(
                                             helix
                                     ) / helix.length.toFloat()
                             ).second
@@ -1927,10 +2021,10 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
                     }
 
                     if (fine && this.noOverlapWithLines) {
-                        outerloop@ for (points in linesFromBranchSoFar) {
+                        outerloop@ for (pts in linesFromBranchSoFar) {
                             if (!nextPoints.isEmpty() && intersects(
-                                            points.first(),
-                                            points.last(),
+                                            pts.first(),
+                                            pts.last(),
                                             nextPoints.first(),
                                             nextPoints.last()
                                     )
@@ -1938,7 +2032,7 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
                                 fine = false
                                 break@outerloop
                             }
-                            for (p in points)
+                            for (p in pts)
                                 if (nextCircle.contains(p)) {
                                     fine = false
                                     break@outerloop
@@ -1958,9 +2052,7 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
                 }
 
                 //we need to update the layout with the orientation chosen
-                this.layout!!.set(helixRank - 1,
-                        getConnectorId((outId!!.value + ConnectorId.values().size - inId.value) % ConnectorId.values().size)
-                )
+                this.layout!![helixRank - 1] = getConnectorId((outId!!.value + ConnectorId.values().size - inId.value) % ConnectorId.values().size)
                 val h = HelixDrawing(this,
                         ssDrawing,
                         helix,
@@ -1973,11 +2065,11 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
 
                 var points = mutableListOf<Point2D>(this.connectors[outId.value])
                 if (helix.length > 2) {
-                    for (i in 1..helix.length - 2) {
+                    for (j in 1..helix.length - 2) {
                         val p = pointsFrom(
                                 p1 = this.connectors[outId.value],
                                 p2 = inPoint,
-                                dist = i.toFloat() * helixDrawingLength(
+                                dist = j.toFloat() * helixDrawingLength(
                                         helix
                                 ) / helix.length.toFloat()
                         ).second
@@ -2021,17 +2113,17 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
         return helices.toList()
     }
 
-    fun getOutId(helixRank: Int): ConnectorId? {
-        when (this.junction.type) {
-            JunctionType.ApicalLoop -> return null
+    private fun getOutId(helixRank: Int): ConnectorId? {
+        return when (this.junction.type) {
+            JunctionType.ApicalLoop -> null
             //the int in the array are the offset to be added to reach the next connectorId according to the type of junction. The new connector ID is the connector Id for the entry point + the offset of the corresponding helix rank (max:ConnectorId.count-1, if above we restart at 0). In the absolute layout, the connector ID for the entry point is lowerMiddle (0) and for the relative layout anything else.
-            JunctionType.Flower -> return null
-            else -> return ConnectorId.values().first { it.value == (this.inId.value + this.layout!!.get(helixRank - 1).value) % ConnectorId.values().size }
+            JunctionType.Flower -> null
+            else -> ConnectorId.values().first { it.value == (this.inId.value + this.layout!![helixRank - 1].value) % ConnectorId.values().size }
         }
     }
 
     //the previous JunctionCircle has modified its link with this one.
-    fun setEntryPoint(inId: ConnectorId, inPoint: Point2D) {
+    private fun setEntryPoint(inId: ConnectorId, inPoint: Point2D) {
         this.inId = inId
         this.connectors[this.inId.value] = inPoint
         //the (x,y) coords for the center
@@ -2055,7 +2147,7 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
         this.layout = this.layout //a trick to warn the connected circles, and so on...
     }
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
 
         val previousStroke = g.stroke
         g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
@@ -2066,22 +2158,14 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
             g.draw(at.createTransformedShape(this.circle))
         } else {
             this.phosphoBonds.forEach {
-                it.draw(g, at)
+                it.draw(g, at, drawingArea)
             }
             this.residues.forEach {
-                it.draw(g, at)
+                it.draw(g, at, drawingArea)
             }
         }
 
-        this.parent?.draw(g,at) //the inHelix
-
-        this.outHelices.forEach {
-            it.draw(g, at)
-        }
-
-        this.connectedJunctions.forEach { _, junction ->
-            junction.draw(g, at)
-        }
+        this.parent?.draw(g, at, drawingArea)
 
         g.stroke = previousStroke
 
@@ -2100,11 +2184,11 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
     }
 }
 
-abstract class LWSymbolDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, name: String, location: Location, val inTertiaries: Boolean, type: SecondaryStructureType = SecondaryStructureType.LWSymbol) : DrawingElement(ssDrawing, parent, name, location, type) {
+abstract class LWSymbolDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, name: String, location: Location, val inTertiaries: Boolean) : DrawingElement(ssDrawing, parent, name, location, SecondaryStructureType.LWSymbol) {
 
     lateinit protected var shape: Shape
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         g.color = this.getColor()
         g.stroke = BasicStroke(
                 this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(),
@@ -2125,10 +2209,10 @@ abstract class LWSymbolDrawing(parent: DrawingElement?, ssDrawing: SecondaryStru
 
 abstract class WC(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, name: String, location: Location, inTertiaries: Boolean) : LWSymbolDrawing(parent, ssDrawing, name, location, inTertiaries) {
 
-    override fun setShape(start: Point2D, end: Point2D) {
-        val symbolWidth = distance(start, end)
-        val (start_1, start_2) = getPerpendicular(start, start, end, symbolWidth / 2.0)
-        val (end_1, end_2) = getPerpendicular(end, start, end, symbolWidth / 2.0)
+    override fun setShape(p1: Point2D, p2: Point2D) {
+        val symbolWidth = distance(p1, p2)
+        val (start_1, start_2) = getPerpendicular(p1, p1, p2, symbolWidth / 2.0)
+        val (end_1, end_2) = getPerpendicular(p2, p1, p2, symbolWidth / 2.0)
         val squarre = GeneralPath()
         squarre.moveTo(start_1.x, start_1.y)
         squarre.lineTo(end_1.x, end_1.y)
@@ -2153,9 +2237,9 @@ abstract class WC(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing,
 
 class CisWC(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean) : WC(parent, ssDrawing, "cisWC", location, inTertiaries) {
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
-        super.draw(g, at)
-        this.shape?.let {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
+        super.draw(g, at, drawingArea)
+        this.shape.let {
             g.fill(at.createTransformedShape(this.shape))
         }
     }
@@ -2163,9 +2247,9 @@ class CisWC(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, locat
 
 class TransWC(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean) : WC(parent, ssDrawing, "transWC", location, inTertiaries) {
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
-        super.draw(g, at)
-        this.shape?.let {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
+        super.draw(g, at, drawingArea)
+        this.shape.let {
             g.draw(at.createTransformedShape(this.shape))
         }
     }
@@ -2174,15 +2258,14 @@ class TransWC(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, loc
 
 abstract class LeftSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, name: String, location: Location, inTertiaries: Boolean) : LWSymbolDrawing(parent, ssDrawing, name, location, inTertiaries) {
 
-    override fun setShape(start: Point2D, end: Point2D) {
-        val symbolWidth = distance(start, end)
-        val (start_1, start_2) = getPerpendicular(start, start, end, symbolWidth / 2.0)
-        val (end_1, end_2) = getPerpendicular(end, start, end, symbolWidth / 2.0)
+    override fun setShape(p1: Point2D, p2: Point2D) {
+        val symbolWidth = distance(p1, p2)
+        val (end_1, end_2) = getPerpendicular(p2, p1, p2, symbolWidth / 2.0)
         val triangle = GeneralPath()
-        triangle.moveTo(start.x, start.y)
+        triangle.moveTo(p1.x, p1.y)
         triangle.lineTo(end_1.x, end_1.y)
         triangle.lineTo(end_2.x, end_2.y)
-        triangle.lineTo(start.x, start.y)
+        triangle.lineTo(p1.x, p1.y)
         triangle.closePath()
         this.shape = triangle
     }
@@ -2194,14 +2277,13 @@ abstract class LeftSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureD
 
 abstract class RightSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, name: String, location: Location, inTertiaries: Boolean = false) : LWSymbolDrawing(parent, ssDrawing, name, location, inTertiaries) {
 
-    override fun setShape(start: Point2D, end: Point2D) {
-        val symbolWidth = distance(start, end)
-        val (start_1, start_2) = getPerpendicular(start, start, end, symbolWidth / 2.0)
-        val (end_1, end_2) = getPerpendicular(end, start, end, symbolWidth / 2.0)
+    override fun setShape(p1: Point2D, p2: Point2D) {
+        val symbolWidth = distance(p1, p2)
+        val (start_1, start_2) = getPerpendicular(p1, p1, p2, symbolWidth / 2.0)
         val triangle = GeneralPath()
         triangle.moveTo(start_1.x, start_1.y)
         triangle.lineTo(start_2.x, start_2.y)
-        triangle.lineTo(end.x, end.y)
+        triangle.lineTo(p2.x, p2.y)
         triangle.lineTo(start_1.x, start_1.y)
         triangle.closePath()
         this.shape = triangle
@@ -2215,9 +2297,9 @@ abstract class RightSugar(parent: DrawingElement?, ssDrawing: SecondaryStructure
 
 class CisRightSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : RightSugar(parent, ssDrawing, "cisSugar", location, inTertiaries) {
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
-        super.draw(g, at)
-        this.shape?.let {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
+        super.draw(g, at, drawingArea)
+        this.shape.let {
             g.fill(at.createTransformedShape(this.shape))
         }
     }
@@ -2226,9 +2308,9 @@ class CisRightSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawin
 
 class CisLeftSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : LeftSugar(parent, ssDrawing, "cisSugar", location, inTertiaries) {
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
-        super.draw(g, at)
-        this.shape?.let {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
+        super.draw(g, at, drawingArea)
+        this.shape.let {
             g.fill(at.createTransformedShape(this.shape))
         }
 
@@ -2238,9 +2320,9 @@ class CisLeftSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing
 
 class TransRightSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : RightSugar(parent, ssDrawing, "transSugar", location, inTertiaries) {
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
-        super.draw(g, at)
-        this.shape?.let {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
+        super.draw(g, at, drawingArea)
+        this.shape.let {
             g.draw(at.createTransformedShape(this.shape))
         }
     }
@@ -2249,9 +2331,9 @@ class TransRightSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDraw
 
 class TransLeftSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : LeftSugar(parent, ssDrawing, "transSugar", location, inTertiaries) {
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
-        super.draw(g, at)
-        this.shape?.let {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
+        super.draw(g, at, drawingArea)
+        this.shape.let {
             g.draw(at.createTransformedShape(this.shape))
         }
     }
@@ -2260,10 +2342,10 @@ class TransLeftSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawi
 
 abstract class Hoogsteen(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, name: String, location: Location, inTertiaries: Boolean = false) : LWSymbolDrawing(parent, ssDrawing, name, location, inTertiaries) {
 
-    override fun setShape(start: Point2D, end: Point2D) {
-        val symbolWidth = distance(start, end)
-        val (start_1, start_2) = getPerpendicular(start, start, end, symbolWidth / 2.0)
-        val (end_1, end_2) = getPerpendicular(end, start, end, symbolWidth / 2.0)
+    override fun setShape(p1: Point2D, p2: Point2D) {
+        val symbolWidth = distance(p1, p2)
+        val (start_1, start_2) = getPerpendicular(p1, p1, p2, symbolWidth / 2.0)
+        val (end_1, end_2) = getPerpendicular(p2, p1, p2, symbolWidth / 2.0)
         val squarre = GeneralPath()
         squarre.moveTo(start_1.x, start_1.y)
         squarre.lineTo(end_1.x, end_1.y)
@@ -2283,9 +2365,9 @@ abstract class Hoogsteen(parent: DrawingElement?, ssDrawing: SecondaryStructureD
 
 class CisHoogsteen(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : Hoogsteen(parent, ssDrawing, "cisHoogsteen", location, inTertiaries) {
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
-        super.draw(g, at)
-        this.shape?.let {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
+        super.draw(g, at, drawingArea)
+        this.shape.let {
             g.fill(at.createTransformedShape(this.shape))
         }
     }
@@ -2294,9 +2376,9 @@ class CisHoogsteen(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing
 
 class TransHoogsteen(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : Hoogsteen(parent, ssDrawing, "transHoogsteen", location, inTertiaries) {
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
-        super.draw(g, at)
-        this.shape?.let {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
+        super.draw(g, at, drawingArea)
+        this.shape.let {
             g.draw(at.createTransformedShape(this.shape))
         }
     }
@@ -2307,20 +2389,20 @@ enum class VSymbolPos {
     BOTTOM, MIDDLE, TOP
 }
 
-class LWLine(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false, type: SecondaryStructureType = SecondaryStructureType.LWSymbol, val vpos: VSymbolPos = VSymbolPos.MIDDLE) : LWSymbolDrawing(parent, ssDrawing, "Line", location, inTertiaries, type) {
+class LWLine(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false, val vpos: VSymbolPos = VSymbolPos.MIDDLE) : LWSymbolDrawing(parent, ssDrawing, "Line", location, inTertiaries) {
 
     override fun setShape(p1: Point2D, p2: Point2D) {
         val distance = distance(p1, p2);
         val symbolWidth = distance
         when (this.vpos) {
             VSymbolPos.TOP -> {
-                val (p1_1, p1_2) = getPerpendicular(p1, p1, p2, symbolWidth / 6.0)
-                val (p2_1, p2_2) = getPerpendicular(p2, p1, p2, symbolWidth / 6.0)
+                val (p1_1, _) = getPerpendicular(p1, p1, p2, symbolWidth / 6.0)
+                val (p2_1, _) = getPerpendicular(p2, p1, p2, symbolWidth / 6.0)
                 this.shape = Line2D.Double(p1_1, p2_1)
             }
             VSymbolPos.BOTTOM -> {
-                val (p1_1, p1_2) = getPerpendicular(p1, p1, p2, symbolWidth / 6.0)
-                val (p2_1, p2_2) = getPerpendicular(p2, p1, p2, symbolWidth / 6.0)
+                val (_, p1_2) = getPerpendicular(p1, p1, p2, symbolWidth / 6.0)
+                val (_, p2_2) = getPerpendicular(p2, p1, p2, symbolWidth / 6.0)
                 this.shape = Line2D.Double(p1_2, p2_2)
             }
             else -> this.shape = Line2D.Double(p1, p2)
@@ -2328,8 +2410,8 @@ class LWLine(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, loca
 
     }
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
-        super.draw(g, at)
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
+        super.draw(g, at, drawingArea)
         this.shape.let {
             g.draw(at.createTransformedShape(this.shape))
         }
@@ -2348,13 +2430,8 @@ abstract class BaseBaseInteractionDrawing(parent: DrawingElement?, val interacti
     var interactionSymbol = InteractionSymbolDrawing(this,interaction,ssDrawing)
 
     val residue: ResidueDrawing
-        get() {
-            return ssDrawing.getResiduesFromAbsPositions(this.start).first()
-        }
     val pairedResidue: ResidueDrawing
-        get() {
-            return ssDrawing.getResiduesFromAbsPositions(this.end).first()
-        }
+
     val start: Int
         get() {
             return this.location.start
@@ -2368,19 +2445,24 @@ abstract class BaseBaseInteractionDrawing(parent: DrawingElement?, val interacti
     val isCanonical: Boolean
         get() {
             return this.interaction.edge5 == Edge.WC && this.interaction.edge3 == Edge.WC && this.interaction.orientation == Orientation.cis && (
-                    this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.type == SecondaryStructureType.AShape && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.type == SecondaryStructureType.UShape ||
-                            this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.type == SecondaryStructureType.UShape && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.type == SecondaryStructureType.AShape ||
-                            this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.type == SecondaryStructureType.GShape && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.type == SecondaryStructureType.CShape ||
-                            this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.type == SecondaryStructureType.CShape && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.type == SecondaryStructureType.GShape
+                    this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first().type == SecondaryStructureType.AShape && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first().type == SecondaryStructureType.UShape ||
+                            this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first().type == SecondaryStructureType.UShape && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first().type == SecondaryStructureType.AShape ||
+                            this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first().type == SecondaryStructureType.GShape && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first().type == SecondaryStructureType.CShape ||
+                            this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first().type == SecondaryStructureType.CShape && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first().type == SecondaryStructureType.GShape
                     )
         }
 
     val isDoublePaired: Boolean
-        get() = this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.type == SecondaryStructureType.GShape && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.type == SecondaryStructureType.CShape ||
-                this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first()?.type == SecondaryStructureType.CShape && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first()?.type == SecondaryStructureType.GShape
+        get() = this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first().type == SecondaryStructureType.GShape && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first().type == SecondaryStructureType.CShape ||
+                this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first().type == SecondaryStructureType.CShape && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first().type == SecondaryStructureType.GShape
 
     override val selected: Boolean
         get() = this.residue.selected && this.pairedResidue.selected
+
+    init {
+        this.residue = ssDrawing.getResiduesFromAbsPositions(this.start).first()
+        this.pairedResidue = ssDrawing.getResiduesFromAbsPositions(this.end).first()
+    }
 
     protected fun generateSingleSymbol(location: Location, inTertiaries: Boolean = false, edge: Edge, orientation: Orientation, right: Boolean = true): LWSymbolDrawing {
         return when (edge) {
@@ -2433,7 +2515,7 @@ class SecondaryInteractionDrawing(parent: DrawingElement?, interaction: BasePair
         }
 
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (residue.updated) {//the paired residue is de facto updated too
             val center1 = this.residue.center
             val center2 = this.pairedResidue.center
@@ -2447,7 +2529,7 @@ class SecondaryInteractionDrawing(parent: DrawingElement?, interaction: BasePair
                 )
                 this.p1 = points.first
                 this.p2 = points.second
-                this.interactionSymbol.defaultSymbol = LWLine(this, this.ssDrawing, this.location, false, type = SecondaryStructureType.RegularSymbol)
+                this.interactionSymbol.defaultSymbol = LWLine(this, this.ssDrawing, this.location, false)
                 this.interactionSymbol.defaultSymbol!!.setShape(this.p1 as Point2D, this.p2 as Point2D)
 
                 //now the LW symbols
@@ -2497,9 +2579,9 @@ class SecondaryInteractionDrawing(parent: DrawingElement?, interaction: BasePair
         }
 
         if (this.isFullDetails()) {
-            this.interactionSymbol.draw(g, at)
+            this.interactionSymbol.draw(g, at, drawingArea)
             this.residues.forEach {
-                it.draw(g, at)
+                it.draw(g, at, drawingArea)
             }
         }
     }
@@ -2518,19 +2600,19 @@ class SecondaryInteractionDrawing(parent: DrawingElement?, interaction: BasePair
 
 class InteractionSymbolDrawing(parent: DrawingElement?, val interaction: BasePair, ssDrawing: SecondaryStructureDrawing):DrawingElement(ssDrawing, parent, interaction.toString(), interaction.location, SecondaryStructureType.InteractionSymbol) {
 
-    open var defaultSymbol:LWLine? = null
+    var defaultSymbol:LWLine? = null
     var lwSymbols = mutableListOf<LWSymbolDrawing>()
 
     override val bounds2D: Rectangle2D
         get() = TODO("Not yet implemented")
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (this.isFullDetails()) {
             this.lwSymbols.forEach { lwSymbol ->
                 if (lwSymbol.getLineWidth() > 0) {
                     val _previousColor = g.color
                     val _previousStroke = g.stroke
-                    lwSymbol.draw(g, at)
+                    lwSymbol.draw(g, at, drawingArea)
                     g.color = _previousColor
                     g.stroke = _previousStroke
                 }
@@ -2540,7 +2622,7 @@ class InteractionSymbolDrawing(parent: DrawingElement?, val interaction: BasePai
                 if (it.getLineWidth() > 0) {
                     val _previousColor = g.color
                     val _previousStroke = g.stroke
-                    defaultSymbol?.draw(g, at)
+                    defaultSymbol?.draw(g, at, drawingArea)
                     g.color = _previousColor
                     g.stroke = _previousStroke
                 }
@@ -2570,7 +2652,7 @@ class TertiaryInteractionDrawing(parent: PKnotDrawing? = null, interaction: Base
             return bounds
         }
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (this.residue.absPos in ssDrawing.residuesUpdated || this.pairedResidue.absPos in ssDrawing.residuesUpdated) {
             val center1 = this.residue.center
             val center2 = this.pairedResidue.center
@@ -2581,7 +2663,7 @@ class TertiaryInteractionDrawing(parent: PKnotDrawing? = null, interaction: Base
                         center2,
                         shift
                 )
-                this.interactionSymbol.defaultSymbol = LWLine(this, this.ssDrawing, this.location, true, type = SecondaryStructureType.RegularSymbol)
+                this.interactionSymbol.defaultSymbol = LWLine(this, this.ssDrawing, this.location, true)
                 this.interactionSymbol.defaultSymbol!!.setShape(p1, p2)
 
                 //LW Symbols now
@@ -2606,8 +2688,8 @@ class TertiaryInteractionDrawing(parent: PKnotDrawing? = null, interaction: Base
                 ).first
                 val forLine_1 = this.p2!!
 
-                this.p1?.let { p1 ->
-                    this.p2?.let { p2 ->
+                this.p1?.let {
+                    this.p2?.let {
                         this.interactionSymbol.lwSymbols[0].setShape(this.p1 as Point2D, this.p2 as Point2D)
                     }
                 }
@@ -2626,8 +2708,8 @@ class TertiaryInteractionDrawing(parent: PKnotDrawing? = null, interaction: Base
 
                 val forLine_2 = this.p2!!
 
-                this.p1?.let { p1 ->
-                    this.p2?.let { p2 ->
+                this.p1?.let {
+                    this.p2?.let {
                         this.interactionSymbol.lwSymbols[2].setShape(this.p1 as Point2D, this.p2 as Point2D)
                     }
                 }
@@ -2641,7 +2723,7 @@ class TertiaryInteractionDrawing(parent: PKnotDrawing? = null, interaction: Base
         if (this.isFullDetails()) {
             val previousColor = g.color
             g.color = getColor()
-            this.interactionSymbol.draw(g, at)
+            this.interactionSymbol.draw(g, at, drawingArea)
             g.color = previousColor
         }
 
@@ -2666,10 +2748,7 @@ class TertiaryInteractionDrawing(parent: PKnotDrawing? = null, interaction: Base
 open class PhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location) : DrawingElement(ssDrawing, parent, "PhosphoDiester Bond", location, SecondaryStructureType.PhosphodiesterBond) {
 
     val residue: ResidueDrawing
-        get() = this.ssDrawing.getResiduesFromAbsPositions(this.start).first()
-
     val nextResidue: ResidueDrawing
-        get() = this.ssDrawing.getResiduesFromAbsPositions(this.end).first()
 
     val start: Int
         get() {
@@ -2691,7 +2770,12 @@ open class PhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing: Seconda
     override val selected: Boolean
         get() = this.residue in this.ssDrawing.selection && this.nextResidue in this.ssDrawing.selection
 
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+    init {
+        this.residue = this.ssDrawing.getResiduesFromAbsPositions(this.start).first()
+        this.nextResidue = this.ssDrawing.getResiduesFromAbsPositions(this.end).first()
+    }
+
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (this.isFullDetails()) {
             val previousStroke = g.stroke
             g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
@@ -2726,15 +2810,20 @@ open class PhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing: Seconda
     }
 }
 
-class InHelixClosingPhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, val posInhelix:Int): PhosphodiesterBondDrawing(parent, ssDrawing, location) {
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+class HelicalPhosphodiesterBondDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing, location: Location): PhosphodiesterBondDrawing(parent, ssDrawing, location) {
+
+    init {
+        parent.phosphoBonds.add(this)
+    }
+
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (this.isFullDetails()) {
             val previousStroke = g.stroke
             g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_ROUND )
             g.color = this.getColor()
-            val center1 = if (this.posInhelix == this.residue.absPos && !(this.residue.parent?.parent as HelixDrawing).isFullDetails()) (this.residue.parent?.parent as HelixDrawing).line.p2 else this.residue.center
-            val center2 = if (this.posInhelix == this.nextResidue.absPos && !(this.nextResidue.parent?.parent as HelixDrawing).isFullDetails()) (this.nextResidue.parent?.parent as HelixDrawing).line.p2 else this.nextResidue.center
+            val center1 = this.residue.center
+            val center2 = this.nextResidue.center
 
             if (!this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
                 g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
@@ -2744,23 +2833,27 @@ class InHelixClosingPhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing
                     center2,
                     radiusConst + deltaPhosphoShift
                 )
-                g.draw(at.createTransformedShape(Line2D.Double(if (residue.isFullDetails() || residue.residueLetter.isFullDetails()) p1 else center1, if (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails()) p2 else center2)))
+                g.draw(at.createTransformedShape(Line2D.Double(if (residue.parent!!.isFullDetails() && (residue.isFullDetails() || residue.residueLetter.isFullDetails())) p1 else center1, if (nextResidue.parent!!.isFullDetails() && (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails())) p2 else center2)))
             }
             g.stroke = previousStroke
         }
     }
 }
 
-class OutHelixClosingPhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, val posInhelix:Int): PhosphodiesterBondDrawing(parent, ssDrawing, location) {
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+class InHelixClosingPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDrawing: SecondaryStructureDrawing, location: Location, private val posInhelix:Int): PhosphodiesterBondDrawing(parent, ssDrawing, location) {
+
+    init {
+        parent.phosphoBonds.add(this)
+    }
+
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (this.isFullDetails()) {
             val previousStroke = g.stroke
             g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_ROUND )
             g.color = this.getColor()
-
-            val center1 = if (this.posInhelix == this.residue.absPos && !(this.residue.parent?.parent as HelixDrawing).isFullDetails()) (this.residue.parent?.parent as HelixDrawing).line.p1 else this.residue.center
-            val center2 = if (this.posInhelix == this.nextResidue.absPos && !(this.nextResidue.parent?.parent as HelixDrawing).isFullDetails()) (this.nextResidue.parent?.parent as HelixDrawing).line.p1 else this.nextResidue.center
+            val center1 = if (this.posInhelix == this.residue.absPos && !this.residue.parent!!.parent!!.isFullDetails()) (this.residue.parent?.parent as HelixDrawing).line.p2 else this.residue.center
+            val center2 = if (this.posInhelix == this.nextResidue.absPos && !this.nextResidue.parent!!.parent!!.isFullDetails()) (this.nextResidue.parent?.parent as HelixDrawing).line.p2 else this.nextResidue.center
 
             if (!this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
                 g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
@@ -2770,15 +2863,51 @@ class OutHelixClosingPhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawin
                     center2,
                     radiusConst + deltaPhosphoShift
                 )
-                g.draw(at.createTransformedShape(Line2D.Double(if (residue.isFullDetails() || residue.residueLetter.isFullDetails()) p1 else center1, if (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails()) p2 else center2)))
+                g.draw(at.createTransformedShape(Line2D.Double(if (this.residue.absPos != this.posInhelix && residue.isFullDetails() || this.residue.absPos != this.posInhelix && residue.residueLetter.isFullDetails()) p1 else center1, if (this.nextResidue.absPos != this.posInhelix && nextResidue.isFullDetails() || this.nextResidue.absPos != this.posInhelix && nextResidue.residueLetter.isFullDetails()) p2 else center2)))
             }
             g.stroke = previousStroke
         }
     }
 }
 
-class SingleStrandLinkingBranchPhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, val posInHelix:Int): PhosphodiesterBondDrawing(parent, ssDrawing, location) {
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+class OutHelixClosingPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDrawing: SecondaryStructureDrawing, location: Location, private val posInhelix:Int): PhosphodiesterBondDrawing(parent, ssDrawing, location) {
+
+    init {
+        parent.phosphoBonds.add(this)
+    }
+
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
+        if (this.isFullDetails()) {
+            val previousStroke = g.stroke
+            g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
+                BasicStroke.JOIN_ROUND )
+            g.color = this.getColor()
+
+            val center1 = if (this.posInhelix == this.residue.absPos && !this.residue.parent!!.parent!!.isFullDetails()) (this.residue.parent?.parent as HelixDrawing).line.p1 else this.residue.center
+            val center2 = if (this.posInhelix == this.nextResidue.absPos && !this.nextResidue.parent!!.parent!!.isFullDetails()) (this.nextResidue.parent?.parent as HelixDrawing).line.p1 else this.nextResidue.center
+
+            if (!this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
+                g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
+            } else {
+                val (p1, p2) = pointsFrom(
+                    center1,
+                    center2,
+                    radiusConst + deltaPhosphoShift
+                )
+                g.draw(at.createTransformedShape(Line2D.Double(if (this.residue.absPos != this.posInhelix && residue.isFullDetails() || this.residue.absPos != this.posInhelix && residue.residueLetter.isFullDetails()) p1 else center1, if (this.nextResidue.absPos != this.posInhelix && nextResidue.isFullDetails() || this.nextResidue.absPos != this.posInhelix && nextResidue.residueLetter.isFullDetails()) p2 else center2)))
+            }
+            g.stroke = previousStroke
+        }
+    }
+}
+
+class SingleStrandLinkingBranchPhosphodiesterBondDrawing(parent: SingleStrandDrawing, ssDrawing: SecondaryStructureDrawing, location: Location, private val posInHelix:Int): PhosphodiesterBondDrawing(parent, ssDrawing, location) {
+
+    init {
+        parent.phosphoBonds.add(this)
+    }
+
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         val previousStroke = g.stroke
         g.stroke = BasicStroke(
             this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
@@ -2787,9 +2916,15 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(parent: DrawingElement?
         g.color = this.getColor()
 
         val center1 =
-            if (this.residue.absPos == this.posInHelix) (if ((this.residue.parent?.parent as HelixDrawing).isFullDetails()) this.residue.center else (this.residue.parent?.parent as HelixDrawing).line.p1) else this.residue.center
+            when {
+                this.residue.absPos == this.posInHelix && !this.residue.parent!!.parent!!.isFullDetails() ->  (this.residue.parent!!.parent as HelixDrawing).line.p1
+                else -> this.residue.center
+            }
         val center2 =
-            if (this.nextResidue.absPos == this.posInHelix) (if ((this.nextResidue.parent?.parent as HelixDrawing).isFullDetails()) this.nextResidue.center else (this.nextResidue.parent?.parent as HelixDrawing).line.p1) else this.nextResidue.center
+            when {
+                this.nextResidue.absPos == this.posInHelix && !this.nextResidue.parent!!.parent!!.isFullDetails() ->  (this.nextResidue.parent!!.parent as HelixDrawing).line.p1
+                else -> this.nextResidue.center
+            }
 
         if (!this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
             g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
@@ -2802,8 +2937,8 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(parent: DrawingElement?
             g.draw(
                 at.createTransformedShape(
                     Line2D.Double(
-                        if (residue.isFullDetails() || residue.residueLetter.isFullDetails()) p1 else center1,
-                        if (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails()) p2 else center2
+                        if (this.residue.isFullDetails() || this.residue.residueLetter.isFullDetails()) p1 else center1,
+                        if (this.nextResidue.isFullDetails() || this.nextResidue.residueLetter.isFullDetails()) p2 else center2
                     )
                 )
             )
@@ -2812,8 +2947,13 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(parent: DrawingElement?
     }
 }
 
-class BranchesLinkingPhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location): PhosphodiesterBondDrawing(parent, ssDrawing, location) {
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+class BranchesLinkingPhosphodiesterBondDrawing(ssDrawing: SecondaryStructureDrawing, location: Location, val previousBranch:JunctionDrawing, val nextBranch:JunctionDrawing): PhosphodiesterBondDrawing(null, ssDrawing, location) {
+
+    init {
+        ssDrawing.phosphoBonds.add(this)
+    }
+
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
             val previousStroke = g.stroke
             g.stroke = BasicStroke(
                 this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
@@ -2822,9 +2962,9 @@ class BranchesLinkingPhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawin
             g.color = this.getColor()
 
             val center1 =
-                if (!this.ssDrawing.quickDraw && (this.residue.parent?.parent as HelixDrawing).isFullDetails()) this.residue.center else (this.residue.parent?.parent as HelixDrawing).line.p1
+                if (!this.ssDrawing.quickDraw && this.residue.parent!!.parent!!.isFullDetails()) this.residue.center else (this.residue.parent!!.parent as HelixDrawing).line.p1
             val center2 =
-                if (!this.ssDrawing.quickDraw && (this.nextResidue.parent?.parent as HelixDrawing).isFullDetails()) this.nextResidue.center else (this.nextResidue.parent?.parent as HelixDrawing).line.p1
+                if (!this.ssDrawing.quickDraw && this.nextResidue.parent!!.parent!!.isFullDetails()) this.nextResidue.center else (this.nextResidue.parent!!.parent as HelixDrawing).line.p1
 
             if (this.ssDrawing.quickDraw || !this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
                 g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
@@ -2837,8 +2977,8 @@ class BranchesLinkingPhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawin
                 g.draw(
                     at.createTransformedShape(
                         Line2D.Double(
-                            if (residue.isFullDetails() || residue.residueLetter.isFullDetails()) p1 else center1,
-                            if (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails()) p2 else center2
+                            if (residue.parent!!.isFullDetails() && (residue.isFullDetails() || residue.residueLetter.isFullDetails())) p1 else center1,
+                            if (nextResidue.parent!!.isFullDetails() && (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails())) p2 else center2
                         )
                     )
                 )
@@ -2847,16 +2987,21 @@ class BranchesLinkingPhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawin
     }
 }
 
-class HelicesDirectLinkPhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, val posForP2:Int=-1): PhosphodiesterBondDrawing(parent, ssDrawing, location) {
-    override fun draw(g: Graphics2D, at: AffineTransform) {
+class HelicesDirectLinkPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDrawing: SecondaryStructureDrawing, location: Location, private val posForP2:Int=-1): PhosphodiesterBondDrawing(parent, ssDrawing, location) {
+
+    init {
+        parent.phosphoBonds.add(this)
+    }
+
+    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (this.isFullDetails()) {
             val previousStroke = g.stroke
             g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_ROUND )
             g.color = this.getColor()
 
-            val center1 = if (!(this.residue.parent?.parent as HelixDrawing).isFullDetails()) (if (this.posForP2 == this.residue.absPos) (this.residue.parent?.parent as HelixDrawing).line.p2 else (this.residue.parent?.parent as HelixDrawing).line.p1) else this.residue.center
-            val center2 = if (!(this.nextResidue.parent?.parent as HelixDrawing).isFullDetails()) (if (this.posForP2 == this.nextResidue.absPos) (this.nextResidue.parent?.parent as HelixDrawing).line.p2 else (this.nextResidue.parent?.parent as HelixDrawing).line.p1) else this.nextResidue.center
+            val center1 = if (!this.residue.parent!!.parent!!.isFullDetails()) (if (this.posForP2 == this.residue.absPos) (this.residue.parent?.parent as HelixDrawing).line.p2 else (this.residue.parent?.parent as HelixDrawing).line.p1) else this.residue.center
+            val center2 = if (!this.nextResidue.parent!!.parent!!.isFullDetails()) (if (this.posForP2 == this.nextResidue.absPos) (this.nextResidue.parent?.parent as HelixDrawing).line.p2 else (this.nextResidue.parent?.parent as HelixDrawing).line.p1) else this.nextResidue.center
 
             if (!this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
                 g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
@@ -2871,10 +3016,6 @@ class HelicesDirectLinkPhosphodiesterBondDrawing(parent: DrawingElement?, ssDraw
             g.stroke = previousStroke
         }
     }
-}
-
-enum class SecondaryStructureType {
-    Full2D, A, U, G, C, X, AShape, UShape, GShape, CShape, XShape, SecondaryInteraction, TertiaryInteraction, InteractionSymbol, PhosphodiesterBond, Helix, PKnot, Junction, SingleStrand, LWSymbol, RegularSymbol, Numbering, ResidueDrawing
 }
 
 enum class ConnectorId(val value: Int) {
@@ -3329,7 +3470,7 @@ fun getPerpendicular(p0: Point2D, p1: Point2D, p2: Point2D, distance: Double): P
     }
 }
 
-fun getAWTColor(htmlColor: String, alpha:Int = 255): Color? {
+fun getAWTColor(htmlColor: String, alpha:Int = 255): Color {
     val r: Int
     val g: Int
     val b: Int

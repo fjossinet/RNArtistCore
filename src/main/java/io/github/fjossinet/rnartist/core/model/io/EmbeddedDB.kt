@@ -11,8 +11,8 @@ import javax.imageio.ImageIO
 
 class EmbeddedDB() {
 
-    var pdbDB:Nitrite
-    var userDB:Nitrite
+    private var pdbDB:Nitrite
+    private var userDB:Nitrite
     var rootDir = File(getUserDir(),"db")
 
     init {
@@ -135,12 +135,12 @@ class EmbeddedDB() {
                 interactions.add(
                     BasePair(
                         Location(
-                            Location((interaction.get("start") as String).toInt()),
-                            Location((interaction.get("end") as String).toInt())
+                            Location((interaction["start"] as String).toInt()),
+                            Location((interaction["end"] as String).toInt())
                         ),
-                        Edge.valueOf(interaction.get("edge5") as String),
-                        Edge.valueOf(interaction.get("edge3") as String),
-                        Orientation.valueOf(interaction.get("orientation") as String)
+                        Edge.valueOf(interaction["edge5"] as String),
+                        Edge.valueOf(interaction["edge3"] as String),
+                        Orientation.valueOf(interaction["orientation"] as String)
                     )
                 )
         }
@@ -152,8 +152,8 @@ class EmbeddedDB() {
         return Project(
             SecondaryStructure(
                 RNA(
-                    rna.get("name") as String,
-                    rna.get("seq") as String
+                    rna["name"] as String,
+                    rna["seq"] as String
                 ),
                 basePairs = interactions
             ), null, theme, graphicsContext

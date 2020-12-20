@@ -1,10 +1,7 @@
 package io.github.fjossinet.rnartist.core
 
 import io.github.fjossinet.rnartist.core.model.*
-import io.github.fjossinet.rnartist.core.model.io.parseBPSeq
-import io.github.fjossinet.rnartist.core.model.io.parseCT
-import io.github.fjossinet.rnartist.core.model.io.parseStockholm
-import io.github.fjossinet.rnartist.core.model.io.parseVienna
+import io.github.fjossinet.rnartist.core.model.io.*
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
@@ -134,11 +131,22 @@ fun main(args:Array<String>) {
                 }
 
                 filePaths.forEach { path ->
+                    println("Processing ${path}")
                     when (path.split(".").last()) {
-                        "bpseq" -> listOf(parseBPSeq(FileReader(File(path))))
-                        "vienna", "fasta", "fna" -> listOf(parseVienna(FileReader(File(path))))
-                        "ct" -> listOf(parseCT(FileReader(File(path))))
+                        "bpseq" -> listOf<SecondaryStructure?>(parseBPSeq(FileReader(File(path))))
+                        "vienna", "fasta", "fna" -> listOf<SecondaryStructure?>(parseVienna(FileReader(File(path))))
+                        "ct" -> listOf<SecondaryStructure?>(parseCT(FileReader(File(path))))
                         "stk", "stockholm" -> parseStockholm(FileReader(File(path)))
+                        "pdb" -> {
+                            val structures = mutableListOf<SecondaryStructure>()
+                            structures.addAll(Rnaview().annotate(File(path)))
+                            structures
+                        }
+                        "xml", "rnaml" -> {
+                            val structures = mutableListOf<SecondaryStructure>()
+                            structures.addAll(parseRnaml(File(path)))
+                            structures
+                        }
                         else -> null
                     }?.let { secondaryStructures ->
                         secondaryStructures.forEach { ss ->
@@ -149,11 +157,15 @@ fun main(args:Array<String>) {
                                                 theme = theme,
                                                 workingSession = WorkingSession()
                                         )
-                                println("Processing ${path}")
+                                drawing.singleStrands.forEach {
+                                    println(it.location)
+                                    println(it.previousBranch?.inHelix?.location)
+                                    println(it.nextBranch?.inHelix?.location)
+                                }
                                 val tokens = path.split(File.separator).last().split(".")
-                                val writer = PrintWriter(File(File(outputPath).canonicalPath, "${tokens.subList(0, tokens.size - 1).joinToString(separator = ".")}.svg"))
-                                writer.write(drawing.asSVG())
-                                writer.close()
+                                //val writer = PrintWriter(File(File(outputPath).canonicalPath, "${tokens.subList(0, tokens.size - 1).joinToString(separator = ".")}.svg"))
+                                //writer.write(drawing.asSVG())
+                                //writer.close()
                             }
                         }
                     }
@@ -212,18 +224,18 @@ fun printHelp() = println("""Usage: java -jar rnartistcore.jar [options]  [-f fi
             
 Description:
 ============
-    RNArtistCore is a Java/Kotlin library and a commandline tool. As a tool, it exports an RNA secondary structure 
-    in an SVG file. The secondary structure is computed from data stored in a local file or recovered from databases
+    RNArtistCore is a Kotlin library and a commandline tool. As a tool, it computes RNA secondary structures from files and export 
+    them as SVG files. The secondary structures are computed from data stored in a local file or recovered from databases
     like Rfam using an ID. 
-    The SVG plot can be configured through several options (lines width, font name,...). Using the option -s, these 
+    The SVG plots can be configured through several options (lines width, font name,...). Using the option -s, these 
     user-defined values can be saved in a configuration file and become the default values for the next runs.
      
 Mandatory Options:
 ==================
     -f file_name
         Either this option or -id is mandatory. The local file needs to describe an RNA secondary structure (BPSEQ, 
-        VIENNA, CT and STOCKHOLM formats). Several file names are allowed. If the option -o is not used, the SVG files 
-        are stored in the working directory.
+        VIENNA, CT and STOCKHOLM formats) or 3D structures (PDB format, you need the RNAVIEW algorithm to be installed). Several file names are allowed. 
+        If the option -o is not used, the SVG files are stored in the working directory.
     
     -id database_entry_id
         Either this option or -f is mandatory. If the option -o is not used, the SVG files are stored in the working 
