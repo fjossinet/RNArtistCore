@@ -53,6 +53,8 @@ class WorkingSession() {
 
     val branchesDrawn = mutableListOf<JunctionDrawing>()
     val phosphoBondsLinkingBranchesDrawn = mutableListOf<BranchesLinkingPhosphodiesterBondDrawing>()
+    val helicesDrawn = mutableListOf<HelixDrawing>()
+    val junctionsDrawn = mutableListOf<JunctionDrawing>()
     val singleStrandsDrawn = mutableListOf<SingleStrandDrawing>()
 
     val selectedResidues = mutableListOf<ResidueDrawing>()
@@ -204,9 +206,7 @@ abstract class DrawingElement(val ssDrawing: SecondaryStructureDrawing, var pare
 
     abstract val bounds2D: Rectangle2D
 
-    open val residues: List<ResidueDrawing>
-        get() = this.ssDrawing.getResiduesFromAbsPositions(*this.location.positions.toIntArray())
-
+    open val residues: List<ResidueDrawing> = this.ssDrawing.getResiduesFromAbsPositions(*this.location.positions.toIntArray())
     abstract fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D)
 
     abstract fun asSVG(indentChar: String = "\t", indentLevel: Int = 1, transX: Double = 0.0, transY: Double = 0.0): String
@@ -828,7 +828,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                 }
             if (r.parent == null) {
                 for (j in this.allJunctions) {
-                    if (j.locationWithoutSecondaries.contains(r.absPos)) {
+                    if (j.junction.locationWithoutSecondaries.contains(r.absPos)) {
                         r.parent = j
                         break;
                     }
@@ -911,6 +911,8 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
 
         this.workingSession.branchesDrawn.clear()
         this.workingSession.singleStrandsDrawn.clear()
+        this.workingSession.helicesDrawn.clear()
+        this.workingSession.junctionsDrawn.clear()
         this.workingSession.phosphoBondsLinkingBranchesDrawn.clear()
 
         if (this.singleStrands.isEmpty() && this.phosphoBonds.isEmpty())
@@ -965,9 +967,10 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
         this.workingSession.branchesDrawn.forEach {
             JUNCTIONSFROMBRANCHES@for (j in it.junctionsFromBranch()) {
                 val p = Point2D.Double(0.0, 0.0)
-                at.transform((j.parent!! as HelixDrawing).line.p1, p)
+                at.transform((j.parent!! as HelixDrawing).line.p2, p)
                 if (p.x >= 0.0 && p.x <= drawingArea.width && p.y >= 0.0 && p.y <= drawingArea.height) {
                     j.draw(g, at, drawingArea)
+                    this.workingSession.junctionsDrawn.add(j)
                     continue@JUNCTIONSFROMBRANCHES
                 }
                 val helices = mutableListOf<HelixDrawing>()
@@ -976,8 +979,22 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                     at.transform(h.line.p1, p)
                     if (p.x >= 0.0 && p.x <= drawingArea.width && p.y >= 0.0 && p.y <= drawingArea.height) {
                         j.draw(g, at, drawingArea)
+                        this.workingSession.junctionsDrawn.add(j)
                         continue@JUNCTIONSFROMBRANCHES
                     }
+                }
+            }
+        }
+
+        this.workingSession.branchesDrawn.forEach {
+            for (h in it.helicesFromBranch()) {
+                val s = Point2D.Double(0.0, 0.0)
+                val e = Point2D.Double(0.0, 0.0)
+                at.transform(h.line.p1, s)
+                at.transform(h.line.p2, e)
+                if (s.x >= 0.0 && s.x <= drawingArea.width || e.x >= 0.0 && e.x <= drawingArea.width || s.x < 0.0 && e.x > drawingArea.width) {
+                    this.workingSession.helicesDrawn.add(h)
+                    h.draw(g, at, drawingArea)
                 }
             }
         }
@@ -1532,6 +1549,7 @@ class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, private val pknot: Pkno
 class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructureDrawing, val helix: Helix, start: Point2D, end: Point2D) : DrawingElement(ssDrawing, parent, helix.name, helix.location, SecondaryStructureType.Helix) {
 
     var line: Line2D = Line2D.Double(start, end)
+    var distanceBetweenPairedResidues = 0.0 //each helix computes this value before to draw the secondary interactions. Each secondary will use it for its own drawing.
     val secondaryInteractions = mutableListOf<SecondaryInteractionDrawing>()
     val phosphoBonds = mutableListOf<PhosphodiesterBondDrawing>()
     val start: Int
@@ -1540,8 +1558,7 @@ class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructure
     val end: Int
         get() = this.location.end
 
-    val ends: IntArray
-        get() = intArrayOf(this.start, this.start+this.length-1, this.end-this.length+1, this.location.end)
+    val ends = intArrayOf(this.start, this.start+this.length-1, this.end-this.length+1, this.location.end)
 
     val length: Int
         get() = this.helix.length
@@ -1589,6 +1606,7 @@ class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructure
             this.phosphoBonds.forEach {
                 it.draw(g, at, drawingArea)
             }
+            distanceBetweenPairedResidues = distance(this.secondaryInteractions.first().residue.center, this.secondaryInteractions.first().pairedResidue.center)
             this.secondaryInteractions.forEach {
                 it.draw(g, at, drawingArea)
             }
@@ -1680,8 +1698,7 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
 
     private val noOverlapWithLines = true
     private val noOverlapWithCircles = true
-    override val residues: List<ResidueDrawing>
-        get() = this.ssDrawing.getResiduesFromAbsPositions(*this.locationWithoutSecondaries.positions.toIntArray())
+    override val residues = this.ssDrawing.getResiduesFromAbsPositions(*this.junction.locationWithoutSecondaries.positions.toIntArray())
     var outHelices = mutableListOf<HelixDrawing>()
     var connectedJunctions = mutableMapOf<ConnectorId, JunctionDrawing>()
     val phosphoBonds = mutableListOf<PhosphodiesterBondDrawing>()
@@ -1810,21 +1827,12 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
             return this.junctionsFromBranch().maxBy { it.circle.bounds.maxY }!!.circle.bounds.maxY
         }
 
-    val locationWithoutSecondaries: Location
-        get() {
-            return this.junction.locationWithoutSecondaries
-        }
-
-    val junctionCategory: JunctionType
-        get() {
-            return this.junction.type
-        }
+    val junctionCategory = this.junction.type
 
     override val bounds2D: Rectangle2D
         get() = this.circle.bounds2D
 
     init {
-
         this.connectors[this.inId.value] = inPoint
         //we compute the initial radius according to the junction length and type
         val circumference = (this.junction.length.toFloat() - this.junction.type.value * 2).toFloat() * (radiusConst * 2).toFloat() + this.junction.type.value * helixDrawingWidth()
@@ -2164,8 +2172,6 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
                 it.draw(g, at, drawingArea)
             }
         }
-
-        this.parent?.draw(g, at, drawingArea)
 
         g.stroke = previousStroke
 
@@ -2521,7 +2527,7 @@ class SecondaryInteractionDrawing(parent: DrawingElement?, interaction: BasePair
             val center2 = this.pairedResidue.center
 
             val shift = radiusConst + this.getLineShift() + this.residue.getLineWidth() / 2.0 + this.getLineWidth() / 2.0
-            if (distance(center1, center2) > 2 * shift) {
+            if ((parent as HelixDrawing).distanceBetweenPairedResidues > 2 * shift) {
                 val points = pointsFrom(
                         center1,
                         center2,

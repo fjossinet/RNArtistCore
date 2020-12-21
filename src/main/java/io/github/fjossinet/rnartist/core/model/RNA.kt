@@ -299,16 +299,14 @@ class Junction(var name:String="MyJunction", val location: Location, val helices
         }
 
     val locationWithoutSecondaries:Location
-        get() {
-            val j = Location()
-            for (b in this.location.blocks)
-                j.blocks.add(Block(b.start+1, b.end-1))
-            return j
-        }
 
     init {
         for (h in helicesLinked)
             h.setJunction(this)
+        val j = Location()
+        for (b in this.location.blocks)
+            j.blocks.add(Block(b.start+1, b.end-1))
+        this.locationWithoutSecondaries  = j
     }
 
 }
