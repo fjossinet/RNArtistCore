@@ -206,10 +206,20 @@ abstract class DrawingElement(val ssDrawing: SecondaryStructureDrawing, var pare
 
     abstract val bounds2D: Rectangle2D
 
-    open val residues: List<ResidueDrawing> = this.ssDrawing.getResiduesFromAbsPositions(*this.location.positions.toIntArray())
+    var residues: List<ResidueDrawing> = this.ssDrawing.getResiduesFromAbsPositions(*this.location.positions.toIntArray())
+
     abstract fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D)
 
     abstract fun asSVG(indentChar: String = "\t", indentLevel: Int = 1, transX: Double = 0.0, transY: Double = 0.0): String
+
+    fun pathToRoot():List<DrawingElement> {
+        val l = mutableListOf<DrawingElement>()
+        l.add(this)
+        while (l.last().parent != null) {
+            l.add(l.last().parent!!)
+        }
+        return l
+    }
 
     fun getColor(): Color {
         val color = if (this.drawingConfiguration.color != null) this.drawingConfiguration.color!! else if (this.parent != null) this.parent!!.getColor() else ssDrawing.drawingConfiguration.color!!
@@ -273,7 +283,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
 
     val residuesUpdated = mutableListOf<Int>() //a list used by the tertiary interactions to check if they need to recompute their shapes
 
-    val branches = mutableListOf<JunctionDrawing>() //the first junctions in each branch
+    val branches = mutableListOf<Branch>() //the first junctions in each branch
     val pknots = mutableListOf<PKnotDrawing>()
     val singleStrands = mutableListOf<SingleStrandDrawing>() // the single-strands connecting the branches
     val residues = mutableListOf<ResidueDrawing>()
@@ -406,7 +416,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
 
         //we start the drawing with the helices with no junction on one side
         var currentPos = 0
-        lateinit var lastBranchConstructed: JunctionDrawing
+        lateinit var lastBranchConstructed: Branch
         var bottom = Point2D.Double(frame.width / 2, frame.height - 50)
         lateinit var top: Point2D
 
@@ -457,11 +467,10 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                         top
                 )
 
-                lastBranchConstructed = JunctionDrawing(h,
+                lastBranchConstructed = Branch(h,
                         this,
                         circles,
                         lines,
-                        null,
                         ConnectorId.s,
                         top,
                         nextHelix.third,
@@ -513,11 +522,10 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
 
                 var circles = mutableListOf<Triple<Point2D, Double, Ellipse2D>>()
                 var lines = mutableListOf<List<Point2D>>()
-                val newBranchConstructed = JunctionDrawing(h,
+                val newBranchConstructed = Branch(h,
                         this,
                         circles,
                         lines,
-                        null,
                         ConnectorId.s,
                         top,
                         nextHelix.third,
@@ -595,11 +603,10 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                 circles = arrayListOf<Triple<Point2D, Double, Ellipse2D>>()
                 lines = arrayListOf<List<Point2D>>()
 
-                lastBranchConstructed = JunctionDrawing(h,
+                lastBranchConstructed = Branch(h,
                         this,
                         circles,
                         lines,
-                        null,
                         ConnectorId.s,
                         top,
                         nextHelix.third,
@@ -752,12 +759,12 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                     if (branch.inHelix.location.end == singleStrand.location.start-1) {
                         singleStrand.previousBranch = branch
                         if (i+1 < this.branches.size)
-                            singleStrand.nextBranch = this.branches.get(i+1)
+                            singleStrand.nextBranch = this.branches[i+1]
                         break
                     } else if (branch.inHelix.location.start == singleStrand.location.end+1) {
                         singleStrand.nextBranch = branch
                         if (i-1 >=0)
-                            singleStrand.previousBranch = this.branches.get(i-1)
+                            singleStrand.previousBranch = this.branches[i-1]
                         break
                     }
 
@@ -810,7 +817,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
 
         //++++ we set the parent element for residues
         for (r in this.residues) {
-            OUTER@ for (pknot in this.pknots) {
+            /*OUTER@ for (pknot in this.pknots) {
                 for (interaction in pknot.tertiaryInteractions) {
                     if (interaction.location.contains(r.absPos)) {
                         r.parent = interaction
@@ -818,7 +825,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                     }
                 }
             }
-            if (r.parent == null)
+            if (r.parent == null)*/
                 OUTER@ for (h in this.allHelices) {
                     for (interaction in h.secondaryInteractions)
                         if (interaction.location.contains(r.absPos)) {
@@ -842,6 +849,9 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                     }
                 }
             }
+        }
+        this.branches.forEach {
+            println(it.branchLength)
         }
     }
 
@@ -915,53 +925,61 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
         this.workingSession.junctionsDrawn.clear()
         this.workingSession.phosphoBondsLinkingBranchesDrawn.clear()
 
-        if (this.singleStrands.isEmpty() && this.phosphoBonds.isEmpty())
+        if (this.singleStrands.isEmpty() && this.phosphoBonds.isEmpty() || this.branches.size == 1 ) { //if a single branch, always drawn, and single strands too
+            this.workingSession.singleStrandsDrawn.addAll(this.singleStrands)
             this.workingSession.branchesDrawn.addAll(this.branches)
+        } else {
+            for (ss in this.singleStrands) {
+                val s = Point2D.Double(0.0, 0.0)
+                val e = Point2D.Double(0.0, 0.0)
+                at.transform(ss.line.p1, s)
+                at.transform(ss.line.p2, e)
+                if (e.x < 0.0)
+                    continue
+                if (s.x > drawingArea.width)
+                    break
+                if (s.x >= 0.0 && s.x <= drawingArea.width || e.x >= 0.0 && e.x <= drawingArea.width || s.x < 0.0 && e.x > drawingArea.width) {
+                    ss.previousBranch?.let {
+                        this.workingSession.branchesDrawn.add(it)
+                    }
+                    ss.nextBranch?.let {
+                        this.workingSession.branchesDrawn.add(it)
+                    }
+                    //the y coordinate allows to decide if the single-strand will be drawn
+                    if (s.y >= 0.0 && s.y <= drawingArea.height ) //not necessary to check the end point
+                        this.workingSession.singleStrandsDrawn.add(ss)
+                }
+            }
 
-        for (ss in this.singleStrands) {
-            val s = Point2D.Double(0.0, 0.0)
-            val e = Point2D.Double(0.0, 0.0)
-            at.transform(ss.line.p1, s)
-            at.transform(ss.line.p2, e)
-            if (e.x < 0.0)
-                continue
-            if (s.x > drawingArea.width)
-                break
-            if (s.x >= 0.0 && s.x <= drawingArea.width || e.x >= 0.0 && e.x <= drawingArea.width || s.x < 0.0 && e.x > drawingArea.width) {
-                ss.previousBranch?.let {
-                    this.workingSession.branchesDrawn.add(it)
+            for (phospho in this.phosphoBonds) {
+                val s = Point2D.Double(0.0, 0.0)
+                val e = Point2D.Double(0.0, 0.0)
+                at.transform((phospho.previousBranch.parent as HelixDrawing).line.p1, s)
+                at.transform((phospho.nextBranch.parent as HelixDrawing).line.p1, e)
+                if (e.x < 0.0)
+                    continue
+                if (s.x > drawingArea.width)
+                    break
+                if (s.x >= 0.0 && s.x <= drawingArea.width || e.x >= 0.0 && e.x <= drawingArea.width || s.x < 0.0 && e.x > drawingArea.width) {
+                    phospho.previousBranch.let {
+                        this.workingSession.branchesDrawn.add(it)
+                    }
+                    phospho.nextBranch.let {
+                        this.workingSession.branchesDrawn.add(it)
+                    }
+                    //the y coordinate allows to decide if the single-strand will be drawn
+                    if (s.y >= 0.0 && s.y <= drawingArea.height ) //not necessary to check the end point
+                        this.workingSession.phosphoBondsLinkingBranchesDrawn.add(phospho)
                 }
-                ss.nextBranch?.let {
-                    this.workingSession.branchesDrawn.add(it)
-                }
-                //the y coordinate allows to decide if the single-strand will be drawn
-                if (s.y >= 0.0 && s.y <= drawingArea.height ) //not necessary to check the end point
-                    this.workingSession.singleStrandsDrawn.add(ss)
-                    ss.draw(g, at, drawingArea)
             }
         }
 
-        for (phospho in this.phosphoBonds) {
-            val s = Point2D.Double(0.0, 0.0)
-            val e = Point2D.Double(0.0, 0.0)
-            at.transform((phospho.previousBranch.parent as HelixDrawing).line.p1, s)
-            at.transform((phospho.nextBranch.parent as HelixDrawing).line.p1, e)
-            if (e.x < 0.0)
-                continue
-            if (s.x > drawingArea.width)
-                break
-            if (s.x >= 0.0 && s.x <= drawingArea.width || e.x >= 0.0 && e.x <= drawingArea.width || s.x < 0.0 && e.x > drawingArea.width) {
-                phospho.previousBranch?.let {
-                    this.workingSession.branchesDrawn.add(it)
-                }
-                phospho.nextBranch?.let {
-                    this.workingSession.branchesDrawn.add(it)
-                }
-                //the y coordinate allows to decide if the single-strand will be drawn
-                if (s.y >= 0.0 && s.y <= drawingArea.height ) //not necessary to check the end point
-                    this.workingSession.phosphoBondsLinkingBranchesDrawn.add(phospho)
-                phospho.draw(g, at, drawingArea)
-            }
+        this.workingSession.singleStrandsDrawn.forEach {
+            it.draw(g, at, drawingArea)
+        }
+
+        this.workingSession.phosphoBondsLinkingBranchesDrawn.forEach {
+            it.draw(g, at, drawingArea)
         }
 
         this.workingSession.branchesDrawn.forEach {
@@ -1528,7 +1546,7 @@ class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, private val pknot: Pkno
         for (h in ssDrawing.allHelices) {
             if (h.helix.equals(pknot.helix)) {
                 this.helix = h
-                h.parent = this
+                //h.parent = this
                 break
             }
         }
@@ -1694,11 +1712,10 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
     }
 }
 
-class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing, circlesFromBranchSoFar: MutableList<Triple<Point2D, Double, Ellipse2D>>, linesFromBranchSoFar: MutableList<List<Point2D>>, previousJunction: JunctionDrawing? = null, var inId: ConnectorId, inPoint: Point2D, val inHelix: Helix, val junction: Junction) : DrawingElement(ssDrawing, parent, junction.name, junction.location, SecondaryStructureType.Junction) {
+open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing, circlesFromBranchSoFar: MutableList<Triple<Point2D, Double, Ellipse2D>>, linesFromBranchSoFar: MutableList<List<Point2D>>, previousJunction: JunctionDrawing? = null, var inId: ConnectorId, inPoint: Point2D, val inHelix: Helix, val junction: Junction) : DrawingElement(ssDrawing, parent, junction.name, junction.location, SecondaryStructureType.Junction) {
 
     private val noOverlapWithLines = true
     private val noOverlapWithCircles = true
-    override val residues = this.ssDrawing.getResiduesFromAbsPositions(*this.junction.locationWithoutSecondaries.positions.toIntArray())
     var outHelices = mutableListOf<HelixDrawing>()
     var connectedJunctions = mutableMapOf<ConnectorId, JunctionDrawing>()
     val phosphoBonds = mutableListOf<PhosphodiesterBondDrawing>()
@@ -1833,6 +1850,7 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
         get() = this.circle.bounds2D
 
     init {
+        this.residues = this.ssDrawing.getResiduesFromAbsPositions(*this.junction.locationWithoutSecondaries.positions.toIntArray())
         this.connectors[this.inId.value] = inPoint
         //we compute the initial radius according to the junction length and type
         val circumference = (this.junction.length.toFloat() - this.junction.type.value * 2).toFloat() * (radiusConst * 2).toFloat() + this.junction.type.value * helixDrawingWidth()
@@ -2100,6 +2118,11 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
                 )
             }
         }
+        if (this.junctionCategory == JunctionType.ApicalLoop) {
+            val p = this.pathToRoot()
+            val branch = p.get(p.size-2) as Branch
+            if (p.size > branch.branchLength ) branch.branchLength = p.size
+        }
     }
 
     fun junctionsFromBranch(): List<JunctionDrawing> {
@@ -2188,6 +2211,12 @@ class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing
     override fun asSVG(indentChar: String, indentLevel: Int, transX: Double, transY: Double): String {
         TODO("Not yet implemented")
     }
+}
+
+class Branch(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing, circlesFromBranchSoFar: MutableList<Triple<Point2D, Double, Ellipse2D>>, linesFromBranchSoFar: MutableList<List<Point2D>>, inId: ConnectorId, inPoint: Point2D, inHelix: Helix,junction: Junction):JunctionDrawing(parent, ssDrawing, circlesFromBranchSoFar, linesFromBranchSoFar, null, inId, inPoint, inHelix, junction) {
+
+    var branchLength:Int = 0
+
 }
 
 abstract class LWSymbolDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, name: String, location: Location, val inTertiaries: Boolean) : DrawingElement(ssDrawing, parent, name, location, SecondaryStructureType.LWSymbol) {
