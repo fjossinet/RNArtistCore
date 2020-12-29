@@ -1103,7 +1103,7 @@ object RnartistConfig {
 
     val defaultConfiguration = mutableMapOf<String, String>(
         DrawingConfigurationParameter.Color.toString() to getHTMLColorString(Color.DARK_GRAY),
-        DrawingConfigurationParameter.LineWidth.toString() to "1.5",
+        DrawingConfigurationParameter.LineWidth.toString() to "1.0",
         DrawingConfigurationParameter.LineShift.toString() to "1.0",
         DrawingConfigurationParameter.Opacity.toString() to "255", //alpha value goes from 0 to 255
         DrawingConfigurationParameter.FontName.toString() to "Arial",
@@ -1172,41 +1172,6 @@ object RnartistConfig {
             document = Document(root)
         }
         recoverWebsite()
-    }
-
-    @JvmStatic
-    @Throws(IOException::class)
-    fun save(
-        theme: Map<String, Map<String, String>>?,
-        savedTheme: org.apache.commons.lang3.tuple.Pair<String, NitriteId>?
-    ) {
-        theme?.let {
-            var themeElement = document!!.rootElement.getChild("theme")
-            if (themeElement == null) {
-                themeElement = Element("theme")
-                document!!.rootElement.addContent(themeElement)
-            } else {
-                themeElement.removeContent()
-                themeElement.attributes.clear()
-            }
-            savedTheme?.let { //the current theme was a saved one. We keep this information to recover it next launch
-                themeElement.setAttribute("name", savedTheme.key)
-                themeElement.setAttribute("id", savedTheme.value.idValue.toString())
-            }
-            for ((elementType, parameters) in theme) {
-                val e = Element(elementType)
-                themeElement.addContent(e)
-                for ((name, value) in parameters) {
-                    val _e = Element(name)
-                    _e.setText(value)
-                    e.addContent(_e)
-                }
-            }
-            defaultTheme = theme.toMutableMap()
-        }
-        val outputter = XMLOutputter(Format.getPrettyFormat())
-        val writer = FileWriter(File(getUserDir(), "config.xml"))
-        outputter.output(document, writer)
     }
 
     @JvmStatic
@@ -1402,20 +1367,6 @@ object RnartistConfig {
             document!!.rootElement.addContent(Element("export-SVG-with-browser-compatibility"))
         else if (!compatibility)
             document!!.rootElement.removeChild("export-SVG-with-browser-compatibility")
-    }
-
-    @JvmStatic
-    fun saveCurrentThemeOnExit(): Boolean {
-        var e = document!!.rootElement.getChild("save-current-theme-on-exit")
-        return e != null
-    }
-
-    @JvmStatic
-    fun saveCurrentThemeOnExit(save: Boolean) {
-        if (save && !saveCurrentThemeOnExit() /*the element is not already there*/)
-            document!!.rootElement.addContent(Element("save-current-theme-on-exit"))
-        else if (!save)
-            document!!.rootElement.removeChild("save-current-theme-on-exit")
     }
 
     @JvmStatic

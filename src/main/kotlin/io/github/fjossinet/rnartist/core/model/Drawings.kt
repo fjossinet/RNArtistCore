@@ -20,11 +20,9 @@ val minimalRadius: Float = minimalCircumference / (2F * Math.PI).toFloat()
 val radiansToDegrees = 180 / Math.PI
 val degreesToRadians = Math.PI / 180
 
-@JvmField
-var DASHED = "dashed"
-
-@JvmField
-var SOLID = "solid"
+enum class TertiariesDisplayLevel {
+    None, Pknots, All
+}
 
 enum class SecondaryStructureType {
     Full2D, A, U, G, C, X, AShape, UShape, GShape, CShape, XShape, SecondaryInteraction, TertiaryInteraction, InteractionSymbol, PhosphodiesterBond, Helix, PKnot, Junction, SingleStrand, LWSymbol, Numbering
@@ -56,6 +54,8 @@ class WorkingSession() {
     val helicesDrawn = mutableListOf<HelixDrawing>()
     val junctionsDrawn = mutableListOf<JunctionDrawing>()
     val singleStrandsDrawn = mutableListOf<SingleStrandDrawing>()
+
+    var tertiariesDisplayLevel:TertiariesDisplayLevel = TertiariesDisplayLevel.None
 
     val selectedResidues = mutableListOf<ResidueDrawing>()
     val selectionBounds: Rectangle2D?
@@ -348,9 +348,11 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
             if (this.pknots.isEmpty())
                 return this.tertiaryInteractions
             val allTertiaryInteractions =  mutableListOf<TertiaryInteractionDrawing>()
-            allTertiaryInteractions.addAll(this.tertiaryInteractions)
-            for (pknot in this.pknots)
-                allTertiaryInteractions.addAll(pknot.tertiaryInteractions)
+            if (this.workingSession.tertiariesDisplayLevel == TertiariesDisplayLevel.All)
+                allTertiaryInteractions.addAll(this.tertiaryInteractions)
+            if (this.workingSession.tertiariesDisplayLevel >= TertiariesDisplayLevel.Pknots)
+                for (pknot in this.pknots)
+                    allTertiaryInteractions.addAll(pknot.tertiaryInteractions)
             return allTertiaryInteractions
         }
 
@@ -1010,11 +1012,12 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
             }
         }
 
-        if (false) {
+        if (!quickDraw && this.workingSession.tertiariesDisplayLevel != TertiariesDisplayLevel.None) {
             this.allTertiaryInteractions.forEach {
                 it.draw(g, at, drawingArea)
             }
-            this.residuesUpdated.clear()
+            if (this.workingSession.tertiariesDisplayLevel == TertiariesDisplayLevel.All)
+                this.residuesUpdated.clear()
         }
 
     }
@@ -2222,15 +2225,6 @@ abstract class LWSymbolDrawing(parent: DrawingElement?, ssDrawing: SecondaryStru
 
     lateinit protected var shape: Shape
 
-    override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
-        g.color = this.getColor()
-        g.stroke = BasicStroke(
-                this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(),
-                BasicStroke.CAP_ROUND,
-                BasicStroke.JOIN_ROUND
-        )
-    }
-
     abstract fun setShape(p1: Point2D, p2: Point2D)
 
     override val bounds2D: Rectangle2D
@@ -2272,7 +2266,6 @@ abstract class WC(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing,
 class CisWC(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean) : WC(parent, ssDrawing, "cisWC", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
-        super.draw(g, at, drawingArea)
         this.shape.let {
             g.fill(at.createTransformedShape(this.shape))
         }
@@ -2282,7 +2275,6 @@ class CisWC(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, locat
 class TransWC(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean) : WC(parent, ssDrawing, "transWC", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
-        super.draw(g, at, drawingArea)
         this.shape.let {
             g.draw(at.createTransformedShape(this.shape))
         }
@@ -2332,7 +2324,6 @@ abstract class RightSugar(parent: DrawingElement?, ssDrawing: SecondaryStructure
 class CisRightSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : RightSugar(parent, ssDrawing, "cisSugar", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
-        super.draw(g, at, drawingArea)
         this.shape.let {
             g.fill(at.createTransformedShape(this.shape))
         }
@@ -2343,7 +2334,6 @@ class CisRightSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawin
 class CisLeftSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : LeftSugar(parent, ssDrawing, "cisSugar", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
-        super.draw(g, at, drawingArea)
         this.shape.let {
             g.fill(at.createTransformedShape(this.shape))
         }
@@ -2355,7 +2345,6 @@ class CisLeftSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing
 class TransRightSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : RightSugar(parent, ssDrawing, "transSugar", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
-        super.draw(g, at, drawingArea)
         this.shape.let {
             g.draw(at.createTransformedShape(this.shape))
         }
@@ -2366,7 +2355,6 @@ class TransRightSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDraw
 class TransLeftSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : LeftSugar(parent, ssDrawing, "transSugar", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
-        super.draw(g, at, drawingArea)
         this.shape.let {
             g.draw(at.createTransformedShape(this.shape))
         }
@@ -2400,7 +2388,6 @@ abstract class Hoogsteen(parent: DrawingElement?, ssDrawing: SecondaryStructureD
 class CisHoogsteen(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : Hoogsteen(parent, ssDrawing, "cisHoogsteen", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
-        super.draw(g, at, drawingArea)
         this.shape.let {
             g.fill(at.createTransformedShape(this.shape))
         }
@@ -2411,7 +2398,6 @@ class CisHoogsteen(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing
 class TransHoogsteen(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, location: Location, inTertiaries: Boolean = false) : Hoogsteen(parent, ssDrawing, "transHoogsteen", location, inTertiaries) {
 
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
-        super.draw(g, at, drawingArea)
         this.shape.let {
             g.draw(at.createTransformedShape(this.shape))
         }
@@ -2765,7 +2751,13 @@ class TertiaryInteractionDrawing(parent: PKnotDrawing? = null, interaction: Base
             }
         }
 
-        if (this.isFullDetails()) {
+        val p1 = Point2D.Double()
+        val p2 = Point2D.Double()
+
+        at.transform(this.residue.center, p1)
+        at.transform(this.pairedResidue.center, p2)
+
+        if (this.isFullDetails() && (drawingArea.contains(p1) || drawingArea.contains(p2))) {
             val previousColor = g.color
             g.color = getColor()
             this.interactionSymbol.draw(g, at, drawingArea)
