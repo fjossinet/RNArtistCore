@@ -31,7 +31,7 @@ enum class SecondaryStructureType {
 }
 
 enum class DrawingConfigurationParameter {
-    FullDetails, Color, LineWidth, LineShift, Opacity, TertiaryInteractionStyle, FontName, DeltaXRes, DeltaYRes, DeltaFontSize
+    FullDetails, Color, LineWidth, LineShift, Opacity, FontName, DeltaXRes, DeltaYRes, DeltaFontSize
 }
 
 fun helixDrawingLength(h: Helix): Double {
@@ -133,35 +133,32 @@ class DrawingConfiguration(defaultParams: MutableMap<String, String> = defaultCo
 
     val params: MutableMap<String, String> = mutableMapOf()
 
-    var opacity: Int? = null
-        get() = this.params[DrawingConfigurationParameter.Opacity.toString()]?.toInt()
+    var opacity: Int = defaultConfiguration[DrawingConfigurationParameter.Opacity.toString()]!!.toInt()
+        get() = this.params[DrawingConfigurationParameter.Opacity.toString()]!!.toInt()
 
-    var fullDetails: Boolean? = null
-        get() = this.params[DrawingConfigurationParameter.FullDetails.toString()]?.toBoolean()
+    var fullDetails: Boolean = defaultConfiguration[DrawingConfigurationParameter.FullDetails.toString()]!!.toBoolean()
+        get() = this.params[DrawingConfigurationParameter.FullDetails.toString()]!!.toBoolean()
 
-    var tertiaryInteractionStyle: String? = null
-        get() = this.params[DrawingConfigurationParameter.TertiaryInteractionStyle.toString()]
+    var lineShift: Double = defaultConfiguration[DrawingConfigurationParameter.LineShift.toString()]!!.toDouble()
+        get() = this.params[DrawingConfigurationParameter.LineShift.toString()]!!.toDouble()
 
-    var lineShift: Double? = null
-        get() = this.params[DrawingConfigurationParameter.LineShift.toString()]?.toDouble()
+    var deltaXRes: Int = defaultConfiguration[DrawingConfigurationParameter.DeltaXRes.toString()]!!.toInt()
+        get() = this.params[DrawingConfigurationParameter.DeltaXRes.toString()]!!.toInt()
 
-    var deltaXRes: Int? = null
-        get() = this.params[DrawingConfigurationParameter.DeltaXRes.toString()]?.toInt()
+    var deltaYRes: Int = defaultConfiguration[DrawingConfigurationParameter.DeltaYRes.toString()]!!.toInt()
+        get() = this.params[DrawingConfigurationParameter.DeltaYRes.toString()]!!.toInt()
 
-    var deltaYRes: Int? = null
-        get() = this.params[DrawingConfigurationParameter.DeltaYRes.toString()]?.toInt()
+    var deltaFontSize: Int = defaultConfiguration[DrawingConfigurationParameter.DeltaFontSize.toString()]!!.toInt()
+        get() = this.params[DrawingConfigurationParameter.DeltaFontSize.toString()]!!.toInt()
 
-    var deltaFontSize: Int? = null
-        get() = this.params[DrawingConfigurationParameter.DeltaFontSize.toString()]?.toInt()
+    var lineWidth: Double = defaultConfiguration[DrawingConfigurationParameter.LineWidth.toString()]!!.toDouble()
+        get() = this.params[DrawingConfigurationParameter.LineWidth.toString()]!!.toDouble()
 
-    var lineWidth: Double? = null
-        get() = this.params[DrawingConfigurationParameter.LineWidth.toString()]?.toDouble()
+    var color: Color = defaultConfiguration[DrawingConfigurationParameter.Color.toString()]!!.let { getAWTColor(it) }
+        get() = this.params[DrawingConfigurationParameter.Color.toString()]!!.let { getAWTColor(it) }
 
-    var color: Color? = null
-        get() = this.params[DrawingConfigurationParameter.Color.toString()]?.let { getAWTColor(it) }
-
-    var fontName: String? = null
-        get() = this.params[DrawingConfigurationParameter.FontName.toString()]
+    var fontName: String = defaultConfiguration[DrawingConfigurationParameter.FontName.toString()]!!
+        get() = this.params[DrawingConfigurationParameter.FontName.toString()]!!
 
     var displayResidueNames = true
     var fontStyle = Font.PLAIN
@@ -186,7 +183,7 @@ fun computeOptimalFontSize(g: Graphics2D, gc: WorkingSession, drawingConfigurati
         fontSize--
         val font = Font(drawingConfiguration.fontName, drawingConfiguration.fontStyle, fontSize)
         dimension = getStringBoundsRectangle2D(g, title, font)
-    } while (dimension.width >= width - width * 0.5 + width * drawingConfiguration.deltaFontSize!!.toDouble() / 20.0 && dimension.height >= height - height * 0.5 + height * drawingConfiguration.deltaFontSize!!.toDouble() / 20.0)
+    } while (dimension.width >= width - width * 0.5 + width * drawingConfiguration.deltaFontSize.toDouble() / 20.0 && dimension.height >= height - height * 0.5 + height * drawingConfiguration.deltaFontSize.toDouble() / 20.0)
     return fontSize;
 }
 
@@ -198,9 +195,9 @@ fun getStringBoundsRectangle2D(g: Graphics2D, title: String, font: Font): Dimens
     return Dimension(r.getWidth().toInt(), (lm.ascent - lm.descent).toInt())
 }
 
-abstract class DrawingElement(val ssDrawing: SecondaryStructureDrawing, var parent: DrawingElement?, val name: String, val location: Location, var type: SecondaryStructureType, theme: Theme = Theme() ) {
+abstract class DrawingElement(val ssDrawing: SecondaryStructureDrawing, var parent: DrawingElement?, val name: String, val location: Location, var type: SecondaryStructureType) {
 
-    var drawingConfiguration: DrawingConfiguration = DrawingConfiguration(theme.configurations.getOrDefault(this.type.toString(), mutableMapOf()))
+    var drawingConfiguration: DrawingConfiguration = DrawingConfiguration()
 
     open val selected = false
 
@@ -222,44 +219,40 @@ abstract class DrawingElement(val ssDrawing: SecondaryStructureDrawing, var pare
     }
 
     fun getColor(): Color {
-        val color = if (this.drawingConfiguration.color != null) this.drawingConfiguration.color!! else if (this.parent != null) this.parent!!.getColor() else ssDrawing.drawingConfiguration.color!!
+        val color = this.drawingConfiguration.color
         return Color(color.red, color.green, color.blue,this.getOpacity())
     }
 
     open fun isFullDetails(): Boolean {
-        return if (this.drawingConfiguration.fullDetails != null) this.drawingConfiguration.fullDetails!! else if (this.parent != null) parent!!.isFullDetails() else ssDrawing.drawingConfiguration.fullDetails!!
+        return this.drawingConfiguration.fullDetails
     }
 
     fun getOpacity(): Int {
-        return if (this.drawingConfiguration.opacity != null) this.drawingConfiguration.opacity!! else if (this.parent != null) parent!!.getOpacity() else ssDrawing.drawingConfiguration.opacity!!
+        return this.drawingConfiguration.opacity
     }
 
     fun getLineWidth(): Double {
-        return if (this.drawingConfiguration.lineWidth != null) this.drawingConfiguration.lineWidth!! else if (this.parent != null) this.parent!!.getLineWidth() else ssDrawing.drawingConfiguration.lineWidth!!
+        return this.drawingConfiguration.lineWidth
     }
 
     fun getLineShift(): Double {
-        return if (this.drawingConfiguration.lineShift != null) this.drawingConfiguration.lineShift!! else if (this.parent != null) this.parent!!.getLineShift() else ssDrawing.drawingConfiguration.lineShift!!
-    }
-
-    fun getTertiaryInteractionStyle(): String {
-        return if (this.drawingConfiguration.tertiaryInteractionStyle != null) this.drawingConfiguration.tertiaryInteractionStyle!! else if (this !is HelixDrawing && this !is JunctionDrawing && this.parent != null) (this.parent as DrawingElement).getTertiaryInteractionStyle() else ssDrawing.drawingConfiguration.tertiaryInteractionStyle!!
+        return this.drawingConfiguration.lineShift
     }
 
     fun getDeltaXRes(): Int {
-        return if (this.drawingConfiguration.deltaXRes != null) this.drawingConfiguration.deltaXRes!! else if (this !is HelixDrawing && this !is JunctionDrawing && this.parent != null) (this.parent as DrawingElement).getDeltaXRes() else ssDrawing.drawingConfiguration.deltaXRes!!
+        return this.drawingConfiguration.deltaXRes
     }
 
     fun getDeltaYRes(): Int {
-        return if (this.drawingConfiguration.deltaYRes != null) this.drawingConfiguration.deltaYRes!! else if (this !is HelixDrawing && this !is JunctionDrawing && this.parent != null) (this.parent as DrawingElement).getDeltaYRes() else ssDrawing.drawingConfiguration.deltaYRes!!
+        return this.drawingConfiguration.deltaYRes
     }
 
     fun getDeltaFontSize(): Int {
-        return if (this.drawingConfiguration.deltaFontSize != null) this.drawingConfiguration.deltaFontSize!! else if (this !is HelixDrawing && this !is JunctionDrawing && this.parent != null) (this.parent as DrawingElement).getDeltaFontSize() else ssDrawing.drawingConfiguration.deltaFontSize!!
+        return this.drawingConfiguration.deltaFontSize
     }
 
     fun getFontName(): String {
-        return if (this.drawingConfiguration.fontName != null) this.drawingConfiguration.fontName!! else if (this !is HelixDrawing && this !is JunctionDrawing && this.parent != null) (this.parent as DrawingElement).getFontName() else ssDrawing.drawingConfiguration.fontName!!
+        return this.drawingConfiguration.fontName
     }
 
     fun getSinglePositions(): IntArray {
@@ -866,19 +859,19 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
     }
 
     fun getBounds(): Rectangle2D {
-        val minX = this.residues.minBy { it.circle.minX }!!.circle.minX - drawingConfiguration.lineWidth!!
-        val minY = this.residues.minBy { it.circle.minY }!!.circle.minY - drawingConfiguration.lineWidth!!
-        val maxX = this.residues.maxBy { it.circle.maxX }!!.circle.maxX + drawingConfiguration.lineWidth!!
-        val maxY = this.residues.maxBy { it.circle.maxY }!!.circle.maxY + drawingConfiguration.lineWidth!!
-        return Rectangle2D.Double(minX.toInt() - drawingConfiguration.lineWidth!! / 2.0, minY.toInt() - drawingConfiguration.lineWidth!! / 2.0, maxX - minX + drawingConfiguration.lineWidth!!, maxY - minY + drawingConfiguration.lineWidth!!)
+        val minX = this.residues.minBy { it.circle.minX }!!.circle.minX - drawingConfiguration.lineWidth
+        val minY = this.residues.minBy { it.circle.minY }!!.circle.minY - drawingConfiguration.lineWidth
+        val maxX = this.residues.maxBy { it.circle.maxX }!!.circle.maxX + drawingConfiguration.lineWidth
+        val maxY = this.residues.maxBy { it.circle.maxY }!!.circle.maxY + drawingConfiguration.lineWidth
+        return Rectangle2D.Double(minX.toInt() - drawingConfiguration.lineWidth / 2.0, minY.toInt() - drawingConfiguration.lineWidth / 2.0, maxX - minX + drawingConfiguration.lineWidth, maxY - minY + drawingConfiguration.lineWidth)
     }
 
     fun getSelectionBounds(): Rectangle2D {
-        val minX = this.selection.minBy { it.circle.minX }!!.circle.minX - drawingConfiguration.lineWidth!!
-        val minY = this.selection.minBy { it.circle.minY }!!.circle.minY - drawingConfiguration.lineWidth!!
-        val maxX = this.selection.maxBy { it.circle.maxX }!!.circle.maxX + drawingConfiguration.lineWidth!!
-        val maxY = this.selection.maxBy { it.circle.maxY }!!.circle.maxY + drawingConfiguration.lineWidth!!
-        return Rectangle2D.Double(minX.toInt() - drawingConfiguration.lineWidth!! / 2.0, minY.toInt() - drawingConfiguration.lineWidth!! / 2.0, maxX - minX + drawingConfiguration.lineWidth!!, maxY - minY + drawingConfiguration.lineWidth!!)
+        val minX = this.selection.minBy { it.circle.minX }!!.circle.minX - drawingConfiguration.lineWidth
+        val minY = this.selection.minBy { it.circle.minY }!!.circle.minY - drawingConfiguration.lineWidth
+        val maxX = this.selection.maxBy { it.circle.maxX }!!.circle.maxX + drawingConfiguration.lineWidth
+        val maxY = this.selection.maxBy { it.circle.maxY }!!.circle.maxY + drawingConfiguration.lineWidth
+        return Rectangle2D.Double(minX.toInt() - drawingConfiguration.lineWidth / 2.0, minY.toInt() - drawingConfiguration.lineWidth / 2.0, maxX - minX + drawingConfiguration.lineWidth, maxY - minY + drawingConfiguration.lineWidth)
     }
 
     fun draw(g: Graphics2D, at:AffineTransform, drawingArea: Rectangle2D) {
@@ -1382,6 +1375,10 @@ class XShapeDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawin
 
 abstract class ResidueLetterDrawing(parent: ResidueDrawing?, ssDrawing: SecondaryStructureDrawing, type:SecondaryStructureType, absPos: Int): DrawingElement(ssDrawing, parent, type.toString(), Location(absPos), type) {
 
+    init {
+        this.drawingConfiguration.params[DrawingConfigurationParameter.Color.toString()] = getHTMLColorString(Color.WHITE)
+    }
+
     override val bounds2D: Rectangle2D
         get() = this.parent!!.bounds2D
 }
@@ -1564,7 +1561,9 @@ class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, private val pknot: Pkno
     }
 }
 
-class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructureDrawing, val helix: Helix, start: Point2D, end: Point2D) : DrawingElement(ssDrawing, parent, helix.name, helix.location, SecondaryStructureType.Helix) {
+abstract class StructuralDomain(ssDrawing:SecondaryStructureDrawing, parent:DrawingElement?, name:String, location:Location, type:SecondaryStructureType):DrawingElement(ssDrawing, parent, name, location, type)
+
+class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructureDrawing, val helix: Helix, start: Point2D, end: Point2D) : StructuralDomain(ssDrawing, parent, helix.name, helix.location, SecondaryStructureType.Helix) {
 
     var line: Line2D = Line2D.Double(start, end)
     var distanceBetweenPairedResidues = 0.0 //each helix computes this value before to draw the secondary interactions. Each secondary will use it for its own drawing.
@@ -1638,7 +1637,7 @@ class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructure
     }
 }
 
-class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleStrand, start: Point2D, end: Point2D) : DrawingElement(ssDrawing, null, ss.name, ss.location, SecondaryStructureType.SingleStrand) {
+class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleStrand, start: Point2D, end: Point2D) : StructuralDomain(ssDrawing, null, ss.name, ss.location, SecondaryStructureType.SingleStrand) {
 
     var line = Line2D.Double(start, end)
     val phosphoBonds = mutableListOf<PhosphodiesterBondDrawing>()
@@ -1712,7 +1711,7 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
     }
 }
 
-open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing, circlesFromBranchSoFar: MutableList<Triple<Point2D, Double, Ellipse2D>>, linesFromBranchSoFar: MutableList<List<Point2D>>, previousJunction: JunctionDrawing? = null, var inId: ConnectorId, inPoint: Point2D, val inHelix: Helix, val junction: Junction) : DrawingElement(ssDrawing, parent, junction.name, junction.location, SecondaryStructureType.Junction) {
+open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing, circlesFromBranchSoFar: MutableList<Triple<Point2D, Double, Ellipse2D>>, linesFromBranchSoFar: MutableList<List<Point2D>>, previousJunction: JunctionDrawing? = null, var inId: ConnectorId, inPoint: Point2D, val inHelix: Helix, val junction: Junction) : StructuralDomain(ssDrawing, parent, junction.name, junction.location, SecondaryStructureType.Junction) {
 
     private val noOverlapWithLines = true
     private val noOverlapWithCircles = true
@@ -2446,7 +2445,6 @@ class LWLine(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, loca
     }
 
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
-        super.draw(g, at, drawingArea)
         this.shape.let {
             g.draw(at.createTransformedShape(this.shape))
         }
@@ -2642,21 +2640,33 @@ class InteractionSymbolDrawing(parent: DrawingElement?, val interaction: BasePai
         get() = TODO("Not yet implemented")
 
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
-        if (this.isFullDetails()) {
-            this.lwSymbols.forEach { lwSymbol ->
-                if (lwSymbol.getLineWidth() > 0) {
+        if (this.getLineWidth() > 0) {
+            if (this.isFullDetails()) {
+                this.lwSymbols.forEach { lwSymbol ->
                     val _previousColor = g.color
                     val _previousStroke = g.stroke
+                    g.stroke =
+                        BasicStroke(
+                            this.ssDrawing.workingSession.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(),
+                            BasicStroke.CAP_ROUND,
+                            BasicStroke.JOIN_ROUND
+                        )
+                    g.color = this.getColor()
                     lwSymbol.draw(g, at, drawingArea)
                     g.color = _previousColor
                     g.stroke = _previousStroke
                 }
-            }
-        } else {
-            this.defaultSymbol?.let {
-                if (it.getLineWidth() > 0) {
+            } else {
+                this.defaultSymbol?.let {
                     val _previousColor = g.color
                     val _previousStroke = g.stroke
+                    g.stroke =
+                        BasicStroke(
+                            this.ssDrawing.workingSession.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(),
+                            BasicStroke.CAP_ROUND,
+                            BasicStroke.JOIN_ROUND
+                        )
+                    g.color = this.getColor()
                     defaultSymbol?.draw(g, at, drawingArea)
                     g.color = _previousColor
                     g.stroke = _previousStroke

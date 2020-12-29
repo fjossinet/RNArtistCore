@@ -25,6 +25,100 @@ import java.util.prefs.BackingStoreException
 object RnartistConfig {
 
     @JvmField
+    val themeDetailsLevel = listOf<Map<String, Map<String, String>>>(
+        mapOf<String, Map<String, String>>(
+            SecondaryStructureType.Helix.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.SecondaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.Junction.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.SingleStrand.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.PhosphodiesterBond.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.AShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.A.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.UShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.U.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.GShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.G.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.CShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.C.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.XShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.X.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.InteractionSymbol.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false")
+        ),
+        mapOf<String, Map<String, String>>(
+            SecondaryStructureType.Helix.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.SecondaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.Junction.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.SingleStrand.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.PhosphodiesterBond.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.AShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.A.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.UShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.U.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.GShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.G.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.CShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.C.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.XShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.X.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.InteractionSymbol.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false")
+        ),
+        mapOf<String, Map<String, String>>(
+            SecondaryStructureType.Helix.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.SecondaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.Junction.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.SingleStrand.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.PhosphodiesterBond.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.AShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.A.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.UShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.U.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.GShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.G.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.CShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.C.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.XShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.X.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false"),
+            SecondaryStructureType.InteractionSymbol.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false")
+        ),
+        mapOf<String, Map<String, String>>(
+            SecondaryStructureType.Helix.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.SecondaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.Junction.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.SingleStrand.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.PhosphodiesterBond.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.AShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.A.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.UShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.U.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.GShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.G.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.CShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.C.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.XShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.X.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.InteractionSymbol.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "false")
+        ),
+        mapOf<String, Map<String, String>>(
+            SecondaryStructureType.Helix.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.SecondaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.Junction.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.SingleStrand.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.PhosphodiesterBond.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.AShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.A.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.UShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.U.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.GShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.G.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.CShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.C.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.XShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.X.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true"),
+            SecondaryStructureType.InteractionSymbol.toString() to mapOf<String, String>(DrawingConfigurationParameter.FullDetails.toString() to "true")
+        )
+    )
+
+    @JvmField
     val colorSchemes: Map<String, Map<String, Map<String, String>>> = mapOf(
         "Persian Carolina" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
@@ -1012,7 +1106,6 @@ object RnartistConfig {
         DrawingConfigurationParameter.LineWidth.toString() to "1.5",
         DrawingConfigurationParameter.LineShift.toString() to "1.0",
         DrawingConfigurationParameter.Opacity.toString() to "255", //alpha value goes from 0 to 255
-        DrawingConfigurationParameter.TertiaryInteractionStyle.toString() to DASHED,
         DrawingConfigurationParameter.FontName.toString() to "Arial",
         DrawingConfigurationParameter.DeltaXRes.toString() to "0",
         DrawingConfigurationParameter.DeltaYRes.toString() to "0",
@@ -1020,7 +1113,7 @@ object RnartistConfig {
         DrawingConfigurationParameter.FullDetails.toString() to "false"
     )
 
-    val defaultColorScheme = "Pumpkin Vegas"
+    private val defaultColorScheme = "Pumpkin Vegas"
 
     @JvmField
     var defaultTheme = mutableMapOf(

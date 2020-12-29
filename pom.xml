@@ -9,6 +9,7 @@
         <kotlin_version>1.4.10</kotlin_version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.class>io.github.fjossinet.rnartist.core.MainKt</main.class>
+        <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
     </properties>
 
     <groupId>io.github.fjossinet.rnartist.core</groupId>
@@ -102,13 +103,13 @@
                         <id>compile</id>
                         <goals><goal>compile</goal></goals>
                     </execution>
-                    <execution>
+                    <!--<execution>
                         <id>test-compile</id>
                         <goals><goal>test-compile</goal></goals>
                         <configuration>
                             <experimentalCoroutines>enable</experimentalCoroutines>
                         </configuration>
-                    </execution>
+                    </execution>-->
                 </executions>
             </plugin>
 
