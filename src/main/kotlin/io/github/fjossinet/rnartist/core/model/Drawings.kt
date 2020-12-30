@@ -54,6 +54,7 @@ class WorkingSession() {
     val helicesDrawn = mutableListOf<HelixDrawing>()
     val junctionsDrawn = mutableListOf<JunctionDrawing>()
     val singleStrandsDrawn = mutableListOf<SingleStrandDrawing>()
+    lateinit var locationDrawn:Location
 
     var tertiariesDisplayLevel:TertiariesDisplayLevel = TertiariesDisplayLevel.None
 
@@ -845,9 +846,6 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                 }
             }
         }
-        this.branches.forEach {
-            println(it.branchLength)
-        }
     }
 
     fun getResiduesFromAbsPositions(vararg positions: Int): List<ResidueDrawing> {
@@ -888,6 +886,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                     _c.bounds2D.height
             )
             g.font = Font(this.drawingConfiguration.fontName, this.drawingConfiguration.fontStyle, drawingConfiguration.fontSize)
+            println("Font size:"+g.font.size)
             var r2d = getStringBoundsRectangle2D(g, "A", g.font)
             this.ATransX = (_c.bounds2D.width - r2d.width).toFloat() / 2F
             this.ATransY = (_c.bounds2D.height + r2d.height).toFloat() / 2F
@@ -903,15 +902,14 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
             r2d = getStringBoundsRectangle2D(g, "X", g.font)
             this.XTransX = (_c.bounds2D.width - r2d.width).toFloat() / 2F
             this.XTransY = (_c.bounds2D.height + r2d.height).toFloat() / 2F
-
-            val area:Area = Area()
+            /*val area:Area = Area()
             this.workingSession.selectedResidues.toList().forEach { r ->
                 r.getSelectionHalo(at)?.let {
                     area.add(it)
                 }
             }
             g.color = RnartistConfig.selectionColor
-            g.fill(area)
+            g.fill(area)*/
         }
 
         this.workingSession.branchesDrawn.clear()
@@ -919,6 +917,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
         this.workingSession.helicesDrawn.clear()
         this.workingSession.junctionsDrawn.clear()
         this.workingSession.phosphoBondsLinkingBranchesDrawn.clear()
+        this.workingSession.locationDrawn = Location()
 
         if (this.singleStrands.isEmpty() && this.phosphoBonds.isEmpty() || this.branches.size == 1 ) { //if a single branch, always drawn, and single strands too
             this.workingSession.singleStrandsDrawn.addAll(this.singleStrands)
@@ -941,8 +940,9 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                         this.workingSession.branchesDrawn.add(it)
                     }
                     //the y coordinate allows to decide if the single-strand will be drawn
-                    if (s.y >= 0.0 && s.y <= drawingArea.height ) //not necessary to check the end point
+                    if (s.y >= 0.0 && s.y <= drawingArea.height ) { //not necessary to check the end point
                         this.workingSession.singleStrandsDrawn.add(ss)
+                    }
                 }
             }
 
@@ -1007,18 +1007,35 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                 at.transform(h.line.p2, e)
                 if (s.x >= 0.0 && s.x <= drawingArea.width || e.x >= 0.0 && e.x <= drawingArea.width || s.x < 0.0 && e.x > drawingArea.width) {
                     this.workingSession.helicesDrawn.add(h)
+                    //this.workingSession.locationDrawn = this.workingSession.locationDrawn.addLocation(h.location)
                     h.draw(g, at, drawingArea)
                 }
             }
         }
 
         if (!quickDraw && this.workingSession.tertiariesDisplayLevel != TertiariesDisplayLevel.None) {
+
+            this.workingSession.junctionsDrawn.forEach {
+                this.workingSession.locationDrawn.blocks.addAll(it.location.blocks)
+            }
+            this.workingSession.singleStrandsDrawn.forEach {
+                this.workingSession.locationDrawn.blocks.addAll(it.location.blocks)
+            }
+            this.workingSession.helicesDrawn.forEach {
+                this.workingSession.locationDrawn.blocks.addAll(it.location.blocks)
+            }
+
+            this.allTertiaryInteractions.forEach {
+                it.draw(g, at, drawingArea)
+            }
+
             this.allTertiaryInteractions.forEach {
                 it.draw(g, at, drawingArea)
             }
             if (this.workingSession.tertiariesDisplayLevel == TertiariesDisplayLevel.All)
                 this.residuesUpdated.clear()
         }
+
 
     }
 
@@ -1265,74 +1282,186 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
             if ((absPos % 5 == 0 || absPos == 1 || absPos == ssDrawing.length))
                 this.drawNumbering(g, at)
         }
-        if (g.font.size > 5 && this.getOpacity() > 0) { //the conditions to draw a letter
+        if (g.font.size > 8 && this.getOpacity() > 0) { //the conditions to draw a letter
             this.residueLetter.draw(g, at, drawingArea)
         }
     }
 
     private fun drawNumbering(g: Graphics2D, at: AffineTransform) {
-        g.color = Color(Color.DARK_GRAY.red, Color.DARK_GRAY.green, Color.DARK_GRAY.blue,
+        if (g.font.size-4 > 4 && this.getOpacity() > 0) {
+            g.color = Color(
+                Color.DARK_GRAY.red, Color.DARK_GRAY.green, Color.DARK_GRAY.blue,
                 this.getOpacity()
-        )
-        val n = "$absPos".length
-        var p: Pair<Point2D, Point2D>? = null
-        var e: Shape? = null
-        g.font = Font(g.font.fontName, g.font.style, g.font.size - 4)
-        val numberDim = getStringBoundsRectangle2D(g, "0", g.font)
-        (this.parent as? SecondaryInteractionDrawing)?.let {
-            val pairedCenter = (if (it.residue == this) it.pairedResidue else it.residue).center
-            p = pointsFrom(this.center, pairedCenter, -getLineWidth() / 2.0 - radiusConst - radiusConst / 3.0)
-            e = at.createTransformedShape(Ellipse2D.Double((p as Pair<Point2D, Point2D>).first.x - radiusConst / 3.0, (p as Pair<Point2D, Point2D>).first.y - radiusConst / 3.0, 2.0 * radiusConst / 3.0, 2.0 * radiusConst / 3.0))
-            g.fill(e)
+            )
+            val n = "$absPos".length
+            var p: Pair<Point2D, Point2D>? = null
+            var e: Shape? = null
+            g.font = Font(g.font.fontName, g.font.style, g.font.size - 4)
+            val numberDim = getStringBoundsRectangle2D(g, "0", g.font)
+            (this.parent as? SecondaryInteractionDrawing)?.let {
+                val pairedCenter = (if (it.residue == this) it.pairedResidue else it.residue).center
+                p = pointsFrom(this.center, pairedCenter, -getLineWidth() / 2.0 - radiusConst - radiusConst / 3.0)
+                e = at.createTransformedShape(
+                    Ellipse2D.Double(
+                        (p as Pair<Point2D, Point2D>).first.x - radiusConst / 3.0,
+                        (p as Pair<Point2D, Point2D>).first.y - radiusConst / 3.0,
+                        2.0 * radiusConst / 3.0,
+                        2.0 * radiusConst / 3.0
+                    )
+                )
+                g.fill(e)
 
-            p = pointsFrom(this.center, pairedCenter, -getLineWidth() / 2.0 - radiusConst - radiusConst - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel))
-            e = at.createTransformedShape(Ellipse2D.Double((p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel), (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel), numberDim.width / ssDrawing.workingSession.finalZoomLevel, numberDim.width / ssDrawing.workingSession.finalZoomLevel))
+                p = pointsFrom(
+                    this.center,
+                    pairedCenter,
+                    -getLineWidth() / 2.0 - radiusConst - radiusConst - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel)
+                )
+                e = at.createTransformedShape(
+                    Ellipse2D.Double(
+                        (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
+                        (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
+                        numberDim.width / ssDrawing.workingSession.finalZoomLevel,
+                        numberDim.width / ssDrawing.workingSession.finalZoomLevel
+                    )
+                )
 
-        }
-        (this.parent as? JunctionDrawing)?.let {
-            p = pointsFrom(this.center, it.center, -getLineWidth() / 2.0 - radiusConst - radiusConst / 3.0)
-            e = at.createTransformedShape(Ellipse2D.Double((p as Pair<Point2D, Point2D>).first.x - 2, (p as Pair<Point2D, Point2D>).first.y - 2, 2.0 * radiusConst / 3.0, 2.0 * radiusConst / 3.0))
-            g.fill(e)
+            }
+            (this.parent as? JunctionDrawing)?.let {
+                p = pointsFrom(this.center, it.center, -getLineWidth() / 2.0 - radiusConst - radiusConst / 3.0)
+                e = at.createTransformedShape(
+                    Ellipse2D.Double(
+                        (p as Pair<Point2D, Point2D>).first.x - 2,
+                        (p as Pair<Point2D, Point2D>).first.y - 2,
+                        2.0 * radiusConst / 3.0,
+                        2.0 * radiusConst / 3.0
+                    )
+                )
+                g.fill(e)
 
-            p = pointsFrom(this.center, it.center, -getLineWidth() / 2.0 - radiusConst - radiusConst - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel))
-            e = at.createTransformedShape(Ellipse2D.Double((p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel), (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel), numberDim.width.toDouble() / ssDrawing.workingSession.finalZoomLevel, numberDim.width.toDouble() / ssDrawing.workingSession.finalZoomLevel))
-        }
-        (this.parent as? SingleStrandDrawing)?.let {
-            p = pointsFrom(Point2D.Double(this.center.x, this.center.y + radiusConst), Point2D.Double(this.center.x, this.center.y - radiusConst), -getLineWidth() / 2.0 - radiusConst / 3.0)
-            e = at.createTransformedShape(Ellipse2D.Double((p as Pair<Point2D, Point2D>).first.x - 2, (p as Pair<Point2D, Point2D>).first.y - 2, 2.0 * radiusConst / 3.0, 2.0 * radiusConst / 3.0))
-            g.fill(e)
+                p = pointsFrom(
+                    this.center,
+                    it.center,
+                    -getLineWidth() / 2.0 - radiusConst - radiusConst - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel)
+                )
+                e = at.createTransformedShape(
+                    Ellipse2D.Double(
+                        (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
+                        (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
+                        numberDim.width.toDouble() / ssDrawing.workingSession.finalZoomLevel,
+                        numberDim.width.toDouble() / ssDrawing.workingSession.finalZoomLevel
+                    )
+                )
+            }
+            (this.parent as? SingleStrandDrawing)?.let {
+                p = pointsFrom(
+                    Point2D.Double(this.center.x, this.center.y + radiusConst),
+                    Point2D.Double(this.center.x, this.center.y - radiusConst),
+                    -getLineWidth() / 2.0 - radiusConst / 3.0
+                )
+                e = at.createTransformedShape(
+                    Ellipse2D.Double(
+                        (p as Pair<Point2D, Point2D>).first.x - 2,
+                        (p as Pair<Point2D, Point2D>).first.y - 2,
+                        2.0 * radiusConst / 3.0,
+                        2.0 * radiusConst / 3.0
+                    )
+                )
+                g.fill(e)
 
-            p = pointsFrom(Point2D.Double(this.center.x, this.center.y + radiusConst), Point2D.Double(this.center.x, this.center.y - radiusConst), -getLineWidth() / 2.0 - radiusConst - radiusConst / 2.0 - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel))
-            e = at.createTransformedShape(Ellipse2D.Double((p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel), (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel), numberDim.width.toDouble() / ssDrawing.workingSession.finalZoomLevel, numberDim.width.toDouble() / ssDrawing.workingSession.finalZoomLevel))
-        }
-
-        if (e != null && p != null) {
-            val transX = (e!!.bounds2D.width - numberDim.width.toDouble()).toFloat() / 2F
-            val transY = (e!!.bounds2D.height + numberDim.height.toDouble()).toFloat() / 2F
-            val cp = crossProduct(center, Point2D.Double(center.x, center.y - 20), (p as Pair<Point2D, Point2D>).first)
-            if (cp >= 0) {
-                g.drawString("$absPos".substring(0, 1), e!!.bounds2D.minX.toFloat() + transX, e!!.bounds2D.minY.toFloat() + transY)
-                var i = 1
-                while (i < n) {
-                    var _p = pointsFrom(Point2D.Double((p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel), (p as Pair<Point2D, Point2D>).first.y), Point2D.Double((p as Pair<Point2D, Point2D>).first.x + numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel), (p as Pair<Point2D, Point2D>).first.y), -(2 * (i - 1) + 1) * numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel))
-                    e = at.createTransformedShape(Ellipse2D.Double(_p.second.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel), _p.second.y - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel), numberDim.width / ssDrawing.workingSession.finalZoomLevel, numberDim.width / ssDrawing.workingSession.finalZoomLevel))
-                    g.drawString("$absPos".substring(i, i + 1), e!!.bounds2D.minX.toFloat() + transX, e!!.bounds2D.minY.toFloat() + transY)
-                    i++
-                }
-            } else {
-                g.drawString("$absPos".substring(n - 1, n), e!!.bounds2D.minX.toFloat() + transX, e!!.bounds2D.minY.toFloat() + transY)
-                var i = 1
-                while (i < n) {
-                    var _p = pointsFrom(Point2D.Double((p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel), (p as Pair<Point2D, Point2D>).first.y), Point2D.Double((p as Pair<Point2D, Point2D>).first.x + numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel), (p as Pair<Point2D, Point2D>).first.y), -(2 * (i - 1) + 1) * numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel))
-                    e = at.createTransformedShape(Ellipse2D.Double(_p.first.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel), _p.first.y - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel), numberDim.width / ssDrawing.workingSession.finalZoomLevel, numberDim.width / ssDrawing.workingSession.finalZoomLevel))
-                    g.drawString("$absPos".substring(n - 1 - i, n - i), e!!.bounds2D.minX.toFloat() + transX, e!!.bounds2D.minY.toFloat() + transY)
-                    i++
-                }
+                p = pointsFrom(
+                    Point2D.Double(this.center.x, this.center.y + radiusConst),
+                    Point2D.Double(this.center.x, this.center.y - radiusConst),
+                    -getLineWidth() / 2.0 - radiusConst - radiusConst / 2.0 - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel)
+                )
+                e = at.createTransformedShape(
+                    Ellipse2D.Double(
+                        (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
+                        (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
+                        numberDim.width.toDouble() / ssDrawing.workingSession.finalZoomLevel,
+                        numberDim.width.toDouble() / ssDrawing.workingSession.finalZoomLevel
+                    )
+                )
             }
 
-        }
+            if (e != null && p != null) {
+                val transX = (e!!.bounds2D.width - numberDim.width.toDouble()).toFloat() / 2F
+                val transY = (e!!.bounds2D.height + numberDim.height.toDouble()).toFloat() / 2F
+                val cp =
+                    crossProduct(center, Point2D.Double(center.x, center.y - 20), (p as Pair<Point2D, Point2D>).first)
+                if (cp >= 0) {
+                    g.drawString(
+                        "$absPos".substring(0, 1),
+                        e!!.bounds2D.minX.toFloat() + transX,
+                        e!!.bounds2D.minY.toFloat() + transY
+                    )
+                    var i = 1
+                    while (i < n) {
+                        var _p = pointsFrom(
+                            Point2D.Double(
+                                (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
+                                (p as Pair<Point2D, Point2D>).first.y
+                            ),
+                            Point2D.Double(
+                                (p as Pair<Point2D, Point2D>).first.x + numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
+                                (p as Pair<Point2D, Point2D>).first.y
+                            ),
+                            -(2 * (i - 1) + 1) * numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel)
+                        )
+                        e = at.createTransformedShape(
+                            Ellipse2D.Double(
+                                _p.second.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
+                                _p.second.y - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
+                                numberDim.width / ssDrawing.workingSession.finalZoomLevel,
+                                numberDim.width / ssDrawing.workingSession.finalZoomLevel
+                            )
+                        )
+                        g.drawString(
+                            "$absPos".substring(i, i + 1),
+                            e!!.bounds2D.minX.toFloat() + transX,
+                            e!!.bounds2D.minY.toFloat() + transY
+                        )
+                        i++
+                    }
+                } else {
+                    g.drawString(
+                        "$absPos".substring(n - 1, n),
+                        e!!.bounds2D.minX.toFloat() + transX,
+                        e!!.bounds2D.minY.toFloat() + transY
+                    )
+                    var i = 1
+                    while (i < n) {
+                        var _p = pointsFrom(
+                            Point2D.Double(
+                                (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
+                                (p as Pair<Point2D, Point2D>).first.y
+                            ),
+                            Point2D.Double(
+                                (p as Pair<Point2D, Point2D>).first.x + numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
+                                (p as Pair<Point2D, Point2D>).first.y
+                            ),
+                            -(2 * (i - 1) + 1) * numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel)
+                        )
+                        e = at.createTransformedShape(
+                            Ellipse2D.Double(
+                                _p.first.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
+                                _p.first.y - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
+                                numberDim.width / ssDrawing.workingSession.finalZoomLevel,
+                                numberDim.width / ssDrawing.workingSession.finalZoomLevel
+                            )
+                        )
+                        g.drawString(
+                            "$absPos".substring(n - 1 - i, n - i),
+                            e!!.bounds2D.minX.toFloat() + transX,
+                            e!!.bounds2D.minY.toFloat() + transY
+                        )
+                        i++
+                    }
+                }
 
-        g.font = Font(g.font.fontName, g.font.style, g.font.size + 4)
+            }
+
+            g.font = Font(g.font.fontName, g.font.style, g.font.size + 4)
+        }
 
     }
 
@@ -2751,13 +2880,7 @@ class TertiaryInteractionDrawing(parent: PKnotDrawing? = null, interaction: Base
             }
         }
 
-        val p1 = Point2D.Double()
-        val p2 = Point2D.Double()
-
-        at.transform(this.residue.center, p1)
-        at.transform(this.pairedResidue.center, p2)
-
-        if (this.isFullDetails() && (drawingArea.contains(p1) || drawingArea.contains(p2))) {
+        if (this.isFullDetails() && (this.ssDrawing.workingSession.locationDrawn.contains(this.residue.absPos) && this.ssDrawing.workingSession.locationDrawn.contains(this.pairedResidue.absPos))) {
             val previousColor = g.color
             g.color = getColor()
             this.interactionSymbol.draw(g, at, drawingArea)

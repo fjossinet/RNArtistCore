@@ -1275,45 +1275,6 @@ object RnartistConfig {
     }
 
     @JvmStatic
-    var displayTertiariesInSelection: Boolean
-        get() {
-            var e = document!!.rootElement.getChild("displayTertiariesInSelection")
-            return e != null
-        }
-        set(display) {
-            if (display && !displayTertiariesInSelection /*the element is not already there*/)
-                document!!.rootElement.addContent(Element("displayTertiariesInSelection"))
-            else if (!display)
-                document!!.rootElement.removeChild("displayTertiariesInSelection")
-        }
-
-    @JvmStatic
-    var centerDisplayOnSelection: Boolean
-        get() {
-            var e = document!!.rootElement.getChild("centerDisplayOnSelection")
-            return e != null
-        }
-        set(center) {
-            if (center && !centerDisplayOnSelection /*the element is not already there*/)
-                document!!.rootElement.addContent(Element("centerDisplayOnSelection"))
-            else if (!center)
-                document!!.rootElement.removeChild("centerDisplayOnSelection")
-        }
-
-    @JvmStatic
-    var fitDisplayOnSelection: Boolean
-        get() {
-            var e = document!!.rootElement.getChild("fitDisplayOnSelection")
-            return e != null
-        }
-        set(center) {
-            if (center && !fitDisplayOnSelection /*the element is not already there*/)
-                document!!.rootElement.addContent(Element("fitDisplayOnSelection"))
-            else if (!center)
-                document!!.rootElement.removeChild("fitDisplayOnSelection")
-        }
-
-    @JvmStatic
     var chimeraPath: String?
         get() {
             var e = document!!.rootElement.getChild("external-viewers")
