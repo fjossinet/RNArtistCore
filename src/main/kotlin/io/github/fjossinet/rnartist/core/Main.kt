@@ -5,7 +5,6 @@ import io.github.fjossinet.rnartist.core.model.io.*
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
-import java.io.PrintWriter
 
 fun main(args:Array<String>) {
     if (optionExists(args, "-h", "--help")) {
@@ -34,44 +33,44 @@ fun main(args:Array<String>) {
                 )
             getOptionValue(args, "-cA")?.let {
                 if (!it.startsWith("#"))
-                    theme.setConfigurationFor(SecondaryStructureType.A, DrawingConfigurationParameter.Color,"#$it")
+                    theme.setConfigurationFor(SecondaryStructureType.A, DrawingConfigurationParameter.color,"#$it")
                 else
-                    theme.setConfigurationFor(SecondaryStructureType.A, DrawingConfigurationParameter.Color,"$it")
+                    theme.setConfigurationFor(SecondaryStructureType.A, DrawingConfigurationParameter.color,"$it")
             }
 
             getOptionValue(args, "-cU")?.let {
                 if (!it.startsWith("#"))
-                    theme.setConfigurationFor(SecondaryStructureType.U, DrawingConfigurationParameter.Color,"#$it")
+                    theme.setConfigurationFor(SecondaryStructureType.U, DrawingConfigurationParameter.color,"#$it")
                 else
-                    theme.setConfigurationFor(SecondaryStructureType.U, DrawingConfigurationParameter.Color,"$it")
+                    theme.setConfigurationFor(SecondaryStructureType.U, DrawingConfigurationParameter.color,"$it")
             }
 
             getOptionValue(args, "-cG")?.let {
                 if (!it.startsWith("#"))
-                    theme.setConfigurationFor(SecondaryStructureType.G, DrawingConfigurationParameter.Color,"#$it")
+                    theme.setConfigurationFor(SecondaryStructureType.G, DrawingConfigurationParameter.color,"#$it")
                 else
-                    theme.setConfigurationFor(SecondaryStructureType.G, DrawingConfigurationParameter.Color,"$it")
+                    theme.setConfigurationFor(SecondaryStructureType.G, DrawingConfigurationParameter.color,"$it")
             }
 
             getOptionValue(args, "-cC")?.let {
                 if (!it.startsWith("#"))
-                    theme.setConfigurationFor(SecondaryStructureType.C, DrawingConfigurationParameter.Color,"#$it")
+                    theme.setConfigurationFor(SecondaryStructureType.C, DrawingConfigurationParameter.color,"#$it")
                 else
-                    theme.setConfigurationFor(SecondaryStructureType.C, DrawingConfigurationParameter.Color,"$it")
+                    theme.setConfigurationFor(SecondaryStructureType.C, DrawingConfigurationParameter.color,"$it")
             }
 
             getOptionValue(args, "-c2d")?.let {
                 if (!it.startsWith("#"))
-                    theme.setConfigurationFor(SecondaryStructureType.SecondaryInteraction, DrawingConfigurationParameter.Color,"#$it")
+                    theme.setConfigurationFor(SecondaryStructureType.SecondaryInteraction, DrawingConfigurationParameter.color,"#$it")
                 else
-                    theme.setConfigurationFor(SecondaryStructureType.SecondaryInteraction, DrawingConfigurationParameter.Color,"$it")
+                    theme.setConfigurationFor(SecondaryStructureType.SecondaryInteraction, DrawingConfigurationParameter.color,"$it")
             }
 
             getOptionValue(args, "-c3d")?.let {
                 if (!it.startsWith("#"))
-                    theme.setConfigurationFor(SecondaryStructureType.TertiaryInteraction, DrawingConfigurationParameter.Color,"#$it")
+                    theme.setConfigurationFor(SecondaryStructureType.TertiaryInteraction, DrawingConfigurationParameter.color,"#$it")
                 else
-                    theme.setConfigurationFor(SecondaryStructureType.TertiaryInteraction, DrawingConfigurationParameter.Color,"$it")
+                    theme.setConfigurationFor(SecondaryStructureType.TertiaryInteraction, DrawingConfigurationParameter.color,"$it")
             }
 
             /*getOptionValue(args, "--font")?.let {
@@ -151,6 +150,7 @@ fun main(args:Array<String>) {
                     }?.let { secondaryStructures ->
                         secondaryStructures.forEach { ss ->
                             ss?.let {
+                                ss.source = "file:${path}"
                                 val drawing =
                                         SecondaryStructureDrawing(
                                                 ss,

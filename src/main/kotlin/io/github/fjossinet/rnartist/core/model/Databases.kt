@@ -254,7 +254,7 @@ class PDB() {
                     ts.pdbId = id
                     try {
                         rnaview.annotate(ts).forEach { ss ->
-                            ss.pdbId = ts.pdbId
+                            ss.source = "db:pdb:${ts.pdbId}"
                             ss.title = ts.title
                             ss.authors = ts.authors
                             ss.pubDate = ts.pubDate
@@ -350,7 +350,7 @@ class NDB {
                     }
                     try {
                         rnaview.annotate(ts).forEach { ss ->
-                            ss.pdbId = ts.pdbId
+                            ss.source = "db:pdb:${ts.pdbId}"
                             ss.title = ts.title
                             ss.authors = ts.authors
                             ss.pubDate = ts.pubDate

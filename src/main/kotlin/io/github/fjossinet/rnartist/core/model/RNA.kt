@@ -45,7 +45,7 @@ class Location:Serializable {
         }
     val description:String
         get() {
-            return this.blocks.joinToString { it.toString() }
+            return this.blocks.joinToString(separator = ",") { it.toString() }
         }
 
     constructor() {
@@ -60,9 +60,9 @@ class Location:Serializable {
 
     constructor(description:String):this() {
         for (s in description.split(",")) {
-            if (s.contains('-')) {
-                val ends = s.trim().split('-').map { it.toInt() }
-                this.blocks.add(Block(ends.first(), ends.last()))
+            if (s.contains(':')) {
+                val (start, length) = s.trim().split(':').map { it.toInt() }
+                this.blocks.add(Block(start, start+length-1))
             } else {
                 this.blocks.add(
                     Block(
@@ -198,22 +198,30 @@ class SingleStrand(val name:String="MySingleStrand", start:Int, end:Int):Seriali
         }
 }
 
-class Pknot(val name:String="MyPknot", helix1:Helix, helix2:Helix, pknotsSoFar: MutableList<Pknot>):Serializable {
+class Pknot(val name:String="MyPknot", helix1:Helix? = null, helix2:Helix? = null, pknotsSoFar: MutableList<Pknot>? = null):Serializable {
 
     val tertiaryInteractions = mutableListOf<BasePair>()
-    val helix:Helix
+    lateinit var helix:Helix
 
     init {
-        if (!pknotsSoFar.filter { it.helix == helix1 }.isEmpty()) {
-            this.helix = helix1
-            this.tertiaryInteractions.addAll(helix2.secondaryInteractions)
-        } else if (!pknotsSoFar.filter { it.helix == helix2 }.isEmpty()) {
-            this.helix = helix2
-            this.tertiaryInteractions.addAll(helix1.secondaryInteractions)
-        } else {
-            this.helix = if (helix1.end - helix1.start > helix2.end - helix2.start) helix2 else helix1
-            this.tertiaryInteractions.addAll((if (helix1.end - helix1.start > helix2.end - helix2.start) helix1 else helix2).secondaryInteractions)
+        helix1?.let { h1 ->
+            helix2?.let { h2 ->
+                pknotsSoFar?.let { pknotsSoFar ->
+                    if (!pknotsSoFar.filter { it.helix == helix1 }.isEmpty()) {
+                        this.helix = helix1
+                        this.tertiaryInteractions.addAll(helix2.secondaryInteractions)
+                    } else if (!pknotsSoFar.filter { it.helix == helix2 }.isEmpty()) {
+                        this.helix = helix2
+                        this.tertiaryInteractions.addAll(helix1.secondaryInteractions)
+                    } else {
+                        this.helix = if (helix1.end - helix1.start > helix2.end - helix2.start) helix2 else helix1
+                        this.tertiaryInteractions.addAll((if (helix1.end - helix1.start > helix2.end - helix2.start) helix1 else helix2).secondaryInteractions)
+                    }
+                }
+            }
+
         }
+
     }
 
     val location: Location
@@ -578,18 +586,16 @@ class Atom(val name:String):Serializable {
 
 }
 
-class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null):Serializable {
+class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null, var source:String? = null):Serializable {
 
     var name:String = "2D for ${this.rna.name}"
     val tertiaryInteractions = mutableSetOf<BasePair>()
     val helices = mutableListOf<Helix>()
     val pknots = mutableListOf<Pknot>()
-    private val junctions = mutableListOf<Junction>()
+    val junctions = mutableListOf<Junction>()
     var title:String? = null
     var authors:String? = null
     var pubDate:String="To be published"
-    var pdbId: String? = null
-    var source:String? = null
     var tertiaryStructure: TertiaryStructure? = null
 
     val secondaryInteractions:List<BasePair>

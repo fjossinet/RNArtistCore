@@ -1,7 +1,12 @@
 package io.github.fjossinet.rnartist.core.model
 
+import com.google.gson.GsonBuilder
 import io.github.fjossinet.rnartist.core.model.RnartistConfig.defaultConfiguration
 import io.github.fjossinet.rnartist.core.model.RnartistConfig.defaultTheme
+import io.github.fjossinet.rnartist.core.model.io.dumpLayout
+import io.github.fjossinet.rnartist.core.model.io.dumpSecondaryStructure
+import io.github.fjossinet.rnartist.core.model.io.dumpTheme
+import io.github.fjossinet.rnartist.core.model.io.dumpWorkingSession
 import java.awt.*
 import java.awt.Color
 import java.awt.geom.*
@@ -29,7 +34,7 @@ enum class SecondaryStructureType {
 }
 
 enum class DrawingConfigurationParameter {
-    FullDetails, Color, LineWidth, LineShift, Opacity, FontName, DeltaXRes, DeltaYRes, DeltaFontSize
+    fulldetails, color, linewidth, lineshift, opacity, fontname, deltafontx, deltafonty, deltafontsize
 }
 
 fun helixDrawingLength(h: Helix): Double {
@@ -40,9 +45,15 @@ fun helixDrawingWidth(): Double {
     return radiusConst * deltaHelixWidth
 }
 
-class Project(var secondaryStructure: SecondaryStructure, var tertiaryStructure: TertiaryStructure?, var theme: Map<String, String>, var graphicsContext: Map<String, String>)
-
-class WorkingSession() {
+/**
+ * Stores everything related to the current working session:
+ * - the frame used to compute the 2D drawing coordinates (after this first computation step, the coordinates are translated and zoom. The original coordinates are updated only after a change in a junction layout)
+ * - the current translation and zoom of the view (finalZoomLevel, viewX, viewY)
+ * - the selection
+ * - the elements drawn
+ * - the level to decide which tertiaires are displayed (None, Pknots-only, All)
+ */
+class WorkingSession(var frame:Rectangle = Rectangle(0, 0, Toolkit.getDefaultToolkit().getScreenSize().width, Toolkit.getDefaultToolkit().getScreenSize().height)) {
     var viewX = 0.0
     var viewY = 0.0
     var finalZoomLevel = 1.0
@@ -80,15 +91,6 @@ class WorkingSession() {
                 selectedAbsPositions.addAll(this.selectedResidues[i].location.positions)
             return selectedAbsPositions.distinct().sorted()
         }
-
-    fun clear() {
-        viewX = 0.0
-        viewY = 0.0
-        finalZoomLevel = 1.0
-        screen_capture = false
-        screen_capture_area = null
-        selectedResidues.clear()
-    }
 
     fun moveView(transX: Double, transY: Double) {
         viewX += transX
@@ -130,36 +132,36 @@ class Theme(defaultConfigurations: MutableMap<String, Map<String, String>> = def
     }
 }
 
-class DrawingConfiguration(defaultParams: MutableMap<String, String> = defaultConfiguration.toMutableMap()) {
+class DrawingConfiguration(defaultParams: Map<String, String> = defaultConfiguration.toMutableMap()) {
 
     val params: MutableMap<String, String> = mutableMapOf()
 
-    var opacity: Int = defaultConfiguration[DrawingConfigurationParameter.Opacity.toString()]!!.toInt()
-        get() = this.params[DrawingConfigurationParameter.Opacity.toString()]!!.toInt()
+    var opacity: Int = defaultConfiguration[DrawingConfigurationParameter.opacity.toString()]!!.toInt()
+        get() = this.params[DrawingConfigurationParameter.opacity.toString()]!!.toInt()
 
-    var fullDetails: Boolean = defaultConfiguration[DrawingConfigurationParameter.FullDetails.toString()]!!.toBoolean()
-        get() = this.params[DrawingConfigurationParameter.FullDetails.toString()]!!.toBoolean()
+    var fullDetails: Boolean = defaultConfiguration[DrawingConfigurationParameter.fulldetails.toString()]!!.toBoolean()
+        get() = this.params[DrawingConfigurationParameter.fulldetails.toString()]!!.toBoolean()
 
-    var lineShift: Double = defaultConfiguration[DrawingConfigurationParameter.LineShift.toString()]!!.toDouble()
-        get() = this.params[DrawingConfigurationParameter.LineShift.toString()]!!.toDouble()
+    var lineShift: Double = defaultConfiguration[DrawingConfigurationParameter.lineshift.toString()]!!.toDouble()
+        get() = this.params[DrawingConfigurationParameter.lineshift.toString()]!!.toDouble()
 
-    var deltaXRes: Int = defaultConfiguration[DrawingConfigurationParameter.DeltaXRes.toString()]!!.toInt()
-        get() = this.params[DrawingConfigurationParameter.DeltaXRes.toString()]!!.toInt()
+    var deltaXRes: Int = defaultConfiguration[DrawingConfigurationParameter.deltafontx.toString()]!!.toInt()
+        get() = this.params[DrawingConfigurationParameter.deltafontx.toString()]!!.toInt()
 
-    var deltaYRes: Int = defaultConfiguration[DrawingConfigurationParameter.DeltaYRes.toString()]!!.toInt()
-        get() = this.params[DrawingConfigurationParameter.DeltaYRes.toString()]!!.toInt()
+    var deltaYRes: Int = defaultConfiguration[DrawingConfigurationParameter.deltafonty.toString()]!!.toInt()
+        get() = this.params[DrawingConfigurationParameter.deltafonty.toString()]!!.toInt()
 
-    var deltaFontSize: Int = defaultConfiguration[DrawingConfigurationParameter.DeltaFontSize.toString()]!!.toInt()
-        get() = this.params[DrawingConfigurationParameter.DeltaFontSize.toString()]!!.toInt()
+    var deltaFontSize: Int = defaultConfiguration[DrawingConfigurationParameter.deltafontsize.toString()]!!.toInt()
+        get() = this.params[DrawingConfigurationParameter.deltafontsize.toString()]!!.toInt()
 
-    var lineWidth: Double = defaultConfiguration[DrawingConfigurationParameter.LineWidth.toString()]!!.toDouble()
-        get() = this.params[DrawingConfigurationParameter.LineWidth.toString()]!!.toDouble()
+    var lineWidth: Double = defaultConfiguration[DrawingConfigurationParameter.linewidth.toString()]!!.toDouble()
+        get() = this.params[DrawingConfigurationParameter.linewidth.toString()]!!.toDouble()
 
-    var color: Color = defaultConfiguration[DrawingConfigurationParameter.Color.toString()]!!.let { getAWTColor(it) }
-        get() = this.params[DrawingConfigurationParameter.Color.toString()]!!.let { getAWTColor(it) }
+    var color: Color = defaultConfiguration[DrawingConfigurationParameter.color.toString()]!!.let { getAWTColor(it) }
+        get() = this.params[DrawingConfigurationParameter.color.toString()]!!.let { getAWTColor(it) }
 
-    var fontName: String = defaultConfiguration[DrawingConfigurationParameter.FontName.toString()]!!
-        get() = this.params[DrawingConfigurationParameter.FontName.toString()]!!
+    var fontName: String = defaultConfiguration[DrawingConfigurationParameter.fontname.toString()]!!
+        get() = this.params[DrawingConfigurationParameter.fontname.toString()]!!
 
     var displayResidueNames = true
     var fontStyle = Font.PLAIN
@@ -266,7 +268,7 @@ abstract class DrawingElement(val ssDrawing: SecondaryStructureDrawing, var pare
 
 }
 
-class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, frame: Rectangle2D = Rectangle(0, 0, Toolkit.getDefaultToolkit().getScreenSize().width, Toolkit.getDefaultToolkit().getScreenSize().height), theme: Theme = Theme(), val workingSession: WorkingSession = WorkingSession()) {
+class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, theme: Theme = Theme(), val workingSession: WorkingSession = WorkingSession()) {
 
     val phosphoBonds = mutableListOf<BranchesLinkingPhosphodiesterBondDrawing>() //bonds linking branch-branch and single-strand-branch
     var name: String
@@ -337,10 +339,8 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
     val allJunctions: List<JunctionDrawing>
         get() {
             val allJunctions =  mutableListOf<JunctionDrawing>()
-            for (branch in this.branches) {
-                allJunctions.add(branch)
+            for (branch in this.branches)
                 allJunctions.addAll(branch.junctionsFromBranch())
-            }
             return allJunctions
         }
 
@@ -413,7 +413,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
         //we start the drawing with the helices with no junction on one side
         var currentPos = 0
         lateinit var lastBranchConstructed: Branch
-        var bottom = Point2D.Double(frame.width / 2, frame.height - 50)
+        var bottom = Point2D.Double(workingSession.frame.width / 2.0, workingSession.frame.height - 50.0)
         lateinit var top: Point2D
 
         do {
@@ -449,7 +449,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
             val residuesBeforeHelix = nextHelix.first - currentPos - 1
 
             if (currentPos == 0) {
-                top = Point2D.Double(frame.width / 2, frame.height - 50 - helixDrawingLength(
+                top = Point2D.Double(workingSession.frame.width / 2.0, workingSession.frame.height - 50.0 - helixDrawingLength(
                         nextHelix.third
                 ))
 
@@ -886,7 +886,6 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
                     _c.bounds2D.height
             )
             g.font = Font(this.drawingConfiguration.fontName, this.drawingConfiguration.fontStyle, drawingConfiguration.fontSize)
-            println("Font size:"+g.font.size)
             var r2d = getStringBoundsRectangle2D(g, "A", g.font)
             this.ATransX = (_c.bounds2D.width - r2d.width).toFloat() / 2F
             this.ATransY = (_c.bounds2D.height + r2d.height).toFloat() / 2F
@@ -1040,6 +1039,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, fram
     }
 
     fun computeResidues(branch: JunctionDrawing) {
+
         for (helix in branch.helicesFromBranch()) {
             this.computeResidues(helix)
         }
@@ -1508,7 +1508,7 @@ class XShapeDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawin
 abstract class ResidueLetterDrawing(parent: ResidueDrawing?, ssDrawing: SecondaryStructureDrawing, type:SecondaryStructureType, absPos: Int): DrawingElement(ssDrawing, parent, type.toString(), Location(absPos), type) {
 
     init {
-        this.drawingConfiguration.params[DrawingConfigurationParameter.Color.toString()] = getHTMLColorString(Color.WHITE)
+        this.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] = getHTMLColorString(Color.WHITE)
     }
 
     override val bounds2D: Rectangle2D
@@ -1850,7 +1850,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
     var outHelices = mutableListOf<HelixDrawing>()
     var connectedJunctions = mutableMapOf<ConnectorId, JunctionDrawing>()
     val phosphoBonds = mutableListOf<PhosphodiesterBondDrawing>()
-    private val connectors: Array<Point2D> = Array(ConnectorId.values().size, { Point2D.Float(0F, 0F) }) //the connector points on the circle
+    val connectors: Array<Point2D> = Array(ConnectorId.values().size, { Point2D.Float(0F, 0F) }) //the connector points on the circle
 
     override val selected: Boolean
         get() = !this.residues.any { !it.selected }
@@ -1940,16 +1940,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
                     this.connectors[this.inId.value],
                     this.radius
             )
-            this.circle = Ellipse2D.Double(this.center.x - this.radius, this.center.y - this.radius, this.radius * 2.toDouble(), this.radius * 2.toDouble())
-            //the (x,y) coords for the connectors
-            for (i in 1 until ConnectorId.values().size) {
-                this.connectors[(this.inId.value + i) % ConnectorId.values().size] =
-                        rotatePoint(
-                                this.connectors[this.inId.value],
-                                this.center,
-                                i * 360.0 / ConnectorId.values().size.toDouble()
-                        )
-            }
+            this.computeCircle()
         }
     lateinit var center: Point2D
     lateinit var circle: Ellipse2D
@@ -2275,6 +2266,19 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
         return helices.toList()
     }
 
+    fun computeCircle() {
+        this.circle = Ellipse2D.Double(this.center.x - this.radius, this.center.y - this.radius, this.radius * 2.toDouble(), this.radius * 2.toDouble())
+        //the (x,y) coords for the connectors
+        for (i in 1 until ConnectorId.values().size) {
+            this.connectors[(this.inId.value + i) % ConnectorId.values().size] =
+                rotatePoint(
+                    this.connectors[this.inId.value],
+                    this.center,
+                    i * 360.0 / ConnectorId.values().size.toDouble()
+                )
+        }
+    }
+
     private fun getOutId(helixRank: Int): ConnectorId? {
         return when (this.junction.type) {
             JunctionType.ApicalLoop -> null
@@ -2294,18 +2298,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
                 this.connectors[this.inId.value],
                 this.radius
         )
-        this.circle = Ellipse2D.Double(this.center.x - this.radius, this.center.y - this.radius, this.radius * 2.toDouble(), this.radius * 2.toDouble())
-
-        //the (x,y) coords for the connectors
-        for (i in 1..ConnectorId.values().size) {
-            this.connectors[(this.inId.value + i) % ConnectorId.values().size] =
-                    rotatePoint(
-                            this.connectors[this.inId.value],
-                            this.center,
-                            i * 360.0 / ConnectorId.values().size.toDouble()
-                    )
-        }
-
+        this.computeCircle()
         this.layout = this.layout //a trick to warn the connected circles, and so on...
     }
 
