@@ -5,7 +5,10 @@ import com.google.gson.GsonBuilder
 import io.github.fjossinet.rnartist.core.model.*
 import org.jdom2.Element
 import org.jdom2.input.SAXBuilder
+import java.awt.Font
 import java.awt.Rectangle
+import java.awt.geom.AffineTransform
+import java.awt.image.BufferedImage
 import java.io.*
 import java.text.NumberFormat
 import java.util.*
@@ -114,6 +117,43 @@ fun parseVienna(reader: Reader): SecondaryStructure {
     )
 }
 
+fun toSVG(drawing:SecondaryStructureDrawing, frame:Rectangle, at:AffineTransform, tertiariesDisplayLevel: TertiariesDisplayLevel): String {
+    val svgBuffer = StringBuffer("""<svg viewBox="0 0 ${frame.width} ${frame.height}" xmlns="http://www.w3.org/2000/svg">""" + "\n")
+
+    drawing.workingSession.junctionsDrawn.forEach { junction ->
+        svgBuffer.append(junction.asSVG(at))
+    }
+
+    drawing.workingSession.helicesDrawn.forEach { helix ->
+        svgBuffer.append(helix.asSVG(at))
+    }
+
+    drawing.workingSession.singleStrandsDrawn.forEach { ss ->
+        svgBuffer.append(ss.asSVG(at))
+    }
+
+    drawing.workingSession.phosphoBondsLinkingBranchesDrawn.forEach { phospho ->
+        svgBuffer.append(phospho.asSVG(at))
+    }
+
+    if (tertiariesDisplayLevel == TertiariesDisplayLevel.All) {
+        drawing.allTertiaryInteractions.forEach { tertiary ->
+            svgBuffer.append(tertiary.asSVG(at))
+        }
+    }
+
+    if (tertiariesDisplayLevel >= TertiariesDisplayLevel.Pknots) {
+        drawing.pknots.forEach { pknot ->
+            pknot.tertiaryInteractions.forEach { tertiary ->
+                svgBuffer.append(tertiary.asSVG(at))
+            }
+        }
+    }
+
+    svgBuffer.append("</svg>")
+    return svgBuffer.toString()
+}
+
 fun toJSON(drawing:SecondaryStructureDrawing): String {
     val gson = GsonBuilder().setPrettyPrinting().create()
     var json = mapOf(
@@ -127,6 +167,9 @@ fun toJSON(drawing:SecondaryStructureDrawing): String {
     return gson.toJson(json)
 }
 
+/**
+ * This function reconstructs the SecondaryStructure object and delegates the work to the function parseProject to reconstruct and apply the layout, theme and working session.
+ */
 fun parseJSON(reader: Reader): SecondaryStructureDrawing? {
     val gson = Gson()
     var map: Map<String, Any> = HashMap()

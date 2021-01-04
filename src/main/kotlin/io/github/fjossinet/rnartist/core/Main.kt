@@ -181,7 +181,7 @@ fun main(args:Array<String>) {
                                     )
                             println("Processing ${ss.rna.name}")
                             var writer = FileWriter(File(File(outputPath).canonicalPath, "${ss.rna.name.replace('/', '_')}.svg"))
-                            writer.write(drawing.asSVG())
+                            //writer.write(drawing.asSVG())
                             writer.close()
                         }
                     }
