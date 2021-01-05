@@ -228,7 +228,6 @@ class EmbeddedDB() {
         ws.viewX = workingSession.get("view-x")!!.toDouble()
         ws.viewY = workingSession.get("view-y")!!.toDouble()
         ws.finalZoomLevel = workingSession.get("final-zoom-lvl")!!.toDouble()
-        ws.frame = Rectangle(0, 0, workingSession.get("frame-width")!!.toInt(), workingSession.get("frame-height")!!.toInt())
 
         return Project(secondaryStructure, layout, theme, ws,null)
     }

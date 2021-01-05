@@ -1,16 +1,10 @@
 package io.github.fjossinet.rnartist.core.model
 
-import com.google.gson.GsonBuilder
 import io.github.fjossinet.rnartist.core.model.RnartistConfig.defaultConfiguration
 import io.github.fjossinet.rnartist.core.model.RnartistConfig.defaultTheme
-import io.github.fjossinet.rnartist.core.model.io.dumpLayout
-import io.github.fjossinet.rnartist.core.model.io.dumpSecondaryStructure
-import io.github.fjossinet.rnartist.core.model.io.dumpTheme
-import io.github.fjossinet.rnartist.core.model.io.dumpWorkingSession
 import java.awt.*
 import java.awt.Color
 import java.awt.geom.*
-import java.awt.image.BufferedImage
 import kotlin.math.hypot
 
 //parameters that can be modified
@@ -34,7 +28,7 @@ enum class SecondaryStructureType {
 }
 
 enum class DrawingConfigurationParameter {
-    fulldetails, color, linewidth, lineshift, opacity, fontname, deltafontx, deltafonty, deltafontsize
+    fulldetails, color, linewidth, lineshift, opacity
 }
 
 fun helixDrawingLength(h: Helix): Double {
@@ -47,13 +41,12 @@ fun helixDrawingWidth(): Double {
 
 /**
  * Stores everything related to the current working session:
- * - the frame used to compute the 2D drawing coordinates (after this first computation step, the coordinates are translated and zoom. The original coordinates are updated only after a change in a junction layout)
  * - the current translation and zoom of the view (finalZoomLevel, viewX, viewY)
  * - the selection
  * - the elements drawn
  * - the level to decide which tertiaires are displayed (None, Pknots-only, All)
  */
-class WorkingSession(var frame:Rectangle = Rectangle(0, 0, Toolkit.getDefaultToolkit().getScreenSize().width, Toolkit.getDefaultToolkit().getScreenSize().height)) {
+class WorkingSession() {
     var viewX = 0.0
     var viewY = 0.0
     var finalZoomLevel = 1.0
@@ -66,6 +59,27 @@ class WorkingSession(var frame:Rectangle = Rectangle(0, 0, Toolkit.getDefaultToo
     val junctionsDrawn = mutableListOf<JunctionDrawing>()
     val singleStrandsDrawn = mutableListOf<SingleStrandDrawing>()
     lateinit var locationDrawn:Location
+
+    var fontName = "Arial"
+
+    var fontStyle = Font.PLAIN
+    var fontSize = 12
+    var deltafontx = 0
+    var deltafonty = 0
+    var deltafontsize = 0
+
+    var NumberTransX: Float = 0F
+    var NumberTransY: Float = 0F
+    var ATransX: Float = 0F
+    var ATransY: Float = 0F
+    var UTransX: Float = 0F
+    var UTransY: Float = 0F
+    var GTransX: Float = 0F
+    var GTransY: Float = 0F
+    var CTransX: Float = 0F
+    var CTransY: Float = 0F
+    var XTransX: Float = 0F
+    var XTransY: Float = 0F
 
     var tertiariesDisplayLevel:TertiariesDisplayLevel = TertiariesDisplayLevel.None
 
@@ -99,6 +113,39 @@ class WorkingSession(var frame:Rectangle = Rectangle(0, 0, Toolkit.getDefaultToo
 
     fun setZoom(zoomFactor: Double) {
         finalZoomLevel *= zoomFactor
+    }
+
+    fun setFont(g: Graphics2D, residue:ResidueDrawing) {
+        val at = AffineTransform()
+        at.translate(this.viewX, this.viewY)
+        at.scale(this.finalZoomLevel, this.finalZoomLevel)
+        val word2Fit = residue.type.name
+        val _c = at.createTransformedShape(residue.circle)
+        var dimension: Dimension2D
+        var fontSize = (100 * this.finalZoomLevel).toInt() //initial value
+        do {
+            fontSize--
+            val font = Font(fontName, fontStyle, fontSize)
+            dimension = getStringBoundsRectangle2D(g, word2Fit, font)
+        } while (dimension.width >= _c.bounds2D.width - _c.bounds2D.width * 0.5 + _c.bounds2D.width *deltafontsize/ 20.0 && dimension.height >= _c.bounds2D.height - _c.bounds2D.height * 0.5 + _c.bounds2D.height * deltafontsize / 20.0)
+
+        this.fontSize = fontSize;
+        g.font = Font(this.fontName, this.fontStyle, this.fontSize)
+        var r2d = getStringBoundsRectangle2D(g, "A", g.font)
+        this.ATransX = (_c.bounds2D.width - r2d.width).toFloat() / 2F
+        this.ATransY = (_c.bounds2D.height + r2d.height).toFloat() / 2F
+        r2d = getStringBoundsRectangle2D(g, "U", g.font)
+        this.UTransX = (_c.bounds2D.width - r2d.width).toFloat() / 2F
+        this.UTransY = (_c.bounds2D.height + r2d.height).toFloat() / 2F
+        r2d = getStringBoundsRectangle2D(g, "G", g.font)
+        this.GTransX = (_c.bounds2D.width - r2d.width).toFloat() / 2F
+        this.GTransY = (_c.bounds2D.height + r2d.height).toFloat() / 2F
+        r2d = getStringBoundsRectangle2D(g, "C", g.font)
+        this.CTransX = (_c.bounds2D.width - r2d.width).toFloat() / 2F
+        this.CTransY = (_c.bounds2D.height + r2d.height).toFloat() / 2F
+        r2d = getStringBoundsRectangle2D(g, "X", g.font)
+        this.XTransX = (_c.bounds2D.width - r2d.width).toFloat() / 2F
+        this.XTransY = (_c.bounds2D.height + r2d.height).toFloat() / 2F
     }
 }
 
@@ -145,27 +192,11 @@ class DrawingConfiguration(defaultParams: Map<String, String> = defaultConfigura
     var lineShift: Double = defaultConfiguration[DrawingConfigurationParameter.lineshift.toString()]!!.toDouble()
         get() = this.params[DrawingConfigurationParameter.lineshift.toString()]!!.toDouble()
 
-    var deltaXRes: Int = defaultConfiguration[DrawingConfigurationParameter.deltafontx.toString()]!!.toInt()
-        get() = this.params[DrawingConfigurationParameter.deltafontx.toString()]!!.toInt()
-
-    var deltaYRes: Int = defaultConfiguration[DrawingConfigurationParameter.deltafonty.toString()]!!.toInt()
-        get() = this.params[DrawingConfigurationParameter.deltafonty.toString()]!!.toInt()
-
-    var deltaFontSize: Int = defaultConfiguration[DrawingConfigurationParameter.deltafontsize.toString()]!!.toInt()
-        get() = this.params[DrawingConfigurationParameter.deltafontsize.toString()]!!.toInt()
-
     var lineWidth: Double = defaultConfiguration[DrawingConfigurationParameter.linewidth.toString()]!!.toDouble()
         get() = this.params[DrawingConfigurationParameter.linewidth.toString()]!!.toDouble()
 
     var color: Color = defaultConfiguration[DrawingConfigurationParameter.color.toString()]!!.let { getAWTColor(it) }
         get() = this.params[DrawingConfigurationParameter.color.toString()]!!.let { getAWTColor(it) }
-
-    var fontName: String = defaultConfiguration[DrawingConfigurationParameter.fontname.toString()]!!
-        get() = this.params[DrawingConfigurationParameter.fontname.toString()]!!
-
-    var displayResidueNames = true
-    var fontStyle = Font.PLAIN
-    var fontSize = 12 //not user-defined. Computed by the function computeOptimalFontSize()
 
     init {
         defaultParams.forEach { (k, v) ->
@@ -177,17 +208,6 @@ class DrawingConfiguration(defaultParams: Map<String, String> = defaultConfigura
         this.params.clear()
     }
 
-}
-
-fun computeOptimalFontSize(g: Graphics2D, gc: WorkingSession, drawingConfiguration: DrawingConfiguration, title: String, width: Double, height: Double): Int {
-    var dimension: Dimension2D
-    var fontSize = (100 * gc.finalZoomLevel).toInt() //initial value
-    do {
-        fontSize--
-        val font = Font(drawingConfiguration.fontName, drawingConfiguration.fontStyle, fontSize)
-        dimension = getStringBoundsRectangle2D(g, title, font)
-    } while (dimension.width >= width - width * 0.5 + width * drawingConfiguration.deltaFontSize.toDouble() / 20.0 && dimension.height >= height - height * 0.5 + height * drawingConfiguration.deltaFontSize.toDouble() / 20.0)
-    return fontSize;
 }
 
 fun getStringBoundsRectangle2D(g: Graphics2D, title: String, font: Font): Dimension2D {
@@ -240,33 +260,21 @@ abstract class DrawingElement(val ssDrawing: SecondaryStructureDrawing, var pare
         return this.drawingConfiguration.lineShift
     }
 
-    fun getDeltaXRes(): Int {
-        return this.drawingConfiguration.deltaXRes
-    }
-
-    fun getDeltaYRes(): Int {
-        return this.drawingConfiguration.deltaYRes
-    }
-
-    fun getDeltaFontSize(): Int {
-        return this.drawingConfiguration.deltaFontSize
-    }
-
-    fun getFontName(): String {
-        return this.drawingConfiguration.fontName
-    }
-
     fun getSinglePositions(): IntArray {
         return this.location.positions.toIntArray()
     }
 
     open fun applyTheme(theme: Theme) {
-        this.drawingConfiguration = DrawingConfiguration(theme.configurations.getOrDefault(this.type.toString(), mutableMapOf()))
+        theme.configurations.get(this.type.toString())?.let {
+            it.forEach { t, u ->
+                this.drawingConfiguration.params[t] = u
+            }
+        }
     }
 
 }
 
-class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, theme: Theme = Theme(), val workingSession: WorkingSession = WorkingSession()) {
+class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val workingSession: WorkingSession = WorkingSession()) {
 
     val phosphoBonds = mutableListOf<BranchesLinkingPhosphodiesterBondDrawing>() //bonds linking branch-branch and single-strand-branch
     var name: String
@@ -283,20 +291,8 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, them
     val residues = mutableListOf<ResidueDrawing>()
     val tertiaryInteractions = mutableListOf<TertiaryInteractionDrawing>()
 
-    var drawingConfiguration = DrawingConfiguration(theme.configurations.getOrDefault(SecondaryStructureType.Full2D.toString(), defaultConfiguration.toMutableMap()))
+    var drawingConfiguration = DrawingConfiguration()
     var fitToResiduesBetweenBranches = true
-    var NumberTransX: Float = 0F
-    var NumberTransY: Float = 0F
-    var ATransX: Float = 0F
-    var ATransY: Float = 0F
-    var UTransX: Float = 0F
-    var UTransY: Float = 0F
-    var GTransX: Float = 0F
-    var GTransY: Float = 0F
-    var CTransX: Float = 0F
-    var CTransY: Float = 0F
-    var XTransX: Float = 0F
-    var XTransY: Float = 0F
     var quickDraw = false
 
     val allSecondaryInteractions:List<BaseBaseInteractionDrawing>
@@ -411,7 +407,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, them
         //we start the drawing with the helices with no junction on one side
         var currentPos = 0
         lateinit var lastBranchConstructed: Branch
-        var bottom = Point2D.Double(workingSession.frame.width / 2.0, workingSession.frame.height - 50.0)
+        var bottom = Point2D.Double(0.0, 0.0)
         lateinit var top: Point2D
 
         do {
@@ -447,7 +443,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, them
             val residuesBeforeHelix = nextHelix.first - currentPos - 1
 
             if (currentPos == 0) {
-                top = Point2D.Double(workingSession.frame.width / 2.0, workingSession.frame.height - 50.0 - helixDrawingLength(
+                top = Point2D.Double(0.0, 0.0 - helixDrawingLength(
                         nextHelix.third
                 ))
 
@@ -865,31 +861,8 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, them
 
     fun draw(g: Graphics2D, at:AffineTransform, drawingArea: Rectangle2D) {
         if (!quickDraw) {
-            val _c = at.createTransformedShape(this.residues.first().circle)
-            drawingConfiguration.fontSize = computeOptimalFontSize(
-                    g,
-                    workingSession,
-                    this.drawingConfiguration,
-                    this.residues.first().type.name,
-                    _c.bounds2D.width,
-                    _c.bounds2D.height
-            )
-            g.font = Font(this.drawingConfiguration.fontName, this.drawingConfiguration.fontStyle, drawingConfiguration.fontSize)
-            var r2d = getStringBoundsRectangle2D(g, "A", g.font)
-            this.ATransX = (_c.bounds2D.width - r2d.width).toFloat() / 2F
-            this.ATransY = (_c.bounds2D.height + r2d.height).toFloat() / 2F
-            r2d = getStringBoundsRectangle2D(g, "U", g.font)
-            this.UTransX = (_c.bounds2D.width - r2d.width).toFloat() / 2F
-            this.UTransY = (_c.bounds2D.height + r2d.height).toFloat() / 2F
-            r2d = getStringBoundsRectangle2D(g, "G", g.font)
-            this.GTransX = (_c.bounds2D.width - r2d.width).toFloat() / 2F
-            this.GTransY = (_c.bounds2D.height + r2d.height).toFloat() / 2F
-            r2d = getStringBoundsRectangle2D(g, "C", g.font)
-            this.CTransX = (_c.bounds2D.width - r2d.width).toFloat() / 2F
-            this.CTransY = (_c.bounds2D.height + r2d.height).toFloat() / 2F
-            r2d = getStringBoundsRectangle2D(g, "X", g.font)
-            this.XTransX = (_c.bounds2D.width - r2d.width).toFloat() / 2F
-            this.XTransY = (_c.bounds2D.height + r2d.height).toFloat() / 2F
+            workingSession.setFont(g, this.residues.first())
+
             /*val area:Area = Area()
             this.workingSession.selectedResidues.toList().forEach { r ->
                 r.getSelectionHalo(at)?.let {
@@ -1196,7 +1169,11 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, them
     }
 
     fun applyTheme(theme: Theme) {
-        this.drawingConfiguration = DrawingConfiguration(theme.configurations.getOrDefault(SecondaryStructureType.Full2D.toString(), mutableMapOf()))
+        theme.configurations.get(SecondaryStructureType.Full2D.toString())?.let {
+            it.forEach { t, u ->
+                this.drawingConfiguration.params[t] = u
+            }
+        }
         for (pk in this.pknots)
             pk.applyTheme(theme)
         for (jc in this.allJunctions)
@@ -1290,7 +1267,7 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
             )
             buffer.append("""<circle cx="${_c.bounds.centerX}" cy="${_c.bounds.centerY}" r="${_c.bounds.width/2}" stroke="${getHTMLColorString(strokeColor)}" stroke-width="${this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()}" fill="${getHTMLColorString(this.getColor())}"/>""")
         }
-        if (ssDrawing.drawingConfiguration.fontSize > 8 && this.getOpacity() > 0) { //the conditions to draw a letter
+        if (ssDrawing.workingSession.fontSize > 8 && this.getOpacity() > 0) { //the conditions to draw a letter
             buffer.append(this.residueLetter.asSVG(at))
         }
         buffer.append("</g>")
@@ -1475,6 +1452,11 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
 
     }
 
+    override fun applyTheme(theme: Theme) {
+        super.applyTheme(theme)
+        this.residueLetter.applyTheme(theme)
+    }
+
 }
 
 class AShapeDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, absPos: Int):ResidueDrawing(parent, 'A', ssDrawing, absPos, SecondaryStructureType.AShape) {
@@ -1527,8 +1509,8 @@ class A(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
             g.color = this.getColor()
             g.drawString(
                 this.type.name,
-                c.bounds2D.minX.toFloat() + this.ssDrawing.ATransX + (this.getDeltaXRes() * this.ssDrawing.workingSession.finalZoomLevel).toFloat(),
-                c.bounds2D.minY.toFloat() + this.ssDrawing.ATransY - (this.getDeltaYRes() * this.ssDrawing.workingSession.finalZoomLevel).toFloat()
+                c.bounds2D.minX.toFloat() + this.ssDrawing.workingSession.ATransX + (this.ssDrawing.workingSession.deltafontx * this.ssDrawing.workingSession.finalZoomLevel).toFloat(),
+                c.bounds2D.minY.toFloat() + this.ssDrawing.workingSession.ATransY - (this.ssDrawing.workingSession.deltafonty * this.ssDrawing.workingSession.finalZoomLevel).toFloat()
             )
         }
     }
@@ -1541,13 +1523,13 @@ class A(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
                     getHTMLColorString(
                         this.getColor()
                     )
-                };font-family:${this.getFontName()};font-size:${ssDrawing.drawingConfiguration.fontSize};">${this.type.name}</text>"""
+                };font-family:${ssDrawing.workingSession.fontName};font-size:${ssDrawing.workingSession.fontSize};">${this.type.name}</text>"""
             else
-                return """<text x="${c.bounds2D.minX + this.ssDrawing.ATransX}" y="${c.bounds2D.minY + this.ssDrawing.ATransY}" style="fill:${
+                return """<text x="${c.bounds2D.minX + this.ssDrawing.workingSession.ATransX}" y="${c.bounds2D.minY + this.ssDrawing.workingSession.ATransY}" style="fill:${
                     getHTMLColorString(
                         this.getColor()
                     )
-                };font-family:${this.getFontName()};font-size:${ssDrawing.drawingConfiguration.fontSize};">${this.type.name}</text>"""
+                };font-family:${ssDrawing.workingSession.fontName};font-size:${ssDrawing.workingSession.fontSize};">${this.type.name}</text>"""
         }
         return ""
     }
@@ -1561,8 +1543,8 @@ class U(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
             g.color = this.getColor()
             g.drawString(
                 this.type.name,
-                c.bounds2D.minX.toFloat() + this.ssDrawing.UTransX + (this.getDeltaXRes() * this.ssDrawing.workingSession.finalZoomLevel).toFloat(),
-                c.bounds2D.minY.toFloat() + this.ssDrawing.UTransY - (this.getDeltaYRes() * this.ssDrawing.workingSession.finalZoomLevel).toFloat()
+                c.bounds2D.minX.toFloat() + this.ssDrawing.workingSession.UTransX + (this.ssDrawing.workingSession.deltafontx * this.ssDrawing.workingSession.finalZoomLevel).toFloat(),
+                c.bounds2D.minY.toFloat() + this.ssDrawing.workingSession.UTransY - (this.ssDrawing.workingSession.deltafonty * this.ssDrawing.workingSession.finalZoomLevel).toFloat()
             )
         }
     }
@@ -1571,9 +1553,9 @@ class U(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
         if (this.isFullDetails()) {
             val c = at.createTransformedShape((this.parent as ResidueDrawing).circle)
             if (RnartistConfig.exportSVGWithBrowserCompatibility())
-                return """<text x="${c.bounds2D.centerX}" y="${c.bounds2D.centerY}" text-anchor="middle" dy=".3em" style="fill:${getHTMLColorString(this.getColor())};font-family:${this.getFontName()};font-size:${ssDrawing.drawingConfiguration.fontSize};">${this.type.name}</text>"""
+                return """<text x="${c.bounds2D.centerX}" y="${c.bounds2D.centerY}" text-anchor="middle" dy=".3em" style="fill:${getHTMLColorString(this.getColor())};font-family:${ssDrawing.workingSession.fontName};font-size:${ssDrawing.workingSession.fontSize};">${this.type.name}</text>"""
             else
-                return """<text x="${c.bounds2D.minX + this.ssDrawing.UTransX}" y="${c.bounds2D.minY + this.ssDrawing.UTransY}" style="fill:${getHTMLColorString(this.getColor())};font-family:${this.getFontName()};font-size:${ssDrawing.drawingConfiguration.fontSize};">${this.type.name}</text>"""
+                return """<text x="${c.bounds2D.minX + this.ssDrawing.workingSession.UTransX}" y="${c.bounds2D.minY + this.ssDrawing.workingSession.UTransY}" style="fill:${getHTMLColorString(this.getColor())};font-family:${ssDrawing.workingSession.fontName};font-size:${ssDrawing.workingSession.fontSize};">${this.type.name}</text>"""
         }
         return ""
     }
@@ -1589,8 +1571,8 @@ class G(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
             g.color = this.getColor()
             g.drawString(
                 this.type.name,
-                c.bounds2D.minX.toFloat() + this.ssDrawing.GTransX + (this.getDeltaXRes() * this.ssDrawing.workingSession.finalZoomLevel).toFloat(),
-                c.bounds2D.minY.toFloat() + this.ssDrawing.GTransY - (this.getDeltaYRes() * this.ssDrawing.workingSession.finalZoomLevel).toFloat()
+                c.bounds2D.minX.toFloat() + this.ssDrawing.workingSession.GTransX + (this.ssDrawing.workingSession.deltafontx * this.ssDrawing.workingSession.finalZoomLevel).toFloat(),
+                c.bounds2D.minY.toFloat() + this.ssDrawing.workingSession.GTransY - (this.ssDrawing.workingSession.deltafonty * this.ssDrawing.workingSession.finalZoomLevel).toFloat()
             )
         }
     }
@@ -1599,9 +1581,9 @@ class G(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
         if (this.isFullDetails()) {
             val c = at.createTransformedShape((this.parent as ResidueDrawing).circle)
             if (RnartistConfig.exportSVGWithBrowserCompatibility())
-                return """<text x="${c.bounds2D.centerX}" y="${c.bounds2D.centerY}" text-anchor="middle" dy=".3em" style="fill:${getHTMLColorString(this.getColor())};font-family:${this.getFontName()};font-size:${ssDrawing.drawingConfiguration.fontSize};">${this.type.name}</text>"""
+                return """<text x="${c.bounds2D.centerX}" y="${c.bounds2D.centerY}" text-anchor="middle" dy=".3em" style="fill:${getHTMLColorString(this.getColor())};font-family:${ssDrawing.workingSession.fontName};font-size:${ssDrawing.workingSession.fontSize};">${this.type.name}</text>"""
             else
-                return """<text x="${c.bounds2D.minX + this.ssDrawing.GTransX}" y="${c.bounds2D.minY + this.ssDrawing.GTransY}" style="fill:${getHTMLColorString(this.getColor())};font-family:${this.getFontName()};font-size:${ssDrawing.drawingConfiguration.fontSize};">${this.type.name}</text>"""
+                return """<text x="${c.bounds2D.minX + this.ssDrawing.workingSession.GTransX}" y="${c.bounds2D.minY + this.ssDrawing.workingSession.GTransY}" style="fill:${getHTMLColorString(this.getColor())};font-family:${ssDrawing.workingSession.fontName};font-size:${ssDrawing.workingSession.fontSize};">${this.type.name}</text>"""
         }
         return ""
     }
@@ -1615,8 +1597,8 @@ class C(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
             g.color = this.getColor()
             g.drawString(
                 this.type.name,
-                c.bounds2D.minX.toFloat() + this.ssDrawing.CTransX + (this.getDeltaXRes() * this.ssDrawing.workingSession.finalZoomLevel).toFloat(),
-                c.bounds2D.minY.toFloat() + this.ssDrawing.CTransY - (this.getDeltaYRes() * this.ssDrawing.workingSession.finalZoomLevel).toFloat()
+                c.bounds2D.minX.toFloat() + this.ssDrawing.workingSession.CTransX + (this.ssDrawing.workingSession.deltafontx * this.ssDrawing.workingSession.finalZoomLevel).toFloat(),
+                c.bounds2D.minY.toFloat() + this.ssDrawing.workingSession.CTransY - (this.ssDrawing.workingSession.deltafonty * this.ssDrawing.workingSession.finalZoomLevel).toFloat()
             )
         }
     }
@@ -1625,9 +1607,9 @@ class C(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
         if (this.isFullDetails()) {
             val c = at.createTransformedShape((this.parent as ResidueDrawing).circle)
             if (RnartistConfig.exportSVGWithBrowserCompatibility())
-                return """<text x="${c.bounds2D.centerX}" y="${c.bounds2D.centerY}" text-anchor="middle" dy=".3em" style="fill:${getHTMLColorString(this.getColor())};font-family:${this.getFontName()};font-size:${ssDrawing.drawingConfiguration.fontSize};">${this.type.name}</text>"""
+                return """<text x="${c.bounds2D.centerX}" y="${c.bounds2D.centerY}" text-anchor="middle" dy=".3em" style="fill:${getHTMLColorString(this.getColor())};font-family:${ssDrawing.workingSession.fontName};font-size:${ssDrawing.workingSession.fontSize};">${this.type.name}</text>"""
             else
-                return """<text x="${c.bounds2D.minX + this.ssDrawing.CTransX}" y="${c.bounds2D.minY + this.ssDrawing.CTransY}" style="fill:${getHTMLColorString(this.getColor())};font-family:${this.getFontName()};font-size:${ssDrawing.drawingConfiguration.fontSize};">${this.type.name}</text>"""
+                return """<text x="${c.bounds2D.minX + this.ssDrawing.workingSession.CTransX}" y="${c.bounds2D.minY + this.ssDrawing.workingSession.CTransY}" style="fill:${getHTMLColorString(this.getColor())};font-family:${ssDrawing.workingSession.fontName};font-size:${ssDrawing.workingSession.fontSize};">${this.type.name}</text>"""
         }
         return ""
     }
@@ -1643,8 +1625,8 @@ class X(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
             g.color = this.getColor()
             g.drawString(
                 this.type.name,
-                c.bounds2D.minX.toFloat() + this.ssDrawing.XTransX + (this.getDeltaXRes() * this.ssDrawing.workingSession.finalZoomLevel).toFloat(),
-                c.bounds2D.minY.toFloat() + this.ssDrawing.XTransY - (this.getDeltaYRes() * this.ssDrawing.workingSession.finalZoomLevel).toFloat()
+                c.bounds2D.minX.toFloat() + this.ssDrawing.workingSession.XTransX + (this.ssDrawing.workingSession.deltafontx * this.ssDrawing.workingSession.finalZoomLevel).toFloat(),
+                c.bounds2D.minY.toFloat() + this.ssDrawing.workingSession.XTransY - (this.ssDrawing.workingSession.deltafonty * this.ssDrawing.workingSession.finalZoomLevel).toFloat()
             )
         }
     }
@@ -1653,9 +1635,9 @@ class X(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
         if (this.isFullDetails()) {
             val c = at.createTransformedShape((this.parent as ResidueDrawing).circle)
             if (RnartistConfig.exportSVGWithBrowserCompatibility())
-                return """<text x="${c.bounds2D.centerX}" y="${c.bounds2D.centerY}" text-anchor="middle" dy=".3em" style="fill:${getHTMLColorString(this.getColor())};font-family:${this.getFontName()};font-size:${ssDrawing.drawingConfiguration.fontSize};">${this.type.name}</text>"""
+                return """<text x="${c.bounds2D.centerX}" y="${c.bounds2D.centerY}" text-anchor="middle" dy=".3em" style="fill:${getHTMLColorString(this.getColor())};font-family:${ssDrawing.workingSession.fontName};font-size:${ssDrawing.workingSession.fontSize};">${this.type.name}</text>"""
             else
-                return """<text x="${c.bounds2D.minX + this.ssDrawing.XTransX}" y="${c.bounds2D.minY + this.ssDrawing.XTransY}" style="fill:${getHTMLColorString(this.getColor())};font-family:${this.getFontName()};font-size:${ssDrawing.drawingConfiguration.fontSize};">${this.type.name}</text>"""
+                return """<text x="${c.bounds2D.minX + this.ssDrawing.workingSession.XTransX}" y="${c.bounds2D.minY + this.ssDrawing.workingSession.XTransY}" style="fill:${getHTMLColorString(this.getColor())};font-family:${ssDrawing.workingSession.fontName};font-size:${ssDrawing.workingSession.fontSize};">${this.type.name}</text>"""
         }
         return ""
     }
@@ -1698,6 +1680,13 @@ class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, private val pknot: Pkno
                 interaction,
                 ssDrawing
             ))
+        }
+    }
+
+    override fun applyTheme(theme: Theme) {
+        super.applyTheme(theme)
+        this.tertiaryInteractions.forEach {
+            it.applyTheme(theme)
         }
     }
 }
@@ -1785,6 +1774,7 @@ class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructure
             this.phosphoBonds.forEach {
                 svgBuffer.append(it.asSVG(at))
             }
+            distanceBetweenPairedResidues = distance(this.secondaryInteractions.first().residue.center, this.secondaryInteractions.first().pairedResidue.center)
             this.secondaryInteractions.forEach {
                 svgBuffer.append(it.asSVG(at))
             }
@@ -2384,7 +2374,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
         super.applyTheme(theme)
         for (p in this.phosphoBonds)
             p.applyTheme(theme)
-        for (r in this.ssDrawing.getResiduesFromAbsPositions(*this.getSinglePositions()))
+        for (r in this.residues)
             r.applyTheme(theme)
     }
 }
@@ -2891,6 +2881,124 @@ class SecondaryInteractionDrawing(parent: DrawingElement?, interaction: BasePair
     }
 
     open fun asSVG(at: AffineTransform): String {
+        if (residue.updated) {//the paired residue is de facto updated too
+            val center1 = this.residue.center
+            val center2 = this.pairedResidue.center
+
+            val shift =
+                radiusConst + this.getLineShift() + this.residue.getLineWidth() / 2.0 + this.getLineWidth() / 2.0
+            if ((parent as HelixDrawing).distanceBetweenPairedResidues > 2 * shift) {
+                val points = pointsFrom(
+                    center1,
+                    center2,
+                    shift
+                )
+                this.p1 = points.first
+                this.p2 = points.second
+                this.interactionSymbol.defaultSymbol = LWLine(this, this.ssDrawing, this.location, false)
+                this.interactionSymbol.defaultSymbol!!.setShape(this.p1 as Point2D, this.p2 as Point2D)
+
+                //now the LW symbols
+                this.interactionSymbol.lwSymbols.clear()
+                if (this.isCanonical) {
+                    if (isDoublePaired) {
+                        this.interactionSymbol.lwSymbols.add(
+                            LWLine(
+                                this,
+                                this.ssDrawing,
+                                this.location,
+                                false,
+                                vpos = VSymbolPos.TOP
+                            )
+                        )
+                        this.interactionSymbol.lwSymbols.add(
+                            LWLine(
+                                this,
+                                this.ssDrawing,
+                                this.location,
+                                false,
+                                vpos = VSymbolPos.BOTTOM
+                            )
+                        )
+                        this.interactionSymbol.lwSymbols[0].setShape(this.p1 as Point2D, this.p2 as Point2D)
+                        this.interactionSymbol.lwSymbols[1].setShape(this.p1 as Point2D, this.p2 as Point2D)
+                    } else {
+                        this.interactionSymbol.lwSymbols.add(LWLine(this, this.ssDrawing, this.location, false))
+                        this.interactionSymbol.lwSymbols[0].setShape(this.p1 as Point2D, this.p2 as Point2D)
+                    }
+                } else {
+                    val distance = distance(this.p1 as Point2D, this.p2 as Point2D)
+                    val symbolWidth = distance / 3.0
+
+                    if (this.interaction.edge5 == this.interaction.edge3) { //single central symbol
+                        //+++++left symbol
+                        this.interactionSymbol.lwSymbols.add(
+                            LWLine(
+                                this,
+                                this.ssDrawing,
+                                Location(this.location.start),
+                                false
+                            )
+                        )
+                        //++++++middle symbol
+                        this.interactionSymbol.lwSymbols.add(
+                            this.generateSingleSymbol(
+                                this.location,
+                                false,
+                                this.interaction.edge5,
+                                this.interaction.orientation
+                            )
+                        )
+                        //+++++right symbol
+                        this.interactionSymbol.lwSymbols.add(
+                            LWLine(
+                                this,
+                                this.ssDrawing,
+                                Location(this.location.end),
+                                false
+                            )
+                        )
+                        val (p1_inner, p2_inner) = pointsFrom(p1 as Point2D, p2 as Point2D, symbolWidth / 2.0)
+                        this.interactionSymbol.lwSymbols[0].setShape(p1!!, p1_inner)
+                        this.interactionSymbol.lwSymbols[2].setShape(p2_inner, p2!!)
+                        this.interactionSymbol.lwSymbols[1].setShape(p1_inner, p2_inner)
+                    } else {
+                        //+++++left symbol
+                        this.interactionSymbol.lwSymbols.add(
+                            this.generateSingleSymbol(
+                                Location(this.location.start),
+                                false,
+                                this.interaction.edge5,
+                                this.interaction.orientation,
+                                right = false
+                            )
+                        )
+                        //++++++middle symbol
+                        this.interactionSymbol.lwSymbols.add(LWLine(this, this.ssDrawing, this.location, false))
+                        //+++++right symbol
+                        this.interactionSymbol.lwSymbols.add(
+                            this.generateSingleSymbol(
+                                Location(this.location.end),
+                                false,
+                                this.interaction.edge3,
+                                this.interaction.orientation
+                            )
+                        )
+                        val (p1_inner, p2_inner) = pointsFrom(
+                            p1 as Point2D,
+                            p2 as Point2D,
+                            symbolWidth + symbolWidth / 4.0
+                        )
+                        this.interactionSymbol.lwSymbols[0].setShape(p1!!, p1_inner)
+                        this.interactionSymbol.lwSymbols[2].setShape(p2_inner, p2!!)
+                        this.interactionSymbol.lwSymbols[1].setShape(p1_inner, p2_inner)
+                    }
+                }
+
+            }
+            this.residue.updated = false
+            this.pairedResidue.updated = false
+        }
         val buffer = StringBuffer()
         if (this.isFullDetails()) {
             buffer.append(this.interactionSymbol.asSVG(at))
@@ -3059,6 +3167,72 @@ class TertiaryInteractionDrawing(parent: PKnotDrawing? = null, interaction: Base
     }
 
     fun asSVG(at: AffineTransform): String {
+        if (this.residue.absPos in ssDrawing.residuesUpdated || this.pairedResidue.absPos in ssDrawing.residuesUpdated) {
+            val center1 = this.residue.center
+            val center2 = this.pairedResidue.center
+            val shift = radiusConst + this.residue.getLineWidth().toDouble() / 2.0
+            if (distance(center1, center2) > 2 * shift) {
+                val (p1, p2) = pointsFrom(
+                    center1,
+                    center2,
+                    shift
+                )
+                this.interactionSymbol.defaultSymbol = LWLine(this, this.ssDrawing, this.location, true)
+                this.interactionSymbol.defaultSymbol!!.setShape(p1, p2)
+
+                //LW Symbols now
+                this.interactionSymbol.lwSymbols.clear()
+                //+++++left symbol
+                this.interactionSymbol.lwSymbols.add(this.generateSingleSymbol(Location(this.location.start), true, this.interaction.edge5, this.interaction.orientation, right = false))
+                //++++++middle symbol
+                this.interactionSymbol.lwSymbols.add(LWLine(this, this.ssDrawing, this.location, true))
+                //+++++right symbol
+                this.interactionSymbol.lwSymbols.add(this.generateSingleSymbol(Location(this.location.end), true, this.interaction.edge3, this.interaction.orientation))
+
+                this.p1 = pointsFrom(
+                    center1,
+                    center2,
+                    shift
+                ).first
+
+                this.p2 = pointsFrom(
+                    center1,
+                    center2,
+                    shift + radiusConst * 1.5
+                ).first
+                val forLine_1 = this.p2!!
+
+                this.p1?.let {
+                    this.p2?.let {
+                        this.interactionSymbol.lwSymbols[0].setShape(this.p1 as Point2D, this.p2 as Point2D)
+                    }
+                }
+
+                this.p1 = pointsFrom(
+                    center1,
+                    center2,
+                    shift
+                ).second
+
+                this.p2 = pointsFrom(
+                    center1,
+                    center2,
+                    shift + radiusConst * 1.5
+                ).second
+
+                val forLine_2 = this.p2!!
+
+                this.p1?.let {
+                    this.p2?.let {
+                        this.interactionSymbol.lwSymbols[2].setShape(this.p1 as Point2D, this.p2 as Point2D)
+                    }
+                }
+
+                //+++++ central line linking the two symbols
+                this.interactionSymbol.lwSymbols[1].setShape(forLine_1, forLine_2)
+
+            }
+        }
         if (this.isFullDetails() && (this.ssDrawing.workingSession.locationDrawn.contains(this.residue.absPos) && this.ssDrawing.workingSession.locationDrawn.contains(this.pairedResidue.absPos))) {
             return this.interactionSymbol.asSVG(at)
         }

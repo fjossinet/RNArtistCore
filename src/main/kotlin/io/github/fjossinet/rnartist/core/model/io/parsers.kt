@@ -92,6 +92,7 @@ fun parseRnaml(f: File?): List<SecondaryStructure> {
     return secondaryStructures
 }
 
+@Throws(java.lang.Exception::class)
 fun parseVienna(reader: Reader): SecondaryStructure {
     val sequence = StringBuffer()
     val bn = StringBuffer()
@@ -266,7 +267,6 @@ fun parseJSON(reader: Reader): SecondaryStructureDrawing? {
     ws.viewX = workingSession.get("view-x")!!.toDouble()
     ws.viewY = workingSession.get("view-y")!!.toDouble()
     ws.finalZoomLevel = workingSession.get("final-zoom-lvl")!!.toDouble()
-    ws.frame = Rectangle(0, 0, workingSession.get("frame-width")!!.toInt(), workingSession.get("frame-height")!!.toInt())
 
     return parseProject(Project(secondaryStructure, layout, theme, ws,null));
 }
@@ -276,8 +276,7 @@ class Project(val secondaryStructure: SecondaryStructure, val layout: Map<String
 fun parseProject(project: Project): SecondaryStructureDrawing {
     val drawing = SecondaryStructureDrawing(
         project.secondaryStructure,
-        Theme(),
-        WorkingSession(project.workingSession.frame)
+        WorkingSession()
     )
 
     //LAYOUT
@@ -868,7 +867,5 @@ fun dumpWorkingSession(drawing: SecondaryStructureDrawing): Map<String, String> 
         "view-y" to "%.2f".format(Locale.UK, drawing.workingSession.viewY),
         "final-zoom-lvl" to "%.2f".format(Locale.UK, drawing.workingSession.finalZoomLevel)
     )
-    workingSession["frame-width"] = "${drawing.workingSession.frame.width}"
-    workingSession["frame-height"] = "${drawing.workingSession.frame.height}"
     return workingSession
 }

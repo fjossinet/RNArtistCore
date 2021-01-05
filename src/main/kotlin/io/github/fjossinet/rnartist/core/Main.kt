@@ -154,9 +154,9 @@ fun main(args:Array<String>) {
                                 val drawing =
                                         SecondaryStructureDrawing(
                                                 ss,
-                                                theme = theme,
                                                 workingSession = WorkingSession()
                                         )
+                                drawing.applyTheme(theme)
                                 drawing.singleStrands.forEach {
                                     println(it.location)
                                     println(it.previousBranch?.inHelix?.location)

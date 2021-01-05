@@ -1103,10 +1103,6 @@ object RnartistConfig {
         DrawingConfigurationParameter.linewidth.toString() to "1.0",
         DrawingConfigurationParameter.lineshift.toString() to "1.0",
         DrawingConfigurationParameter.opacity.toString() to "255", //alpha value goes from 0 to 255
-        DrawingConfigurationParameter.fontname.toString() to "Arial",
-        DrawingConfigurationParameter.deltafontx.toString() to "0",
-        DrawingConfigurationParameter.deltafonty.toString() to "0",
-        DrawingConfigurationParameter.deltafontsize.toString() to "0",
         DrawingConfigurationParameter.fulldetails.toString() to "false"
     )
 
@@ -1315,7 +1311,7 @@ object RnartistConfig {
 
     @JvmStatic
     fun exportSVGWithBrowserCompatibility(): Boolean {
-        var e = document!!.rootElement.getChild("export-SVG-with-browser-compatibility")
+        var e = document?.rootElement?.getChild("export-SVG-with-browser-compatibility")
         return e != null
     }
 
