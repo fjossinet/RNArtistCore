@@ -1685,6 +1685,7 @@ class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, private val pknot: Pkno
 
     override fun applyTheme(theme: Theme) {
         super.applyTheme(theme)
+        this.helix.applyTheme(theme)
         this.tertiaryInteractions.forEach {
             it.applyTheme(theme)
         }
@@ -2880,7 +2881,7 @@ class SecondaryInteractionDrawing(parent: DrawingElement?, interaction: BasePair
         }
     }
 
-    open fun asSVG(at: AffineTransform): String {
+    fun asSVG(at: AffineTransform): String {
         if (residue.updated) {//the paired residue is de facto updated too
             val center1 = this.residue.center
             val center2 = this.pairedResidue.center

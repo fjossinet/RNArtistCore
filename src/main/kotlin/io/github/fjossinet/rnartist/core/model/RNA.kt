@@ -112,10 +112,15 @@ class RNA(var name:String="A", seq:String, var source:String="Source N.A."):Seri
 
     private var _seq = java.lang.StringBuilder(seq)
 
-    var seq:String = ""
+    var seq:String
+        set(value) {
+            this._seq = java.lang.StringBuilder(value)
+        }
         get() {
             return this._seq.toString()
         }
+
+
 
     fun addResidue(residue:String) {
         val unModifiedNucleotide = modifiedNucleotides[residue];
@@ -204,8 +209,8 @@ class Pknot(val name:String="MyPknot", helix1:Helix? = null, helix2:Helix? = nul
     lateinit var helix:Helix
 
     init {
-        helix1?.let { h1 ->
-            helix2?.let { h2 ->
+        helix1?.let {
+            helix2?.let {
                 pknotsSoFar?.let { pknotsSoFar ->
                     if (!pknotsSoFar.filter { it.helix == helix1 }.isEmpty()) {
                         this.helix = helix1
@@ -889,6 +894,41 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
         return this.name
     }
 
+    fun randomizeSeq() {
+        val newSeq = StringBuffer(this.rna.length)
+        val residues = listOf('A', 'U', 'G', 'C')
+        val purines = listOf('A', 'G')
+        val pyrimidines = listOf('U', 'C')
+        newSeq.append((1..this.rna.length).map { residues.random()}.joinToString(separator = ""))
+        this.secondaryInteractions.forEach {
+            val r = residues.random()
+            val paired = when (r) {
+                'A' -> 'U'
+                'U' -> purines.random()
+                'G' -> pyrimidines.random()
+                'C' -> 'G'
+                else -> 'N'
+            }
+            newSeq.setCharAt(it.start-1, r)
+            newSeq.setCharAt(it.end-1, paired)
+        }
+        this.pknots.forEach { pknot ->
+            pknot.tertiaryInteractions.forEach {
+                val r = residues.random()
+                val paired = when (r) {
+                    'A' -> 'U'
+                    'U' -> purines.random()
+                    'G' -> pyrimidines.random()
+                    'C' -> 'G'
+                    else -> 'N'
+                }
+                newSeq.setCharAt(it.start - 1, r)
+                newSeq.setCharAt(it.end - 1, paired)
+            }
+        }
+        this.rna.seq = newSeq.toString()
+    }
+
 }
 
 fun toBlocks(positions:IntArray):MutableList<Block> {
@@ -915,18 +955,34 @@ fun toBlocks(positions:IntArray):MutableList<Block> {
 fun toBasePairs(bracketNotation: String):MutableList<BasePair> {
     val basePairs = arrayListOf<BasePair>()
     var pos = 0
-    val lastPos = arrayListOf<Int>()
-    val lastLeft = arrayListOf<Edge>()
+    val firstStrands = mutableMapOf<Char, Pair<MutableList<Int>, MutableList<Edge>>>()
+
+    ('A'..'Z').forEach {
+        firstStrands.put(it, Pair(mutableListOf<Int>(),mutableListOf<Edge>()))
+    }
+
+    firstStrands.put('(', Pair(mutableListOf<Int>(),mutableListOf<Edge>()))
+    firstStrands.put('{', Pair(mutableListOf<Int>(),mutableListOf<Edge>()))
+    firstStrands.put('[', Pair(mutableListOf<Int>(),mutableListOf<Edge>()))
+    firstStrands.put('<', Pair(mutableListOf<Int>(),mutableListOf<Edge>()))
+
     loop@ for (c in bracketNotation) {
         pos++
         when (c) {
-            '(' -> {lastLeft.add(Edge.WC) && lastPos.add(pos)}
-            '{' -> lastLeft.add(Edge.Sugar) && lastPos.add(pos)
-            '[' -> lastLeft.add(Edge.Hoogsteen) && lastPos.add(pos)
+            in 'A'..'Z'  -> {
+                firstStrands.get(c)!!.first.add(pos)
+                firstStrands.get(c)!!.second.add(Edge.WC)
+            }
+
+            in listOf('(', '[', '{', '<')  -> {
+                firstStrands.get(c)!!.first.add(pos)
+                firstStrands.get(c)!!.second.add(Edge.WC)
+            }
+
             ')' -> {
-                val _lastPos = lastPos.removeAt(lastPos.size-1)
+                val _lastPos = firstStrands.get('(')!!.first.removeAt(firstStrands.get('(')!!.first.size-1)
                 val _location = Location(Location(_lastPos), Location(pos))
-                val _lastLeft = lastLeft.removeAt(lastLeft.size-1)
+                val _lastLeft = firstStrands.get('(')!!.second.removeAt(firstStrands.get('(')!!.second.size-1)
                 basePairs.add(
                     BasePair(
                         location = _location,
@@ -936,26 +992,51 @@ fun toBasePairs(bracketNotation: String):MutableList<BasePair> {
                 )
             }
             '}' -> {
-                val _lastPos = lastPos.removeAt(lastPos.size-1)
+                val _lastPos = firstStrands.get('{')!!.first.removeAt(firstStrands.get('{')!!.first.size-1)
                 val _location = Location(Location(_lastPos), Location(pos))
-                val _lastLeft = lastLeft.removeAt(lastLeft.size-1)
+                val _lastLeft = firstStrands.get('{')!!.second.removeAt(firstStrands.get('{')!!.second.size-1)
                 basePairs.add(
                     BasePair(
                         location = _location,
                         edge5 = _lastLeft,
-                        edge3 = Edge.Sugar
+                        edge3 = Edge.WC
                     )
                 )
             }
             ']' -> {
-                val _lastPos = lastPos.removeAt(lastPos.size-1)
+                val _lastPos = firstStrands.get('[')!!.first.removeAt(firstStrands.get('[')!!.first.size-1)
                 val _location = Location(Location(_lastPos), Location(pos))
-                val _lastLeft = lastLeft.removeAt(lastLeft.size-1)
+                val _lastLeft = firstStrands.get('[')!!.second.removeAt(firstStrands.get('[')!!.second.size-1)
                 basePairs.add(
                     BasePair(
                         location = _location,
                         edge5 = _lastLeft,
-                        edge3 = Edge.Hoogsteen
+                        edge3 = Edge.WC
+                    )
+                )
+            }
+            '>' -> {
+                val _lastPos = firstStrands.get('<')!!.first.removeAt(firstStrands.get('<')!!.first.size-1)
+                val _location = Location(Location(_lastPos), Location(pos))
+                val _lastLeft = firstStrands.get('<')!!.second.removeAt(firstStrands.get('<')!!.second.size-1)
+                basePairs.add(
+                    BasePair(
+                        location = _location,
+                        edge5 = _lastLeft,
+                        edge3 = Edge.WC
+                    )
+                )
+            }
+            in 'a'..'z' -> {
+                val upperChar = c.toUpperCase()
+                val _lastPos = firstStrands.get(upperChar)!!.first.removeAt(firstStrands.get(upperChar)!!.first.size-1)
+                val _location = Location(Location(_lastPos), Location(pos))
+                val _lastLeft = firstStrands.get(upperChar)!!.second.removeAt(firstStrands.get(upperChar)!!.second.size-1)
+                basePairs.add(
+                    BasePair(
+                        location = _location,
+                        edge5 = _lastLeft,
+                        edge3 = Edge.WC
                     )
                 )
             }

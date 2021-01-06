@@ -105,17 +105,27 @@ fun parseVienna(reader: Reader): SecondaryStructure {
             line!!.matches(Regex("^[A-Z]+$")) -> {
                 sequence.append(line)
             }
-            line!!.matches(Regex("^[\\.\\(\\)\\{\\}\\[\\]]+$")) -> {
+            line!!.matches(Regex("^[\\.\\(\\)\\{\\}\\[\\]A-Za-z]+$")) -> {
                 bn.append(line)
             }
         }
     }
-    return SecondaryStructure(
+    var generateRandomSeq = false
+    if (sequence.isEmpty()) { //we will produce a fake sequence, then a random sequence fitting the base-pairs
+        sequence.append((1..bn.length).map { listOf("A", "U", "G", "C").random()}.joinToString(separator = ""))
+        generateRandomSeq = true
+    }
+    val ss = SecondaryStructure(
         RNA(
             name.toString(),
             sequence.toString()
         ), bracketNotation = bn.toString()
     )
+
+    if (generateRandomSeq)
+        ss.randomizeSeq()
+
+    return ss
 }
 
 fun toSVG(drawing:SecondaryStructureDrawing, frame:Rectangle, at:AffineTransform, tertiariesDisplayLevel: TertiariesDisplayLevel): String {
