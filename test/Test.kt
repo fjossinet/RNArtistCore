@@ -2,6 +2,7 @@ import io.github.fjossinet.rnartist.core.model.*
 import io.github.fjossinet.rnartist.core.model.io.*
 import java.awt.Rectangle
 import java.awt.geom.AffineTransform
+import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
 import java.io.File
 import java.io.FileReader
@@ -10,9 +11,9 @@ import java.io.StringReader
 
 class Test {
     fun testRNACentral() {
-        val id = "URS00005AB4A7"
+        val id = "URS000044DFF6"
         RNACentral().fetch(id)?.let {
-            val drawing = SecondaryStructureDrawing(it, WorkingSession())
+            val drawing = SecondaryStructureDrawing(it)
             val t = Theme()
             t.setConfigurationFor(SecondaryStructureType.Helix, DrawingConfigurationParameter.fulldetails, "true")
             t.setConfigurationFor(SecondaryStructureType.SecondaryInteraction, DrawingConfigurationParameter.fulldetails, "true")
@@ -40,36 +41,10 @@ class Test {
             }
 
             drawing.applyTheme(t)
-
             val frame = Rectangle(0, 0, 1920, 1080)
+            drawing.fitTo(frame)
 
-            //we compute the zoomLevel to fit the structure in the frame of the canvas2D
-            val widthRatio = drawing.getBounds().bounds2D.width / frame.bounds2D.width
-            val heightRatio = drawing.getBounds().bounds2D.height / frame.bounds2D.height
-            drawing.workingSession.finalZoomLevel =
-                if (widthRatio > heightRatio) 1.0 / widthRatio else 1.0 / heightRatio
-            var at = AffineTransform()
-            at.scale(drawing.workingSession.finalZoomLevel, drawing.workingSession.finalZoomLevel)
-            val transformedBounds = at.createTransformedShape(drawing.getBounds())
-            drawing.workingSession.viewX = frame.bounds2D.centerX - transformedBounds.bounds2D.centerX
-            drawing.workingSession.viewY = frame.bounds2D.centerY - transformedBounds.bounds2D.centerY
-
-            val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
-            val g = image.createGraphics()
-
-            drawing.workingSession.setFont(g, drawing.residues.first())
-
-            drawing.workingSession.junctionsDrawn.addAll(drawing.allJunctions)
-            drawing.workingSession.helicesDrawn.addAll(drawing.allHelices)
-            drawing.workingSession.singleStrandsDrawn.addAll(drawing.singleStrands)
-            drawing.workingSession.phosphoBondsLinkingBranchesDrawn.addAll(drawing.phosphoBonds)
-            drawing.workingSession.locationDrawn = Location(1, drawing.secondaryStructure.length)
-
-            at = AffineTransform()
-            at.translate(drawing.workingSession.viewX, drawing.workingSession.viewY)
-            at.scale(drawing.workingSession.finalZoomLevel, drawing.workingSession.finalZoomLevel)
-
-            //File(System.getProperty("user.home"), "${id}.svg").writeText(toSVG(drawing, frame, at, TertiariesDisplayLevel.All))
+            File(System.getProperty("user.home"), "${id}.svg").writeText(toSVG(drawing, frame.width, frame.height, TertiariesDisplayLevel.All))
         }
     }
 }

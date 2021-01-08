@@ -128,8 +128,12 @@ fun parseVienna(reader: Reader): SecondaryStructure {
     return ss
 }
 
-fun toSVG(drawing:SecondaryStructureDrawing, frame:Rectangle, at:AffineTransform, tertiariesDisplayLevel: TertiariesDisplayLevel): String {
-    val svgBuffer = StringBuffer("""<svg viewBox="0 0 ${frame.width} ${frame.height}" xmlns="http://www.w3.org/2000/svg">""" + "\n")
+fun toSVG(drawing:SecondaryStructureDrawing, width:Int, height:Int, tertiariesDisplayLevel: TertiariesDisplayLevel = TertiariesDisplayLevel.All): String {
+    val at = AffineTransform()
+    at.translate(drawing.workingSession.viewX, drawing.workingSession.viewY)
+    at.scale(drawing.workingSession.finalZoomLevel, drawing.workingSession.finalZoomLevel)
+
+    val svgBuffer = StringBuffer("""<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">""" + "\n")
 
     drawing.workingSession.junctionsDrawn.forEach { junction ->
         svgBuffer.append(junction.asSVG(at))
@@ -147,12 +151,6 @@ fun toSVG(drawing:SecondaryStructureDrawing, frame:Rectangle, at:AffineTransform
         svgBuffer.append(phospho.asSVG(at))
     }
 
-    if (tertiariesDisplayLevel == TertiariesDisplayLevel.All) {
-        drawing.allTertiaryInteractions.forEach { tertiary ->
-            svgBuffer.append(tertiary.asSVG(at))
-        }
-    }
-
     if (tertiariesDisplayLevel >= TertiariesDisplayLevel.Pknots) {
         drawing.pknots.forEach { pknot ->
             pknot.tertiaryInteractions.forEach { tertiary ->
@@ -160,6 +158,14 @@ fun toSVG(drawing:SecondaryStructureDrawing, frame:Rectangle, at:AffineTransform
             }
         }
     }
+
+    if (tertiariesDisplayLevel == TertiariesDisplayLevel.All) {
+        drawing.tertiaryInteractions.forEach { tertiary ->
+            svgBuffer.append(tertiary.asSVG(at))
+        }
+    }
+
+
 
     svgBuffer.append("</svg>")
     return svgBuffer.toString()

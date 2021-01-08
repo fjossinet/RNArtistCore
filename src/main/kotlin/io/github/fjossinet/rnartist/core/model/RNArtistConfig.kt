@@ -8,8 +8,11 @@ import org.jdom2.Document
 import org.jdom2.Element
 import org.jdom2.JDOMException
 import org.jdom2.input.SAXBuilder
+import org.jdom2.output.Format
+import org.jdom2.output.XMLOutputter
 import java.awt.Color
 import java.io.File
+import java.io.FileWriter
 import java.io.IOException
 import java.net.URI
 import java.net.http.HttpClient
@@ -1095,9 +1098,6 @@ object RnartistConfig {
     @JvmStatic
     private var document: Document? = null
 
-    @JvmStatic
-    var lastThemeSavedId: org.apache.commons.lang3.tuple.Pair<String, NitriteId>? = null
-
     val defaultConfiguration = mutableMapOf<String, String>(
         DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.DARK_GRAY),
         DrawingConfigurationParameter.linewidth.toString() to "1.0",
@@ -1136,21 +1136,6 @@ object RnartistConfig {
             val builder = SAXBuilder()
             try {
                 document = builder.build(configFile)
-                val theme = document!!.getRootElement().getChild("theme")
-                if (theme != null) {
-                    defaultTheme.clear()
-                    if (theme.hasAttributes())
-                        lastThemeSavedId = org.apache.commons.lang3.tuple.Pair.of(
-                            theme.getAttributeValue("name"),
-                            NitriteId.createId(theme.getAttributeValue("id").toLong())
-                        )
-                    for (e in theme.getChildren()) {
-                        val drawingConfiguration = mutableMapOf<String, String>()
-                        for (_e in e.getChildren())
-                            drawingConfiguration.put(_e.name, _e.value)
-                        defaultTheme[e.name] = drawingConfiguration
-                    }
-                }
             } catch (e: JDOMException) {
                 e.printStackTrace()
             }
@@ -1160,11 +1145,16 @@ object RnartistConfig {
                 "release",
                 getRnartistRelease()
             )
-            root.addContent(Element("displayTertiariesInSelection"))
-            root.addContent(Element("save-current-theme-on-exit"))
             document = Document(root)
         }
         recoverWebsite()
+    }
+
+    @JvmStatic
+    fun save() {
+        val outputter = XMLOutputter(Format.getPrettyFormat())
+        val writer = FileWriter(File(getUserDir(), "config.xml"))
+        outputter.output(document, writer)
     }
 
     @JvmStatic
@@ -1325,42 +1315,14 @@ object RnartistConfig {
 
     @JvmStatic
     var selectionColor: Color
-        get() = getAWTColor(selectionColorCode, selectionOpacity)
-        set(value) {
-            selectionColorCode = getHTMLColorString(value)
-            selectionOpacity = value.alpha
-        }
-
-    @JvmStatic
-    var selectionOpacity: Int
-        get() {
-            var e: Element? = document!!.rootElement.getChild("selection-opacity")
-            if (e == null) {
-                e = Element("selection-opacity")
-                e.text = "200"
-                document!!.rootElement.addContent(e)
-            }
-            return e.value.toInt()
-        }
-        set(value) {
-            var e: Element? = document!!.rootElement.getChild("selection-opacity")
-            if (e == null) {
-                e = Element("selection-opacity")
-                document!!.rootElement.addContent(e)
-            }
-            (e as Element).text = "${value}"
-        }
-
-    @JvmStatic
-    var selectionColorCode: String
         get() {
             var e: Element? = document!!.rootElement.getChild("selection-color")
             if (e == null) {
                 e = Element("selection-color")
-                e.text = getHTMLColorString(Color.GRAY)
+                e.text = getHTMLColorString(Color.RED)
                 document!!.rootElement.addContent(e)
             }
-            return e.value
+            return getAWTColor(e.value)
         }
         set(value) {
             var e: Element? = document!!.rootElement.getChild("selection-color")
@@ -1368,24 +1330,24 @@ object RnartistConfig {
                 e = Element("selection-color")
                 document!!.rootElement.addContent(e)
             }
-            (e as Element).text = value
+            (e as Element).text = getHTMLColorString(value)
         }
 
     @JvmStatic
-    var selectionSize: Int
+    var selectionWidth: Int
         get() {
-            var e: Element? = document!!.rootElement.getChild("selection-size")
+            var e: Element? = document!!.rootElement.getChild("selection-width")
             if (e == null) {
-                e = Element("selection-size")
-                e.text = "10"
+                e = Element("selection-width")
+                e.text = "1"
                 document!!.rootElement.addContent(e)
             }
             return e.value.toInt()
         }
         set(value) {
-            var e: Element? = document!!.rootElement.getChild("selection-size")
+            var e: Element? = document!!.rootElement.getChild("selection-width")
             if (e == null) {
-                e = Element("selection-size")
+                e = Element("selection-width")
                 document!!.rootElement.addContent(e)
             }
             (e as Element).text = "${value}"
