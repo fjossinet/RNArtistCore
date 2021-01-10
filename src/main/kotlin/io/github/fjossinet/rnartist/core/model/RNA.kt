@@ -121,7 +121,6 @@ class RNA(var name:String="A", seq:String, var source:String="Source N.A."):Seri
         }
 
 
-
     fun addResidue(residue:String) {
         val unModifiedNucleotide = modifiedNucleotides[residue];
         if (unModifiedNucleotide != null)

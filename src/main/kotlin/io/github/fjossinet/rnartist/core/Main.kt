@@ -133,7 +133,7 @@ fun main(args:Array<String>) {
                     println("Processing ${path}")
                     when (path.split(".").last()) {
                         "bpseq" -> listOf<SecondaryStructure?>(parseBPSeq(FileReader(File(path))))
-                        "vienna", "fasta", "fna" -> listOf<SecondaryStructure?>(parseVienna(FileReader(File(path))))
+                        "vienna", "fasta", "fna", "fa" -> listOf<SecondaryStructure?>(parseVienna(FileReader(File(path))))
                         "ct" -> listOf<SecondaryStructure?>(parseCT(FileReader(File(path))))
                         "stk", "stockholm" -> parseStockholm(FileReader(File(path)))
                         "pdb" -> {
