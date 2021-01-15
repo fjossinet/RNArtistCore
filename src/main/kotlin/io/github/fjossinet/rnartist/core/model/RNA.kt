@@ -358,13 +358,17 @@ class TertiaryStructure(val rna: RNA):Serializable {
         return null
     }
 
+    fun getNumberingSystem():List<String> {
+        return this.residues.map { it.label }
+    }
+
 
 }
 
 abstract class Residue3D(val name:String, val absolutePosition:Int):Serializable {
 
     val atoms: MutableList<Atom> = mutableListOf<Atom>()
-    var label:String? = null
+    lateinit var label:String
     var sugarPucker = 0
 
     open fun setAtomCoordinates(atomName: String, x: Float, y: Float, z: Float): Atom? {
@@ -600,7 +604,6 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
     var title:String? = null
     var authors:String? = null
     var pubDate:String="To be published"
-    var tertiaryStructure: TertiaryStructure? = null
 
     val secondaryInteractions:List<BasePair>
         get() {
@@ -1519,5 +1522,6 @@ val modifiedNucleotides: MutableMap<String, String> = mutableMapOf<String, Strin
     "DM5" to "X",
     "B8N" to "X",
     "4AC" to "C",
-    "6MZ" to "A"
+    "6MZ" to "A",
+    "PYY" to "X"
 )

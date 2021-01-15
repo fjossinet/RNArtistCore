@@ -20,10 +20,6 @@ val minimalRadius: Float = minimalCircumference / (2F * Math.PI).toFloat()
 val radiansToDegrees = 180 / Math.PI
 val degreesToRadians = Math.PI / 180
 
-enum class TertiariesDisplayLevel {
-    None, Pknots, All
-}
-
 enum class SecondaryStructureType {
     Full2D, A, U, G, C, X, AShape, UShape, GShape, CShape, XShape, SecondaryInteraction, TertiaryInteraction, InteractionSymbol, PhosphodiesterBond, Helix, PKnot, Junction, SingleStrand, LWSymbol, Numbering
 }
@@ -82,8 +78,6 @@ class WorkingSession() {
     var CTransY: Float = 0F
     var XTransX: Float = 0F
     var XTransY: Float = 0F
-
-    var tertiariesDisplayLevel:TertiariesDisplayLevel = TertiariesDisplayLevel.None
 
     fun moveView(transX: Double, transY: Double) {
         viewX += transX
@@ -327,6 +321,10 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
             for (branch in this.branches)
                 allJunctions.addAll(branch.junctionsFromBranch())
             return allJunctions
+
+
+
+            
         }
 
     val allTertiaryInteractions: List<TertiaryInteractionDrawing>
@@ -334,11 +332,9 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
             if (this.pknots.isEmpty())
                 return this.tertiaryInteractions
             val allTertiaryInteractions =  mutableListOf<TertiaryInteractionDrawing>()
-            if (this.workingSession.tertiariesDisplayLevel == TertiariesDisplayLevel.All)
-                allTertiaryInteractions.addAll(this.tertiaryInteractions)
-            if (this.workingSession.tertiariesDisplayLevel >= TertiariesDisplayLevel.Pknots)
-                for (pknot in this.pknots)
-                    allTertiaryInteractions.addAll(pknot.tertiaryInteractions)
+            allTertiaryInteractions.addAll(this.tertiaryInteractions)
+            for (pknot in this.pknots)
+                allTertiaryInteractions.addAll(pknot.tertiaryInteractions)
             return allTertiaryInteractions
         }
 
@@ -996,19 +992,16 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
                 this.workingSession.locationDrawn.blocks.addAll(it.location.blocks)
             }
 
-            if (this.workingSession.tertiariesDisplayLevel >= TertiariesDisplayLevel.Pknots)
-                this.pknots.forEach {
-                    it.tertiaryInteractions.forEach {
-                        it.draw(g, at, drawingArea)
-                    }
-                }
-
-            if (this.workingSession.tertiariesDisplayLevel == TertiariesDisplayLevel.All) {
-                this.tertiaryInteractions.forEach {
+            this.pknots.forEach {
+                it.tertiaryInteractions.forEach {
                     it.draw(g, at, drawingArea)
                 }
-                this.residuesUpdated.clear()
             }
+
+            this.tertiaryInteractions.forEach {
+                it.draw(g, at, drawingArea)
+            }
+            this.residuesUpdated.clear()
         }
 
 
@@ -1602,6 +1595,9 @@ class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, private val pknot: Pkno
             for (interaction in this.tertiaryInteractions)
                 interaction.draw(g, at, drawingArea)
         else {
+            for (interaction in this.tertiaryInteractions)
+                if (interaction.residue.absPos in ssDrawing.residuesUpdated || interaction.pairedResidue.absPos in ssDrawing.residuesUpdated) //to avoid to draw a non updated selection shape
+                    interaction.selectionPoints.clear()
             val previousStroke = g.stroke
             g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_ROUND)
@@ -1720,6 +1716,10 @@ class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructure
 
         if (ssDrawing.quickDraw || !this.isFullDetails() && this.getLineWidth() > 0) {
             g.draw(at.createTransformedShape(this.line))
+            this.secondaryInteractions.forEach {
+               if (it.residue.updated) //to avoid to plot a non updated selection
+                   it.selectionPoints.clear()
+            }
         } else {
             this.phosphoBonds.forEach {
                 it.draw(g, at, drawingArea)

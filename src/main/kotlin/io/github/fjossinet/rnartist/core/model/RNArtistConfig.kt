@@ -11,9 +11,7 @@ import org.jdom2.input.SAXBuilder
 import org.jdom2.output.Format
 import org.jdom2.output.XMLOutputter
 import java.awt.Color
-import java.io.File
-import java.io.FileWriter
-import java.io.IOException
+import java.io.*
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -29,6 +27,7 @@ object RnartistConfig {
         mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
             SecondaryStructureType.SecondaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
+            SecondaryStructureType.TertiaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
             SecondaryStructureType.Junction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
             SecondaryStructureType.SingleStrand.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
             SecondaryStructureType.PhosphodiesterBond.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
@@ -47,6 +46,7 @@ object RnartistConfig {
         mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
             SecondaryStructureType.SecondaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.TertiaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
             SecondaryStructureType.Junction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
             SecondaryStructureType.SingleStrand.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
             SecondaryStructureType.PhosphodiesterBond.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
@@ -65,6 +65,7 @@ object RnartistConfig {
         mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
             SecondaryStructureType.SecondaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.TertiaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
             SecondaryStructureType.Junction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
             SecondaryStructureType.SingleStrand.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
             SecondaryStructureType.PhosphodiesterBond.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
@@ -83,6 +84,7 @@ object RnartistConfig {
         mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
             SecondaryStructureType.SecondaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.TertiaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
             SecondaryStructureType.Junction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
             SecondaryStructureType.SingleStrand.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
             SecondaryStructureType.PhosphodiesterBond.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
@@ -101,6 +103,26 @@ object RnartistConfig {
         mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
             SecondaryStructureType.SecondaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.TertiaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
+            SecondaryStructureType.Junction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.SingleStrand.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.PhosphodiesterBond.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.AShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.A.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.UShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.U.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.GShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.G.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.CShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.C.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.XShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.X.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.InteractionSymbol.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true")
+        ),
+        mapOf<String, Map<String, String>>(
+            SecondaryStructureType.Helix.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.SecondaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
+            SecondaryStructureType.TertiaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
             SecondaryStructureType.Junction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
             SecondaryStructureType.SingleStrand.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
             SecondaryStructureType.PhosphodiesterBond.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
@@ -1258,12 +1280,58 @@ object RnartistConfig {
     }
 
     @JvmStatic
+    var rnaGalleryPath: String?
+        get() {
+            var e = document!!.rootElement.getChild("external-tools")
+            if (e == null) {
+                e = Element("external-tools")
+                document!!.rootElement.addContent(e)
+            }
+            val _e = e.getChild("rna-gallery")
+            if (_e == null) {
+                val rnaGallery = Element("rna-gallery")
+                rnaGallery.addContent(Element("path"))
+                var useOnline = Element("use-online")
+                useOnline.text = "true"
+                rnaGallery.addContent(useOnline)
+                e.addContent(rnaGallery)
+            }
+            return document!!.rootElement.getChild("external-tools").getChild("rna-gallery").getChild("path").value
+        }
+        set(path) {
+            document!!.rootElement.getChild("external-tools").getChild("rna-gallery").getChild("path").text = path
+        }
+
+    @JvmStatic
+    var useOnlineRNAGallery: Boolean
+        get() {
+            var e = document!!.rootElement.getChild("external-tools")
+            if (e == null) {
+                e = Element("external-tools")
+                document!!.rootElement.addContent(e)
+            }
+            val _e = e.getChild("rna-gallery")
+            if (_e == null) {
+                val rnaGallery = Element("rna-gallery")
+                rnaGallery.addContent(Element("path"))
+                var useOnline = Element("use-online")
+                useOnline.text = "true"
+                rnaGallery.addContent(useOnline)
+                e.addContent(rnaGallery)
+            }
+            return "true".equals(document!!.rootElement.getChild("external-tools").getChild("rna-gallery").getChild("use-online").value)
+        }
+        set(useOnline) {
+            document!!.rootElement.getChild("external-tools").getChild("rna-gallery").getChild("use-online").text = useOnline.toString()
+        }
+
+    @JvmStatic
     var chimeraPath: String?
         get() {
-            var e = document!!.rootElement.getChild("external-viewers")
+            var e = document!!.rootElement.getChild("external-tools")
             if (e == null) {
                 val osName = System.getProperty("os.name")
-                e = Element("external-viewers")
+                e = Element("external-tools")
                 e.addContent(Element("chimera-path"))
                 document!!.rootElement.addContent(e)
                 when {
@@ -1281,10 +1349,10 @@ object RnartistConfig {
                 val _e = e.getChild("chimera-path")
                 if (_e == null) e.addContent(Element("chimera-path"))
             }
-            return document!!.rootElement.getChild("external-viewers").getChild("chimera-path").value
+            return document!!.rootElement.getChild("external-tools").getChild("chimera-path").value
         }
         set(path) {
-            document!!.rootElement.getChild("external-viewers").getChild("chimera-path").text = path
+            document!!.rootElement.getChild("external-tools").getChild("chimera-path").text = path
         }
 
     @JvmStatic
@@ -1392,6 +1460,30 @@ object RnartistConfig {
             "RNArtist Development Release (" + format.format(Calendar.getInstance().time) + ")"
         } catch (e: java.lang.Exception) {
             null
+        }
+    }
+
+    @JvmStatic
+    fun isDockerInstalled():Boolean {
+        return try {
+            val pb  = ProcessBuilder("which", "docker");
+            val p = pb.start();
+            val result = InputStreamReader(p.getInputStream()).buffered().use(BufferedReader::readText);
+            result.trim().matches(Regex("^.+docker$"));
+        } catch (e:Exception ) {
+            false;
+        }
+    }
+
+    @JvmStatic
+    fun isAssemble2DockerImageInstalled():Boolean {
+        return try {
+            val pb  = ProcessBuilder("docker", "images");
+            val p = pb.start();
+            val result = InputStreamReader(p.getInputStream()).buffered().use(BufferedReader::readText);
+            "fjossinet/assemble2".toRegex().find(result.trim()) != null;
+        } catch (e:Exception ) {
+            false;
         }
     }
 }

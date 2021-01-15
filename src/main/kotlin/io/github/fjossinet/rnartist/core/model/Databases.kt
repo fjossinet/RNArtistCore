@@ -1,5 +1,9 @@
 package io.github.fjossinet.rnartist.core.model
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonElement
+import com.google.gson.annotations.SerializedName
 import io.github.fjossinet.rnartist.core.model.io.EmbeddedDB
 import io.github.fjossinet.rnartist.core.model.io.parsePDB
 import io.github.fjossinet.rnartist.core.model.io.Rnaview
@@ -7,7 +11,39 @@ import io.github.fjossinet.rnartist.core.model.io.getUserDir
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
 import java.util.*
+import kotlin.collections.HashMap
+
+class RNAGallery {
+    fun getEntry(pdbID: String, chain:String): StringReader {
+        val url = if (RnartistConfig.useOnlineRNAGallery) URL("https://raw.githubusercontent.com/fjossinet/RNAGallery/main/PDB/${pdbID}_${chain}.json") else File("${RnartistConfig.rnaGalleryPath}/PDB/${pdbID}_${chain}.json").toURI().toURL()
+        return StringReader(url.readText())
+    }
+}
+
+class RNACentral {
+
+    val baseURL = "https://rnacentral.org/api/v1/rna"
+
+    fun fetch(id:String):SecondaryStructure? {
+        //the sequence
+        var text = URL("${baseURL}/${id}?format=json").readText()
+        var data = Gson().fromJson(text, HashMap<String, String>().javaClass)
+        val sequence = data.get("sequence")
+        sequence?.let {
+            val rna = RNA(id, seq = sequence, source="db:rnacentral:${id}")
+            text = URL("${baseURL}/${id}/2d/1/?format=json").readText()
+            data = Gson().fromJson(text, HashMap<String, String>().javaClass)
+            val bn = (data.get("data") as Map<String, String>).get("secondary_structure")
+            bn?.let {
+                return SecondaryStructure(rna, bracketNotation = bn, source="db:rnacentral:${id}")
+            }
+        }
+
+        return null
+    }
+}
 
 enum class PDBQueryField {
     MINRES,
@@ -25,260 +61,103 @@ enum class PDBQueryField {
     EXPERIMENTAL_METHOD
 }
 
+data class PDBQuery(
+    val query:Map<String, Any> = mapOf(
+        "type" to "group",
+        "logical_operator" to "and",
+        "nodes" to listOf<Map<String, Any>>(
+            mapOf(
+                "type" to "terminal",
+                "service" to "text",
+                "parameters" to mapOf(
+                    "operator" to  "in",
+                    "value" to listOf("X-RAY DIFFRACTION", "ELECTRON MICROSCOPY"),
+                    "attribute" to "exptl.method"
+                )
+            ),
+            mapOf(
+                "type" to "terminal",
+                "service" to "text",
+                "parameters" to mapOf(
+                    "operator" to "less_or_equal",
+                    "value" to 3.0,
+                    "attribute" to "rcsb_entry_info.resolution_combined"
+                )
+            ),
+            mapOf(
+                "type" to "terminal",
+                "service" to "text",
+                "parameters" to mapOf(
+                    "operator" to "greater_or_equal",
+                    "value" to 1,
+                    "attribute" to "rcsb_entry_info.polymer_entity_count_RNA"
+                )
+            )
+        )
+    ),
+    val request_options:Map<String,Any> =  mapOf(
+        "pager" to mapOf(
+            "start" to 0
+        )
+    ),
+    val return_type:String = "entry"
+)
+
+data class PDBResponse(
+    val query_id:String,
+    val result_type:String,
+    val total_count:Int,
+    val explain_meta_data:Map<String,Any>,
+    val result_set:List<Map<String,Any>>
+)
+
 class PDB() {
 
-    fun getEntry(pdbID: String): Reader {
-        val url = URL("http://www.rcsb.org/pdb/download/downloadFile.do?fileFormat=pdb&compression=NO&structureId=$pdbID")
+    fun getEntry(pdbID: String): StringReader {
+        val url = URL("https://files.rcsb.org/download/${pdbID}.pdb")
         return StringReader(url.readText())
     }
 
-    fun query(query: Map<PDBQueryField, Any?>): List<String> {
-        val min_res:String = query.getOrDefault(PDBQueryField.MINRES, "1") as String
-        val max_res:String = query.getOrDefault(PDBQueryField.MAXRES, "3") as String
-        val min_date:String? = query.getOrDefault(PDBQueryField.MINDATE, null) as String?
-        val max_date:String? = query.getOrDefault(PDBQueryField.MAXDATE, null) as String?
-        val keywords:List<String> = query.getOrDefault(PDBQueryField.KEYWORDS, listOf<String>()) as List<String>
-        val authors = query.getOrDefault(PDBQueryField.AUTHORS, listOf<String>()) as List<String>
-        val pdb_ids = query.getOrDefault(PDBQueryField.PDBIDS, listOf<String>()) as List<String>
-        val title_contains:List<String> = query.getOrDefault(PDBQueryField.TITLE_CONTAINS, listOf<String>()) as List<String>
-        val contains_rna:Char = query.getOrDefault(PDBQueryField.CONTAINS_RNA, 'Y') as Char
-        val contains_protein:Char = query.getOrDefault(PDBQueryField.CONTAINS_PROTEIN, 'Y') as Char
-        val contains_dna:Char = query.getOrDefault(PDBQueryField.CONTAINS_DNA, 'N') as Char
-        val contains_hybrid:Char = query.getOrDefault(PDBQueryField.CONTAINS_HYBRID, 'N') as Char
-        val experimental_method:String = query.getOrDefault(PDBQueryField.EXPERIMENTAL_METHOD, "X-RAY") as String
+    fun query():List<String> {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        var totalHits = 0
+        var currentPage = 0
+        var ids = mutableSetOf<String>()
+        do {
+            var reqParam =
+                URLEncoder.encode("json", "UTF-8") + "=" + URLEncoder.encode(gson.toJson(PDBQuery(request_options = mapOf(
+                    "pager" to mapOf(
+                        "start" to currentPage*10,
+                        "rows" to 10
+                    )
+                ))), "UTF-8")
+            val url = URL("https://search.rcsb.org/rcsbsearch/v1/query?" + reqParam)
 
-        var refinementLevel = 0
+            with(url.openConnection() as HttpURLConnection) {
+                requestMethod = "GET"
 
-        var post_data = """<?xml version="1.0" encoding="UTF-8"?>
-<orgPdbCompositeQuery version="1.0">"""
+                BufferedReader(InputStreamReader(inputStream)).use {
+                    val response = StringBuffer()
 
-        if (experimental_method == "X-RAY") {
-            post_data += if (refinementLevel != 0)
-                "\n<queryRefinement>\n<queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
-            else
-                "\n<queryRefinement>\n<queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
-            post_data += """
-    <orgPdbQuery>
-        <version>head</version>
-        <queryType>org.pdb.query.simple.ResolutionQuery</queryType>
-        <description>Resolution query</description>
-        <refine.ls_d_res_high.comparator>between</refine.ls_d_res_high.comparator>
-        <refine.ls_d_res_high.min>$min_res</refine.ls_d_res_high.min>
-        <refine.ls_d_res_high.max>$max_res</refine.ls_d_res_high.max>
-"""
-            post_data += "</orgPdbQuery></queryRefinement>"
-            refinementLevel += 1
-        }
-        if (max_date != null ||  min_date != null) {
-            post_data += if (refinementLevel != 0)
-                "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
-            else
-                "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
-
-            post_data += """
-    <orgPdbQuery>
-        <version>head</version>
-        <queryType>org.pdb.query.simple.ReleaseDateQuery</queryType>
-        <description>Release Date query</description>
-        <refine.ls_d_res_high.comparator>between</refine.ls_d_res_high.comparator>"""
-
-            if (min_date != null) {
-                post_data += "<database_PDB_rev.date.min>$min_date</database_PDB_rev.date.min>"
-            }
-            if (max_date != null) {
-                post_data += "<database_PDB_rev.date.max>$max_date</database_PDB_rev.date.maw>"
-            }
-
-            post_data += "</orgPdbQuery></queryRefinement>"
-            refinementLevel += 1
-        }
-
-        for (w in title_contains) {
-            post_data += if (refinementLevel != 0)
-                "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
-            else
-                "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
-
-            post_data += """
-    <orgPdbQuery> 
-        <version>head</version>
-        <queryType>org.pdb.query.simple.StructTitleQuery</queryType>
-        <description>StructTitleQuery: struct.title.comparator=contains struct.title.value=$w</description>
-        <struct.title.comparator>contains</struct.title.comparator>
-        <struct.title.value>$w</struct.title.value>
-    </orgPdbQuery>
-</queryRefinement>"""
-
-            refinementLevel += 1
-        }
-
-       if (!keywords.isEmpty()) {
-           post_data += if (refinementLevel != 0)
-               "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
-           else
-               "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
-
-            post_data += """
-    <orgPdbQuery> 
-        <version>head</version>
-        <queryType>org.pdb.query.simple.AdvancedKeywordQuery</queryType>
-        <description>Text Search for: '+" ".join(keywords)+'</description>
-        <keywords>${keywords.joinToString(" ")}+'</keywords>
-    </orgPdbQuery>
-</queryRefinement>"""
-
-            refinementLevel += 1
-        }
-
-        if (!pdb_ids.isEmpty()) {
-            post_data += if (refinementLevel != 0)
-                "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
-            else
-                "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
-
-            post_data += """
-    <orgPdbQuery> 
-        <version>head</version>
-        <queryType>org.pdb.query.simple.AdvancedKeywordQuery</queryType>
-        <description>Simple query for a list of PDB IDs ('${pdb_ids.size} IDs) :${pdb_ids.joinToString(" ")}</description>
-        <structureIdList>${pdb_ids.joinToString(" ")}</structureIdList>
-    </orgPdbQuery>
-</queryRefinement>"""
-
-            refinementLevel += 1
-        }
-
-        post_data += if (refinementLevel != 0)
-            "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
-        else
-            "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
-
-        post_data += """
-    <orgPdbQuery>
-        <version>head</version>
-        <queryType>org.pdb.query.simple.ExpTypeQuery</queryType>
-        <description>Experimental Method is $experimental_method</description>
-        <mvStructure.expMethod.value>$experimental_method</mvStructure.expMethod.value>
-    </orgPdbQuery>
-</queryRefinement>"""
-
-        refinementLevel += 1
-
-        for (author in authors) {
-            post_data += if (refinementLevel != 0)
-                "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
-            else
-                "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
-
-            post_data += """
-    <orgPdbQuery>
-        <version>head</version>
-        <queryType>org.pdb.query.simple.AdvancedAuthorQuery</queryType>
-        <description>Author Search: Author Search: audit_author.name=$author OR (citation_author.name=$author AND citation_author.citation_id=primary)</description>
-        <exactMatch>false</exactMatch>
-        <audit_author.name>$author</audit_author.name>
-    </orgPdbQuery>
-</queryRefinement>"""
-
-            refinementLevel += 1
-        }
-
-        post_data += if (refinementLevel != 0)
-            "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel><conjunctionType>and</conjunctionType>"
-        else
-            "\n<queryRefinement><queryRefinementLevel>$refinementLevel</queryRefinementLevel>"
-
-
-        post_data += """
-    <orgPdbQuery>
-        <version>head</version>
-        <queryType>org.pdb.query.simple.ChainTypeQuery</queryType>
-        <description>Chain Type</description>
-        <containsProtein>$contains_protein</containsProtein>
-        <containsDna>$contains_dna</containsDna>
-        <containsRna>$contains_rna</containsRna>
-        <containsHybrid>$contains_hybrid</containsHybrid>
-    </orgPdbQuery>
-</queryRefinement>"""
-
-        refinementLevel += 1
-
-        post_data += "</orgPdbCompositeQuery>"
-
-        var pdbIds = mutableListOf<String>()
-
-        val mURL = URL("http://www.rcsb.org/pdb/rest/search")
-
-        with(mURL.openConnection() as HttpURLConnection) {
-            doOutput = true
-            requestMethod = "POST"
-
-            val wr = OutputStreamWriter(getOutputStream());
-            wr.write(post_data);
-            wr.flush();
-
-            BufferedReader(InputStreamReader(inputStream)).use {
-                var inputLine = it.readLine()
-                while (inputLine != null) {
-                    pdbIds.add(inputLine)
-                    inputLine = it.readLine()
-                }
-                it.close()
-            }
-        }
-        return pdbIds
-    }
-
-    fun feedEmbeddedDatabase(embeddedDB:EmbeddedDB) {
-        val pdb = PDB()
-        val pdbIds = pdb.query(mapOf<PDBQueryField, Any>())
-        val idsWithPbs: MutableList<String> = ArrayList()
-        val f = File(File(getUserDir(), "db"), "idsWithPb.txt")
-        if (!f.exists()) f.createNewFile() else {
-            val `in` = BufferedReader(FileReader(f))
-            var l: String?
-            while (`in`.readLine().also { l = it } != null) {
-                idsWithPbs.add(l!!.trim { it <= ' ' })
-            }
-            `in`.close()
-        }
-        val buff = BufferedWriter(FileWriter(f, true))
-        val rnaview = Rnaview()
-        for (id in pdbIds) {
-            println("Parsing $id")
-            if (idsWithPbs.contains(id)) {
-                continue
-            }
-            if (embeddedDB.getPDBSecondaryStructure(id).isEmpty()) {
-                for (ts in parsePDB(pdb.getEntry(id)).iterator()) {
-                    ts.pdbId = id
-                    try {
-                        rnaview.annotate(ts).forEach { ss ->
-                            ss.source = "db:pdb:${ts.pdbId}"
-                            ss.title = ts.title
-                            ss.authors = ts.authors
-                            ss.pubDate = ts.pubDate
-                            ss.rna.name = ts.rna.name
-                            embeddedDB.addPDBSecondaryStructure(ss)
-                            if (ss.rna.length != ts.rna.length) //RNAVIEW can remove some residues silently
-                                embeddedDB.addPDBTertiaryStructure(ts)
-                            println("############# Secondary Structure Stored ################")
-                            println("############# ${embeddedDB.getPDBSecondaryStructures().find().size()} Secondary Structures Stored ################")
-                        }
-                    } catch (ex: java.lang.Exception) {
-                        if (!idsWithPbs.contains(id)) {
-                            idsWithPbs.add(id)
-                            buff.write("$id\n")
-                            buff.flush()
-                            println(ex.message)
-                        }
+                    var inputLine = it.readLine()
+                    while (inputLine != null) {
+                        response.append(inputLine)
+                        inputLine = it.readLine()
                     }
-                }
-            } else {
-                println("Already Stored")
-            }
-        }
+                    val hits = gson.fromJson(response.toString(), PDBResponse::class.java)
 
+                    totalHits = hits.total_count
+
+                    hits.result_set.forEach {
+                        ids.add(it.get("identifier") as String)
+                    }
+
+                }
+            }
+            currentPage++
+        } while ((currentPage-1)*10 < totalHits)
+
+        return ids.toList().sorted()
     }
 
 

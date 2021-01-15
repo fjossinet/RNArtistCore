@@ -1,5 +1,6 @@
 package io.github.fjossinet.rnartist.core.model.io
 
+import io.github.fjossinet.rnartist.core.model.RnartistConfig
 import io.github.fjossinet.rnartist.core.model.SecondaryStructure
 import io.github.fjossinet.rnartist.core.model.TertiaryStructure
 import org.apache.commons.io.FileUtils
@@ -12,7 +13,7 @@ class Rnaview : Computation() {
     @Throws(Exception::class)
     fun annotate(ts: TertiaryStructure): List<SecondaryStructure> {
         return when {
-            this.isDockerInstalled() -> {
+            RnartistConfig.isDockerInstalled() && RnartistConfig.isAssemble2DockerImageInstalled() -> {
                 val temp = createTemporaryFile("rnaview")
                 val writer = PrintWriter(temp)
                 writePDB(ts, true, writer)
@@ -47,7 +48,7 @@ class Rnaview : Computation() {
     @Throws(Exception::class)
     fun annotate(pdb:File): List<SecondaryStructure> {
         return when {
-            this.isDockerInstalled() -> {
+            RnartistConfig.isDockerInstalled() && RnartistConfig.isAssemble2DockerImageInstalled() -> {
                 val pb = ProcessBuilder("docker", "run", "-v", pdb.parent + ":/data", "fjossinet/assemble2", "rnaview", "-p", "/data/" + pdb.name)
                 val p = pb.start()
                 p.waitFor()

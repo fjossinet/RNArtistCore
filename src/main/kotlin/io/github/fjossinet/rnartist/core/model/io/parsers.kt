@@ -33,7 +33,7 @@ fun parseRnaml(f: File?): List<SecondaryStructure> {
         name = child!!.name
         if (name == "molecule") {
             var moleculeSequence = ""
-            val moleculeName = "A"
+            val moleculeName = child.getAttribute("id").value
             val sequence = child.getChild("sequence")
             if (sequence != null) {
                 val seqdata = sequence.getChild("seq-data")
@@ -122,13 +122,15 @@ fun parseVienna(reader: Reader): SecondaryStructure {
         ), bracketNotation = bn.toString()
     )
 
-    if (generateRandomSeq)
+    if (generateRandomSeq) {
         ss.randomizeSeq()
+        println(ss.rna.seq)
+    }
 
     return ss
 }
 
-fun toSVG(drawing:SecondaryStructureDrawing, width:Int, height:Int, tertiariesDisplayLevel: TertiariesDisplayLevel = TertiariesDisplayLevel.All): String {
+fun toSVG(drawing:SecondaryStructureDrawing, width:Int, height:Int): String {
     val at = AffineTransform()
     at.translate(drawing.workingSession.viewX, drawing.workingSession.viewY)
     at.scale(drawing.workingSession.finalZoomLevel, drawing.workingSession.finalZoomLevel)
@@ -151,21 +153,15 @@ fun toSVG(drawing:SecondaryStructureDrawing, width:Int, height:Int, tertiariesDi
         svgBuffer.append(phospho.asSVG(at))
     }
 
-    if (tertiariesDisplayLevel >= TertiariesDisplayLevel.Pknots) {
-        drawing.pknots.forEach { pknot ->
-            pknot.tertiaryInteractions.forEach { tertiary ->
-                svgBuffer.append(tertiary.asSVG(at))
-            }
-        }
-    }
-
-    if (tertiariesDisplayLevel == TertiariesDisplayLevel.All) {
-        drawing.tertiaryInteractions.forEach { tertiary ->
+    drawing.pknots.forEach { pknot ->
+        pknot.tertiaryInteractions.forEach { tertiary ->
             svgBuffer.append(tertiary.asSVG(at))
         }
     }
 
-
+    drawing.tertiaryInteractions.forEach { tertiary ->
+        svgBuffer.append(tertiary.asSVG(at))
+    }
 
     svgBuffer.append("</svg>")
     return svgBuffer.toString()
@@ -697,10 +693,6 @@ fun dumpSecondaryStructure(drawing: SecondaryStructureDrawing): Map<String, Map<
     val secondaries = mutableMapOf<String,Map<String, String>>()
     structure["secondaries"] = secondaries
 
-    val previousDisplayLevel = drawing.workingSession.tertiariesDisplayLevel
-
-    drawing.workingSession.tertiariesDisplayLevel = TertiariesDisplayLevel.All
-
     drawing.allTertiaryInteractions.forEach {
         val tertiary = mapOf<String, String>(
             "edge5" to it.interaction.edge5.toString(),
@@ -709,9 +701,7 @@ fun dumpSecondaryStructure(drawing: SecondaryStructureDrawing): Map<String, Map<
         )
         tertiaries[it.location.toString()] = tertiary
     }
-
-    drawing.workingSession.tertiariesDisplayLevel = previousDisplayLevel
-
+    
     drawing.branches.forEach { branch ->
         branch.junctionsFromBranch().forEach {
             val junction = mapOf<String, String>(
