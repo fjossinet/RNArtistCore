@@ -46,7 +46,7 @@ fun helixDrawingWidth(): Double {
 class WorkingSession() {
     var viewX = 0.0
     var viewY = 0.0
-    var finalZoomLevel = 1.0
+    var zoomLevel = 1.0
     var is_screen_capture = false
     var screen_capture_area: Rectangle2D? = null
     var screen_capture_transX = 0.0
@@ -85,18 +85,18 @@ class WorkingSession() {
     }
 
     fun setZoom(zoomFactor: Double) {
-        finalZoomLevel *= zoomFactor
+        zoomLevel *= zoomFactor
     }
 
 
     fun setFont(g: Graphics2D, residue:ResidueDrawing) {
         val at = AffineTransform()
         at.translate(this.viewX, this.viewY)
-        at.scale(this.finalZoomLevel, this.finalZoomLevel)
+        at.scale(this.zoomLevel, this.zoomLevel)
         val word2Fit = residue.type.name
         val _c = at.createTransformedShape(residue.circle)
         var dimension: Dimension2D
-        var fontSize = (100 * this.finalZoomLevel).toInt() //initial value
+        var fontSize = (100 * this.zoomLevel).toInt() //initial value
         do {
             fontSize--
             val font = Font(fontName, fontStyle, fontSize)
@@ -367,8 +367,8 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
     val viewY: Double
         get() = this.workingSession.viewY
 
-    val finalZoomLevel: Double
-        get() = this.workingSession.finalZoomLevel
+    val zoomLevel: Double
+        get() = this.workingSession.zoomLevel
 
     val length: Int
         get() = this.secondaryStructure.length
@@ -827,10 +827,10 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
         val selectionFrame = this.getFrame()
         val widthRatio = selectionFrame.bounds2D!!.width / frame.bounds2D.width
         val heightRatio = selectionFrame.bounds2D!!.height / frame.bounds2D.height
-        this.workingSession.finalZoomLevel =
+        this.workingSession.zoomLevel =
             if (widthRatio > heightRatio) 1.0 / widthRatio else 1.0 / heightRatio
         var at = AffineTransform()
-        at.scale(this.workingSession.finalZoomLevel, this.workingSession.finalZoomLevel)
+        at.scale(this.zoomLevel, this.zoomLevel)
         val transformedBounds = at.createTransformedShape(selectionFrame)
         this.workingSession.viewX = frame.bounds2D.centerX - transformedBounds.bounds2D.centerX
         this.workingSession.viewY = frame.bounds2D.centerY - transformedBounds.bounds2D.centerY
@@ -1179,7 +1179,7 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
             g.fill(_c)
             val previousStroke: Stroke = g.getStroke()
             g.stroke =
-                BasicStroke(this.ssDrawing.workingSession.finalZoomLevel.toFloat() * this.getLineWidth().toFloat())
+                BasicStroke(this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat())
             g.color = Color(
                 g.color.darker().red, g.color.darker().green, g.color.darker().blue,
                 this.getOpacity()
@@ -1202,7 +1202,7 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
                 this.getColor().darker().red, this.getColor().darker().green, this.getColor().darker().blue,
                 this.getOpacity()
             )
-            buffer.append("""<circle cx="${_c.bounds.centerX}" cy="${_c.bounds.centerY}" r="${_c.bounds.width/2}" stroke="${getHTMLColorString(strokeColor)}" stroke-width="${this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()}" fill="${getHTMLColorString(this.getColor())}"/>""")
+            buffer.append("""<circle cx="${_c.bounds.centerX}" cy="${_c.bounds.centerY}" r="${_c.bounds.width/2}" stroke="${getHTMLColorString(strokeColor)}" stroke-width="${this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()}" fill="${getHTMLColorString(this.getColor())}"/>""")
         }
         if (ssDrawing.workingSession.fontSize > 8 && this.getOpacity() > 0) { //the conditions to draw a letter
             buffer.append(this.residueLetter.asSVG(at))
@@ -1238,14 +1238,14 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
                 p = pointsFrom(
                     this.center,
                     pairedCenter,
-                    -getLineWidth() / 2.0 - radiusConst - radiusConst - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel)
+                    -getLineWidth() / 2.0 - radiusConst - radiusConst - numberDim.width / (2.0 * ssDrawing.zoomLevel)
                 )
                 e = at.createTransformedShape(
                     Ellipse2D.Double(
-                        (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
-                        (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
-                        numberDim.width / ssDrawing.workingSession.finalZoomLevel,
-                        numberDim.width / ssDrawing.workingSession.finalZoomLevel
+                        (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                        (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                        numberDim.width / ssDrawing.zoomLevel,
+                        numberDim.width / ssDrawing.zoomLevel
                     )
                 )
 
@@ -1265,14 +1265,14 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
                 p = pointsFrom(
                     this.center,
                     it.center,
-                    -getLineWidth() / 2.0 - radiusConst - radiusConst - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel)
+                    -getLineWidth() / 2.0 - radiusConst - radiusConst - numberDim.width / (2.0 * ssDrawing.zoomLevel)
                 )
                 e = at.createTransformedShape(
                     Ellipse2D.Double(
-                        (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
-                        (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
-                        numberDim.width.toDouble() / ssDrawing.workingSession.finalZoomLevel,
-                        numberDim.width.toDouble() / ssDrawing.workingSession.finalZoomLevel
+                        (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                        (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                        numberDim.width.toDouble() / ssDrawing.zoomLevel,
+                        numberDim.width.toDouble() / ssDrawing.zoomLevel
                     )
                 )
             }
@@ -1295,14 +1295,14 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
                 p = pointsFrom(
                     Point2D.Double(this.center.x, this.center.y + radiusConst),
                     Point2D.Double(this.center.x, this.center.y - radiusConst),
-                    -getLineWidth() / 2.0 - radiusConst - radiusConst / 2.0 - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel)
+                    -getLineWidth() / 2.0 - radiusConst - radiusConst / 2.0 - numberDim.width / (2.0 * ssDrawing.zoomLevel)
                 )
                 e = at.createTransformedShape(
                     Ellipse2D.Double(
-                        (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
-                        (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
-                        numberDim.width.toDouble() / ssDrawing.workingSession.finalZoomLevel,
-                        numberDim.width.toDouble() / ssDrawing.workingSession.finalZoomLevel
+                        (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                        (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                        numberDim.width.toDouble() / ssDrawing.zoomLevel,
+                        numberDim.width.toDouble() / ssDrawing.zoomLevel
                     )
                 )
             }
@@ -1322,21 +1322,21 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
                     while (i < n) {
                         var _p = pointsFrom(
                             Point2D.Double(
-                                (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
+                                (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
                                 (p as Pair<Point2D, Point2D>).first.y
                             ),
                             Point2D.Double(
-                                (p as Pair<Point2D, Point2D>).first.x + numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
+                                (p as Pair<Point2D, Point2D>).first.x + numberDim.width / (2.0 * ssDrawing.zoomLevel),
                                 (p as Pair<Point2D, Point2D>).first.y
                             ),
-                            -(2 * (i - 1) + 1) * numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel)
+                            -(2 * (i - 1) + 1) * numberDim.width / (2.0 * ssDrawing.zoomLevel)
                         )
                         e = at.createTransformedShape(
                             Ellipse2D.Double(
-                                _p.second.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
-                                _p.second.y - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
-                                numberDim.width / ssDrawing.workingSession.finalZoomLevel,
-                                numberDim.width / ssDrawing.workingSession.finalZoomLevel
+                                _p.second.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                                _p.second.y - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                                numberDim.width / ssDrawing.zoomLevel,
+                                numberDim.width / ssDrawing.zoomLevel
                             )
                         )
                         g.drawString(
@@ -1356,21 +1356,21 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
                     while (i < n) {
                         var _p = pointsFrom(
                             Point2D.Double(
-                                (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
+                                (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
                                 (p as Pair<Point2D, Point2D>).first.y
                             ),
                             Point2D.Double(
-                                (p as Pair<Point2D, Point2D>).first.x + numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
+                                (p as Pair<Point2D, Point2D>).first.x + numberDim.width / (2.0 * ssDrawing.zoomLevel),
                                 (p as Pair<Point2D, Point2D>).first.y
                             ),
-                            -(2 * (i - 1) + 1) * numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel)
+                            -(2 * (i - 1) + 1) * numberDim.width / (2.0 * ssDrawing.zoomLevel)
                         )
                         e = at.createTransformedShape(
                             Ellipse2D.Double(
-                                _p.first.x - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
-                                _p.first.y - numberDim.width / (2.0 * ssDrawing.workingSession.finalZoomLevel),
-                                numberDim.width / ssDrawing.workingSession.finalZoomLevel,
-                                numberDim.width / ssDrawing.workingSession.finalZoomLevel
+                                _p.first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                                _p.first.y - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                                numberDim.width / ssDrawing.zoomLevel,
+                                numberDim.width / ssDrawing.zoomLevel
                             )
                         )
                         g.drawString(
@@ -1446,8 +1446,8 @@ class A(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
             g.color = this.getColor()
             g.drawString(
                 this.type.name,
-                c.bounds2D.minX.toFloat() + this.ssDrawing.workingSession.ATransX + (this.ssDrawing.workingSession.deltafontx * this.ssDrawing.workingSession.finalZoomLevel).toFloat(),
-                c.bounds2D.minY.toFloat() + this.ssDrawing.workingSession.ATransY - (this.ssDrawing.workingSession.deltafonty * this.ssDrawing.workingSession.finalZoomLevel).toFloat()
+                c.bounds2D.minX.toFloat() + this.ssDrawing.workingSession.ATransX + (this.ssDrawing.workingSession.deltafontx * this.ssDrawing.zoomLevel).toFloat(),
+                c.bounds2D.minY.toFloat() + this.ssDrawing.workingSession.ATransY - (this.ssDrawing.workingSession.deltafonty * this.ssDrawing.zoomLevel).toFloat()
             )
         }
     }
@@ -1480,8 +1480,8 @@ class U(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
             g.color = this.getColor()
             g.drawString(
                 this.type.name,
-                c.bounds2D.minX.toFloat() + this.ssDrawing.workingSession.UTransX + (this.ssDrawing.workingSession.deltafontx * this.ssDrawing.workingSession.finalZoomLevel).toFloat(),
-                c.bounds2D.minY.toFloat() + this.ssDrawing.workingSession.UTransY - (this.ssDrawing.workingSession.deltafonty * this.ssDrawing.workingSession.finalZoomLevel).toFloat()
+                c.bounds2D.minX.toFloat() + this.ssDrawing.workingSession.UTransX + (this.ssDrawing.workingSession.deltafontx * this.ssDrawing.zoomLevel).toFloat(),
+                c.bounds2D.minY.toFloat() + this.ssDrawing.workingSession.UTransY - (this.ssDrawing.workingSession.deltafonty * this.ssDrawing.zoomLevel).toFloat()
             )
         }
     }
@@ -1508,8 +1508,8 @@ class G(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
             g.color = this.getColor()
             g.drawString(
                 this.type.name,
-                c.bounds2D.minX.toFloat() + this.ssDrawing.workingSession.GTransX + (this.ssDrawing.workingSession.deltafontx * this.ssDrawing.workingSession.finalZoomLevel).toFloat(),
-                c.bounds2D.minY.toFloat() + this.ssDrawing.workingSession.GTransY - (this.ssDrawing.workingSession.deltafonty * this.ssDrawing.workingSession.finalZoomLevel).toFloat()
+                c.bounds2D.minX.toFloat() + this.ssDrawing.workingSession.GTransX + (this.ssDrawing.workingSession.deltafontx * this.ssDrawing.zoomLevel).toFloat(),
+                c.bounds2D.minY.toFloat() + this.ssDrawing.workingSession.GTransY - (this.ssDrawing.workingSession.deltafonty * this.ssDrawing.zoomLevel).toFloat()
             )
         }
     }
@@ -1534,8 +1534,8 @@ class C(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
             g.color = this.getColor()
             g.drawString(
                 this.type.name,
-                c.bounds2D.minX.toFloat() + this.ssDrawing.workingSession.CTransX + (this.ssDrawing.workingSession.deltafontx * this.ssDrawing.workingSession.finalZoomLevel).toFloat(),
-                c.bounds2D.minY.toFloat() + this.ssDrawing.workingSession.CTransY - (this.ssDrawing.workingSession.deltafonty * this.ssDrawing.workingSession.finalZoomLevel).toFloat()
+                c.bounds2D.minX.toFloat() + this.ssDrawing.workingSession.CTransX + (this.ssDrawing.workingSession.deltafontx * this.ssDrawing.zoomLevel).toFloat(),
+                c.bounds2D.minY.toFloat() + this.ssDrawing.workingSession.CTransY - (this.ssDrawing.workingSession.deltafonty * this.ssDrawing.zoomLevel).toFloat()
             )
         }
     }
@@ -1562,8 +1562,8 @@ class X(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
             g.color = this.getColor()
             g.drawString(
                 this.type.name,
-                c.bounds2D.minX.toFloat() + this.ssDrawing.workingSession.XTransX + (this.ssDrawing.workingSession.deltafontx * this.ssDrawing.workingSession.finalZoomLevel).toFloat(),
-                c.bounds2D.minY.toFloat() + this.ssDrawing.workingSession.XTransY - (this.ssDrawing.workingSession.deltafonty * this.ssDrawing.workingSession.finalZoomLevel).toFloat()
+                c.bounds2D.minX.toFloat() + this.ssDrawing.workingSession.XTransX + (this.ssDrawing.workingSession.deltafontx * this.ssDrawing.zoomLevel).toFloat(),
+                c.bounds2D.minY.toFloat() + this.ssDrawing.workingSession.XTransY - (this.ssDrawing.workingSession.deltafonty * this.ssDrawing.zoomLevel).toFloat()
             )
         }
     }
@@ -1599,7 +1599,7 @@ class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, private val pknot: Pkno
                 if (interaction.residue.absPos in ssDrawing.residuesUpdated || interaction.pairedResidue.absPos in ssDrawing.residuesUpdated) //to avoid to draw a non updated selection shape
                     interaction.selectionPoints.clear()
             val previousStroke = g.stroke
-            g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
+            g.stroke = BasicStroke(this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_ROUND)
             g.color = this.getColor()
             val middlePoint1:Point2D
@@ -1710,7 +1710,7 @@ class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructure
 
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         val previousStroke = g.stroke
-        g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
+        g.stroke = BasicStroke(this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
             BasicStroke.JOIN_ROUND)
         g.color = this.getColor()
 
@@ -1740,7 +1740,7 @@ class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructure
         at.transform(this.line.p1, p1)
         at.transform(this.line.p2, p2)
         if (!this.isFullDetails() && this.getLineWidth() > 0) {
-            svgBuffer.append("""<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()}"/>""")
+            svgBuffer.append("""<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()}"/>""")
         } else {
             this.phosphoBonds.forEach {
                 svgBuffer.append(it.asSVG(at))
@@ -1794,7 +1794,7 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
 
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         val previousStroke = g.stroke
-        g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
+        g.stroke = BasicStroke(this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
             BasicStroke.JOIN_ROUND)
         g.color = this.getColor()
         if (ssDrawing.quickDraw) { // a simple line
@@ -1840,7 +1840,7 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
         at.transform(this.line.p1, p1)
         at.transform(this.line.p2, p2)
         if (!this.isFullDetails()) {
-            buffer.append("""<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()}"/>""")
+            buffer.append("""<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()}"/>""")
         } else {
             this.phosphoBonds.forEach {
                 buffer.append(it.asSVG(at))
@@ -2334,7 +2334,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
 
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         val previousStroke = g.stroke
-        g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
+        g.stroke = BasicStroke(this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
             BasicStroke.JOIN_ROUND)
         g.color = this.getColor()
 
@@ -2357,7 +2357,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
         val buffer = StringBuffer()
         val _c = at.createTransformedShape(this.circle)
         if (!this.isFullDetails() && this.getLineWidth() > 0) {
-            buffer.append("""<circle cx="${_c.bounds.centerX}" cy="${_c.bounds.centerY}" r="${_c.bounds.width/2}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()}" fill="none"/>""")
+            buffer.append("""<circle cx="${_c.bounds.centerX}" cy="${_c.bounds.centerY}" r="${_c.bounds.width/2}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()}" fill="none"/>""")
         } else {
             this.phosphoBonds.forEach {
                 buffer.append(it.asSVG(at))
@@ -3048,7 +3048,7 @@ class InteractionSymbolDrawing(parent: DrawingElement?, val interaction: BasePai
                     val _previousStroke = g.stroke
                     g.stroke =
                         BasicStroke(
-                            this.ssDrawing.workingSession.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(),
+                            this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(),
                             BasicStroke.CAP_ROUND,
                             BasicStroke.JOIN_ROUND
                         )
@@ -3063,7 +3063,7 @@ class InteractionSymbolDrawing(parent: DrawingElement?, val interaction: BasePai
                     val _previousStroke = g.stroke
                     g.stroke =
                         BasicStroke(
-                            this.ssDrawing.workingSession.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(),
+                            this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(),
                             BasicStroke.CAP_ROUND,
                             BasicStroke.JOIN_ROUND
                         )
@@ -3081,12 +3081,12 @@ class InteractionSymbolDrawing(parent: DrawingElement?, val interaction: BasePai
         if (this.getLineWidth() > 0) {
             if (this.isFullDetails()) {
                 this.lwSymbols.forEach { lwSymbol ->
-                    buffer.append(lwSymbol.asSVG(at, this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), this.getColor()))
+                    buffer.append(lwSymbol.asSVG(at, this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), this.getColor()))
                 }
             }
             else {
                 this.defaultSymbol?.let {
-                    buffer.append(it.asSVG(at, this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), this.getColor()))
+                    buffer.append(it.asSVG(at, this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), this.getColor()))
                 }
             }
         }
@@ -3298,7 +3298,7 @@ open class PhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing: Seconda
         if (this.isFullDetails()) {
             this.selectionPoints.clear()
             val previousStroke = g.stroke
-            g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
+            g.stroke = BasicStroke(this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_ROUND )
             g.color = this.getColor()
             val center1 = this.residue.center
@@ -3332,7 +3332,7 @@ open class PhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing: Seconda
                 at.transform(center1, p1)
                 at.transform(center2, p2)
                 return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
-                    this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()
+                    this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             } else {
                 val _p1 = Point2D.Double()
@@ -3348,7 +3348,7 @@ open class PhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing: Seconda
                     _p2
                 )
                 return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
-                    this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()
+                    this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             }
         }
@@ -3366,7 +3366,7 @@ class HelicalPhosphodiesterBondDrawing(parent: HelixDrawing, ssDrawing: Secondar
         if (this.isFullDetails()) {
             this.selectionPoints.clear()
             val previousStroke = g.stroke
-            g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
+            g.stroke = BasicStroke(this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_ROUND )
             g.color = this.getColor()
             val center1 = this.residue.center
@@ -3401,7 +3401,7 @@ class HelicalPhosphodiesterBondDrawing(parent: HelixDrawing, ssDrawing: Secondar
                 at.transform(center1, p1)
                 at.transform(center2, p2)
                 return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
-                    this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()
+                    this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             } else {
                 val _p1 = Point2D.Double()
@@ -3417,7 +3417,7 @@ class HelicalPhosphodiesterBondDrawing(parent: HelixDrawing, ssDrawing: Secondar
                     _p2
                 )
                 return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
-                    this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()
+                    this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             }
         }
@@ -3434,7 +3434,7 @@ class InHelixClosingPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDrawing
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (this.isFullDetails()) {
             val previousStroke = g.stroke
-            g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
+            g.stroke = BasicStroke(this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_ROUND )
             g.color = this.getColor()
             val center1 = if (this.posInhelix == this.residue.absPos && !this.residue.parent!!.parent!!.isFullDetails()) (this.residue.parent?.parent as HelixDrawing).line.p2 else this.residue.center
@@ -3465,7 +3465,7 @@ class InHelixClosingPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDrawing
                 at.transform(center1, p1)
                 at.transform(center2, p2)
                 return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
-                    this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()
+                    this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             } else {
                 val _p1 = Point2D.Double()
@@ -3481,7 +3481,7 @@ class InHelixClosingPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDrawing
                     _p2
                 )
                 return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
-                    this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()
+                    this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             }
         }
@@ -3498,7 +3498,7 @@ class OutHelixClosingPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDrawin
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (this.isFullDetails()) {
             val previousStroke = g.stroke
-            g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
+            g.stroke = BasicStroke(this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_ROUND )
             g.color = this.getColor()
 
@@ -3530,7 +3530,7 @@ class OutHelixClosingPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDrawin
                 at.transform(center1, p1)
                 at.transform(center2, p2)
                 return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
-                    this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()
+                    this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             } else {
                 val _p1 = Point2D.Double()
@@ -3546,7 +3546,7 @@ class OutHelixClosingPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDrawin
                     _p2
                 )
                 return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
-                    this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()
+                    this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             }
         }
@@ -3563,7 +3563,7 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(parent: SingleStrandDra
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         val previousStroke = g.stroke
         g.stroke = BasicStroke(
-            this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
+            this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
             BasicStroke.JOIN_ROUND
         )
         g.color = this.getColor()
@@ -3617,7 +3617,7 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(parent: SingleStrandDra
                 at.transform(center1, p1)
                 at.transform(center2, p2)
                 return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
-                    this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()
+                    this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             } else {
                 val _p1 = Point2D.Double()
@@ -3633,7 +3633,7 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(parent: SingleStrandDra
                     _p2
                 )
                 return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
-                    this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()
+                    this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             }
         }
@@ -3650,7 +3650,7 @@ class BranchesLinkingPhosphodiesterBondDrawing(ssDrawing: SecondaryStructureDraw
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
             val previousStroke = g.stroke
             g.stroke = BasicStroke(
-                this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
+                this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_ROUND
             )
             g.color = this.getColor()
@@ -3691,7 +3691,7 @@ class BranchesLinkingPhosphodiesterBondDrawing(ssDrawing: SecondaryStructureDraw
             val p2 = Point2D.Double()
             at.transform(center1, p1)
             at.transform(center2, p2)
-            return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()}"/>"""
+            return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()}"/>"""
         } else {
             val _p1 = Point2D.Double()
             val _p2 = Point2D.Double()
@@ -3703,7 +3703,7 @@ class BranchesLinkingPhosphodiesterBondDrawing(ssDrawing: SecondaryStructureDraw
             )
             at.transform(if (residue.parent!!.isFullDetails() && (residue.isFullDetails() || residue.residueLetter.isFullDetails())) p1 else center1, _p1)
             at.transform(if (nextResidue.parent!!.isFullDetails() && (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails())) p2 else center2, _p2)
-            return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()}"/>"""
+            return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()}"/>"""
         }
     }
 }
@@ -3717,7 +3717,7 @@ class HelicesDirectLinkPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDraw
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (this.isFullDetails()) {
             val previousStroke = g.stroke
-            g.stroke = BasicStroke(this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
+            g.stroke = BasicStroke(this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_ROUND )
             g.color = this.getColor()
 
@@ -3749,7 +3749,7 @@ class HelicesDirectLinkPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDraw
                 at.transform(center1, p1)
                 at.transform(center2, p2)
                 return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
-                    this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()
+                    this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             } else {
                 val _p1 = Point2D.Double()
@@ -3765,7 +3765,7 @@ class HelicesDirectLinkPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDraw
                     _p2
                 )
                 return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
-                    this.ssDrawing.finalZoomLevel.toFloat() * this.getLineWidth().toFloat()
+                    this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             }
         }

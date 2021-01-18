@@ -5,8 +5,6 @@ import org.dizitart.no2.*
 import org.dizitart.no2.Document.createDocument
 import org.dizitart.no2.IndexOptions.indexOptions
 import org.dizitart.no2.filters.Filters.eq
-import java.awt.Rectangle
-import java.awt.geom.Rectangle2D
 import java.io.File
 import java.net.URL
 import javax.imageio.ImageIO
@@ -18,14 +16,6 @@ class EmbeddedDB() {
     var rootDir = File(getUserDir(),"db")
 
     init {
-        if (!rootDir.exists()) {
-            rootDir.mkdir()
-            val images = File(rootDir,"images")
-            images.mkdir()
-            File(images,"pdb").mkdir()
-            val userImages = File(images,"user")
-            userImages.mkdir()
-        }
         var dataFile = File(rootDir,"pdb")
         this.pdbDB = Nitrite.builder()
                 .compressed()
@@ -52,7 +42,7 @@ class EmbeddedDB() {
     }
 
     fun addPDBSecondaryStructure(ss: SecondaryStructure) {
-        ss.source?.split("db:pdb:")?.last()?.let { pdbId ->
+        ss.source.split("db:pdb:").last().let { pdbId ->
             val doc = createDocument("pdbId", pdbId)
             doc.put("title", ss.title)
             doc.put("authors", ss.authors)
@@ -61,7 +51,7 @@ class EmbeddedDB() {
             doc.put("ss", ss)
             this.pdbDB.getCollection("SecondaryStructures").insert(doc)
 
-            val ouputFile = File(File(File(rootDir, "images"), "pdb"), pdbId + ".jpg")
+            val ouputFile = File(File(File(rootDir, "images"), "pdb"), "$pdbId.jpg")
             if (!ouputFile.exists()) {
                 try {
                     val url = URL(
@@ -100,7 +90,7 @@ class EmbeddedDB() {
         }
     }
 
-    fun getPDBSecondaryStructure(pdbID:String):List<Document> {
+    private fun getPDBSecondaryStructure(pdbID:String):List<Document> {
         return this.pdbDB.getCollection("SecondaryStructures").find(eq("pdbId", pdbID)).toList();
     }
 
@@ -117,7 +107,7 @@ class EmbeddedDB() {
         return this.pdbDB.getCollection("TertiaryStructures")
     }
 
-    fun getPDBTertiaryStructure(pdbID:String):List<Document> {
+    private fun getPDBTertiaryStructure(pdbID:String):List<Document> {
         return this.pdbDB.getCollection("TertiaryStructures").find(eq("pdbId", pdbID)).toList();
     }
 
@@ -144,12 +134,13 @@ class EmbeddedDB() {
             ), source = "db:rnartist:${id.toString()}")
 
         val structure = doc.get("structure") as Map<String, Map<String,Map<String, String>>>
-        val helices = structure.get("helices") as Map<String,Map<String, String>>
-        val secondaries = structure.get("secondaries") as Map<String,Map<String, String>>
-        val tertiaries = structure.get("tertiaries") as Map<String,Map<String, String>>
+        val helices = structure["helices"] as Map<String,Map<String, String>>
+        val secondaries = structure["secondaries"] as Map<String,Map<String, String>>
+        val tertiaries = structure["tertiaries"] as Map<String,Map<String, String>>
 
         for ((location, tertiary) in tertiaries) {
-            secondaryStructure.tertiaryInteractions.add(BasePair(Location(location), Edge.valueOf(tertiary.get("edge5")!!), Edge.valueOf(tertiary.get("edge3")!!), Orientation.valueOf(tertiary.get("orientation")!!)))
+            secondaryStructure.tertiaryInteractions.add(BasePair(Location(location), Edge.valueOf(tertiary["edge5"]!!), Edge.valueOf(
+                tertiary["edge3"]!!), Orientation.valueOf(tertiary["orientation"]!!)))
         }
 
         for ((_, helix) in helices) {
@@ -157,13 +148,14 @@ class EmbeddedDB() {
             val location = Location(helix["location"]!!)
             for (i in location.start..location.start+location.length/2-1) {
                 val l = Location(Location(i), Location(location.end-(i-location.start)))
-                val secondary = secondaries.get(l.toString())!!
-                h.secondaryInteractions.add(BasePair(l, Edge.valueOf(secondary.get("edge5")!!), Edge.valueOf(secondary.get("edge3")!!), Orientation.valueOf(secondary.get("orientation")!!)))
+                val secondary = secondaries[l.toString()]!!
+                h.secondaryInteractions.add(BasePair(l, Edge.valueOf(secondary["edge5"]!!), Edge.valueOf(secondary["edge3"]!!), Orientation.valueOf(
+                    secondary["orientation"]!!)))
             }
             secondaryStructure.helices.add(h)
         }
 
-        val junctions = structure.get("junctions") as Map<String,Map<String, String>>
+        val junctions = structure["junctions"] as Map<String,Map<String, String>>
         for ((_, junction) in junctions) {
             val linkedHelices = mutableListOf<Helix>()
             junction["linked-helices"]!!.split(" ").forEach {
@@ -182,28 +174,28 @@ class EmbeddedDB() {
         //We link the helices to their junctions
         for ((start, helix) in helices) {
             val h = secondaryStructure.helices.find { it.start == Integer.parseInt(start) }!!
-            helix.get("first-junction-linked")?.let { startPos ->
+            helix["first-junction-linked"]?.let { startPos ->
                 h.setJunction(secondaryStructure.junctions.find { it.location.start == Integer.parseInt(startPos) }!!)
             }
 
-            helix.get("second-junction-linked")?.let { startPos ->
+            helix["second-junction-linked"]?.let { startPos ->
                 h.setJunction(secondaryStructure.junctions.find { it.location.start == Integer.parseInt(startPos) }!!)
             }
         }
 
-        val pknots = structure.get("pknots") as Map<String,Map<String, String>>
+        val pknots = structure["pknots"] as Map<String,Map<String, String>>
 
         for ((_, pknot) in pknots) {
 
-            val pk = Pknot(pknot.get("name")!!)
+            val pk = Pknot(pknot["name"]!!)
 
             for (h in secondaryStructure.helices) {
-                if (h.start ==  Integer.parseInt(pknot.get("helix")!!)) {
+                if (h.start ==  Integer.parseInt(pknot["helix"]!!)) {
                     pk.helix = h
                     break
                 }
             }
-            pknot.get("tertiaries")?.split(" ")?.forEach { l ->
+            pknot["tertiaries"]?.split(" ")?.forEach { l ->
                 val location = Location(l)
                 for (tertiary in secondaryStructure.tertiaryInteractions) {
                     if (tertiary.location.start == location.start && tertiary.location.end == location.end) {
@@ -225,14 +217,14 @@ class EmbeddedDB() {
         val workingSession = doc.get("session") as Map<String, String>
 
         val ws = WorkingSession()
-        ws.viewX = workingSession.get("view-x")!!.toDouble()
-        ws.viewY = workingSession.get("view-y")!!.toDouble()
-        ws.finalZoomLevel = workingSession.get("final-zoom-lvl")!!.toDouble()
+        ws.viewX = workingSession["view-x"]!!.toDouble()
+        ws.viewY = workingSession["view-y"]!!.toDouble()
+        ws.zoomLevel = workingSession["zoom-lvl"]!!.toDouble()
 
         return Project(secondaryStructure, layout, theme, ws,null)
     }
 
-    fun addProject(name: String, secondaryStructureDrawing: SecondaryStructureDrawing):NitriteId {
+    fun saveProjectAs(name: String, secondaryStructureDrawing: SecondaryStructureDrawing):NitriteId {
         val doc = createDocument("name",name)
 
         doc.put("rna", mutableMapOf<String,String>(
@@ -253,6 +245,28 @@ class EmbeddedDB() {
 
         val r = this.userDB.getCollection("Projects").insert(doc)
         return r.first()
+    }
+
+    fun saveProject(id:NitriteId, secondaryStructureDrawing: SecondaryStructureDrawing) {
+        val doc = this.userDB.getCollection("Projects").getById(id) as Document
+
+        doc.put("rna", mutableMapOf<String,String>(
+            "name" to secondaryStructureDrawing.secondaryStructure.rna.name,
+            "seq" to secondaryStructureDrawing.secondaryStructure.rna.seq))
+
+        //STRUCTURE
+        doc.put("structure", dumpSecondaryStructure(secondaryStructureDrawing))
+
+        //LAYOUT (the size and orientation of junctions)
+        doc.put("layout", dumpLayout(secondaryStructureDrawing))
+
+        //THEME (colors, line width, full details,...)
+        doc.put("theme", dumpTheme(secondaryStructureDrawing))
+
+        //WORKING SESSION
+        doc.put("session", dumpWorkingSession(secondaryStructureDrawing))
+
+        this.userDB.getCollection("Projects").update(doc)
     }
 
 

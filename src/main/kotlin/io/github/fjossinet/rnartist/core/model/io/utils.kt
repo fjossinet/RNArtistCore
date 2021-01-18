@@ -3,9 +3,7 @@ package io.github.fjossinet.rnartist.core.model.io
 import java.io.*
 
 fun getTmpDirectory(): File {
-    val tmpDir = File(StringBuffer(getUserDir().absolutePath).append(System.getProperty("file.separator")).append("tmp").toString())
-    if (!tmpDir.exists()) tmpDir.mkdir()
-    return tmpDir
+    return File(getUserDir(), "tmp")
 }
 
 @Throws(IOException::class)
@@ -27,12 +25,28 @@ fun createTemporaryFile(dir: File?, fileName: String): File {
 
 @Throws(IOException::class)
 fun getUserDir(): File {
-    val f = File(StringBuffer(System.getProperty("user.home")).append(System.getProperty("file.separator")).append(".rnartist").toString())
-    if (!f.exists()) {
-        f.mkdir()
-        File(f, "tmp").mkdir()
-    }
-    return f
+    val root = File(StringBuffer(System.getProperty("user.home")).append(System.getProperty("file.separator")).append(".rnartist").toString())
+    if (!root.exists())
+        root.mkdir()
+    val tmp = File(root, "tmp")
+    if (!tmp.exists())
+        tmp.mkdir()
+    val db = File(root, "db")
+    if (!db.exists())
+        db.mkdir()
+    val images = File(db, "images")
+    if (!images.exists())
+        images.mkdir()
+    val userImages = File(images, "user")
+    if (!userImages.exists())
+        userImages.mkdir()
+    val pdbImages = File(images, "pdb")
+    if (!pdbImages.exists())
+        pdbImages.mkdir()
+    val chimera_sessions = File(db, "chimera_sessions")
+    if (!chimera_sessions.exists())
+        chimera_sessions.mkdir()
+    return root
 }
 
 @Throws(IOException::class)

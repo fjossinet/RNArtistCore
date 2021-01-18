@@ -103,7 +103,7 @@ class Location:Serializable {
 
 }
 
-class RNA(var name:String="A", seq:String, var source:String="Source N.A."):Serializable {
+class RNA(var name:String="A", seq:String, var source:String="NA"):Serializable {
 
     val length:Int
         get() {
@@ -594,7 +594,7 @@ class Atom(val name:String):Serializable {
 
 }
 
-class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null, var source:String? = null):Serializable {
+class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null, var source:String = "NA"):Serializable {
 
     var name:String = "2D for ${this.rna.name}"
     val tertiaryInteractions = mutableSetOf<BasePair>()

@@ -152,23 +152,19 @@ ids.forEach { pdbId ->
             val tertiaryStructures = parsePDB(FileReader(pdbFile))
             rnaview.annotate(pdbFile).forEach {
                 val s = mutableListOf("[${pdbId}](https://www.rcsb.org/structure/${pdbId})")
+                s.add(it.rna.name)
                 var found = false
                 for (ts in tertiaryStructures)
-                    if (tertiaryStructures.indexOf(ts)+1 == Integer.parseInt(it.rna.name)) {
-                        it.rna.name = ts.rna.name
+                    if (it.rna.name.equals(ts.rna.name)) {
                         found = true
-                        s.add(it.rna.name)
                         if (it.rna.length == ts.rna.length)
                             s.add("N")
                         else
                             s.add("Y")
                         break
                     }
-                if (!found) {
-                    it.rna.name = "?"
-                    s.add(it.rna.name)
-                    s.add("Y")
-                }
+                if (!found)
+                    s.add("Y")  //should never happen
                 if (!it.helices.isEmpty()) {
                     val drawing = SecondaryStructureDrawing(it)
                     s.add("v1")

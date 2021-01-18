@@ -5,45 +5,11 @@ import io.github.fjossinet.rnartist.core.model.SecondaryStructure
 import io.github.fjossinet.rnartist.core.model.TertiaryStructure
 import org.apache.commons.io.FileUtils
 import java.io.File
+import java.io.FileReader
 import java.io.IOException
 import java.io.PrintWriter
 
 class Rnaview : Computation() {
-
-    @Throws(Exception::class)
-    fun annotate(ts: TertiaryStructure): List<SecondaryStructure> {
-        return when {
-            RnartistConfig.isDockerInstalled() && RnartistConfig.isAssemble2DockerImageInstalled() -> {
-                val temp = createTemporaryFile("rnaview")
-                val writer = PrintWriter(temp)
-                writePDB(ts, true, writer)
-                val pb = ProcessBuilder("docker", "run", "-v", temp!!.parent + ":/data", "fjossinet/assemble2", "rnaview", "-p", "/data/" + temp.name)
-                val p = pb.start()
-                p.waitFor()
-                val structures = parseRnaml(File(temp.parent, temp.name + ".xml"))
-                structures.forEach {
-                    it.rna.name = ts.rna.name
-                }
-                structures
-                //TODO check if RNAVIEW has modified the RNA -> newTS (see below) like 1C0A
-            }
-            System.getProperty("os.name") == "Windows 10" -> {
-                val temp = createTemporaryFile("rnaview")
-                val writer = PrintWriter(temp)
-                writePDB(ts, true, writer)
-                val pb = ProcessBuilder(File(getUserDir(), "rnaview.bat").absolutePath, temp!!.absolutePath)
-                val p = pb.start()
-                p.waitFor()
-                //TODO check if RNAVIEW has modified the RNA -> newTS (see below) like 1C0A
-                val structures = parseRnaml(File(temp.parent, temp.name + ".xml"))
-                structures.forEach {
-                    it.rna.name = ts.rna.name
-                }
-                structures
-            }
-            else -> listOf<SecondaryStructure>()
-        }
-    }
 
     @Throws(Exception::class)
     fun annotate(pdb:File): List<SecondaryStructure> {
@@ -52,23 +18,57 @@ class Rnaview : Computation() {
                 val pb = ProcessBuilder("docker", "run", "-v", pdb.parent + ":/data", "fjossinet/assemble2", "rnaview", "-p", "/data/" + pdb.name)
                 val p = pb.start()
                 p.waitFor()
-                val ss = parseRnaml(File(pdb.parent, pdb.name + ".xml"))
+                val secondaryStructures = parseRnaml(File(pdb.parent, pdb.name + ".xml"))
+                secondaryStructures.forEach {
+                    it.source = "tool:rnaview"
+                }
                 File(pdb.parent, pdb.name + ".ps").delete()
                 File(pdb.parent, pdb.name + ".out").delete()
                 File(pdb.parent, pdb.name + ".xml").delete()
-                ss
-                //TODO check if RNAVIEW has modified the RNA -> newTS (see below) like 1C0A
+                var found = false
+                val tertiaryStructures = parsePDB(FileReader(pdb))
+                for (ss in secondaryStructures) {
+                    for (ts in tertiaryStructures)
+                        if (tertiaryStructures.indexOf(ts) + 1 == Integer.parseInt(ss.rna.name)) {
+                            ss.rna.name = ts.rna.name
+                            found = true
+                            if (ss.rna.length != ts.rna.length) {
+                                //TODO check if RNAVIEW has modified the RNA -> newTS (see below) like 1C0A
+                            }
+                            break
+                        }
+                    if (!found)
+                        ss.rna.name = "?"  //should never happen
+                }
+                secondaryStructures
             }
             System.getProperty("os.name") == "Windows 10" -> {
                 val pb = ProcessBuilder(File(getUserDir(), "rnaview.bat").absolutePath, pdb.absolutePath)
                 val p = pb.start()
                 p.waitFor()
-                //TODO check if RNAVIEW has modified the RNA -> newTS (see below) like 1C0A
-                val ss = parseRnaml(File(pdb.parent, pdb.name + ".xml"))
+                val secondaryStructures = parseRnaml(File(pdb.parent, pdb.name + ".xml"))
+                secondaryStructures.forEach {
+                    it.source = "tool:rnaview"
+                }
                 File(pdb.parent, pdb.name + ".ps").delete()
                 File(pdb.parent, pdb.name + ".out").delete()
                 File(pdb.parent, pdb.name + ".xml").delete()
-                ss
+                var found = false
+                val tertiaryStructures = parsePDB(FileReader(pdb))
+                for (ss in secondaryStructures) {
+                    for (ts in tertiaryStructures)
+                        if (tertiaryStructures.indexOf(ts) + 1 == Integer.parseInt(ss.rna.name)) {
+                            ss.rna.name = ts.rna.name
+                            found = true
+                            if (ss.rna.length != ts.rna.length) {
+                                //TODO check if RNAVIEW has modified the RNA -> newTS (see below) like 1C0A
+                            }
+                            break
+                        }
+                    if (!found)
+                        ss.rna.name = "?" //should never happen
+                }
+                secondaryStructures
             }
             else -> listOf<SecondaryStructure>()
         }

@@ -5,10 +5,7 @@ import com.google.gson.GsonBuilder
 import io.github.fjossinet.rnartist.core.model.*
 import org.jdom2.Element
 import org.jdom2.input.SAXBuilder
-import java.awt.Font
-import java.awt.Rectangle
 import java.awt.geom.AffineTransform
-import java.awt.image.BufferedImage
 import java.io.*
 import java.text.NumberFormat
 import java.util.*
@@ -132,8 +129,8 @@ fun parseVienna(reader: Reader): SecondaryStructure {
 
 fun toSVG(drawing:SecondaryStructureDrawing, width:Int, height:Int): String {
     val at = AffineTransform()
-    at.translate(drawing.workingSession.viewX, drawing.workingSession.viewY)
-    at.scale(drawing.workingSession.finalZoomLevel, drawing.workingSession.finalZoomLevel)
+    at.translate(drawing.viewX, drawing.viewY)
+    at.scale(drawing.zoomLevel, drawing.zoomLevel)
 
     val svgBuffer = StringBuffer("""<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">""" + "\n")
 
@@ -278,7 +275,7 @@ fun parseJSON(reader: Reader): SecondaryStructureDrawing? {
     val ws = WorkingSession()
     ws.viewX = workingSession.get("view-x")!!.toDouble()
     ws.viewY = workingSession.get("view-y")!!.toDouble()
-    ws.finalZoomLevel = workingSession.get("final-zoom-lvl")!!.toDouble()
+    ws.zoomLevel = workingSession.get("zoom-lvl")!!.toDouble()
 
     return parseProject(Project(secondaryStructure, layout, theme, ws,null));
 }
@@ -371,7 +368,7 @@ fun parseProject(project: Project): SecondaryStructureDrawing {
     //WORKING SESSION
     drawing.workingSession.viewX = project.workingSession.viewX
     drawing.workingSession.viewY = project.workingSession.viewY
-    drawing.workingSession.finalZoomLevel = project.workingSession.finalZoomLevel
+    drawing.workingSession.zoomLevel = project.workingSession.zoomLevel
 
     return drawing
 }
@@ -869,9 +866,9 @@ fun dumpTheme(drawing: SecondaryStructureDrawing): Map<String, Map<String, Map<S
 
 fun dumpWorkingSession(drawing: SecondaryStructureDrawing): Map<String, String> {
     val workingSession = mutableMapOf<String, String>(
-        "view-x" to "%.2f".format(Locale.UK, drawing.workingSession.viewX),
-        "view-y" to "%.2f".format(Locale.UK, drawing.workingSession.viewY),
-        "final-zoom-lvl" to "%.2f".format(Locale.UK, drawing.workingSession.finalZoomLevel)
+        "view-x" to "%.2f".format(Locale.UK, drawing.viewX),
+        "view-y" to "%.2f".format(Locale.UK, drawing.viewY),
+        "zoom-lvl" to "%.2f".format(Locale.UK, drawing.zoomLevel)
     )
     return workingSession
 }
