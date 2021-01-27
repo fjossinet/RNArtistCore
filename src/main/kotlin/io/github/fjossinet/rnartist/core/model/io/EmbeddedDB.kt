@@ -11,120 +11,18 @@ import javax.imageio.ImageIO
 
 class EmbeddedDB() {
 
-    private var pdbDB:Nitrite
-    private var userDB:Nitrite
     var rootDir = File(getUserDir(),"db")
+    private var userDB:Nitrite
 
     init {
-        var dataFile = File(rootDir,"pdb")
-        this.pdbDB = Nitrite.builder()
-                .compressed()
-                .filePath(dataFile.absolutePath)
-                .openOrCreate()
-        val coll = this.pdbDB.getCollection("SecondaryStructures");
-        if (!coll.hasIndex("pdbId")) {
-            coll.createIndex("pdbId", indexOptions(IndexType.NonUnique));
-        }
-        if (!coll.hasIndex("title")) {
-            coll.createIndex("title", indexOptions(IndexType.Fulltext));
-        }
-        if (!coll.hasIndex("authors")) {
-            coll.createIndex("authors", indexOptions(IndexType.Fulltext));
-        }
-        if (!coll.hasIndex("pubDate")) {
-            coll.createIndex("pubDate", indexOptions(IndexType.Fulltext));
-        }
-        dataFile = File(rootDir,"user")
+        val dataFile = File(rootDir,"user")
         this.userDB = Nitrite.builder()
                 .compressed()
                 .filePath(dataFile.absolutePath)
                 .openOrCreate()
     }
 
-    fun addPDBSecondaryStructure(ss: SecondaryStructure) {
-        ss.source.split("db:pdb:").last().let { pdbId ->
-            val doc = createDocument("pdbId", pdbId)
-            doc.put("title", ss.title)
-            doc.put("authors", ss.authors)
-            doc.put("pubDate", ss.pubDate)
-            doc.put("chain", ss.rna.name)
-            doc.put("ss", ss)
-            this.pdbDB.getCollection("SecondaryStructures").insert(doc)
-
-            val ouputFile = File(File(File(rootDir, "images"), "pdb"), "$pdbId.jpg")
-            if (!ouputFile.exists()) {
-                try {
-                    val url = URL(
-                        "https://cdn.rcsb.org/images/rutgers/" +pdbId.substring(1, 3)
-                            .toLowerCase() + "/" + pdbId.toLowerCase() + "/" + pdbId.toLowerCase() + ".pdb1-250.jpg"
-                    )
-                    val image = ImageIO.read(url)
-                    ouputFile.createNewFile()
-                    ImageIO.write(image, "jpg", ouputFile)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        }
-    }
-
-    fun addPDBTertiaryStructure(ts: TertiaryStructure) {
-        val doc = createDocument("pdbId",ts.pdbId)
-        doc.put("title",ts.title)
-        doc.put("authors",ts.authors)
-        doc.put("pubDate",ts.pubDate)
-        doc.put("chain",ts.rna.name)
-        doc.put("ts",ts)
-        this.pdbDB.getCollection("TertiaryStructures").insert(doc)
-
-        val ouputFile = File(File(File(rootDir,"images"),"pdb"), ts.pdbId + ".jpg")
-        if (!ouputFile.exists()) {
-            try {
-                val url = URL("https://cdn.rcsb.org/images/rutgers/" + ts.pdbId!!.substring(1, 3).toLowerCase() + "/" + ts.pdbId!!.toLowerCase() + "/" + ts.pdbId!!.toLowerCase() + ".pdb1-250.jpg")
-                val image = ImageIO.read(url)
-                ouputFile.createNewFile()
-                ImageIO.write(image, "jpg", ouputFile)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    private fun getPDBSecondaryStructure(pdbID:String):List<Document> {
-        return this.pdbDB.getCollection("SecondaryStructures").find(eq("pdbId", pdbID)).toList();
-    }
-
-    fun getPDBSecondaryStructure(pdbID:String, chain:String):Document? {
-        for (doc in this.getPDBSecondaryStructure(pdbID)) {
-            if (doc.get("chain")!!.equals(chain)) {
-                return doc
-            }
-        }
-        return null
-    }
-
-    fun getPDBTertiaryStructures():NitriteCollection {
-        return this.pdbDB.getCollection("TertiaryStructures")
-    }
-
-    private fun getPDBTertiaryStructure(pdbID:String):List<Document> {
-        return this.pdbDB.getCollection("TertiaryStructures").find(eq("pdbId", pdbID)).toList();
-    }
-
-    fun getPDBTertiaryStructure(pdbID:String, chain:String):Document? {
-        for (doc in this.getPDBTertiaryStructure(pdbID)) {
-            if (doc.get("chain")!!.equals(chain)) {
-                return doc
-            }
-        }
-        return null
-    }
-
-    fun getPDBSecondaryStructures():NitriteCollection {
-        return this.pdbDB.getCollection("SecondaryStructures")
-    }
-
-    fun getProject(id: NitriteId): Project {
+    fun getProject(id: NitriteId): SecondaryStructureDrawing {
         val doc = this.userDB.getCollection("Projects").getById(id) as Document
         val rna = doc.get("rna") as Map<String,String>
         val secondaryStructure = SecondaryStructure(
@@ -219,9 +117,9 @@ class EmbeddedDB() {
         val ws = WorkingSession()
         ws.viewX = workingSession["view-x"]!!.toDouble()
         ws.viewY = workingSession["view-y"]!!.toDouble()
-        ws.zoomLevel = workingSession["zoom-lvl"]!!.toDouble()
+        ws.zoomLevel = workingSession["final-zoom-lvl"]!!.toDouble()
 
-        return Project(secondaryStructure, layout, theme, ws,null)
+        return parseProject(Project(secondaryStructure, layout, theme, ws))
     }
 
     fun saveProjectAs(name: String, secondaryStructureDrawing: SecondaryStructureDrawing):NitriteId {
@@ -267,6 +165,11 @@ class EmbeddedDB() {
         doc.put("session", dumpWorkingSession(secondaryStructureDrawing))
 
         this.userDB.getCollection("Projects").update(doc)
+    }
+
+    fun removeProject(id:NitriteId) {
+        val doc = this.userDB.getCollection("Projects").getById(id) as Document
+        this.userDB.getCollection("Projects").remove(doc)
     }
 
 

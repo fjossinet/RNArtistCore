@@ -275,12 +275,12 @@ fun parseJSON(reader: Reader): SecondaryStructureDrawing? {
     val ws = WorkingSession()
     ws.viewX = workingSession.get("view-x")!!.toDouble()
     ws.viewY = workingSession.get("view-y")!!.toDouble()
-    ws.zoomLevel = workingSession.get("zoom-lvl")!!.toDouble()
+    ws.zoomLevel = workingSession.get("final-zoom-lvl")!!.toDouble()
 
-    return parseProject(Project(secondaryStructure, layout, theme, ws,null));
+    return parseProject(Project(secondaryStructure, layout, theme, ws));
 }
 
-class Project(val secondaryStructure: SecondaryStructure, val layout: Map<String, Map<String, String>>, val theme: Map<String, Map<String, Map<String, String>>>, val workingSession:WorkingSession, val tertiaryStructure: TertiaryStructure?)
+class Project(val secondaryStructure: SecondaryStructure, val layout: Map<String, Map<String, String>>, val theme: Map<String, Map<String, Map<String, String>>>, val workingSession:WorkingSession)
 
 fun parseProject(project: Project): SecondaryStructureDrawing {
     val drawing = SecondaryStructureDrawing(
@@ -294,15 +294,15 @@ fun parseProject(project: Project): SecondaryStructureDrawing {
     for (junction in junctions) {
         val l = layout["" + junction.location.start]!!
         junction.inId = ConnectorId.valueOf(l["in-id"]!!)
-        if (l.containsKey("out-ids")) junction.layout =
-            Arrays.stream(l["out-ids"]!!.split(" ").toTypedArray()).map { c: String? ->
-                ConnectorId.valueOf(c!!)
-            }.collect(Collectors.toList())
-        junction.radius = l["radius"]!!.toDouble()
-    }
+        if (l.containsKey("out-ids")) {
+            junction.radius = l["radius"]!!.toDouble()
+            junction.layout =
+                Arrays.stream(l["out-ids"]!!.split(" ").toTypedArray()).map { c: String? ->
+                    ConnectorId.valueOf(c!!)
+                }.collect(Collectors.toList())
+            drawing.computeResidues(junction)
+        }
 
-    drawing.branches.forEach {
-        drawing.computeResidues(it)
     }
 
     //THEME
@@ -633,12 +633,14 @@ fun parsePDB(reader: Reader): List<TertiaryStructure> {
         }
     }
     for (tertiaryStructure in tertiaryStructures) {
-        var t = title.toString().toLowerCase()
-        t = t.substring(0, 1).toUpperCase() + t.substring(1).toLowerCase()
-        tertiaryStructure.title = t
-        t = authors.toString().split(",".toRegex()).toTypedArray()[0]
-        tertiaryStructure.authors = t
-        tertiaryStructure.pubDate = pubDate.toString()
+        if (title.isNotEmpty()) {
+            var t = title.toString().toLowerCase()
+            t = t.substring(0, 1).toUpperCase() + t.substring(1).toLowerCase()
+            tertiaryStructure.title = t
+            t = authors.toString().split(",".toRegex()).toTypedArray()[0]
+            tertiaryStructure.authors = t
+            tertiaryStructure.pubDate = pubDate.toString()
+        }
     }
     return tertiaryStructures
 }
@@ -868,7 +870,7 @@ fun dumpWorkingSession(drawing: SecondaryStructureDrawing): Map<String, String> 
     val workingSession = mutableMapOf<String, String>(
         "view-x" to "%.2f".format(Locale.UK, drawing.viewX),
         "view-y" to "%.2f".format(Locale.UK, drawing.viewY),
-        "zoom-lvl" to "%.2f".format(Locale.UK, drawing.zoomLevel)
+        "final-zoom-lvl" to "%.2f".format(Locale.UK, drawing.zoomLevel)
     )
     return workingSession
 }

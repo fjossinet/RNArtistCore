@@ -23,124 +23,6 @@ import java.util.prefs.BackingStoreException
 object RnartistConfig {
 
     @JvmField
-    val themeDetailsLevel = listOf<Map<String, Map<String, String>>>(
-        mapOf<String, Map<String, String>>(
-            SecondaryStructureType.Helix.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.SecondaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.TertiaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.Junction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.SingleStrand.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.PhosphodiesterBond.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.AShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.A.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.UShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.U.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.GShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.G.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.CShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.C.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.XShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.X.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.InteractionSymbol.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false")
-        ),
-        mapOf<String, Map<String, String>>(
-            SecondaryStructureType.Helix.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.SecondaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.TertiaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.Junction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.SingleStrand.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.PhosphodiesterBond.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.AShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.A.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.UShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.U.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.GShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.G.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.CShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.C.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.XShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.X.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.InteractionSymbol.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false")
-        ),
-        mapOf<String, Map<String, String>>(
-            SecondaryStructureType.Helix.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.SecondaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.TertiaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.Junction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.SingleStrand.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.PhosphodiesterBond.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.AShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.A.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.UShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.U.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.GShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.G.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.CShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.C.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.XShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.X.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.InteractionSymbol.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false")
-        ),
-        mapOf<String, Map<String, String>>(
-            SecondaryStructureType.Helix.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.SecondaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.TertiaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.Junction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.SingleStrand.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.PhosphodiesterBond.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.AShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.A.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.UShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.U.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.GShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.G.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.CShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.C.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.XShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.X.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.InteractionSymbol.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false")
-        ),
-        mapOf<String, Map<String, String>>(
-            SecondaryStructureType.Helix.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.SecondaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.TertiaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "false"),
-            SecondaryStructureType.Junction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.SingleStrand.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.PhosphodiesterBond.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.AShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.A.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.UShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.U.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.GShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.G.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.CShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.C.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.XShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.X.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.InteractionSymbol.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true")
-        ),
-        mapOf<String, Map<String, String>>(
-            SecondaryStructureType.Helix.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.SecondaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.TertiaryInteraction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.Junction.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.SingleStrand.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.PhosphodiesterBond.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.AShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.A.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.UShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.U.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.GShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.G.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.CShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.C.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.XShape.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.X.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true"),
-            SecondaryStructureType.InteractionSymbol.toString() to mapOf<String, String>(DrawingConfigurationParameter.fulldetails.toString() to "true")
-        )
-    )
-
-    @JvmField
     val colorSchemes: Map<String, Map<String, Map<String, String>>> = mapOf(
         "Persian Carolina" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
@@ -1128,27 +1010,6 @@ object RnartistConfig {
         DrawingConfigurationParameter.fulldetails.toString() to "false"
     )
 
-    private val defaultColorScheme = "Pumpkin Vegas"
-
-    @JvmField
-    var defaultTheme = mutableMapOf(
-        Pair(SecondaryStructureType.Full2D.toString(), defaultConfiguration.toMutableMap()),
-        Pair(SecondaryStructureType.Helix.toString(), colorSchemes[defaultColorScheme]!![SecondaryStructureType.Helix.toString()]!!),
-        Pair(SecondaryStructureType.Junction.toString(), colorSchemes[defaultColorScheme]!![SecondaryStructureType.Junction.toString()]!!),
-        Pair(SecondaryStructureType.SingleStrand.toString(), colorSchemes[defaultColorScheme]!![SecondaryStructureType.SingleStrand.toString()]!!),
-        Pair(SecondaryStructureType.AShape.toString(), colorSchemes[defaultColorScheme]!![SecondaryStructureType.AShape.toString()]!!),
-        Pair(SecondaryStructureType.A.toString(), colorSchemes[defaultColorScheme]!![SecondaryStructureType.A.toString()]!!),
-        Pair(SecondaryStructureType.UShape.toString(), colorSchemes[defaultColorScheme]!![SecondaryStructureType.UShape.toString()]!!),
-        Pair(SecondaryStructureType.U.toString(), colorSchemes[defaultColorScheme]!![SecondaryStructureType.U.toString()]!!),
-        Pair(SecondaryStructureType.GShape.toString(), colorSchemes[defaultColorScheme]!![SecondaryStructureType.GShape.toString()]!!),
-        Pair(SecondaryStructureType.G.toString(), colorSchemes[defaultColorScheme]!![SecondaryStructureType.G.toString()]!!),
-        Pair(SecondaryStructureType.CShape.toString(), colorSchemes[defaultColorScheme]!![SecondaryStructureType.CShape.toString()]!!),
-        Pair(SecondaryStructureType.C.toString(), colorSchemes[defaultColorScheme]!![SecondaryStructureType.C.toString()]!!),
-        Pair(SecondaryStructureType.XShape.toString(), colorSchemes[defaultColorScheme]!![SecondaryStructureType.XShape.toString()]!!),
-        Pair(SecondaryStructureType.X.toString(), colorSchemes[defaultColorScheme]!![SecondaryStructureType.X.toString()]!!),
-    )
-
-
     @JvmStatic
     @Throws(BackingStoreException::class, IOException::class)
     fun load() {
@@ -1169,7 +1030,7 @@ object RnartistConfig {
             )
             document = Document(root)
         }
-        recoverWebsite()
+        //recoverWebsite()
     }
 
     @JvmStatic
@@ -1193,16 +1054,12 @@ object RnartistConfig {
         val request = HttpRequest.newBuilder()
             .uri(URI.create("https://raw.githubusercontent.com/fjossinet/RNArtist/master/properties.json"))
             .build()
-        try {
             val response: HttpResponse<String> = client.send(
                 request,
                 HttpResponse.BodyHandlers.ofString()
             )
             val properties = Gson().fromJson<GlobalProperties>(response.body() as String, GlobalProperties::class.java)
             website = "http://${properties.website.get(status)}"
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
     }
 
     @JvmStatic
@@ -1326,33 +1183,114 @@ object RnartistConfig {
         }
 
     @JvmStatic
-    var chimeraPath: String?
+    var chimeraPath: String
         get() {
             var e = document!!.rootElement.getChild("external-tools")
             if (e == null) {
-                val osName = System.getProperty("os.name")
                 e = Element("external-tools")
-                e.addContent(Element("chimera-path"))
                 document!!.rootElement.addContent(e)
+            }
+            var _e = e.getChild("chimera")
+            if (_e == null) {
+                _e = Element("chimera")
+                _e.addContent(Element("path"))
+                _e.addContent(Element("host"))
+                _e.addContent(Element("port"))
+                e.addContent(_e)
+                val osName = System.getProperty("os.name")
                 when {
                     osName.startsWith("Mac OS") -> {
-                        e.getChild("chimera-path").text = "/Applications/Chimera.app/Contents/MacOS/chimera"
+                        _e.getChild("path").text = "/Applications/Chimera.app/Contents/MacOS/chimera"
                     }
                     osName.startsWith("Windows") -> {
-                        e.getChild("chimera-path").text = "C:\\Program Files\\Chimera\\bin\\chimera.exe"
+                        _e.getChild("path").text = "C:\\Program Files\\Chimera\\bin\\chimera.exe"
                     }
                     else -> {
-                        e.getChild("chimera-path").text = "/usr/local/chimera/bin/chimera"
+                        _e.getChild("path").text = "/usr/local/chimera/bin/chimera"
                     }
                 }
-            } else {
-                val _e = e.getChild("chimera-path")
-                if (_e == null) e.addContent(Element("chimera-path"))
+                _e.getChild("host").text = "127.0.0.1"
+                _e.getChild("port").text = "50000"
             }
-            return document!!.rootElement.getChild("external-tools").getChild("chimera-path").value
+
+            return _e.getChild("path").value
         }
         set(path) {
-            document!!.rootElement.getChild("external-tools").getChild("chimera-path").text = path
+            document!!.rootElement.getChild("external-tools").getChild("chimera").getChild("path").text = path
+        }
+
+    @JvmStatic
+    var chimeraHost: String
+        get() {
+            var e = document!!.rootElement.getChild("external-tools")
+            if (e == null) {
+                e = Element("external-tools")
+                document!!.rootElement.addContent(e)
+            }
+            var _e = e.getChild("chimera")
+            if (_e == null) {
+                _e = Element("chimera")
+                _e.addContent(Element("path"))
+                _e.addContent(Element("host"))
+                _e.addContent(Element("port"))
+                e.addContent(_e)
+                val osName = System.getProperty("os.name")
+                when {
+                    osName.startsWith("Mac OS") -> {
+                        _e.getChild("path").text = "/Applications/Chimera.app/Contents/MacOS/chimera"
+                    }
+                    osName.startsWith("Windows") -> {
+                        _e.getChild("path").text = "C:\\Program Files\\Chimera\\bin\\chimera.exe"
+                    }
+                    else -> {
+                        _e.getChild("path").text = "/usr/local/chimera/bin/chimera"
+                    }
+                }
+                _e.getChild("host").text = "127.0.0.1"
+                _e.getChild("port").text = "50000"
+            }
+
+            return _e.getChild("host").value
+        }
+        set(host) {
+            document!!.rootElement.getChild("external-tools").getChild("chimera").getChild("host").text = host
+        }
+
+    @JvmStatic
+    var chimeraPort: Int
+        get() {
+            var e = document!!.rootElement.getChild("external-tools")
+            if (e == null) {
+                e = Element("external-tools")
+                document!!.rootElement.addContent(e)
+            }
+            var _e = e.getChild("chimera")
+            if (_e == null) {
+                _e = Element("chimera")
+                _e.addContent(Element("path"))
+                _e.addContent(Element("host"))
+                _e.addContent(Element("port"))
+                e.addContent(_e)
+                val osName = System.getProperty("os.name")
+                when {
+                    osName.startsWith("Mac OS") -> {
+                        _e.getChild("path").text = "/Applications/Chimera.app/Contents/MacOS/chimera"
+                    }
+                    osName.startsWith("Windows") -> {
+                        _e.getChild("path").text = "C:\\Program Files\\Chimera\\bin\\chimera.exe"
+                    }
+                    else -> {
+                        _e.getChild("path").text = "/usr/local/chimera/bin/chimera"
+                    }
+                }
+                _e.getChild("host").text = "127.0.0.1"
+                _e.getChild("port").text = "50000"
+            }
+
+            return Integer.parseInt(_e.getChild("port").value)
+        }
+        set(port) {
+            document!!.rootElement.getChild("external-tools").getChild("chimera").getChild("port").text = port.toString()
         }
 
     @JvmStatic

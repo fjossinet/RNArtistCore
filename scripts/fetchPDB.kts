@@ -198,11 +198,6 @@ ids.forEach { pdbId ->
                     status.add(s)
                     stored++
                 } else {
-                    /*s.add("No helices")
-                    s.add("")
-                    s.add("")
-                    s.add("")
-                    status.add(s)*/
                     non_helices++
                 }
             }

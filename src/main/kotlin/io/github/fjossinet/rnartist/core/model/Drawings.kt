@@ -1,7 +1,6 @@
 package io.github.fjossinet.rnartist.core.model
 
 import io.github.fjossinet.rnartist.core.model.RnartistConfig.defaultConfiguration
-import io.github.fjossinet.rnartist.core.model.RnartistConfig.defaultTheme
 import java.awt.*
 import java.awt.Color
 import java.awt.geom.*
@@ -123,7 +122,7 @@ class WorkingSession() {
     }
 }
 
-class Theme(defaultConfigurations: MutableMap<String, Map<String, String>> = defaultTheme) {
+class Theme(defaultConfigurations: MutableMap<String, Map<String, String>> = mutableMapOf()) {
 
     var configurations: MutableMap<String, MutableMap<String, String>> = mutableMapOf()
 
@@ -825,6 +824,23 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
 
     fun fitTo(frame:Rectangle2D) {
         val selectionFrame = this.getFrame()
+        val widthRatio = selectionFrame.bounds2D!!.width / frame.bounds2D.width
+        val heightRatio = selectionFrame.bounds2D!!.height / frame.bounds2D.height
+        this.workingSession.zoomLevel =
+            if (widthRatio > heightRatio) 1.0 / widthRatio else 1.0 / heightRatio
+        var at = AffineTransform()
+        at.scale(this.zoomLevel, this.zoomLevel)
+        val transformedBounds = at.createTransformedShape(selectionFrame)
+        this.workingSession.viewX = frame.bounds2D.centerX - transformedBounds.bounds2D.centerX
+        this.workingSession.viewY = frame.bounds2D.centerY - transformedBounds.bounds2D.centerY
+
+        //We compute the new font parameters
+        val image = BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB)
+        val g = image.createGraphics()
+        this.workingSession.setFont(g, this.residues.first())
+    }
+
+    fun fitTo(frame:Rectangle2D, selectionFrame:Rectangle2D) {
         val widthRatio = selectionFrame.bounds2D!!.width / frame.bounds2D.width
         val heightRatio = selectionFrame.bounds2D!!.height / frame.bounds2D.height
         this.workingSession.zoomLevel =
@@ -2766,6 +2782,10 @@ abstract class BaseBaseInteractionDrawing(parent: DrawingElement?, val interacti
     val isDoublePaired: Boolean
         get() = this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first().type == SecondaryStructureType.GShape && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first().type == SecondaryStructureType.CShape ||
                 this.ssDrawing.getResiduesFromAbsPositions(this.interaction.start).first().type == SecondaryStructureType.CShape && this.ssDrawing.getResiduesFromAbsPositions(this.interaction.end).first().type == SecondaryStructureType.GShape
+
+    val isSingleHBond: Boolean
+        get() =  this.interaction.edge5 == Edge.SingleHBond && this.interaction.edge3 == Edge.SingleHBond
+
 
     override val selectionPoints = mutableListOf<Point2D>()
 
