@@ -900,6 +900,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
             this.workingSession.singleStrandsDrawn.addAll(this.singleStrands)
             this.workingSession.branchesDrawn.addAll(this.branches)
         } else {
+
             for (ss in this.singleStrands) {
                 val s = Point2D.Double(0.0, 0.0)
                 val e = Point2D.Double(0.0, 0.0)
@@ -921,6 +922,54 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
                     //the y coordinate allows to decide if the single-strand will be drawn
                     if (s.y >= 0.0 && s.y <= drawingArea.height ) { //not necessary to check the end point
                         this.workingSession.singleStrandsDrawn.add(ss)
+                    }
+                }
+            }
+
+            if (this.workingSession.branchesDrawn.isEmpty()) { //if the display is before or after the first/last residue, we draw at least the first or last branch//sinlge-strand. If the user is there, this could means that a branch is drawn before or after the first or last residues in the sequence
+
+                var p = Point2D.Double(0.0, 0.0)
+                when (this.residues.first().parent) {
+                    is SecondaryInteractionDrawing -> {
+                        val h = (this.residues.first().parent as SecondaryInteractionDrawing).parent as HelixDrawing
+                        at.transform(h.line.p1, p)
+                        if (p.x >= drawingArea.width) {
+                            this.workingSession.branchesDrawn.add(branches.first())
+                        }
+                    }
+                    is SingleStrandDrawing -> {
+                        val ss = this.residues.first().parent as SingleStrandDrawing
+                        at.transform(ss.line.p1, p)
+                        if (p.x >= drawingArea.width) {
+                            this.workingSession.singleStrandsDrawn.add(ss)
+                            ss.nextBranch?.let {
+                                this.workingSession.branchesDrawn.add(it)
+                            }
+
+                        }
+                    }
+                }
+
+                p = Point2D.Double(0.0, 0.0)
+
+                when (this.residues.last().parent) {
+                    is SecondaryInteractionDrawing -> {
+                        val h = (this.residues.last().parent as SecondaryInteractionDrawing).parent as HelixDrawing
+                        at.transform(h.line.p2, p)
+                        if (p.x <= 0.0) {
+                            this.workingSession.branchesDrawn.add(branches.last())
+                        }
+                    }
+                    is SingleStrandDrawing -> {
+                        val ss = this.residues.last().parent as SingleStrandDrawing
+                        at.transform(ss.line.p2, p)
+                        if (p.x <= 0.0) {
+                            this.workingSession.singleStrandsDrawn.add(ss)
+                            ss.previousBranch?.let {
+                                this.workingSession.branchesDrawn.add(it)
+                            }
+
+                        }
                     }
                 }
             }
