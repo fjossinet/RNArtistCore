@@ -15,7 +15,7 @@ val structuresSelected = mapOf(
     "3OWI_A" to listOf("J2_H3"),
     "4WFL_A" to listOf("J0_J0"),
     "5U3G_B" to listOf("J5_J5"),
-    "3E5C_A" to listOf("J1_H2    ")
+    "3E5C_A" to listOf("J1_H2")
 )
 
 if (args.size < 3) {
@@ -113,9 +113,9 @@ X-transHoogsteenHoogsteen-X
         template.copyTo(File(studentDir,"sujet.md"))
 
         //the 2D structures
-        var pdbId = pdbIds[(0 until pdbIds.size).random()]
+        var pdbId = pdbIds[(pdbIds.indices).random()]
         while (pdbIdsChosen.filter { it == pdbId }.size == 2 ) {
-            pdbId = pdbIds[(0 until pdbIds.size).random()]
+            pdbId = pdbIds[(pdbIds.indices).random()]
         }
         pdbIdsChosen.add(pdbId)
         var correctAnswer = (1..3).random()
@@ -134,22 +134,22 @@ X-transHoogsteenHoogsteen-X
         var remainingAnswers = mutableListOf(1,2,3)
         remainingAnswers.remove(correctAnswer)
 
-        var wrongpdbId_1 = pdbIds[(0 until pdbIds.size).random()]
+        var wrongpdbId_1 = pdbIds[(pdbIds.indices).random()]
         while (wrongpdbId_1 == pdbId) {
-            wrongpdbId_1 = pdbIds[(0 until pdbIds.size).random()]
+            wrongpdbId_1 = pdbIds[(pdbIds.indices).random()]
         }
 
         File(outputdir, "$wrongpdbId_1.svg").copyTo(File(studentDir,"2d_${remainingAnswers.first()}.svg"))
 
-        var wrongpdbId_2 = pdbIds[(0 until pdbIds.size).random()]
+        var wrongpdbId_2 = pdbIds[(pdbIds.indices).random()]
         while (wrongpdbId_2 == pdbId || wrongpdbId_2 == wrongpdbId_1) {
-            wrongpdbId_2 = pdbIds[(0 until pdbIds.size).random()]
+            wrongpdbId_2 = pdbIds[(pdbIds.indices).random()]
         }
 
         File(outputdir, "$wrongpdbId_2.svg").copyTo(File(studentDir,"2d_${remainingAnswers.last()}.svg"))
 
         //the 2D domains
-        val domainId = structuresSelected[pdbId]!![(0 until structuresSelected[pdbId]!!.size).random()]
+        val domainId = structuresSelected[pdbId]!![(structuresSelected[pdbId]!!.indices).random()]
         correctAnswer = (1..3).random()
         File(outputdir, "${pdbId}_${domainId}.svg").copyTo(File(studentDir,"domain_${correctAnswer}.svg"))
         File(outputdir, "${pdbId}_${domainId}.pdb").copyTo(File(studentDir,"domain_${correctAnswer}.pdb"))
@@ -164,21 +164,21 @@ X-transHoogsteenHoogsteen-X
         remainingAnswers = mutableListOf(1,2,3)
         remainingAnswers.remove(correctAnswer)
 
-        wrongpdbId_1 = pdbIds[(0 until pdbIds.size).random()]
+        wrongpdbId_1 = pdbIds[(pdbIds.indices).random()]
         while (wrongpdbId_1 == pdbId) {
-            wrongpdbId_1 = pdbIds[(0 until pdbIds.size).random()]
+            wrongpdbId_1 = pdbIds[(pdbIds.indices).random()]
         }
 
-        val wrongDomainId_1 = structuresSelected[wrongpdbId_1]!![(0 until structuresSelected[wrongpdbId_1]!!.size).random()]
+        val wrongDomainId_1 = structuresSelected[wrongpdbId_1]!![(structuresSelected[wrongpdbId_1]!!.indices).random()]
 
         File(outputdir, "${wrongpdbId_1}_${wrongDomainId_1}.svg").copyTo(File(studentDir,"domain_${remainingAnswers.first()}.svg"))
 
-        wrongpdbId_2 = pdbIds[(0 until pdbIds.size).random()]
+        wrongpdbId_2 = pdbIds[(pdbIds.indices).random()]
         while (wrongpdbId_2 == pdbId || wrongpdbId_2 == wrongpdbId_1) {
-            wrongpdbId_2 = pdbIds[(0 until pdbIds.size).random()]
+            wrongpdbId_2 = pdbIds[(pdbIds.indices).random()]
         }
 
-        val wrongDomainId_2 = structuresSelected[wrongpdbId_2]!![(0 until structuresSelected[wrongpdbId_2]!!.size).random()]
+        val wrongDomainId_2 = structuresSelected[wrongpdbId_2]!![(structuresSelected[wrongpdbId_2]!!.indices).random()]
 
         File(outputdir, "${wrongpdbId_2}_${wrongDomainId_2}.svg").copyTo(File(studentDir,"domain_${remainingAnswers.last()}.svg"))
 
@@ -435,7 +435,7 @@ fun annotatePDBfiles(pdbDir:String, outputdir:String) {
                         break
                     }
                 if (ok) {
-                    if (ss.rna.length > 50 && ss.rna.length < 150) {
+                    if (ss.rna.length in 51..149) {
                         val drawing = SecondaryStructureDrawing(ss)
                         val frame = Rectangle(0, 0, 600, 600)
                         drawing.applyTheme(t)
@@ -456,10 +456,10 @@ fun annotatePDBfiles(pdbDir:String, outputdir:String) {
                                 toJSON(drawing)
                             )
                             val junctionsList = File("${outputdir}/${pdbFile.name.split(".pdb").first()}_${ss.rna.name}.txt")
-                            junctionsList.appendText("""boucles apicales : ${drawing.allJunctions.filter { it.junctionCategory == JunctionType.ApicalLoop }.size}
-bulles internes : ${drawing.allJunctions.filter { it.junctionCategory == JunctionType.InnerLoop }.size}
-jonctions triples : ${drawing.allJunctions.filter { it.junctionCategory == JunctionType.ThreeWay }.size}
-jonctions quadruples : ${drawing.allJunctions.filter { it.junctionCategory == JunctionType.FourWay }.size}""")
+                            junctionsList.appendText("""boucles apicales : ${drawing.allJunctions.filter { it.junctionType == JunctionType.ApicalLoop }.size}
+bulles internes : ${drawing.allJunctions.filter { it.junctionType == JunctionType.InnerLoop }.size}
+jonctions triples : ${drawing.allJunctions.filter { it.junctionType == JunctionType.ThreeWay }.size}
+jonctions quadruples : ${drawing.allJunctions.filter { it.junctionType == JunctionType.FourWay }.size}""")
                             var outputPDB = File("${outputdir}/${pdbFile.name.split(".pdb").first()}_${ss.rna.name}.pdb")
                             pdbFile.readLines().forEach { line ->
                                 if (line.matches(Regex("^(ATOM.{17}|HETATM.{15})${ss.rna.name}.+$"))) {
@@ -476,9 +476,9 @@ jonctions quadruples : ${drawing.allJunctions.filter { it.junctionCategory == Ju
                             drawing.applyTheme(t2)
 
                             drawing.allJunctions.forEach { junctionDrawing ->
-                                for (i in 0 until drawing.allTertiaryInteractions.size) {
+                                for (i in drawing.allTertiaryInteractions.indices) {
                                     var bounds: Rectangle2D? = null
-                                    var domains = mutableListOf<StructuralDomain>()
+                                    var domains = mutableListOf<StructuralDomainDrawing>()
                                     var tertiariesDisplayed = mutableListOf<TertiaryInteractionDrawing>()
                                     val interaction = drawing.allTertiaryInteractions[i]
                                     if (!interaction.isSingleHBond && interaction.start != interaction.end - 1) {
@@ -627,10 +627,10 @@ jonctions quadruples : ${drawing.allJunctions.filter { it.junctionCategory == Ju
                                     ) {
 
                                         domains.forEach { domain ->
-                                            if (bounds == null) {
-                                                bounds = domain.selectionFrame?.bounds
+                                            bounds = if (bounds == null) {
+                                                domain.selectionFrame?.bounds
                                             } else
-                                                bounds = bounds!!.createUnion(domain.selectionFrame?.bounds)
+                                                bounds!!.createUnion(domain.selectionFrame?.bounds)
                                         }
 
                                         bounds?.let {

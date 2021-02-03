@@ -2,7 +2,6 @@ package io.github.fjossinet.rnartist.core.model
 
 import java.io.Serializable
 import java.util.*
-import kotlin.collections.HashSet
 
 class Block(start:Int,end:Int):Serializable {
 
@@ -13,11 +12,7 @@ class Block(start:Int,end:Int):Serializable {
 
     fun contains(position:Int) = position in start..end
 
-    override fun toString(): String {
-        if (length == 1)
-            return "$start"
-        return "$start:$length"
-    }
+    override fun toString() =  if (length == 1) "$start" else "$start:$length"
 }
 
 class Location:Serializable {
@@ -91,15 +86,11 @@ class Location:Serializable {
         return Location(mutableSet.toIntArray())
     }
 
-    fun differenceOf(l: Location): Location {
-        return Location((this.positions - l.positions).toIntArray())
-    }
+    fun differenceOf(l: Location) = Location((this.positions - l.positions).toIntArray())
 
     fun contains(position:Int) = this.blocks.any { it.contains(position) }
 
-    override fun toString(): String {
-        return this.description
-    }
+    override fun toString() = this.description
 
 }
 
@@ -145,20 +136,14 @@ class RNA(var name:String="A", seq:String, var source:String="NA"):Serializable 
         }
     }
 
-    fun getResidue(pos:Int):Char {
-        return if (pos <= 0 || pos > this.length)
+    fun getResidue(pos:Int) = if (pos <= 0 || pos > this.length)
             throw RuntimeException("The position asked for is outside the molecule's boundaries")
         else
             this._seq[pos-1]
-    }
 
-    fun subSequence(l: Location):String {
-        return this._seq.substring(l.start-1,l.end).toString()
-    }
+    fun subSequence(l: Location) = this._seq.substring(l.start-1,l.end).toString()
 
-    override fun toString(): String {
-        return "RNA \"${this.name}\" (from ${this.source})"
-    }
+    override fun toString() = "RNA \"${this.name}\" (from ${this.source})"
 }
 
 class BasePair(val location: Location, val edge5: Edge = Edge.WC, val edge3: Edge = Edge.WC, val orientation: Orientation = Orientation.cis):Serializable{
@@ -173,12 +158,7 @@ class BasePair(val location: Location, val edge5: Edge = Edge.WC, val edge3: Edg
             return this.location.end
         }
 
-    override fun toString(): String {
-        if (edge5 == Edge.SingleHBond && edge3 == Edge.SingleHBond) {
-            return  "$edge5"
-        }
-        return "$orientation:$edge5:$edge3"
-    }
+    override fun toString() =  if (edge5 == Edge.SingleHBond && edge3 == Edge.SingleHBond) "$edge5" else "$orientation:$edge5:$edge3"
 
 }
 
@@ -237,28 +217,35 @@ class Pknot(val name:String="MyPknot", helix1:Helix? = null, helix2:Helix? = nul
         }
 }
 
-class Helix(val name:String="MyHelix"):Serializable {
+interface StructuralDomain {
+    val location:Location
+    val start:Int
+    val end:Int
+    val length:Int
+}
+
+class Helix(val name:String="MyHelix"): StructuralDomain {
 
     val secondaryInteractions = mutableListOf<BasePair>()
     var junctionsLinked = Pair<Junction?, Junction?>(null,null)
 
-    val location: Location
+    override val location: Location
         get() {
             val positionsInHelix = this.secondaryInteractions.map { bp ->  arrayOf(bp.start, bp.end) }.toTypedArray().flatten()
             return Location(positions = positionsInHelix.toIntArray())
         }
 
-    val start:Int
+    override val start:Int
         get() {
             return this.location.start
         }
 
-    val end:Int
+    override val end:Int
         get() {
             return this.location.end
         }
 
-    val length:Int
+    override val length:Int
         get() {
             return this.location.length/2
         }
@@ -298,14 +285,24 @@ class Helix(val name:String="MyHelix"):Serializable {
     }
 }
 
-class Junction(var name:String="MyJunction", val location: Location, val helicesLinked:List<Helix>):Serializable {
+class Junction(var name:String="MyJunction", override val location: Location, val helicesLinked:List<Helix>):StructuralDomain {
 
-    val length:Int
+    override val length:Int
         get() {
             return this.location.length
         }
 
-    val type: JunctionType
+    override val start:Int
+        get() {
+            return this.location.start
+        }
+
+    override val end:Int
+        get() {
+            return this.location.end
+        }
+
+    val junctionType: JunctionType
         get() {
             return JunctionType.values().first { it.value == this.location.blocks.size }
         }
@@ -358,10 +355,7 @@ class TertiaryStructure(val rna: RNA):Serializable {
         return null
     }
 
-    fun getNumberingSystem():List<String> {
-        return this.residues.map { it.label }
-    }
-
+    fun getNumberingSystem() = this.residues.map { it.label }
 
 }
 
@@ -599,6 +593,7 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
     var name:String = "2D for ${this.rna.name}"
     val tertiaryInteractions = mutableSetOf<BasePair>()
     val helices = mutableListOf<Helix>()
+    val singleStrands = mutableListOf<SingleStrand>()
     val pknots = mutableListOf<Pknot>()
     val junctions = mutableListOf<Junction>()
     var title:String? = null
@@ -757,6 +752,20 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
 
         }
 
+        var currentPosition = 1
+
+        for (h in this.helices) {
+            val junctionsLinked = h.junctionsLinked
+            if (junctionsLinked.first == null || junctionsLinked.second == null) {
+                if (currentPosition <= h.location.start-1)
+                    this.singleStrands.add(SingleStrand("SS${this.singleStrands.size}", currentPosition, h.location.start-1))
+                currentPosition = h.end+1
+            }
+        }
+
+        if (currentPosition <= this.length)
+            this.singleStrands.add(SingleStrand("SS${this.singleStrands.size}", currentPosition, this.length))
+
     }
 
     /**
@@ -782,6 +791,41 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
             }
         }
         return null
+    }
+
+    //compute the location from an apical loop to a 3-way or greater
+    fun getStemLoopLocation(apicalLoop:Junction):Location {
+        var l = apicalLoop.location
+        var previousHelix = this.helices.find { l.start in it.ends }
+        var previousJunction = this.junctions.find { it.location.contains(l.start) }
+        while (previousHelix != null || previousJunction != null && previousJunction.junctionType == JunctionType.InnerLoop) {
+            l = l.addLocation(if (previousHelix != null) previousHelix.location else previousJunction!!.location)
+            previousHelix = this.helices.find { l.start in it.ends && it != previousHelix }
+            previousJunction = this.junctions.find { it.location.contains(l.start) }
+        }
+        return l
+    }
+
+    fun getPreviousJunction(helix:Helix) = this.junctions.find { it.location.contains(helix.start) }
+
+    fun getPreviousHelix(junction:Junction) = this.helices.find { it.ends.contains(junction.start) }!!
+
+    fun getPreviousStructuralDomain(domain:StructuralDomain):StructuralDomain? {
+        return when (domain) {
+            is Helix -> this.getPreviousJunction(domain)
+            is Junction -> this.getPreviousHelix(domain)
+            else -> null
+        }
+    }
+
+    fun getJunctionLevel(junction:Junction):Int {
+        var lvl = 1
+        var domain = getPreviousStructuralDomain(junction)
+        while (domain != null) {
+            lvl++
+            domain =getPreviousStructuralDomain(domain)
+        }
+        return lvl
     }
 
     /**
@@ -892,9 +936,7 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
         return String(bn)
     }
 
-    override fun toString(): String {
-        return this.name
-    }
+    override fun toString() = this.name
 
     fun randomizeSeq() {
         val newSeq = StringBuffer(this.rna.length)
@@ -972,19 +1014,19 @@ fun toBasePairs(bracketNotation: String):MutableList<BasePair> {
         pos++
         when (c) {
             in 'A'..'Z'  -> {
-                firstStrands.get(c)!!.first.add(pos)
-                firstStrands.get(c)!!.second.add(Edge.WC)
+                firstStrands[c]!!.first.add(pos)
+                firstStrands[c]!!.second.add(Edge.WC)
             }
 
             in listOf('(', '[', '{', '<')  -> {
-                firstStrands.get(c)!!.first.add(pos)
-                firstStrands.get(c)!!.second.add(Edge.WC)
+                firstStrands[c]!!.first.add(pos)
+                firstStrands[c]!!.second.add(Edge.WC)
             }
 
             ')' -> {
-                val _lastPos = firstStrands.get('(')!!.first.removeAt(firstStrands.get('(')!!.first.size-1)
+                val _lastPos = firstStrands['(']!!.first.removeAt(firstStrands['(']!!.first.size-1)
                 val _location = Location(Location(_lastPos), Location(pos))
-                val _lastLeft = firstStrands.get('(')!!.second.removeAt(firstStrands.get('(')!!.second.size-1)
+                val _lastLeft = firstStrands['(']!!.second.removeAt(firstStrands['(']!!.second.size-1)
                 basePairs.add(
                     BasePair(
                         location = _location,
@@ -994,9 +1036,9 @@ fun toBasePairs(bracketNotation: String):MutableList<BasePair> {
                 )
             }
             '}' -> {
-                val _lastPos = firstStrands.get('{')!!.first.removeAt(firstStrands.get('{')!!.first.size-1)
+                val _lastPos = firstStrands['{']!!.first.removeAt(firstStrands['{']!!.first.size-1)
                 val _location = Location(Location(_lastPos), Location(pos))
-                val _lastLeft = firstStrands.get('{')!!.second.removeAt(firstStrands.get('{')!!.second.size-1)
+                val _lastLeft = firstStrands['{']!!.second.removeAt(firstStrands['{']!!.second.size-1)
                 basePairs.add(
                     BasePair(
                         location = _location,
@@ -1006,9 +1048,9 @@ fun toBasePairs(bracketNotation: String):MutableList<BasePair> {
                 )
             }
             ']' -> {
-                val _lastPos = firstStrands.get('[')!!.first.removeAt(firstStrands.get('[')!!.first.size-1)
+                val _lastPos = firstStrands['[']!!.first.removeAt(firstStrands['[']!!.first.size-1)
                 val _location = Location(Location(_lastPos), Location(pos))
-                val _lastLeft = firstStrands.get('[')!!.second.removeAt(firstStrands.get('[')!!.second.size-1)
+                val _lastLeft = firstStrands['[']!!.second.removeAt(firstStrands['[']!!.second.size-1)
                 basePairs.add(
                     BasePair(
                         location = _location,
@@ -1018,9 +1060,9 @@ fun toBasePairs(bracketNotation: String):MutableList<BasePair> {
                 )
             }
             '>' -> {
-                val _lastPos = firstStrands.get('<')!!.first.removeAt(firstStrands.get('<')!!.first.size-1)
+                val _lastPos = firstStrands['<']!!.first.removeAt(firstStrands['<']!!.first.size-1)
                 val _location = Location(Location(_lastPos), Location(pos))
-                val _lastLeft = firstStrands.get('<')!!.second.removeAt(firstStrands.get('<')!!.second.size-1)
+                val _lastLeft = firstStrands['<']!!.second.removeAt(firstStrands['<']!!.second.size-1)
                 basePairs.add(
                     BasePair(
                         location = _location,
@@ -1031,9 +1073,9 @@ fun toBasePairs(bracketNotation: String):MutableList<BasePair> {
             }
             in 'a'..'z' -> {
                 val upperChar = c.toUpperCase()
-                val _lastPos = firstStrands.get(upperChar)!!.first.removeAt(firstStrands.get(upperChar)!!.first.size-1)
+                val _lastPos = firstStrands[upperChar]!!.first.removeAt(firstStrands[upperChar]!!.first.size-1)
                 val _location = Location(Location(_lastPos), Location(pos))
-                val _lastLeft = firstStrands.get(upperChar)!!.second.removeAt(firstStrands.get(upperChar)!!.second.size-1)
+                val _lastLeft = firstStrands[upperChar]!!.second.removeAt(firstStrands[upperChar]!!.second.size-1)
                 basePairs.add(
                     BasePair(
                         location = _location,

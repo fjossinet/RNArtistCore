@@ -16,10 +16,7 @@ import java.util.*
 import kotlin.collections.HashMap
 
 class RNAGallery {
-    fun getEntry(pdbID: String, chain:String): StringReader {
-        val url = if (RnartistConfig.useOnlineRNAGallery) URL("https://raw.githubusercontent.com/fjossinet/RNAGallery/main/PDB/${pdbID}_${chain}.json") else File("${RnartistConfig.rnaGalleryPath}/PDB/${pdbID}_${chain}.json").toURI().toURL()
-        return StringReader(url.readText())
-    }
+    fun getEntry(pdbID: String, chain:String) = StringReader((if (RnartistConfig.useOnlineRNAGallery) URL("https://raw.githubusercontent.com/fjossinet/RNAGallery/main/PDB/${pdbID}_${chain}.json") else File("${RnartistConfig.rnaGalleryPath}/PDB/${pdbID}_${chain}.json").toURI().toURL()).readText())
 }
 
 class RNACentral {
@@ -30,12 +27,12 @@ class RNACentral {
         //the sequence
         var text = URL("${baseURL}/${id}?format=json").readText()
         var data = Gson().fromJson(text, HashMap<String, String>().javaClass)
-        val sequence = data.get("sequence")
+        val sequence = data["sequence"]
         sequence?.let {
             val rna = RNA(id, seq = sequence, source="db:rnacentral:${id}")
             text = URL("${baseURL}/${id}/2d/1/?format=json").readText()
             data = Gson().fromJson(text, HashMap<String, String>().javaClass)
-            val bn = (data.get("data") as Map<String, String>).get("secondary_structure")
+            val bn = (data["data"] as Map<String, String>)["secondary_structure"]
             bn?.let {
                 return SecondaryStructure(rna, bracketNotation = bn, source="db:rnacentral:${id}")
             }
@@ -113,10 +110,7 @@ data class PDBResponse(
 
 class PDB() {
 
-    fun getEntry(pdbID: String): StringReader {
-        val url = URL("https://files.rcsb.org/download/${pdbID}.pdb")
-        return StringReader(url.readText())
-    }
+    fun getEntry(pdbID: String) = StringReader(URL("https://files.rcsb.org/download/${pdbID}.pdb").readText())
 
     fun query():List<String> {
         val gson = GsonBuilder().setPrettyPrinting().create()
@@ -131,7 +125,7 @@ class PDB() {
                         "rows" to 10
                     )
                 ))), "UTF-8")
-            val url = URL("https://search.rcsb.org/rcsbsearch/v1/query?" + reqParam)
+            val url = URL("https://search.rcsb.org/rcsbsearch/v1/query?$reqParam")
 
             with(url.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"
@@ -149,7 +143,7 @@ class PDB() {
                     totalHits = hits.total_count
 
                     hits.result_set.forEach {
-                        ids.add(it.get("identifier") as String)
+                        ids.add(it["identifier"] as String)
                     }
 
                 }
@@ -175,16 +169,10 @@ class NDB {
         return files.toList()
     }
 
-    fun getEntry(pdbFileName: String): Reader {
-        val url = URL("http://ndbserver.rutgers.edu/files/ftp/NDB/coordinates/na-biol/$pdbFileName")
-        return StringReader(url.readText())
-    }
+    fun getEntry(pdbFileName: String) = StringReader(URL("http://ndbserver.rutgers.edu/files/ftp/NDB/coordinates/na-biol/$pdbFileName").readText())
 
 }
 
 class Rfam {
-    fun getEntry(rfamID:String): Reader {
-        val url = URL("https://rfam.xfam.org/family/RF00010/alignment?acc=$rfamID&format=stockholm&download=0")
-        return StringReader(url.readText())
-    }
+    fun getEntry(rfamID:String) = StringReader(URL("https://rfam.xfam.org/family/RF00010/alignment?acc=$rfamID&format=stockholm&download=0").readText())
 }

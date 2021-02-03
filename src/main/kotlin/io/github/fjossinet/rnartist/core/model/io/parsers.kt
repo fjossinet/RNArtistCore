@@ -134,30 +134,32 @@ fun toSVG(drawing:SecondaryStructureDrawing, width:Int, height:Int): String {
 
     val svgBuffer = StringBuffer("""<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">""" + "\n")
 
-    drawing.workingSession.junctionsDrawn.forEach { junction ->
-        svgBuffer.append(junction.asSVG(at))
-    }
+    with (drawing) {
+        workingSession.junctionsDrawn.forEach { junction ->
+            svgBuffer.append(junction.asSVG(at))
+        }
 
-    drawing.workingSession.helicesDrawn.forEach { helix ->
-        svgBuffer.append(helix.asSVG(at))
-    }
+        workingSession.helicesDrawn.forEach { helix ->
+            svgBuffer.append(helix.asSVG(at))
+        }
 
-    drawing.workingSession.singleStrandsDrawn.forEach { ss ->
-        svgBuffer.append(ss.asSVG(at))
-    }
+        workingSession.singleStrandsDrawn.forEach { ss ->
+            svgBuffer.append(ss.asSVG(at))
+        }
 
-    drawing.workingSession.phosphoBondsLinkingBranchesDrawn.forEach { phospho ->
-        svgBuffer.append(phospho.asSVG(at))
-    }
+        workingSession.phosphoBondsLinkingBranchesDrawn.forEach { phospho ->
+            svgBuffer.append(phospho.asSVG(at))
+        }
 
-    drawing.pknots.forEach { pknot ->
-        pknot.tertiaryInteractions.forEach { tertiary ->
+        pknots.forEach { pknot ->
+            pknot.tertiaryInteractions.forEach { tertiary ->
+                svgBuffer.append(tertiary.asSVG(at))
+            }
+        }
+
+        tertiaryInteractions.forEach { tertiary ->
             svgBuffer.append(tertiary.asSVG(at))
         }
-    }
-
-    drawing.tertiaryInteractions.forEach { tertiary ->
-        svgBuffer.append(tertiary.asSVG(at))
     }
 
     svgBuffer.append("</svg>")
@@ -180,24 +182,25 @@ fun toJSON(drawing:SecondaryStructureDrawing): String {
 /**
  * This function reconstructs the SecondaryStructure object and delegates the work to the function parseProject to reconstruct and apply the layout, theme and working session.
  */
-fun parseJSON(reader: Reader): SecondaryStructureDrawing? {
+fun parseJSON(reader: Reader): SecondaryStructureDrawing {
     val gson = Gson()
     var map: Map<String, Any> = HashMap()
     val doc = gson.fromJson(reader, map.javaClass)
-    val rna = doc.get("rna") as Map<String,String>
+    val rna = doc["rna"] as Map<String,String>
     val secondaryStructure = SecondaryStructure(
         RNA(
             rna["name"] as String,
             rna["seq"] as String
         ))
 
-    val structure = doc.get("structure") as Map<String, Map<String,Map<String, String>>>
-    val helices = structure.get("helices") as Map<String,Map<String, String>>
-    val secondaries = structure.get("secondaries") as Map<String,Map<String, String>>
-    val tertiaries = structure.get("tertiaries") as Map<String,Map<String, String>>
+    val structure = doc["structure"] as Map<String, Map<String,Map<String, String>>>
+    val helices = structure["helices"] as Map<String,Map<String, String>>
+    val secondaries = structure["secondaries"] as Map<String,Map<String, String>>
+    val tertiaries = structure["tertiaries"] as Map<String,Map<String, String>>
 
     for ((location, tertiary) in tertiaries) {
-        secondaryStructure.tertiaryInteractions.add(BasePair(Location(location), Edge.valueOf(tertiary.get("edge5")!!), Edge.valueOf(tertiary.get("edge3")!!), Orientation.valueOf(tertiary.get("orientation")!!)))
+        secondaryStructure.tertiaryInteractions.add(BasePair(Location(location), Edge.valueOf(tertiary["edge5"]!!), Edge.valueOf(
+            tertiary["edge3"]!!), Orientation.valueOf(tertiary["orientation"]!!)))
     }
 
     for ((_, helix) in helices) {
@@ -205,13 +208,14 @@ fun parseJSON(reader: Reader): SecondaryStructureDrawing? {
         val location = Location(helix["location"]!!)
         for (i in location.start..location.start+location.length/2-1) {
             val l = Location(Location(i), Location(location.end-(i-location.start)))
-            val secondary = secondaries.get(l.toString())!!
-            h.secondaryInteractions.add(BasePair(l, Edge.valueOf(secondary.get("edge5")!!), Edge.valueOf(secondary.get("edge3")!!), Orientation.valueOf(secondary.get("orientation")!!)))
+            val secondary = secondaries[l.toString()]!!
+            h.secondaryInteractions.add(BasePair(l, Edge.valueOf(secondary["edge5"]!!), Edge.valueOf(secondary["edge3"]!!), Orientation.valueOf(
+                secondary["orientation"]!!)))
         }
         secondaryStructure.helices.add(h)
     }
 
-    val junctions = structure.get("junctions") as Map<String,Map<String, String>>
+    val junctions = structure["junctions"] as Map<String,Map<String, String>>
     for ((_, junction) in junctions) {
         val linkedHelices = mutableListOf<Helix>()
         junction["linked-helices"]!!.split(" ").forEach {
@@ -230,28 +234,28 @@ fun parseJSON(reader: Reader): SecondaryStructureDrawing? {
     //We link the helices to their junctions
     for ((start, helix) in helices) {
         val h = secondaryStructure.helices.find { it.start == Integer.parseInt(start) }!!
-        helix.get("first-junction-linked")?.let { startPos ->
-            h.setJunction(secondaryStructure.junctions.find { it.location.start == Integer.parseInt(startPos) }!!)
+        helix["first-junction-linked"]?.let { startPos ->
+            h.setJunction(secondaryStructure.junctions.find { it.start == Integer.parseInt(startPos) }!!)
         }
 
-        helix.get("second-junction-linked")?.let { startPos ->
-            h.setJunction(secondaryStructure.junctions.find { it.location.start == Integer.parseInt(startPos) }!!)
+        helix["second-junction-linked"]?.let { startPos ->
+            h.setJunction(secondaryStructure.junctions.find { it.start == Integer.parseInt(startPos) }!!)
         }
     }
 
-    val pknots = structure.get("pknots") as Map<String,Map<String, String>>
+    val pknots = structure["pknots"] as Map<String,Map<String, String>>
 
     for ((_, pknot) in pknots) {
 
-        val pk = Pknot(pknot.get("name")!!)
+        val pk = Pknot(pknot["name"]!!)
 
         for (h in secondaryStructure.helices) {
-            if (h.start ==  Integer.parseInt(pknot.get("helix")!!)) {
+            if (h.start ==  Integer.parseInt(pknot["helix"]!!)) {
                 pk.helix = h
                 break
             }
         }
-        pknot.get("tertiaries")?.split(" ")?.forEach { l ->
+        pknot["tertiaries"]?.split(" ")?.forEach { l ->
             val location = Location(l)
             for (tertiary in secondaryStructure.tertiaryInteractions) {
                 if (tertiary.location.start == location.start && tertiary.location.end == location.end) {
@@ -264,18 +268,17 @@ fun parseJSON(reader: Reader): SecondaryStructureDrawing? {
         secondaryStructure.tertiaryInteractions.removeAll(pk.tertiaryInteractions)
     }
 
-    secondaryStructure.source = "Project ${doc.get("name")}"
+    secondaryStructure.source = "Project ${doc["name"]}"
 
-    val layout = doc.get("layout") as Map<String, Map<String, String>>
+    val layout = doc["layout"] as Map<String, Map<String, String>>
+    val theme = doc["theme"] as Map<String, Map<String, Map<String, String>>>
+    val workingSession = doc["session"] as Map<String, String>
 
-    val theme = doc.get("theme") as Map<String, Map<String, Map<String, String>>>
-
-    val workingSession = doc.get("session") as Map<String, String>
-
-    val ws = WorkingSession()
-    ws.viewX = workingSession.get("view-x")!!.toDouble()
-    ws.viewY = workingSession.get("view-y")!!.toDouble()
-    ws.zoomLevel = workingSession.get("final-zoom-lvl")!!.toDouble()
+    val ws = WorkingSession().apply {
+        viewX = workingSession["view-x"]!!.toDouble()
+        viewY = workingSession["view-y"]!!.toDouble()
+        zoomLevel = workingSession["final-zoom-lvl"]!!.toDouble()
+    }
 
     return parseProject(Project(secondaryStructure, layout, theme, ws));
 }
@@ -366,9 +369,11 @@ fun parseProject(project: Project): SecondaryStructureDrawing {
     }
 
     //WORKING SESSION
-    drawing.workingSession.viewX = project.workingSession.viewX
-    drawing.workingSession.viewY = project.workingSession.viewY
-    drawing.workingSession.zoomLevel = project.workingSession.zoomLevel
+    with (drawing) {
+        workingSession.viewX = project.workingSession.viewX
+        workingSession.viewY = project.workingSession.viewY
+        workingSession.zoomLevel = project.workingSession.zoomLevel
+    }
 
     return drawing
 }
@@ -402,7 +407,11 @@ fun parseCT(reader: Reader): SecondaryStructure {
     )
 }
 
-fun parseStockholm(reader: Reader): List<SecondaryStructure> {
+
+/**
+ * The first 2D is the consensus 2D with a fake seq
+ */
+fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<SecondaryStructure> {
     var secondaryStructures = mutableListOf<SecondaryStructure>()
     val alignedMolecules: MutableMap<String, StringBuffer> = HashMap()
     val bn = StringBuffer()
@@ -422,10 +431,21 @@ fun parseStockholm(reader: Reader): List<SecondaryStructure> {
             familyName = line!!.split("#=GF DE".toRegex()).toTypedArray()[1].trim { it <= ' ' }
     }
     `in`.close()
+    val rna = RNA(
+        "consensus",
+        (1..bn.length).map { listOf("A", "U", "G", "C").random()}.joinToString(separator = "")
+    )
+    var consensusSS = SecondaryStructure(rna, bn.toString())
+
+    if (withConsensus2D)
+        secondaryStructures.add(consensusSS)
+
     for ((key, value) in alignedMolecules) {
         var rna = RNA(key, value.toString())
         var _bn = bn.toString()
-        var consensusSS = SecondaryStructure(rna, _bn)
+        //println(rna.name)
+        //println(rna.seq)
+        //println(_bn.toString())
 
         for (bp in consensusSS.secondaryInteractions) {
             if (rna.seq[bp.start-1] == '-')
@@ -433,6 +453,7 @@ fun parseStockholm(reader: Reader): List<SecondaryStructure> {
             if (rna.seq[bp.end-1] == '-')
                 _bn = _bn.replaceRange(bp.start-1,bp.start,".")
         }
+
         for (bp in consensusSS.tertiaryInteractions) {
             if (rna.seq[bp.start-1] == '-')
                 _bn = _bn.replaceRange(bp.end-1,bp.end,".")
@@ -440,6 +461,21 @@ fun parseStockholm(reader: Reader): List<SecondaryStructure> {
                 _bn = _bn.replaceRange(bp.start-1,bp.start,".")
         }
 
+        for (pknot in consensusSS.pknots) {
+            for (bp in pknot.helix.secondaryInteractions) {
+                if (rna.seq[bp.start-1] == '-')
+                    _bn = _bn.replaceRange(bp.end-1,bp.end,".")
+                if (rna.seq[bp.end-1] == '-')
+                    _bn = _bn.replaceRange(bp.start-1,bp.start,".")
+            }
+            for (bp in pknot.tertiaryInteractions) {
+                if (rna.seq[bp.start-1] == '-')
+                    _bn = _bn.replaceRange(bp.end-1,bp.end,".")
+                if (rna.seq[bp.end-1] == '-')
+                    _bn = _bn.replaceRange(bp.start-1,bp.start,".")
+            }
+
+        }
 
         var gapPositions = mutableListOf<Int>()
         var pos: Int = value.indexOf("-")
@@ -451,6 +487,8 @@ fun parseStockholm(reader: Reader): List<SecondaryStructure> {
 
         gapPositions.reverse()
         gapPositions.forEach { _bn = _bn.replaceRange(it,it+1,"") }
+        //println(rna.seq)
+        //println(_bn.toString())
         secondaryStructures.add(SecondaryStructure(rna, _bn))
     }
     return secondaryStructures
@@ -500,7 +538,7 @@ fun writePDB(ts: TertiaryStructure, exportNumberingSystem: Boolean, writer: Writ
                 pw.print(formatPDBField(16 - 13 + 1, a.name.replace('\'', '*'), LEFT_ALIGN))
                 pw.print(formatPDBField(20 - 18 + 1, residue.name, RIGHT_ALIGN))
                 pw.print(formatPDBField(1, " " + ts.rna.name[0], LEFT_ALIGN))
-                if (exportNumberingSystem) pw.print(formatPDBField(26 - 23 + 1, residue.label!!, RIGHT_ALIGN)) else pw.print(formatPDBField(26 - 23 + 1, "" + residue.absolutePosition, RIGHT_ALIGN))
+                if (exportNumberingSystem) pw.print(formatPDBField(26 - 23 + 1, residue.label, RIGHT_ALIGN)) else pw.print(formatPDBField(26 - 23 + 1, "" + residue.absolutePosition, RIGHT_ALIGN))
                 pw.print(formatPDBField(1, "", LEFT_ALIGN))
                 pw.print("   ")
                 pw.print(formatPDBField(38 - 31 + 1, "" + coordFormat.format(a.x), RIGHT_ALIGN))
@@ -679,124 +717,128 @@ fun dumpRNA(drawing: SecondaryStructureDrawing): Map<String, String> {
 fun dumpSecondaryStructure(drawing: SecondaryStructureDrawing): Map<String, Map<String,Map<String, String>>> {
     val structure = mutableMapOf<String, Map<String,Map<String, String>>>()
 
-    val pknots = mutableMapOf<String,Map<String, String>>()
-    structure["pknots"] = pknots
+    val pknotsDump = mutableMapOf<String,Map<String, String>>()
+    structure["pknots"] = pknotsDump
     val tertiaries = mutableMapOf<String,Map<String, String>>()
     structure["tertiaries"] = tertiaries
     val junctions = mutableMapOf<String,Map<String, String>>()
     structure["junctions"] = junctions
     val helices = mutableMapOf<String,Map<String, String>>()
     structure["helices"] = helices
-    val singleStrands = mutableMapOf<String,Map<String, String>>()
-    structure["single-strands"] = singleStrands
+    val singleStrandsDump = mutableMapOf<String,Map<String, String>>()
+    structure["single-strands"] = singleStrandsDump
     val secondaries = mutableMapOf<String,Map<String, String>>()
     structure["secondaries"] = secondaries
 
-    drawing.allTertiaryInteractions.forEach {
-        val tertiary = mapOf<String, String>(
-            "edge5" to it.interaction.edge5.toString(),
-            "edge3" to it.interaction.edge3.toString(),
-            "orientation" to it.interaction.orientation.toString()
-        )
-        tertiaries[it.location.toString()] = tertiary
-    }
-    
-    drawing.branches.forEach { branch ->
-        branch.junctionsFromBranch().forEach {
-            val junction = mapOf<String, String>(
-                "name" to it.name,
-                "location" to it.location.toString(),
-                "in-helix" to it.inHelix.start.toString(),
-                "linked-helices" to it.junction.helicesLinked.map { it.start.toString() }.joinToString(separator = " ")
+    with(drawing) {
+        allTertiaryInteractions.forEach {
+            val tertiary = mapOf<String, String>(
+                "edge5" to it.interaction.edge5.toString(),
+                "edge3" to it.interaction.edge3.toString(),
+                "orientation" to it.interaction.orientation.toString()
             )
-            junctions[it.location.start.toString()] = junction
+            tertiaries[it.location.toString()] = tertiary
+        }
 
-            val helix = mutableMapOf<String, String>(
-                "name" to it.inHelix.name,
-                "location" to it.inHelix.location.toString()
-            )
-
-            //println("stored ${helix["name"]} ${helix["location"]}")
-
-            it.inHelix.junctionsLinked.first?.let {
-                helix["first-junction-linked"] = it.location.start.toString()
-            }
-
-            it.inHelix.junctionsLinked.second?.let {
-                helix["second-junction-linked"] = it.location.start.toString()
-            }
-
-            helices[it.inHelix.start.toString()] = helix
-
-            it.inHelix.secondaryInteractions.forEach {
-                val secondary = mapOf<String, String>(
-                    "edge5" to it.edge5.toString(),
-                    "edge3" to it.edge3.toString(),
-                    "orientation" to it.orientation.toString()
+        branches.forEach { branch ->
+            branch.junctionsFromBranch().forEach {
+                val junction = mapOf<String, String>(
+                    "name" to it.name,
+                    "location" to it.location.toString(),
+                    "in-helix" to it.inHelix.start.toString(),
+                    "linked-helices" to it.junction.helicesLinked.map { it.start.toString() }
+                        .joinToString(separator = " ")
                 )
-                secondaries[it.location.toString()] = secondary
-            }
+                junctions[it.location.start.toString()] = junction
 
+                val helix = mutableMapOf<String, String>(
+                    "name" to it.inHelix.name,
+                    "location" to it.inHelix.location.toString()
+                )
+
+                //println("stored ${helix["name"]} ${helix["location"]}")
+
+                it.inHelix.junctionsLinked.first?.let {
+                    helix["first-junction-linked"] = it.start.toString()
+                }
+
+                it.inHelix.junctionsLinked.second?.let {
+                    helix["second-junction-linked"] = it.start.toString()
+                }
+
+                helices[it.inHelix.start.toString()] = helix
+
+                it.inHelix.secondaryInteractions.forEach {
+                    val secondary = mapOf<String, String>(
+                        "edge5" to it.edge5.toString(),
+                        "edge3" to it.edge3.toString(),
+                        "orientation" to it.orientation.toString()
+                    )
+                    secondaries[it.location.toString()] = secondary
+                }
+            }
+        }
+
+        singleStrands.forEach { ss ->
+            val singlestrand = mapOf<String, String>(
+                "name" to ss.name,
+                "location" to ss.location.toString()
+            )
+            singleStrandsDump[ss.location.start.toString()] = singlestrand
+        }
+
+        pknots.forEach {
+            val pknot = mutableMapOf<String, String>(
+                "name" to it.name,
+                "helix" to it.helix.start.toString(),
+                "tertiaries" to it.tertiaryInteractions.map { it.location.toString() }.joinToString(separator = " ")
+            )
+            pknotsDump[it.helix.start.toString()] = pknot
         }
     }
-
-    drawing.singleStrands.forEach { ss ->
-        val singlestrand = mapOf<String, String>(
-            "name" to ss.name,
-            "location" to ss.location.toString()
-        )
-        singleStrands[ss.location.start.toString()] = singlestrand
-    }
-
-    drawing.pknots.forEach {
-        val pknot = mutableMapOf<String, String>(
-            "name" to it.name,
-            "helix" to it.helix.start.toString(),
-            "tertiaries" to it.tertiaryInteractions.map {it.location.toString()}.joinToString(separator = " ")
-        )
-
-        pknots[it.helix.start.toString()] = pknot
-    }
-
     return structure
-
 }
 
 fun dumpLayout(drawing: SecondaryStructureDrawing): Map<String,Map<String, String>> {
     val layout = mutableMapOf<String,Map<String, String>>()
 
-    drawing.branches.forEach {
-        it.junctionsFromBranch().forEach {
-            val junction = mutableMapOf<String, String>(
-                "radius" to "%.2f".format(Locale.UK, it.radius),
-                "in-id" to it.inId.toString(),
-                "center-x" to "%.2f".format(Locale.UK, it.center.x),
-                "center-y" to "%.2f".format(Locale.UK, it.center.y),
-                "p1-x" to "%.2f".format(Locale.UK, (it.parent as HelixDrawing).line.p1.x),
-                "p1-y" to "%.2f".format(Locale.UK, (it.parent as HelixDrawing).line.p1.y),
-                "p2-x" to "%.2f".format(Locale.UK, (it.parent as HelixDrawing).line.p2.x),
-                "p2-y" to "%.2f".format(Locale.UK, (it.parent as HelixDrawing).line.p2.y),
-            )
-            it.layout?.let {
-                junction["out-ids"] = (it.map { it.toString() }).joinToString(separator = " ")
+    with(drawing) {
+        branches.forEach {
+            it.junctionsFromBranch().forEach {
+                val junction = mutableMapOf<String, String>(
+                    "radius" to "%.2f".format(Locale.UK, it.radius),
+                    "in-id" to it.inId.toString(),
+                    "center-x" to "%.2f".format(Locale.UK, it.center.x),
+                    "center-y" to "%.2f".format(Locale.UK, it.center.y),
+                    "p1-x" to "%.2f".format(Locale.UK, (it.parent as HelixDrawing).line.p1.x),
+                    "p1-y" to "%.2f".format(Locale.UK, (it.parent as HelixDrawing).line.p1.y),
+                    "p2-x" to "%.2f".format(Locale.UK, (it.parent as HelixDrawing).line.p2.x),
+                    "p2-y" to "%.2f".format(Locale.UK, (it.parent as HelixDrawing).line.p2.y),
+                )
+                it.layout?.let {
+                    junction["out-ids"] = (it.map { it.toString() }).joinToString(separator = " ")
+                }
+                layout[it.location.start.toString()] = junction
             }
-            layout[it.location.start.toString()] =  junction
         }
-    }
-    drawing.singleStrands.forEach {
-        val ss = mutableMapOf<String, String>(
-            "p1-x" to "%.2f".format(Locale.UK, it.line.p1.x),
-            "p1-y" to "%.2f".format(Locale.UK, it.line.p1.y),
-            "p2-x" to "%.2f".format(Locale.UK, it.line.p2.x),
-            "p2-y" to "%.2f".format(Locale.UK, it.line.p2.y),
-        )
-        layout[it.location.start.toString()] =  ss
+
+        singleStrands.forEach {
+            val ss = mutableMapOf<String, String>(
+                "p1-x" to "%.2f".format(Locale.UK, it.line.p1.x),
+                "p1-y" to "%.2f".format(Locale.UK, it.line.p1.y),
+                "p2-x" to "%.2f".format(Locale.UK, it.line.p2.x),
+                "p2-y" to "%.2f".format(Locale.UK, it.line.p2.y),
+            )
+            layout[it.location.start.toString()] = ss
+        }
     }
     return layout
 }
 
 fun dumpTheme(drawing: SecondaryStructureDrawing): Map<String, Map<String, Map<String, String>>> {
+
     val theme = mutableMapOf<String, Map<String, Map<String, String>>>()
+
 
     val interactions = mutableMapOf<String, Map<String, String>>()
     theme.put("interactions", interactions)
@@ -812,56 +854,71 @@ fun dumpTheme(drawing: SecondaryStructureDrawing): Map<String, Map<String, Map<S
 
     val helices = mutableMapOf<String, Map<String, String>>()
     theme.put("helices", helices)
-    drawing.allHelices.forEach { helix ->
-        helices.put(helix.start.toString(), helix.drawingConfiguration.params)
-        helix.residues.forEach { residue ->
-            residueShapes.put(residue.location.start.toString(), residue.drawingConfiguration.params)
-            residueLetters.put(residue.location.start.toString(), residue.residueLetter.drawingConfiguration.params)
-        }
-    }
+
     val junctions = mutableMapOf<String, Map<String, String>>()
     theme.put("junctions", junctions)
-    drawing.allJunctions.forEach { junction ->
-        junctions.put(junction.location.start.toString(), junction.drawingConfiguration.params)
-        junction.residues.forEach { residue ->
-            residueShapes.put(residue.location.start.toString(), residue.drawingConfiguration.params)
-            residueLetters.put(residue.location.start.toString(), residue.residueLetter.drawingConfiguration.params)
-        }
-    }
+
     val singlestrands = mutableMapOf<String, Map<String, String>>()
     theme.put("single-strands", singlestrands)
-    drawing.singleStrands.forEach { ss ->
-        singlestrands.put(ss.location.start.toString(), ss.drawingConfiguration.params)
-        ss.residues.forEach { residue ->
-            residueShapes.put(residue.location.start.toString(), residue.drawingConfiguration.params)
-            residueLetters.put(residue.location.start.toString(), residue.residueLetter.drawingConfiguration.params)
-        }
-    }
 
-    val pknots = mutableMapOf<String, Map<String, String>>()
-    theme.put("pknots", pknots)
-    drawing.pknots.forEach { pk ->
-        pknots.put(pk.location.start.toString(), pk.drawingConfiguration.params)
-        pk.tertiaryInteractions.forEach {
-            interactions.put(it.location.toString(), it.drawingConfiguration.params)
-            interactionSymbols.put(it.location.toString(), it.interactionSymbol.drawingConfiguration.params)
-        }
-    }
-
-    drawing.allSecondaryInteractions.forEach { secondary ->
-        interactions.put(secondary.location.toString(), secondary.drawingConfiguration.params)
-        interactionSymbols.put(secondary.location.toString(), secondary.interactionSymbol.drawingConfiguration.params)
-    }
-
-    drawing.tertiaryInteractions.forEach { tertiary ->
-        interactions.put(tertiary.location.toString(), tertiary.drawingConfiguration.params)
-        interactionSymbols.put(tertiary.location.toString(), tertiary.interactionSymbol.drawingConfiguration.params)
-    }
+    val pknotsDump = mutableMapOf<String, Map<String, String>>()
+    theme.put("pknots", pknotsDump)
 
     val phosphos = mutableMapOf<String, Map<String, String>>()
     theme.put("phosphobonds", phosphos)
-    drawing.allPhosphoBonds.forEach { phospho ->
-        phosphos.put(phospho.start.toString(), phospho.drawingConfiguration.params)
+
+    with (drawing) {
+
+        allHelices.forEach { helix ->
+            helices.put(helix.start.toString(), helix.drawingConfiguration.params)
+            helix.residues.forEach { residue ->
+                residueShapes.put(residue.location.start.toString(), residue.drawingConfiguration.params)
+                residueLetters.put(residue.location.start.toString(), residue.residueLetter.drawingConfiguration.params)
+            }
+        }
+
+        allJunctions.forEach { junction ->
+            junctions.put(junction.location.start.toString(), junction.drawingConfiguration.params)
+            junction.residues.forEach { residue ->
+                residueShapes.put(residue.location.start.toString(), residue.drawingConfiguration.params)
+                residueLetters.put(residue.location.start.toString(), residue.residueLetter.drawingConfiguration.params)
+            }
+        }
+
+        singleStrands.forEach { ss ->
+            singlestrands.put(ss.location.start.toString(), ss.drawingConfiguration.params)
+            ss.residues.forEach { residue ->
+                residueShapes.put(residue.location.start.toString(), residue.drawingConfiguration.params)
+                residueLetters.put(residue.location.start.toString(), residue.residueLetter.drawingConfiguration.params)
+            }
+        }
+
+
+        pknots.forEach { pk ->
+            pknotsDump.put(pk.location.start.toString(), pk.drawingConfiguration.params)
+            pk.tertiaryInteractions.forEach { it ->
+                interactions.put(it.location.toString(), it.drawingConfiguration.params)
+                interactionSymbols.put(it.location.toString(), it.interactionSymbol.drawingConfiguration.params)
+            }
+        }
+
+        allSecondaryInteractions.forEach { secondary ->
+            interactions.put(secondary.location.toString(), secondary.drawingConfiguration.params)
+            interactionSymbols.put(
+                secondary.location.toString(),
+                secondary.interactionSymbol.drawingConfiguration.params
+            )
+        }
+
+        tertiaryInteractions.forEach { tertiary ->
+            interactions.put(tertiary.location.toString(), tertiary.drawingConfiguration.params)
+            interactionSymbols.put(tertiary.location.toString(), tertiary.interactionSymbol.drawingConfiguration.params)
+        }
+
+
+        allPhosphoBonds.forEach { phospho ->
+            phosphos.put(phospho.start.toString(), phospho.drawingConfiguration.params)
+        }
     }
     return theme
 }

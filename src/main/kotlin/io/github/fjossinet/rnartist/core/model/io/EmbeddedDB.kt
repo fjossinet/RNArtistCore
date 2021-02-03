@@ -33,12 +33,19 @@ class EmbeddedDB() {
 
         val structure = doc.get("structure") as Map<String, Map<String,Map<String, String>>>
         val helices = structure["helices"] as Map<String,Map<String, String>>
+        val singleStrands = structure["single-strands"] as Map<String,Map<String, String>>
         val secondaries = structure["secondaries"] as Map<String,Map<String, String>>
         val tertiaries = structure["tertiaries"] as Map<String,Map<String, String>>
 
         for ((location, tertiary) in tertiaries) {
             secondaryStructure.tertiaryInteractions.add(BasePair(Location(location), Edge.valueOf(tertiary["edge5"]!!), Edge.valueOf(
                 tertiary["edge3"]!!), Orientation.valueOf(tertiary["orientation"]!!)))
+        }
+
+        for ((_, singleStrand) in singleStrands) {
+            val location = Location(singleStrand["location"]!!)
+            val ss = SingleStrand(singleStrand["name"]!!, location.start, location.end)
+            secondaryStructure.singleStrands.add(ss)
         }
 
         for ((_, helix) in helices) {
@@ -73,11 +80,11 @@ class EmbeddedDB() {
         for ((start, helix) in helices) {
             val h = secondaryStructure.helices.find { it.start == Integer.parseInt(start) }!!
             helix["first-junction-linked"]?.let { startPos ->
-                h.setJunction(secondaryStructure.junctions.find { it.location.start == Integer.parseInt(startPos) }!!)
+                h.setJunction(secondaryStructure.junctions.find { it.start == Integer.parseInt(startPos) }!!)
             }
 
             helix["second-junction-linked"]?.let { startPos ->
-                h.setJunction(secondaryStructure.junctions.find { it.location.start == Integer.parseInt(startPos) }!!)
+                h.setJunction(secondaryStructure.junctions.find { it.start == Integer.parseInt(startPos) }!!)
             }
         }
 
@@ -125,21 +132,26 @@ class EmbeddedDB() {
     fun saveProjectAs(name: String, secondaryStructureDrawing: SecondaryStructureDrawing):NitriteId {
         val doc = createDocument("name",name)
 
-        doc.put("rna", mutableMapOf<String,String>(
-                "name" to secondaryStructureDrawing.secondaryStructure.rna.name,
-                "seq" to secondaryStructureDrawing.secondaryStructure.rna.seq))
+        with (doc) {
+            put(
+                "rna", mutableMapOf<String, String>(
+                    "name" to secondaryStructureDrawing.secondaryStructure.rna.name,
+                    "seq" to secondaryStructureDrawing.secondaryStructure.rna.seq
+                )
+            )
 
-        //STRUCTURE
-        doc.put("structure", dumpSecondaryStructure(secondaryStructureDrawing))
+            //STRUCTURE
+            put("structure", dumpSecondaryStructure(secondaryStructureDrawing))
 
-        //LAYOUT (the size and orientation of junctions)
-        doc.put("layout", dumpLayout(secondaryStructureDrawing))
+            //LAYOUT (the size and orientation of junctions)
+            put("layout", dumpLayout(secondaryStructureDrawing))
 
-        //THEME (colors, line width, full details,...)
-        doc.put("theme", dumpTheme(secondaryStructureDrawing))
+            //THEME (colors, line width, full details,...)
+            put("theme", dumpTheme(secondaryStructureDrawing))
 
-        //WORKING SESSION
-        doc.put("session", dumpWorkingSession(secondaryStructureDrawing))
+            //WORKING SESSION
+            put("session", dumpWorkingSession(secondaryStructureDrawing))
+        }
 
         val r = this.userDB.getCollection("Projects").insert(doc)
         return r.first()
@@ -148,21 +160,26 @@ class EmbeddedDB() {
     fun saveProject(id:NitriteId, secondaryStructureDrawing: SecondaryStructureDrawing) {
         val doc = this.userDB.getCollection("Projects").getById(id) as Document
 
-        doc.put("rna", mutableMapOf<String,String>(
-            "name" to secondaryStructureDrawing.secondaryStructure.rna.name,
-            "seq" to secondaryStructureDrawing.secondaryStructure.rna.seq))
+        with (doc) {
+            put(
+                "rna", mutableMapOf<String, String>(
+                    "name" to secondaryStructureDrawing.secondaryStructure.rna.name,
+                    "seq" to secondaryStructureDrawing.secondaryStructure.rna.seq
+                )
+            )
 
-        //STRUCTURE
-        doc.put("structure", dumpSecondaryStructure(secondaryStructureDrawing))
+            //STRUCTURE
+            put("structure", dumpSecondaryStructure(secondaryStructureDrawing))
 
-        //LAYOUT (the size and orientation of junctions)
-        doc.put("layout", dumpLayout(secondaryStructureDrawing))
+            //LAYOUT (the size and orientation of junctions)
+            put("layout", dumpLayout(secondaryStructureDrawing))
 
-        //THEME (colors, line width, full details,...)
-        doc.put("theme", dumpTheme(secondaryStructureDrawing))
+            //THEME (colors, line width, full details,...)
+            put("theme", dumpTheme(secondaryStructureDrawing))
 
-        //WORKING SESSION
-        doc.put("session", dumpWorkingSession(secondaryStructureDrawing))
+            //WORKING SESSION
+            put("session", dumpWorkingSession(secondaryStructureDrawing))
+        }
 
         this.userDB.getCollection("Projects").update(doc)
     }
