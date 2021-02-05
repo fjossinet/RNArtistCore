@@ -33,17 +33,17 @@ Using pseudo-code, here is the structure that your script has to follow:
 ```kotlin
 drawing_algorithm {
 
-  parameter_1: "value"
-  parameter_2: value
+  parameter_1 = "value"
+  parameter_2 = value
 
   secondary_structure {
 
-    parameter_3: "value"
-    parameter_4: value
+    parameter_3 = "value"
+    parameter_4 = value
 
     rna {
-        parameter_5: value
-        parameter_6: "value"
+        parameter_5 = value
+        parameter_6 = "value"
     }
   
   }
