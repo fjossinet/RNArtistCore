@@ -241,3 +241,82 @@ booquet {
         }
     }
 }
+
+rnartist {
+    file = "media/example8.svg"
+    width = 1000.0
+    height = 600.0
+    ss {
+        pdb {
+            file = "/Volumes/Data/Projets/RNArtistCore/samples/1u6b.pdb"
+            name = "B"
+        }
+
+    }
+    theme {
+        details {
+            type = "helix"
+            value = "full"
+        }
+
+        details {
+            type = "junction"
+            value = "full"
+        }
+
+        details {
+            type = "single_strand"
+            value = "full"
+        }
+
+        details {
+            type = "secondary_interaction"
+            value = "full"
+        }
+
+        details {
+            type = "phosphodiester_bond"
+            value = "full"
+        }
+
+        details {
+            type = "interaction_symbol"
+            value = "full"
+        }
+
+        details {
+            type = "N"
+            value = "full"
+        }
+
+        details {
+            type = "n"
+            value = "full"
+        }
+
+        color {
+            type = "R"
+            value = "#EF946C"
+        }
+
+        color {
+            type = "Y"
+            value = "#C4A77D"
+        }
+
+        color {
+            type = "n"
+            value = "#000000"
+        }
+
+        line {
+            type = "phosphodiester_bond"
+            value = 2.0
+        }
+
+        line {
+            type = "secondary_interaction"
+            value = 4.0
+        }
+    }
+}
