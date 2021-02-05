@@ -298,6 +298,15 @@ Both algorithms need a secondary structure (see previous paragraph) and save the
 
 ***The RNArtist algorithm***
 
+The parameters available are:
+* **file**: the absolute path and the name of the SVG output file
+* **width**: the width of the view containing the drawing
+* **height**: the height of the view containing the drawing
+* **ss**: a secondary structure element (see above)
+* **theme**: see below
+
+The drawing will be automatically zoomed to fit the view. 
+
 This algorithm can be configured with an element named **```theme```**. 
 
 Inside ```theme```, you can add several times the following elements:
@@ -516,7 +525,16 @@ rnartist {
 
 ***The Booquet algorithm***
 
-This algorithm has less options than the rnartist one.
+This algorithm has less options than the rnartist one. The parameters available are:
+* **file**: the absolute path and the name of the SVG output file
+* **width**: the width of the view containing the drawing
+* **height**: the height of the view containing the drawing
+* **color**: an HTML color code
+* **line**: the width for the lines
+* **junction_diameter**: the diameter of the circles
+* **ss**: a secondary structure element (see above) 
+
+The drawing will be automatically zoomed to fit the view.
 
 ```kotlin
 booquet {
