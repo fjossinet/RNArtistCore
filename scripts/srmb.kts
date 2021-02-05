@@ -450,7 +450,7 @@ fun annotatePDBfiles(pdbDir:String, outputdir:String) {
                                 }
                             }
                             File("${outputdir}/${pdbFile.name.split(".pdb").first()}_${ss.rna.name}.svg").writeText(
-                                toSVG(drawing, frame.width, frame.height)
+                                toSVG(drawing, frame.width.toDouble(), frame.height.toDouble())
                             )
                             File("${outputdir}/${pdbFile.name.split(".pdb").first()}_${ss.rna.name}.json").writeText(
                                 toJSON(drawing)
@@ -640,7 +640,7 @@ jonctions quadruples : ${drawing.allJunctions.filter { it.junctionType == Juncti
                                                 "${outputdir}/${
                                                     pdbFile.name.split(".pdb").first()
                                                 }_${ss.rna.name}_${domains.first().name}_${domains.last().name}.svg"
-                                            ).writeText(toSVG(drawing, frame.width, frame.height))
+                                            ).writeText(toSVG(drawing, frame.width.toDouble(), frame.height.toDouble()))
 
                                             val f = File(
                                                 "${outputdir}/${

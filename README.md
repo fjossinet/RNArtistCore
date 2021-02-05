@@ -1,162 +1,602 @@
 RNArtistCore
 ============
 
-RNArtistCore is a commandline tool and a Kotlin library to describe and plot RNA secondary structures. As a library it is used in the projects RNArtist and RNArtistBackend.
+RNArtistCore is a commandline tool and a Kotlin library used to describe and plot RNA secondary structures. As a library it is used in the projects [RNArtist](https://github.com/fjossinet/RNArtist) and [RNArtistBackend](https://github.com/fjossinet/RNArtistBackEnd).
 
-# The command-line tool
+# Installation
 
-You need to have the build tool [Maven](https://maven.apache.org) installed. Clone this repository and inside its root directory type:
+You need to have the build tool [Maven](https://maven.apache.org) and a [Java distribution](https://www.oracle.com/java/technologies/javase-downloads.html) to be installed (type the commands ```mvn``` and ```java``` from a command line to check). 
+
+Clone this repository and inside its root directory type:
 
 <pre>mvn package</pre>
 
-Once done, in the subdirectory named "target", you will find the file rnartistcore-{version}-jar-with-dependencies.jar. In a terminal type:
+Once done, in the subdirectory named "target", you will find the file rnartistcore-{version}-jar-with-dependencies.jar. 
 
-<pre>java -jar rnartistcore-{version}-jar-with-dependencies.jar</pre>
+# RNArtistCore from the commandline
 
-You can rename this file if you want.
+RNArtistCore provide a domain-specific language (DSL) to write scripts more easily. You can have a look at examples in the file scripts/dsl.kts
 
-## Usage: 
+To run a script, you need to have the [kotlin command installed on you computer](https://kotlinlang.org/docs/tutorials/command-line.html).
 
-<pre>java -jar rnartistcore-{version}-jar-with-dependencies.jar [options]  [-f file_name] [-id database_id]</pre>
+To run a script, type the following command:
 
-## Description:
-RNArtistCore is a Java/Kotlin library and a commandline tool. As a tool, it exports an RNA secondary structure
-in an SVG file. The secondary structure is computed from data stored in a local file or recovered from databases
-like Rfam using an ID.
+<pre>kotlin -cp target/rnartistcore-{version}-jar-with-dependencies.jar your_script.kts</pre>
 
-The SVG plot can be configured through several options (lines width, font name,...). Using the option -s, these
-user-defined values can be saved in a configuration file and become the default values for the next runs.
+## How to write your scripts
 
-## Mandatory Options:
+Using pseudo-code, here is the structure that your script has to follow:
 
-* -f file_name
+```kotlin
+drawing_algorithm {
 
-    Either this option or -id is mandatory. The local file needs to describe an RNA secondary structure (BPSEQ, 
-    VIENNA, CT and STOCKHOLM formats). Several file names are allowed. If the option -o is not used, the SVG files 
-    are stored in the working directory.
+  parameter_1: "value"
+  parameter_2: value
 
-* -id database_entry_id
+  secondary_structure {
 
-    Either this option or -f is mandatory.  If the option -o is not used, the SVG files are stored in the working 
-    directory. The database_entry_id has to conform to:
-    
-    * RFXXXXX: an entry from the RFAM database (https://rfam.xfam.org/). A 2D structure is derived from the consensus
-             one for each RNA member of the family and exported in the ouput directory as an SVG file
+    parameter_3: "value"
+    parameter_4: value
 
-## Other Options:
-
-* --browser-fix
-  --no-browser-fix
-
-    If you display your SVG files in a browser and observe some issues concerning the centering of residue characters,
-    try to add this option. If this doesn't fix the problem, you can improve the centering by yourself with the options
-    "dxr" and "dyr". Use "--no-browser-fix -s" if you saved the option --browser-fix.
-
-* -cA "HTML_color_code"<br/>
-  -cU "HTML_color_code"<br/>
-  -cG "HTML_color_code"<br/>
-  -cC "HTML_color_code"<br/>
+    rna {
+        parameter_5: value
+        parameter_6: "value"
+    }
   
-    These options define the color to use for each residue. The HTML code can be defined like "#99ccff", \#99ccff or
-    99ccff. You can find a list of HTML color codes here: https://www.w3schools.com/colors/colors_picker.asp
+  }
 
-* -c2d "HTML_color_code"<br/>
-  -c3d "HTML_color_code"
+}
+```
+
+As you can see, you need to describe an RNA molecule, on which is constructed a secondary structure, used by an algorithm to produce a drawing.
+
+Here is a real example:
+
+```kotlin
+rnartist {
+    file = "media/example1.svg"
+    width = 300.0
+    height = 800.0
+    ss {
+        bracket_notation =
+            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+    }
+    theme {
+        details {
+            type = "helix"
+            value = "full"
+        }
+
+        details {
+            type = "junction"
+            value = "full"
+        }
+
+        details {
+            type = "single_strand"
+            value = "full"
+        }
+
+        details {
+            type = "secondary_interaction"
+            value = "full"
+        }
+
+        details {
+            type = "phosphodiester_bond"
+            value = "full"
+        }
+
+        details {
+            type = "R"
+            location="12:10"
+            value = "full"
+        }
+
+        details {
+            type = "Y"
+            location="25:10, 40:5"
+            value = "full"
+        }
+
+        details {
+            type = "r"
+            location="12:10"
+            value = "full"
+        }
+
+        color {
+            type="A"
+            value = "#A0ECF5"
+        }
+
+        color {
+            type="a"
+            value = "#000000"
+        }
+
+        color {
+            type="U"
+            value = "#9157E5"
+        }
+
+        color {
+            type="G"
+            value = "#93E557"
+        }
+
+        color {
+            type="C"
+            value = "#E557E5"
+        }
+
+    }
+}
+```
+
+![](media/example1.png)
+
+In the next paragraphs, we will detail the elements available to describe an RNA molecule, a secondary structure and a drawing algorithm.
+
+### How to define an RNA molecule
+
+Using the element ```rna```, you can create an RNA molecule from scratch. The parameters available are:
+
+* **name**: the name of the molecule (default value: "A")
+* **sequence**: the sequence of your molecule. If the parameter length is not provided, the sequence is mandatory
+* **length**: the length of your sequence. If this parameter is provided, a random sequence will be computed. If the parameter sequence is not provided, the length is mandatory
+
+Examples:
+
+```kotlin
+rna {
+  name = "My Fav RNA"
+  sequence = "GGGACCGCCCGGGAAACGGGCGAAAAACGAGGUGCGGGCACCUCGUGACGACGGGAGUUCGACCGUGACGCAUGCGGAAAUUGGAGGUGAGUUCGCGAAUACAAAAGCAAGCGAAUACGCCCUGCUUACCGAAGCAAGCG"
+}
+```
+
+```kotlin
+rna {
+  name = "My Fav RNA 2"
+  length = 50
+}
+```
+
+```kotlin
+rna {
+  length = 200
+}
+```
+
+### How to define a Secondary Structure
+
+You have two kind of elements to define a seconday structure:
+* from scratch using the element **ss**
+* from a file using elemnts like **vienna**, **bpseq**, **ct**,...
+* from a public database using elements like **rfam**, **rnacentral**, **pdb**,...
+
+***From scratch***
+
+The parameters available are:
+* **rna**: an rna molecule described with the **```rna```** element (see previous paragraph). If you don't provide any rna element, it will be computed for you with the default name and a random sequence fitting the base-pairing constraints.
+* **bracket_notation**: the secondary structure described with the dot-bracket notation
+
+Examples:
+
+```kotlin
+ss {
   
-    These options define the color to use for the secondary (-c2d) or the tertiary (-c3d) interactions. The HTML code
-    can be defined like "#99ccff", \#99ccff or 99ccff. You can find a list of HTML color codes here:
-    https://www.w3schools.com/colors/colors_picker.asp
-
-* -dxr number<br/>
-  --deltaXRes=number<br/>
-  -dyr number<br/>
-  --deltaYRes=number<br/>
+  rna {
+    name = "My Fav RNA"
+    length = 12
+  }
   
-    These options translate the residue characters along the X- or Y-axis (for example, to move it by 5 pixels along
-    the X-axis, type "-dxr 5"). The X- and Y-axis are in the "classical" orientations (0,0 is the bottom left corner).
-    To push the characters on the left (X-axis) or to the bottom (Y-Axis), you need to use the two hypens syntax (like
-    "--deltaXRes=-5"). If you saved a user-defined value for one of these options, you can erase it by doing "-dxr 0 -s". 
-    The number for these options has to be a positive or negative integer.
-
-* -df number<br/>
-  --deltaFontSize=number
+  bracket_notation = "((((....))))"
   
-    Modifies the residue character size. To decrease it by 5 in size, you need to use the two hypens syntax (like 
-    "--deltaFontSize=-5"). If you saved a user-defined value for this option, you can erase it by doing "-df 0 -s". 
-    The number for this option has to be a positive or negative integer.
+}
+```
 
-* --font=font_name
+***From a file***
 
-    The name of the font to use. Check the fonts available for your system to make a choice.
+You don't need to provide any rna element, it will be constructed automatically from the data stored in the file. 
 
-* -h<br/>
-  --help
-  
-    Print this help message.
+To be able to use the PDB format, you need to have the RNAVIEW algorithm installed with the [Docker container assemble2](https://hub.docker.com/r/fjossinet/assemble2/). RNArtistCore will delegate to RNAVIEW the annotation of the 3D structure into a 2D.
 
-* -hw number<br/>
-  --halo-width=number
-  
-    [NOT IMPLEMENTED, TO COME] Define the size of the halo around residues making tertiary interactions. The number
-    has to be an integer greater of equal to 0.
+The parameters available are:
+* **file**: the absolute path and the name of your file
 
-* -o dir_name
+Examples:
+```kotlin
+ss {
+  bpseq {
+    file = "/home/bwayne/myrna.bpseq"
+  }
+}
+```
 
-    The directory to output the SVG files. The directory has to exist. If the option -o is not used, the SVG files 
-    are stored in the working directory.
+```kotlin
+ss {
+  ct {
+    file = "/home/bwayne/myrna.ct"
+  }
+}
+```
 
-* -o3d number<br/>
-  --opacity-3d=number
-  
-    [NOT IMPLEMENTED, TO COME] Define the % of opacity of the halo around residues making tertiary interactions. The
-    number has to be an integer between 0 and 100.
+```kotlin
+ss {
+  vienna {
+    file = "/home/bwayne/myrna.vienna"
+  }
+}
+```
 
-* -p<br/>
-  --print
-  
-    Print the current user-defined options to plot the 2D structures.
+```kotlin
+ss {
+  pdb {
+    file = "/home/bwayne/myrna.pdb"
+    name = "A"
+  }
+}
+```
 
-* -rb number<br/>
-  --residueBorder=number
-  
-    Change the width/thickness for the border of the residues circles. The number has to be a float greater of equal 
-    to 0.
+***From a public database***
 
-* -s<br/>
-  --save
-  
-    Save the options defined as default ones. Use option -p to print current default options.
+You don't need to provide any rna element, it will be constructed automatically from the data stored in the database entry.
 
-* -s3d style<br/>
-  --style-3d=style
-  
-    [NOT IMPLEMENTED, TO COME] Define the line style for the tertiary interactions. The value can be dashed or solid.
+The parameters available are:
+* **id**: the id of your database entry
+* **name**: if the entry contains several secondary structures, this parameter allows to precise the structure needed.
 
-* -t theme_id<br/>
-  --theme=theme_id
-  
-    [NOT IMPLEMENTED, TO COME] Use a theme shared by the community. Take a look at this page to see all the themes
-     shared : http://to_come
+Examples:
 
-* -w2d number<br/>
-  --width-2d=number<br/>
-  -w3d number<br/>
-  --width-3d=number<br/>
-  
-    These options define the width/thickness for the secondary (-w2d) or the tertiary (-w3d) interactions lines. The 
-    number has to be a float greater of equal to 0.
+```kotlin
+ss {
+  rfam {
+    id = "RF00072"
+    name = "AJ009730.1/1-133"
+  }
+}
+```
 
-## Examples:
-<pre>
-    java -jar rnartistcore.jar -f ~/data/* -o ~/svg_files --font="Andale Mono" --browser-fix
-    java -jar rnartistcore.jar -f ~/data/* -o ~/svg_files --font="DIN Condensed" -rb 2 -dxr 0 --deltaYRes=-5
-    java -jar rnartistcore.jar -f ~/data/rna.bpseq -o ~/svg_files --font="Arial" -rb 0 --deltaFontSize=-10
-    java -jar rnartistcore.jar -f ~/data/rna.bpseq -o ~/svg_files --font="Herculanum" -cU "#ffcc66" -s
-    java -jar rnartistcore.jar -f ~/data/rna.bpseq -o ~/svg_files -w2d 10 -w3d 1 -s
-    java -jar rnartistcore.jar -f ~/data/*.ct -o ~/svg_files -w2d 5 --font="Futura" --deltaFontSize=-2 -cA 0066ff -cG "#ff9900" -cU 009933 -cC \#cc00cc
-</pre>
+```kotlin
+ss {
+  rfam {
+    id = "RF00072"
+    name = "consensus"
+  }
+}
+```
 
-# The library
+```kotlin
+ss {
+  pdb {
+    id = "1EHZ"
+  }
+}
+```
+
+```kotlin
+ss {
+  pdb {
+    id = "1JJ2"
+    name = "0"
+  }
+}
+```
+
+### How to define a drawing algorithm
+
+Two algorithms are available:
+* the one used by the graphical tool [RNArtist](https://github.com/fjossinet/RNArtist)
+* booquet
+
+Both algorithms need a secondary structure (see previous paragraph) and save their results in an SVG file. Each algorithm has its own parameters to configure the drawing process and the final result.
+
+***The RNArtist algorithm***
+
+This algorithm can be configured with an element named **```theme```**. 
+
+Inside ```theme```, you can add several times the following elements:
+* **details**: define the resolution of the element
+  * **value**: "full" to draw all the details
+  * **type**: the type of the elements targeted
+  * **location**: the location of the elements targeted
+* **color**: define the color of the element
+  * **value**: an HTML color code
+  * **type**: the type of the elements targeted
+  * **location**: the location of the elements targeted
+* **line**: define the width of the line
+  * **value**: a digit
+  * **type**: the type of the elements targeted
+  * **location**: the location of the elements targeted
+
+The parameter **```type```** can have the following values:
+  * "A", "U", "G", "C", "X", "N", "R", "Y": using capital letters for residues target the circle surrounding the residue letter. "N" is for any residue, "R" for purines, and "Y" for pyrimidines 
+  * "a", "u", "g", "c", "x", "n", "ry", "y": using lowercase letters for residues target the letter inside the circle. "n" is for any residue, "r" for purines, and "y" for pyrimidines 
+  * "helix"
+  * "single_strand"
+  * "junction"
+  * "secondary_interaction"
+  * "tertiary_interaction"
+  * "phosphodiester_bond"
+  * "interaction_symbol"
+
+The parameter **```location```** needs to have the following format: "start_position_1:length, start_position_2:length"
+
+Examples:
+
+```kotlin
+rnartist {
+    file = "media/example1.svg"
+    width = 300.0
+    height = 800.0
+    ss {
+        bracket_notation =
+            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+    }
+    theme {
+        details {
+            type = "helix"
+            value = "full"
+        }
+
+        details {
+            type = "junction"
+            value = "full"
+        }
+
+        details {
+            type = "single_strand"
+            value = "full"
+        }
+
+        details {
+            type = "secondary_interaction"
+            value = "full"
+        }
+
+        details {
+            type = "phosphodiester_bond"
+            value = "full"
+        }
+
+        details {
+            type = "R"
+            location="12:10"
+            value = "full"
+        }
+
+        details {
+            type = "Y"
+            location="25:10, 40:5"
+            value = "full"
+        }
+
+        details {
+            type = "r"
+            location="12:10"
+            value = "full"
+        }
+
+        color {
+            type="A"
+            value = "#A0ECF5"
+        }
+
+        color {
+            type="a"
+            value = "#000000"
+        }
+
+        color {
+            type="U"
+            value = "#9157E5"
+        }
+
+        color {
+            type="G"
+            value = "#93E557"
+        }
+
+        color {
+            type="C"
+            value = "#E557E5"
+        }
+
+    }
+}
+```
+
+![](media/example1.png)
+
+```kotlin
+rnartist {
+    file = "media/example2.svg"
+    width = 600.0
+    height = 1000.0
+    ss {
+        bracket_notation =
+            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+
+    }
+    theme {
+        details {
+            type = "helix"
+            value = "full"
+        }
+
+        details {
+            type = "junction"
+            value = "full"
+        }
+
+        details {
+            type = "single_strand"
+            value = "full"
+        }
+
+        details {
+            type = "secondary_interaction"
+            value = "full"
+        }
+
+        details {
+            type = "phosphodiester_bond"
+            value = "full"
+        }
+
+        details {
+            type = "interaction_symbol"
+            value = "full"
+        }
+
+        details {
+            type = "tertiary_interaction"
+            value = "none"
+        }
+
+        details {
+            type = "N"
+            value = "full"
+        }
+
+        details {
+            type = "r"
+            value = "full"
+        }
+
+        details {
+            type = "y"
+            value = "full"
+        }
+
+        color {
+            type = "R"
+            value = "#15BD1A"
+        }
+
+        color {
+            type = "Y"
+            value = "#FFC300"
+        }
+
+        color {
+            type = "r"
+            value = "#FFFFFF"
+        }
+
+        color {
+            type = "u"
+            value = "#000000"
+        }
+
+        color {
+            type = "c"
+            value = "#FE1102"
+        }
+
+        line {
+            type = "phosphodiester_bond"
+            value = 5.0
+        }
+
+        line {
+            type = "secondary_interaction"
+            value = 1.0
+        }
+    }
+}
+```
+
+![](media/example2.png)
+
+***The Booquet algorithm***
+
+This algorithm has less options than the rnartist one.
+
+```kotlin
+booquet {
+    file = "media/example3.svg"
+    junction_diameter = 15.0
+    color = "#000000"
+    line = 1.0
+    ss {
+        rfam {
+            id = "RF00072"
+            name = "AJ009730.1/1-133"
+        }
+    }
+}
+```
+
+![](media/example3.png)
+
+```kotlin
+booquet {
+    file = "media/example4.svg"
+    junction_diameter = 15.0
+    color = "#15BD15"
+    line = 5.0
+    ss {
+        vienna {
+            file = "samples/rna.vienna"
+        }
+    }
+}
+```
+
+![](media/example4.png)
+
+```kotlin
+booquet {
+    file = "media/example5.svg"
+    junction_diameter = 15.0
+    color = "#BD8515"
+    ss {
+        ct {
+            file = "samples/ASE_00010_from_RNA_STRAND_database.ct"
+        }
+    }
+}
+```
+
+![](media/example5.png)
+
+```kotlin
+booquet {
+    file = "media/example6.svg"
+    junction_diameter = 15.0
+    color = "#BD8515"
+    width = 1200.0
+    height = 800.0
+    line = 0.5
+    ss {
+        pdb {
+            file = "/Volumes/Data/Projets/RNArtistCore/samples/1jj2.pdb"
+            name = "0"
+        }
+    }
+}
+```
+
+![](media/example6.png)
+
+```kotlin
+booquet {
+    file = "media/example7.svg"
+    junction_diameter = 15.0
+    color = "#BD1576"
+    ss {
+        bpseq {
+            file = "samples/SRP_00001_from_RNA_STRAND_database.bpseq"
+        }
+    }
+}
+```
+
+![](media/example7.png)
+
+# RNArtistCore as a library
 
 You need to have the build tool [Maven](https://maven.apache.org) installed. 
 No stable release for now, only snapshots. To use RNArtistCore in a Java application, just add the below dependency in your file pom.xml:
@@ -180,66 +620,7 @@ No stable release for now, only snapshots. To use RNArtistCore in a Java applica
         <dependency>
             <groupId>io.github.fjossinet.rnartist.core</groupId>
             <artifactId>rnartistcore</artifactId>
-            <version>0.1.1-SNAPSHOT</version>
+            <version>0.2.2-SNAPSHOT</version>
         </dependency>
     </dependencies>
 ```
-## Get a secondary structure
-```kotlin
-//load the saved options and/or create default ones
-RnartistConfig.load()
-RnartistConfig.exportSVGWithBrowserCompatibility(true)
-var ss:SecondaryStructure? = null
-//load from a Vienna String
-ss = parseVienna(StringReader(">myRNA\nCGCUGAAUUCAGCG\n((((......))))"))
-//create object directly
-ss = SecondaryStructure(RNA(name = "myRNA", seq = "CGCUGAAUUCAGCG"), bracketNotation = "((((......))))")
-ss?.let {
-    val theme = Theme()
-    theme.fontName = "Futura"
-    theme.secondaryInteractionWidth = 4.0
-    theme.residueBorder = 1.0
-    theme.GColor = Color(223, 1, 1)
-    var drawing = SecondaryStructureDrawing(secondaryStructure = ss, theme = theme)
-
-    var writer = FileWriter("media/myRNA.svg")
-    writer.write(drawing.asSVG())
-    writer.close()
-}
-//load the saved options and/or create default ones
-RnartistConfig.save(theme.params)
-```
-And you get:
-
-<img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/myRNA.svg" width="140">
-
-```kotlin
-//load the saved options and/or create default ones
-RnartistConfig.load()
-RnartistConfig.exportSVGWithBrowserCompatibility(true)
-//load from a Vienna file
-val viennaFile = File("media/rna.vienna")
-var ss2:SecondaryStructure? = null
-if (viennaFile.exists())
-    ss2 = parseVienna(FileReader(viennaFile))
-ss2?.let {
-    val theme = Theme()
-    theme.fontName = "Arial"
-    theme.phosphoDiesterWidth = 3.0
-    theme.secondaryInteractionWidth = 1.0
-    theme.residueBorder = 0.5
-    theme.UColor = Color.WHITE
-    theme.UChar = Color.BLACK
-    theme.CColor = Color.RED
-    theme.CChar = Color.WHITE
-    var drawing = SecondaryStructureDrawing(secondaryStructure = ss2, theme = theme)
-    var writer = FileWriter("media/rna.svg")
-    writer.write(drawing.asSVG())
-    writer.close()
-}
-```
-And you get:
-
-<img src="https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/media/rna.svg" width="500">
-
-Now you can pursue with vector graphics editor like Affinity Designer or Inkscape.

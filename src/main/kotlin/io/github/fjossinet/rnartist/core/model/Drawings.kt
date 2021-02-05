@@ -144,6 +144,22 @@ class Theme(defaultConfigurations: MutableMap<String, Map<String, String>> = mut
     fun clear() = this.configurations.clear()
 }
 
+class AdvancedTheme(defaultConfigurations: MutableMap<(DrawingElement) -> Boolean, Pair<String, String>> = mutableMapOf()) {
+
+    var configurations: MutableMap<(DrawingElement) -> Boolean, Pair<String, String>> = mutableMapOf()
+
+    fun setConfigurationFor(selection: (DrawingElement) -> Boolean, parameter: DrawingConfigurationParameter, parameterValue: String) {
+        this.setConfigurationFor(selection, parameter.toString(), parameterValue)
+    }
+
+    private fun setConfigurationFor(selection: (DrawingElement) -> Boolean, parameter: String, parameterValue: String) {
+        configurations[selection] = Pair<String, String>(parameter, parameterValue)
+    }
+
+    fun clear() = this.configurations.clear()
+}
+
+
 class DrawingConfiguration(defaultParams: Map<String, String> = defaultConfiguration.toMutableMap()) {
 
     val params: MutableMap<String, String> = mutableMapOf()
@@ -237,6 +253,14 @@ abstract class DrawingElement(val ssDrawing: SecondaryStructureDrawing, var pare
                 this.drawingConfiguration.params[t] = u
             }
         }
+
+    open fun applyAdvancedTheme(theme: AdvancedTheme)  {
+        theme.configurations.entries.forEach { entry ->
+            if (entry.key(this)) {
+                this.drawingConfiguration.params[entry.value.first] = entry.value.second
+            }
+        }
+    }
 }
 
 class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val workingSession: WorkingSession = WorkingSession()) {
@@ -1173,6 +1197,23 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
             r.applyTheme(theme)
     }
 
+    fun applyAdvancedTheme(theme: AdvancedTheme) {
+        for (pk in this.pknots)
+            pk.applyAdvancedTheme(theme)
+        for (jc in this.allJunctions)
+            jc.applyAdvancedTheme(theme)
+        for (ss in this.singleStrands)
+            ss.applyAdvancedTheme(theme)
+        for (h in this.allHelices)
+            h.applyAdvancedTheme(theme)
+        for (i in this.allSecondaryInteractions)
+            i.applyAdvancedTheme(theme)
+        for (i in this.tertiaryInteractions)
+            i.applyAdvancedTheme(theme)
+        for (r in this.residues)
+            r.applyAdvancedTheme(theme)
+    }
+
 }
 
 abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDrawing: SecondaryStructureDrawing, absPos: Int, type:SecondaryStructureType) : DrawingElement(ssDrawing, parent, residueLetter.toString(), Location(absPos), type) {
@@ -1429,6 +1470,11 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
         this.residueLetter.applyTheme(theme)
     }
 
+    override fun applyAdvancedTheme(theme: AdvancedTheme) {
+        super.applyAdvancedTheme(theme)
+        this.residueLetter.applyAdvancedTheme(theme)
+    }
+
 }
 
 class AShapeDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, absPos: Int):ResidueDrawing(parent, 'A', ssDrawing, absPos, SecondaryStructureType.AShape) {
@@ -1681,6 +1727,14 @@ class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, private val pknot: Pkno
             it.applyTheme(theme)
         }
     }
+
+    override fun applyAdvancedTheme(theme: AdvancedTheme) {
+        super.applyAdvancedTheme(theme)
+        this.helix.applyAdvancedTheme(theme)
+        this.tertiaryInteractions.forEach {
+            it.applyAdvancedTheme(theme)
+        }
+    }
 }
 
 abstract class StructuralDomainDrawing(ssDrawing:SecondaryStructureDrawing, parent:DrawingElement?, name:String, location:Location, type:SecondaryStructureType):DrawingElement(ssDrawing, parent, name, location, type)
@@ -1739,6 +1793,15 @@ class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructure
             p.applyTheme(theme)
         for (i in this.secondaryInteractions) {
             i.applyTheme(theme)
+        }
+    }
+
+    override fun applyAdvancedTheme(theme: AdvancedTheme) {
+        super.applyAdvancedTheme(theme)
+        for (p in this.phosphoBonds)
+            p.applyAdvancedTheme(theme)
+        for (i in this.secondaryInteractions) {
+            i.applyAdvancedTheme(theme)
         }
     }
 
@@ -1893,6 +1956,14 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
             p.applyTheme(theme)
         for (r in this.ssDrawing.getResiduesFromAbsPositions(*this.getSinglePositions()))
             r.applyTheme(theme)
+    }
+
+    override fun applyAdvancedTheme(theme: AdvancedTheme) {
+        super.applyAdvancedTheme(theme)
+        for (p in this.phosphoBonds)
+            p.applyAdvancedTheme(theme)
+        for (r in this.ssDrawing.getResiduesFromAbsPositions(*this.getSinglePositions()))
+            r.applyAdvancedTheme(theme)
     }
 }
 
@@ -2415,6 +2486,14 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
         for (r in this.residues)
             r.applyTheme(theme)
     }
+
+    override fun applyAdvancedTheme(theme: AdvancedTheme) {
+        super.applyAdvancedTheme(theme)
+        for (p in this.phosphoBonds)
+            p.applyAdvancedTheme(theme)
+        for (r in this.residues)
+            r.applyAdvancedTheme(theme)
+    }
 }
 
 class Branch(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing, circlesFromBranchSoFar: MutableList<Triple<Point2D, Double, Ellipse2D>>, linesFromBranchSoFar: MutableList<List<Point2D>>, inId: ConnectorId, inPoint: Point2D, inHelix: Helix,junction: Junction):JunctionDrawing(parent, ssDrawing, circlesFromBranchSoFar, linesFromBranchSoFar, null, inId, inPoint, inHelix, junction) {
@@ -2825,6 +2904,13 @@ abstract class BaseBaseInteractionDrawing(parent: DrawingElement?, val interacti
         this.pairedResidue.applyTheme(theme)
         this.interactionSymbol.applyTheme(theme)
     }
+
+    override fun applyAdvancedTheme(theme: AdvancedTheme) {
+        super.applyAdvancedTheme(theme)
+        this.residue.applyAdvancedTheme(theme)
+        this.pairedResidue.applyAdvancedTheme(theme)
+        this.interactionSymbol.applyAdvancedTheme(theme)
+    }
 }
 
 class SecondaryInteractionDrawing(parent: DrawingElement?, interaction: BasePair, ssDrawing: SecondaryStructureDrawing) : BaseBaseInteractionDrawing(parent, interaction, ssDrawing, SecondaryStructureType.SecondaryInteraction) {
@@ -3110,6 +3196,14 @@ class InteractionSymbolDrawing(parent: DrawingElement?, val interaction: BasePai
         this.defaultSymbol?.applyTheme(theme)
         for (s in this.lwSymbols) {
             s.applyTheme(theme)
+        }
+    }
+
+    override fun applyAdvancedTheme(theme: AdvancedTheme) {
+        super.applyAdvancedTheme(theme)
+        this.defaultSymbol?.applyAdvancedTheme(theme)
+        for (s in this.lwSymbols) {
+            s.applyAdvancedTheme(theme)
         }
     }
 
@@ -4247,11 +4341,11 @@ fun getHTMLColorString(color: Color): String {
             if (blue.length == 1) "0$blue" else blue
 }
 
-fun Booquet(ss:SecondaryStructure, step:Int = 25, residue_occupancy:Int = 5, junction_diameter: Int = 20 ): Map<String, IntArray> {
+fun Booquet(ss:SecondaryStructure, frameWidth:Double, frameHeight:Double, step:Double = 25.0, lineWidth:Double = 2.0, residue_occupancy:Double = 5.0, junction_diameter: Double = 20.0, color:Color= Color.BLACK): String {
 
-    val booquet = mutableMapOf<String, IntArray>()
-    var x = 0
-    val apicalLoops_x_coords = mutableListOf<Int>()
+    val booquet = mutableMapOf<String, DoubleArray>()
+    var x = 0.0
+    val apicalLoops_x_coords = mutableListOf<Double>()
     apicalLoops_x_coords.add(x)
 
     val apical_loops = ss.junctions.filter { it.junctionType == JunctionType.ApicalLoop }
@@ -4290,7 +4384,7 @@ fun Booquet(ss:SecondaryStructure, step:Int = 25, residue_occupancy:Int = 5, jun
     val branches = ss.helices.filter { it.junctionsLinked.second == null}
 
     for (branch in branches) {
-        val current_y = 200
+        val current_y = 200.0
         drawBooquetBranch(booquet, ss, branch, apicalLoops_x_coords, current_y, residue_occupancy, junction_diameter, apical_loops)
     }
 
@@ -4301,7 +4395,7 @@ fun Booquet(ss:SecondaryStructure, step:Int = 25, residue_occupancy:Int = 5, jun
                     var l = h.start*residue_occupancy
                     if (l > 2 * junction_diameter)
                         l = 2 * junction_diameter
-                    booquet[singleStrand.name] = intArrayOf(booquet[h.name]!![0]-l, booquet[h.name]!![1], booquet[h.name]!![0], booquet[h.name]!![1])
+                    booquet[singleStrand.name] = doubleArrayOf(booquet[h.name]!![0]-l, booquet[h.name]!![1], booquet[h.name]!![0], booquet[h.name]!![1])
                     break
                 }
             }
@@ -4311,7 +4405,7 @@ fun Booquet(ss:SecondaryStructure, step:Int = 25, residue_occupancy:Int = 5, jun
                     var l = (ss.length-h.end+1)*residue_occupancy
                     if (l > 2 * junction_diameter)
                         l = 2 * junction_diameter
-                    booquet[singleStrand.name] = intArrayOf(booquet[h.name]!![0], booquet[h.name]!![1], booquet[h.name]!![0]+l, booquet[h.name]!![1])
+                    booquet[singleStrand.name] = doubleArrayOf(booquet[h.name]!![0], booquet[h.name]!![1], booquet[h.name]!![0]+l, booquet[h.name]!![1])
                     break
                 }
             }
@@ -4324,16 +4418,163 @@ fun Booquet(ss:SecondaryStructure, step:Int = 25, residue_occupancy:Int = 5, jun
                 if (h.start == singleStrand.end+1)
                     second_helix = h
                 if (first_helix != null && second_helix != null) {
-                    booquet[singleStrand.name] = intArrayOf(booquet[first_helix.name]!![0], booquet[first_helix.name]!![1], booquet[second_helix.name]!![0], booquet[second_helix.name]!![1])
+                    booquet[singleStrand.name] = doubleArrayOf(booquet[first_helix.name]!![0], booquet[first_helix.name]!![1], booquet[second_helix.name]!![0], booquet[second_helix.name]!![1])
                     break
                 }
             }
         }
     }
-    return booquet
+
+    var minX = booquet.values.minBy<DoubleArray, Double> { it[0] }!!.get(0) - junction_diameter.toDouble()
+    var minY =
+        booquet.values.minBy { it[1] }!!.get(1) - junction_diameter.toDouble() - junction_diameter.toDouble()
+
+    var maxX = booquet.values.maxBy<DoubleArray, Double> { it[0] }!!.get(0) + junction_diameter.toDouble()
+    var maxY = booquet.values.maxBy { it[1] }!!.get(1).toDouble()
+
+    var width = maxX-minX
+    var height = maxY-minY
+
+    val ratio = listOf(frameWidth/width, frameHeight/height).min()!!
+
+    minX *= ratio
+    maxX *= ratio
+    minY *= ratio
+    maxY *= ratio
+
+    width = maxX-minX
+    height = maxY-minY
+
+    val svgBuffer =
+        StringBuffer("""<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">""" + "\n")
+
+    ss.helices.forEach { helix ->
+        booquet[helix.name]?.let { coords ->
+            svgBuffer.append(
+                """<line x1="${coords[0]*ratio - minX}" y1="${coords[1]*ratio - minY}" x2="${coords[2]*ratio - minX}" y2="${coords[3]*ratio - minY}" stroke="${
+                    getHTMLColorString(
+                        color
+                    )
+                }" stroke-width="${lineWidth}" stroke-linecap="round"/>"""
+            )
+        }
+    }
+
+    //phospho bonds between two branches
+    var startOfBranches = ss.helices.filter{it.junctionsLinked.second == null}.sortedBy { it.start }
+
+    for (i in 0 until startOfBranches.size-1) {
+        if (startOfBranches[i].end+1 == startOfBranches[i+1].start) { // direct link
+            booquet[startOfBranches[i].name]?.let { coordsH1 ->
+                booquet[startOfBranches[i+1].name]?.let { coordsH2 ->
+                    svgBuffer.append(
+                        """<line x1="${coordsH1[0] * ratio - minX}" y1="${coordsH1[1] * ratio - minY}" x2="${coordsH2[0] * ratio - minX}" y2="${coordsH2[1] * ratio - minY}" stroke="${
+                            getHTMLColorString(
+                                color
+                            )
+                        }" stroke-width="${lineWidth}" stroke-linecap="round"/>"""
+                    )
+                }
+            }
+        }
+    }
+
+    ss.singleStrands.forEach { singleStrand ->
+        booquet[singleStrand.name]?.let { coords ->
+            svgBuffer.append(
+                """<line x1="${coords[0]*ratio - minX}" y1="${coords[1]*ratio - minY}" x2="${coords[2]*ratio - minX}" y2="${coords[3]*ratio - minY}" stroke="${
+                    getHTMLColorString(
+                        color
+                    )
+                }" stroke-width="${lineWidth}" stroke-linecap="round"/>"""
+            )
+        }
+    }
+
+    ss.junctions.forEach { junction ->
+        booquet[junction.name]?.let { junctionCoords ->
+            when (junction.junctionType) {
+                in setOf(JunctionType.ApicalLoop, JunctionType.InnerLoop) -> {
+                    svgBuffer.append(
+                        """<circle cx="${junctionCoords[0]*ratio - minX}" cy="${junctionCoords[1]*ratio - minY}" r="${junction_diameter / 2.0*ratio}" stroke="${
+                            getHTMLColorString(
+                                color
+                            )
+                        }" stroke-width="${lineWidth}" fill="${
+                            getHTMLColorString(
+                                color
+                            )
+                        }"/>"""
+                    )
+
+                    svgBuffer.append(
+                        """<circle cx="${junctionCoords[0]*ratio - minX}" cy="${junctionCoords[1]*ratio - minY}" r="${1.5 * junction_diameter / 2.0*ratio}" stroke="${
+                            getHTMLColorString(
+                                color
+                            )
+                        }" stroke-width="${lineWidth}" fill="none"/>"""
+                    )
+                }
+
+                else -> {
+                    svgBuffer.append(
+                        """<circle cx="${junctionCoords[0]*ratio - minX}" cy="${junctionCoords[1]*ratio - minY}" r="${junction_diameter / 2.0*ratio}" stroke="${
+                            getHTMLColorString(
+                                color
+                            )
+                        }" stroke-width="${lineWidth}" fill="${
+                            getHTMLColorString(
+                                color
+                            )
+                        }"/>"""
+                    )
+
+                    svgBuffer.append(
+                        """<circle cx="${junctionCoords[0]*ratio - minX}" cy="${junctionCoords[1]*ratio - minY}" r="${1.5 * junction_diameter / 2.0*ratio}" stroke="${
+                            getHTMLColorString(
+                                color
+                            )
+                        }" stroke-width="${lineWidth}" fill="none"/>"""
+                    )
+                    for (i in 0 until junction.location.blocks.size - 1) {
+                        for (h in ss.helices) {
+                            if (h.location.start == junction.location.blocks[i].end) {
+                                booquet[h.name]?.let { helixCoords ->
+                                    if (helixCoords[1] != junctionCoords[1]) {
+                                        val (_, p2) = pointsFrom(
+                                            Point2D.Double(
+                                                helixCoords[0].toDouble(),
+                                                helixCoords[1].toDouble()
+                                            ),
+                                            Point2D.Double(
+                                                junctionCoords[0].toDouble(),
+                                                junctionCoords[1].toDouble()
+                                            ),
+                                            (1.5*junction_diameter.toDouble()) / 2.0
+                                        )
+                                        svgBuffer.append(
+                                            """<line x1="${helixCoords[0]*ratio - minX}" y1="${helixCoords[1]*ratio - minY}" x2="${p2.x*ratio - minX}" y2="${p2.y*ratio - minY}" stroke="${
+                                                getHTMLColorString(
+                                                    color
+                                                )
+                                            }" stroke-width="${lineWidth}" stroke-linecap="round"/>"""
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    svgBuffer.append("</svg>")
+
+    return svgBuffer.toString()
 }
 
-private fun drawBooquetBranch(booquet:MutableMap<String, IntArray>, ss:SecondaryStructure, helix:Helix, x_coords:MutableList<Int>, current_y:Int, residue_occupancy: Int, junction_diameter: Int, apical_loops:List<Junction>) {
+private fun drawBooquetBranch(booquet:MutableMap<String, DoubleArray>, ss:SecondaryStructure, helix:Helix, x_coords:MutableList<Double>, current_y: Double, residue_occupancy: Double, junction_diameter: Double, apical_loops:List<Junction>) {
     val enclosed_stem_loops = mutableListOf<Junction>()
     var next_junction:Junction? = null
 
@@ -4347,7 +4588,7 @@ private fun drawBooquetBranch(booquet:MutableMap<String, IntArray>, ss:Secondary
                             ss,
                             h,
                             x_coords,
-                            (current_y - helix.length * residue_occupancy-1.5 * junction_diameter).toInt(),
+                            current_y - helix.length * residue_occupancy-1.5 * junction_diameter,
                             residue_occupancy,
                             junction_diameter,
                             apical_loops)
@@ -4368,7 +4609,7 @@ private fun drawBooquetBranch(booquet:MutableMap<String, IntArray>, ss:Secondary
                             ss,
                             h,
                             x_coords,
-                            (current_y - helix.length * residue_occupancy - 1.5 * junction_diameter).toInt(),
+                            current_y - helix.length * residue_occupancy - 1.5 * junction_diameter,
                             residue_occupancy,
                             junction_diameter,
                             apical_loops
@@ -4393,16 +4634,16 @@ private fun drawBooquetBranch(booquet:MutableMap<String, IntArray>, ss:Secondary
                 enclosed_stem_loops.add(apical_loop)
         }
     }
-    val _x_coords = mutableListOf<Int>()
+    val _x_coords = mutableListOf<Double>()
 
     for (stem_loop in enclosed_stem_loops)
         _x_coords.add(x_coords[apical_loops.indexOf(stem_loop)])
 
-    val m = _x_coords.average().toInt()
+    val m = _x_coords.average()
 
-    booquet[helix.name] = intArrayOf(m, current_y, m, current_y-helix.length*residue_occupancy)
+    booquet[helix.name] = doubleArrayOf(m, current_y, m, current_y-helix.length*residue_occupancy)
 
     next_junction?.let {
-        booquet[it.name] = intArrayOf(m, current_y-helix.length*residue_occupancy-junction_diameter/2-5)
+        booquet[it.name] = doubleArrayOf(m, current_y-helix.length*residue_occupancy-1.5*junction_diameter/2.0)
     }
 }

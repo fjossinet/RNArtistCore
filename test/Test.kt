@@ -1,5 +1,7 @@
+import io.github.fjossinet.rnartist.core.booquet
 import io.github.fjossinet.rnartist.core.model.*
 import io.github.fjossinet.rnartist.core.model.io.*
+import io.github.fjossinet.rnartist.core.ss
 import java.awt.Rectangle
 import java.awt.geom.AffineTransform
 import java.awt.geom.Rectangle2D
@@ -7,6 +9,23 @@ import java.awt.image.BufferedImage
 import java.io.*
 
 class Test {
+
+    fun tDsl() {
+        booquet {
+            file = "/Users/fjossinet/myFavRNA.svg"
+            junction_diameter = 15.0
+            color = "#E033FF"
+            ss {
+                rna {
+                    name = "My Fav RNA"
+                    sequence =
+                        "GGGACCGCCCGGGAAACGGGCGAAAAACGAGGUGCGGGCACCUCGUGACGACGGGAGUUCGACCGUGACGCAUGCGGAAAUUGGAGGUGAGUUCGCGAAUACAAAAGCAAGCGAAUACGCCCUGCUUACCGAAGCAAGCG"
+                }
+                bracket_notation =
+                    ".....((((((.....))))))....((((((((....))))))))....((((........))))..(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+            }
+        }
+    }
 
     fun tPDB() {
         val pdb = PDB()
@@ -86,8 +105,8 @@ class Test {
             File(System.getProperty("user.home"), "${id}.svg").writeText(
                 toSVG(
                     drawing,
-                    frame.width,
-                    frame.height
+                    frame.width.toDouble(),
+                    frame.height.toDouble()
                 )
             )
         }

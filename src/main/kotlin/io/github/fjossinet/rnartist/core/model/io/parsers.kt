@@ -121,18 +121,17 @@ fun parseVienna(reader: Reader): SecondaryStructure {
 
     if (generateRandomSeq) {
         ss.randomizeSeq()
-        println(ss.rna.seq)
     }
 
     return ss
 }
 
-fun toSVG(drawing:SecondaryStructureDrawing, width:Int, height:Int): String {
+fun toSVG(drawing:SecondaryStructureDrawing, width:Double, height:Double): String {
     val at = AffineTransform()
     at.translate(drawing.viewX, drawing.viewY)
     at.scale(drawing.zoomLevel, drawing.zoomLevel)
 
-    val svgBuffer = StringBuffer("""<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">""" + "\n")
+    val svgBuffer = StringBuffer("""<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">""" + "\n")
 
     with (drawing) {
         workingSession.junctionsDrawn.forEach { junction ->
