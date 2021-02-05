@@ -17,7 +17,7 @@ Once done, in the subdirectory named "target", you will find the file rnartistco
 
 # RNArtistCore from the commandline
 
-RNArtistCore provide a domain-specific language (DSL) to write scripts more easily. You can have a look at examples in the file scripts/dsl.kts
+RNArtistCore provides a domain-specific language (DSL) to write scripts more easily. You can have a look at examples in the file scripts/dsl.kts
 
 To run a script, you need to have the [kotlin command installed on you computer](https://kotlinlang.org/docs/tutorials/command-line.html).
 
@@ -172,7 +172,7 @@ rna {
 
 ### How to define a Secondary Structure
 
-You have two kind of elements to define a seconday structure:
+You have three different ways to define a seconday structure:
 * from scratch using the element **ss**
 * from a file using elemnts like **vienna**, **bpseq**, **ct**,...
 * from a public database using elements like **rfam**, **rnacentral**, **pdb**,...
@@ -180,7 +180,7 @@ You have two kind of elements to define a seconday structure:
 ***From scratch***
 
 The parameters available are:
-* **rna**: an rna molecule described with the **```rna```** element (see previous paragraph). If you don't provide any rna element, it will be computed for you with the default name and a random sequence fitting the base-pairing constraints.
+* **rna**: an rna molecule described with the **```rna```** element (see previous paragraph). If you don't provide any ```rna``` element, it will be computed for you with the default name and a random sequence fitting the base-pairing constraints.
 * **bracket_notation**: the secondary structure described with the dot-bracket notation
 
 Examples:
@@ -200,12 +200,13 @@ ss {
 
 ***From a file***
 
-You don't need to provide any rna element, it will be constructed automatically from the data stored in the file. 
+You don't need to provide any ```rna``` element, it will be constructed automatically from the data stored in the file. 
 
 To be able to use the PDB format, you need to have the RNAVIEW algorithm installed with the [Docker container assemble2](https://hub.docker.com/r/fjossinet/assemble2/). RNArtistCore will delegate to RNAVIEW the annotation of the 3D structure into a 2D.
 
 The parameters available are:
 * **file**: the absolute path and the name of your file
+* **name**: if the file contains several molecular chains, this parameter allows to precise the one needed.
 
 Examples:
 ```kotlin
@@ -243,11 +244,11 @@ ss {
 
 ***From a public database***
 
-You don't need to provide any rna element, it will be constructed automatically from the data stored in the database entry.
+You don't need to provide any ```rna``` element, it will be constructed automatically from the data stored in the database entry.
 
 The parameters available are:
 * **id**: the id of your database entry
-* **name**: if the entry contains several secondary structures, this parameter allows to precise the structure needed.
+* **name**: if the entry contains several molecular chains, this parameter allows to precise the one needed.
 
 Examples:
 
@@ -323,7 +324,7 @@ The parameter **```type```** can have the following values:
   * "phosphodiester_bond"
   * "interaction_symbol"
 
-The parameter **```location```** needs to have the following format: "start_position_1:length, start_position_2:length"
+The parameter **```location```** needs to have the following format: "start_position_1:length, start_position_2:length, ..."
 
 Examples:
 
