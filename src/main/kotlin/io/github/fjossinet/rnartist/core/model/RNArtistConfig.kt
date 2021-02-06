@@ -2,8 +2,6 @@ package io.github.fjossinet.rnartist.core.model
 
 import com.google.gson.Gson
 import io.github.fjossinet.rnartist.core.model.io.getUserDir
-import org.apache.commons.lang3.tuple.MutablePair
-import org.dizitart.no2.NitriteId
 import org.jdom2.Document
 import org.jdom2.Element
 import org.jdom2.JDOMException
@@ -1059,7 +1057,7 @@ object RnartistConfig {
                 HttpResponse.BodyHandlers.ofString()
             )
             val properties = Gson().fromJson<GlobalProperties>(response.body() as String, GlobalProperties::class.java)
-            website = "http://${properties.website.get(status)}"
+            website = "http://${properties.website[status]}"
     }
 
     @JvmStatic
@@ -1081,31 +1079,31 @@ object RnartistConfig {
         }
 
     @JvmStatic
-    val recentEntries: List<MutablePair<String, String>>
+    val recentEntries: List<Pair<String, String>>
         get() {
             var e = document!!.rootElement.getChild("recent-entries")
             if (e == null) {
                 e = Element("recent-entries")
                 document!!.rootElement.addContent(e)
             }
-            val files: MutableList<MutablePair<String, String>> = ArrayList()
+            val files: MutableList<Pair<String, String>> = ArrayList()
             UPPERFOR@ for (o in e.getChildren("entry")) {
                 val entry = o
-                for (f in files) if (f.getLeft() == entry!!.getAttributeValue("id") && f.getRight() == entry.getAttributeValue(
+                for (f in files) if (f.first == entry!!.getAttributeValue("id") && f.second == entry.getAttributeValue(
                         "type"
                     )
                 ) {
                     continue@UPPERFOR
                 }
-                files.add(MutablePair(entry!!.getAttributeValue("id"), entry.getAttributeValue("type")))
+                files.add(Pair(entry!!.getAttributeValue("id"), entry.getAttributeValue("type")))
             }
             document!!.rootElement.removeContent(e)
             e = Element("recent-entries")
             document!!.rootElement.addContent(e)
             for (f in files) {
                 val file = Element("entry")
-                file.setAttribute("id", f.getLeft())
-                file.setAttribute("type", f.getRight())
+                file.setAttribute("id", f.first)
+                file.setAttribute("type", f.second)
                 e.addContent(file)
             }
             return files

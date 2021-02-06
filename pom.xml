@@ -14,7 +14,7 @@
 
     <groupId>io.github.fjossinet.rnartist.core</groupId>
     <artifactId>rnartistcore</artifactId>
-    <version>0.2.3-SNAPSHOT</version>
+    <version>0.2.4-SNAPSHOT</version>
 
     <name>RNArtist Core</name>
     <description>A Kotlin library to create and plot RNA 2D structures</description>
@@ -56,6 +56,13 @@
     </distributionManagement>
 
     <dependencies>
+        <!-- kotlin -->
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib</artifactId>
+            <version>${kotlin_version}</version>
+        </dependency>
+
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
@@ -70,11 +77,6 @@
             <groupId>org.jdom</groupId>
             <artifactId>jdom</artifactId>
             <version>2.0.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.dizitart</groupId>
-            <artifactId>nitrite</artifactId>
-            <version>3.4.1</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>

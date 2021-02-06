@@ -12,7 +12,7 @@ You need to have the build tool [Maven](https://maven.apache.org) and a [Java di
 
 Clone this repository and inside its root directory type:
 
-<pre>mvn package</pre>
+<pre>mvn clean package</pre>
 
 Once done, in the subdirectory named "target", you will find the file rnartistcore-{version}-jar-with-dependencies.jar. 
 

@@ -4,7 +4,6 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.annotations.SerializedName
-import io.github.fjossinet.rnartist.core.model.io.EmbeddedDB
 import io.github.fjossinet.rnartist.core.model.io.parsePDB
 import io.github.fjossinet.rnartist.core.model.io.Rnaview
 import io.github.fjossinet.rnartist.core.model.io.getUserDir
