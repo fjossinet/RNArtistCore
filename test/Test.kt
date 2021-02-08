@@ -1,6 +1,7 @@
 import io.github.fjossinet.rnartist.core.booquet
 import io.github.fjossinet.rnartist.core.model.*
 import io.github.fjossinet.rnartist.core.model.io.*
+import io.github.fjossinet.rnartist.core.rnartist
 import io.github.fjossinet.rnartist.core.ss
 import java.awt.Rectangle
 import java.awt.geom.AffineTransform
@@ -10,9 +11,9 @@ import java.io.*
 
 class Test {
 
-    fun tDsl() {
+    fun testDsl() {
         booquet {
-            file = "/Users/fjossinet/myFavRNA.svg"
+            file = "${System.getProperty("user.home")}/myFavRNA.svg"
             junction_diameter = 15.0
             color = "#E033FF"
             ss {
@@ -29,86 +30,130 @@ class Test {
 
     fun tPDB() {
         val pdb = PDB()
-        val rnaview = Rnaview()
-        pdb.query().forEach { pdbId ->
+        pdb.query().subList(7,10).forEach { pdbId ->
             val pdbFile = java.io.File.createTempFile(pdbId, ".pdb")
             pdbFile.writeText(pdb.getEntry(pdbId).readText())
-            try {
-                println("annotating ${pdbId}")
-                rnaview.annotate(pdbFile).forEach {
-                    println(it.rna.length)
+            for (ts in parsePDB(FileReader(pdbFile))) {
+                rnartist {
+                    file = "${System.getProperty("user.home")}/${pdbId}_${ ts.rna.name}.svg"
+                    ss {
+                        pdb {
+                            id = pdbId
+                            name = ts.rna.name
+                        }
+                    }
+                    theme {
+                        details {
+                            type = "helix"
+                            value = "full"
+                        }
+                        details {
+                            type = "secondary_interaction"
+                            value = "full"
+                        }
+                        details {
+                            type = "single_strand"
+                            value = "full"
+                        }
+                        details {
+                            type = "pknot"
+                            value = "full"
+                        }
+                        details {
+                            type = "tertiary_interaction"
+                            value = "full"
+                        }
+                        details {
+                            type = "interaction_symbol"
+                            value = "full"
+                        }
+                        details {
+                            type = "phosphodiester_bond"
+                            value = "full"
+                        }
+                        details {
+                            type = "junction"
+                            value = "full"
+                        }
+                        details {
+                            type = "N"
+                            value = "full"
+                        }
+                        details {
+                            type = "n"
+                            value = "full"
+                        }
+                        RnartistConfig.colorSchemes.get("Persian Carolina")!!.forEach { elementType, config ->
+                            config.forEach {
+                                color {
+                                    type = elementType
+                                    value = it.value
+                                }
+                            }
+                        }
+                    }
                 }
-            } catch (e:FileNotFoundException) {
-                println("No XML file")
             }
         }
     }
 
-    fun tRNACentral() {
+    fun testRNACentral() {
         val id = "URS000044DFF6"
         RNACentral().fetch(id)?.let {
-            val drawing = SecondaryStructureDrawing(it)
-            val t = Theme()
-            t.setConfigurationFor(SecondaryStructureType.Helix, DrawingConfigurationParameter.fulldetails, "true")
-            t.setConfigurationFor(
-                SecondaryStructureType.SecondaryInteraction,
-                DrawingConfigurationParameter.fulldetails,
-                "true"
-            )
-            t.setConfigurationFor(
-                SecondaryStructureType.SingleStrand,
-                DrawingConfigurationParameter.fulldetails,
-                "true"
-            )
-            t.setConfigurationFor(SecondaryStructureType.PKnot, DrawingConfigurationParameter.fulldetails, "true")
-            t.setConfigurationFor(
-                SecondaryStructureType.TertiaryInteraction,
-                DrawingConfigurationParameter.fulldetails,
-                "true"
-            )
-            t.setConfigurationFor(
-                SecondaryStructureType.InteractionSymbol,
-                DrawingConfigurationParameter.fulldetails,
-                "false"
-            )
-            t.setConfigurationFor(
-                SecondaryStructureType.PhosphodiesterBond,
-                DrawingConfigurationParameter.fulldetails,
-                "true"
-            )
-            t.setConfigurationFor(SecondaryStructureType.Junction, DrawingConfigurationParameter.fulldetails, "true")
-            t.setConfigurationFor(SecondaryStructureType.AShape, DrawingConfigurationParameter.fulldetails, "true")
-            t.setConfigurationFor(SecondaryStructureType.UShape, DrawingConfigurationParameter.fulldetails, "true")
-            t.setConfigurationFor(SecondaryStructureType.GShape, DrawingConfigurationParameter.fulldetails, "true")
-            t.setConfigurationFor(SecondaryStructureType.CShape, DrawingConfigurationParameter.fulldetails, "true")
-            t.setConfigurationFor(SecondaryStructureType.XShape, DrawingConfigurationParameter.fulldetails, "true")
-            t.setConfigurationFor(SecondaryStructureType.A, DrawingConfigurationParameter.fulldetails, "true")
-            t.setConfigurationFor(SecondaryStructureType.U, DrawingConfigurationParameter.fulldetails, "true")
-            t.setConfigurationFor(SecondaryStructureType.G, DrawingConfigurationParameter.fulldetails, "true")
-            t.setConfigurationFor(SecondaryStructureType.C, DrawingConfigurationParameter.fulldetails, "true")
-            t.setConfigurationFor(SecondaryStructureType.X, DrawingConfigurationParameter.fulldetails, "true")
-
-            RnartistConfig.colorSchemes.get("Persian Carolina")!!.forEach { elementType, config ->
-                config.forEach {
-                    t.setConfigurationFor(
-                        SecondaryStructureType.valueOf(elementType),
-                        DrawingConfigurationParameter.valueOf(it.key),
-                        it.value
-                    )
+            rnartist {
+                file = "${System.getProperty("user.home")}/${id}.svg"
+                secondaryStructure = it
+                theme {
+                    details {
+                        type = "helix"
+                        value = "full"
+                    }
+                    details {
+                        type = "secondary_interaction"
+                        value = "full"
+                    }
+                    details {
+                        type = "single_strand"
+                        value = "full"
+                    }
+                    details {
+                        type = "pknot"
+                        value = "full"
+                    }
+                    details {
+                        type = "tertiary_interaction"
+                        value = "full"
+                    }
+                    details {
+                        type = "interaction_symbol"
+                        value = "full"
+                    }
+                    details {
+                        type = "phosphodiester_bond"
+                        value = "full"
+                    }
+                    details {
+                        type = "junction"
+                        value = "full"
+                    }
+                    details {
+                        type = "N"
+                        value = "full"
+                    }
+                    details {
+                        type = "n"
+                        value = "full"
+                    }
+                    RnartistConfig.colorSchemes.get("Persian Carolina")!!.forEach { elementType, config ->
+                        config.forEach {
+                            color {
+                                type = elementType
+                                value = it.value
+                            }
+                        }
+                    }
                 }
             }
-
-            drawing.applyTheme(t)
-            val frame = Rectangle(0, 0, 1920, 1080)
-            drawing.fitTo(frame)
-
-            File(System.getProperty("user.home"), "${id}.svg").writeText(
-                toSVG(
-                    drawing,
-                    frame.width.toDouble(),
-                    frame.height.toDouble()
-                )
-            )
         }
     }
 }

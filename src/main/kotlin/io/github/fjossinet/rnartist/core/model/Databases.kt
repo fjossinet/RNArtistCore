@@ -7,6 +7,7 @@ import com.google.gson.annotations.SerializedName
 import io.github.fjossinet.rnartist.core.model.io.parsePDB
 import io.github.fjossinet.rnartist.core.model.io.Rnaview
 import io.github.fjossinet.rnartist.core.model.io.getUserDir
+import io.github.fjossinet.rnartist.core.ss
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
@@ -33,10 +34,15 @@ class RNACentral {
             data = Gson().fromJson(text, HashMap<String, String>().javaClass)
             val bn = (data["data"] as Map<String, String>)["secondary_structure"]
             bn?.let {
-                return SecondaryStructure(rna, bracketNotation = bn, source="db:rnacentral:${id}")
+               ss {
+                    this.rna = rna
+                    bracket_notation = bn
+                }?.let { ss ->
+                   ss.source = "db:rnacentral:${id}"
+                   return ss
+               }
             }
         }
-
         return null
     }
 }

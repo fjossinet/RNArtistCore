@@ -20,7 +20,99 @@ val radiansToDegrees = 180 / Math.PI
 val degreesToRadians = Math.PI / 180
 
 enum class SecondaryStructureType {
-    Full2D, A, U, G, C, X, AShape, UShape, GShape, CShape, XShape, SecondaryInteraction, TertiaryInteraction, InteractionSymbol, PhosphodiesterBond, Helix, PKnot, Junction, SingleStrand, LWSymbol, Numbering
+    Full2D,
+    A {
+        override fun toString(): String {
+            return "a"
+        }
+    },
+    U {
+        override fun toString(): String {
+            return "u"
+        }
+    },
+    G {
+        override fun toString(): String {
+            return "g"
+        }
+    },
+    C {
+        override fun toString(): String {
+            return "c"
+        }
+    },
+    X {
+        override fun toString(): String {
+            return "x"
+        }
+    },
+    AShape {
+        override fun toString(): String {
+            return "A"
+        }
+    },
+    UShape {
+        override fun toString(): String {
+            return "U"
+        }
+    },
+    GShape {
+        override fun toString(): String {
+            return "G"
+        }
+    },
+    CShape {
+        override fun toString(): String {
+            return "C"
+        }
+    },
+    XShape {
+        override fun toString(): String {
+            return "X"
+        }
+    },
+    SecondaryInteraction {
+        override fun toString(): String {
+            return "secondary_interaction"
+        }
+    },
+    TertiaryInteraction {
+        override fun toString(): String {
+            return "tertiary_interaction"
+        }
+    },
+    InteractionSymbol {
+        override fun toString(): String {
+            return "interaction_symbol"
+        }
+    },
+    PhosphodiesterBond {
+        override fun toString(): String {
+            return "phosphodiester_bond"
+        }
+    },
+    Helix {
+        override fun toString(): String {
+            return "helix"
+        }
+    },
+    PKnot {
+        override fun toString(): String {
+            return "pknot"
+        }
+    },
+    Junction {
+        override fun toString(): String {
+            return "junction"
+        }
+    },
+    SingleStrand {
+        override fun toString(): String {
+            return "single_strand"
+        }
+    },
+    LWSymbol,
+    Numbering
 }
 
 enum class DrawingConfigurationParameter {
@@ -118,7 +210,7 @@ class WorkingSession() {
     }
 }
 
-class Theme(defaultConfigurations: MutableMap<String, Map<String, String>> = mutableMapOf()) {
+class Theme(defaultConfigurations: Map<String, Map<String, String>> = mutableMapOf()) {
 
     var configurations: MutableMap<String, MutableMap<String, String>> = mutableMapOf()
 

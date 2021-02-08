@@ -243,6 +243,15 @@ ss {
 }
 ```
 
+```kotlin
+ss {
+  stockholm {
+    file = "/home/bwayne/RF00072.stk"
+    name = "AJ009730.1/1-133"
+  }
+}
+```
+
 ***From a public database***
 
 You don't need to provide any ```rna``` element, it will be constructed automatically from the data stored in the database entry.
@@ -300,12 +309,10 @@ Both algorithms need a secondary structure (see previous paragraph) and save the
 
 The parameters available are:
 * **file**: the absolute path and the name of the SVG output file
-* **width**: the width of the view containing the drawing
-* **height**: the height of the view containing the drawing
 * **ss**: a secondary structure element (see above)
 * **theme**: see below
 
-The drawing will be automatically zoomed to fit the view. 
+The size of the picture will fit the size of the drawing (with a minimum size of 1024x768 to see the residue letters).
 
 This algorithm can be configured with an element named **```theme```**. 
 
@@ -333,6 +340,7 @@ The parameter **```type```** can have the following values:
   * "tertiary_interaction"
   * "phosphodiester_bond"
   * "interaction_symbol"
+  * "pknot"
 
 The parameter **```location```** needs to have the following format: "start_position_1:length, start_position_2:length, ..."
 
@@ -341,8 +349,6 @@ Examples:
 ```kotlin
 rnartist {
     file = "media/example1.svg"
-    width = 300.0
-    height = 800.0
     ss {
         bracket_notation =
             ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
@@ -527,8 +533,8 @@ rnartist {
 
 This algorithm has less options than the rnartist one. The parameters available are:
 * **file**: the absolute path and the name of the SVG output file
-* **width**: the width of the view containing the drawing
-* **height**: the height of the view containing the drawing
+* **width**: the width of the view containing the drawing (default:300)
+* **height**: the height of the view containing the drawingg (default:300)
 * **color**: an HTML color code
 * **line**: the width for the lines
 * **junction_diameter**: the diameter of the circles

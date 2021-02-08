@@ -5,8 +5,6 @@ import io.github.fjossinet.rnartist.core.*
 
 rnartist {
     file = "media/example1.svg"
-    width = 300.0
-    height = 800.0
     ss {
         bracket_notation =
             ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
@@ -85,8 +83,6 @@ rnartist {
 
 rnartist {
     file = "media/example2.svg"
-    width = 600.0
-    height = 1000.0
     ss {
         bracket_notation =
             ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
@@ -244,8 +240,6 @@ booquet {
 
 rnartist {
     file = "media/example8.svg"
-    width = 1000.0
-    height = 600.0
     ss {
         pdb {
             file = "/Volumes/Data/Projets/RNArtistCore/samples/1u6b.pdb"

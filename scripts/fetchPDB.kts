@@ -8,6 +8,7 @@
 import java.io.*
 import io.github.fjossinet.rnartist.core.model.*
 import io.github.fjossinet.rnartist.core.model.io.*
+import io.github.fjossinet.rnartist.core.rnartist
 import java.awt.Rectangle
 
 if (args.size < 1) {
@@ -166,37 +167,23 @@ ids.forEach { pdbId ->
                 if (!found)
                     s.add("Y")  //should never happen
                 if (!it.helices.isEmpty()) {
-                    val drawing = SecondaryStructureDrawing(it)
-                    s.add("v1")
-                    val drawingFrame = drawing.getFrame().bounds
-                    val frame = if (drawingFrame.width < 1024 || drawingFrame.height < 768)
-                        Rectangle(0, 0, 1024, 768)
-                    else
-                        Rectangle(0, 0, drawingFrame.width, drawingFrame.height)
-                    drawing.applyTheme(t)
-                    drawing.fitTo(frame)
-                    /*if (!drawing.allTertiaryInteractions.isEmpty()) {
-                        File("${outputdir}/${pdbId}_${it.rna.name}_no_tertiaries.svg").writeText(
-                            toSVG(
-                                drawing,
-                                frame.width,
-                                frame.height,
-                                tertiariesDisplayLevel = TertiariesDisplayLevel.None
-                            )
-                        )
-                        s.add("[View](${pdbId}_${it.rna.name}_no_tertiaries.svg)")
-                        File("${outputdir}/${pdbId}_${it.rna.name}.svg").writeText(toSVG(drawing, frame.width, frame.height))
-                        s.add("[View](${pdbId}_${it.rna.name}.svg)")
-                    } else {
-                        File("${outputdir}/${pdbId}_${it.rna.name}.svg").writeText(toSVG(drawing, frame.width, frame.height))
-                        s.add("[View](${pdbId}_${it.rna.name}.svg)")
-                        s.add("")
-                    }*/
+                    rnartist {
+                        secondaryStructure = it
+                    }?.let { drawing ->
+                        s.add("v1")
+                        val drawingFrame = drawing.getFrame().bounds
+                        val frame = if (drawingFrame.width < 1024 || drawingFrame.height < 768)
+                            Rectangle(0, 0, 1024, 768)
+                        else
+                            Rectangle(0, 0, drawingFrame.width, drawingFrame.height)
+                        drawing.applyTheme(t)
+                        drawing.fitTo(frame)
 
-                    File("${outputdir}/${pdbId}_${it.rna.name}.json").writeText(toJSON(drawing))
-                    s.add("[View](https://raw.githubusercontent.com/fjossinet/RNAGallery/main/PDB/${pdbId}_${it.rna.name}.json)")
-                    status.add(s)
-                    stored++
+                        File("${outputdir}/${pdbId}_${it.rna.name}.json").writeText(toJSON(drawing))
+                        s.add("[View](https://raw.githubusercontent.com/fjossinet/RNAGallery/main/PDB/${pdbId}_${it.rna.name}.json)")
+                        status.add(s)
+                        stored++
+                    }
                 } else {
                     non_helices++
                 }

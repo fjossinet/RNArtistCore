@@ -13,7 +13,7 @@ class RNABuilder {
     var sequence:String? = null
     var length:Int? = null
 
-    fun build():RNA {
+    fun build():RNA? {
         this.sequence?.let {
             return RNA(name, it)
         }
@@ -22,7 +22,7 @@ class RNABuilder {
             sequence.append((1..it).map { listOf("A", "U", "G", "C").random()}.joinToString(separator = ""))
             return RNA(name, sequence.toString())
         }
-        throw Exception("The sequence or length parameter is mandatory to define an rna element")
+        return null
     }
 }
 
@@ -31,7 +31,7 @@ class SecondaryStructureBuilder {
     var bracket_notation:String? = null
     private var secondaryStructure:SecondaryStructure? = null
 
-    fun build():SecondaryStructure {
+    fun build():SecondaryStructure? {
         this.secondaryStructure?.let {
             return it
         }
@@ -45,7 +45,7 @@ class SecondaryStructureBuilder {
             ss.randomizeSeq()
             return ss
         }
-        throw Exception("The bracket notation parameter is mandatory to define a secondary structure element")
+        return null
     }
 
     fun rna(setup:RNABuilder.() -> Unit) {
@@ -84,21 +84,38 @@ class SecondaryStructureBuilder {
         secondaryStructure = pdbBuilder.build()
     }
 
+    fun stockholm(setup:StockholmBuilder.() -> Unit) {
+        val stockholmBuilder = StockholmBuilder()
+        stockholmBuilder.setup()
+        secondaryStructure = stockholmBuilder.build()
+    }
+
 }
 
 open abstract class FileBuilder {
     var file:String? = null
 
-    abstract fun build():SecondaryStructure
+    abstract fun build():SecondaryStructure?
 }
 
 class PDBBuilder:FileBuilder() {
 
     var name:String? = null
+    var id:String? = null
 
-    override fun build(): SecondaryStructure {
-        this.file?.let { file ->
-            val secondaryStructures = Rnaview().annotate(File(file))
+    override fun build(): SecondaryStructure? {
+        if (this.id != null) {
+            val pdbFile = java.io.File.createTempFile(this.id!!, ".pdb")
+            pdbFile.writeText(PDB().getEntry(this.id!!).readText())
+            this.file = pdbFile.absolutePath
+        }
+        if (this.file != null) {
+            var secondaryStructures = listOf<SecondaryStructure>()
+            try {
+                secondaryStructures = Rnaview().annotate(File(file))
+            } catch (e:Exception) {
+                println(e.message)
+            }
             if (secondaryStructures.size == 1)
                 return secondaryStructures.first()
             else if (this.name != null) {
@@ -106,38 +123,55 @@ class PDBBuilder:FileBuilder() {
                     if (it.rna.name.equals(this.name))
                         return it
                 }
-            } else {
-                throw Exception("The name parameter is mandatory to define a PDB secondary structure if several chains are in the 3D structure")
             }
         }
-        throw Exception("The file parameter is mandatory to define a PDB secondary structure")
+        return null
     }
 }
 
 class ViennaBuilder:FileBuilder() {
-    override fun build(): SecondaryStructure {
+    override fun build(): SecondaryStructure? {
         this.file?.let {
             return parseVienna(FileReader(this.file))
         }
-        throw Exception("The file parameter is mandatory to define a Vienna secondary structure")
+        return null
     }
 }
 
 class BPSeqBuilder:FileBuilder() {
-    override fun build(): SecondaryStructure {
+    override fun build(): SecondaryStructure? {
         this.file?.let {
             return parseBPSeq(FileReader(this.file))
         }
-        throw Exception("The file parameter is mandatory to define a BPSeq secondary structure")
+        return null
     }
 }
 
 class CTBuilder:FileBuilder() {
-    override fun build(): SecondaryStructure {
+    override fun build(): SecondaryStructure? {
         this.file?.let {
             return parseCT(FileReader(this.file))
         }
-        throw Exception("The file parameter is mandatory to define a CT secondary structure")
+        return null
+    }
+}
+
+class StockholmBuilder:FileBuilder() {
+    var name:String? = null
+
+    override fun build(): SecondaryStructure? {
+        this.file?.let {
+            var secondaryStructures = parseStockholm(FileReader(this.file), withConsensus2D = true)
+            if (secondaryStructures.size == 1)
+                return secondaryStructures.first()
+            else if (this.name != null) {
+                secondaryStructures.forEach {
+                    if (it.rna.name.equals(this.name))
+                        return it
+                }
+            }
+        }
+        return null
     }
 }
 
@@ -145,12 +179,12 @@ open abstract class PublicDatabaseBuilder {
     var id:String? = null
     var name:String? = null
 
-    abstract fun build():SecondaryStructure
+    abstract fun build():SecondaryStructure?
 }
 
 
 class RfamBuilder:PublicDatabaseBuilder() {
-    override fun build(): SecondaryStructure {
+    override fun build(): SecondaryStructure? {
         this.id?.let { id ->
             this.name?.let {
                 val secondaryStructures = parseStockholm(Rfam().getEntry(id), withConsensus2D = true)
@@ -161,12 +195,12 @@ class RfamBuilder:PublicDatabaseBuilder() {
                         if (name.equals(it.rna.name))
                             return it
                     }
+                    return null
                 }
-                throw Exception("${name} not found in Rfam entry ${id}")
             }
-            throw Exception("The name parameter is mandatory to define an Rfam secondary structure")
+            return null
         }
-        throw Exception("The id parameter is mandatory to define an Rfam secondary structure")
+        return null
     }
 }
 
@@ -187,12 +221,8 @@ class BooquetBuilder {
                 val f = File(outputFile)
                 f.createNewFile()
                 f.writeText(svgOutput)
-                return
             }
-            throw Exception("The secondary structure parameter is mandatory to define a drawing algorithm element")
         }
-        throw Exception("The file parameter is mandatory to define a drawing algorithm element")
-
     }
 
     fun ss(setup:SecondaryStructureBuilder.() -> Unit) {
@@ -205,102 +235,103 @@ class BooquetBuilder {
 
 class RNArtistBuilder {
     var file:String? = null
-    var width = 300.0
-    var height = 300.0
     var secondaryStructure: SecondaryStructure? = null
     var themeBuilder:ThemeBuilder? = null
 
-    fun build() {
-        this.file?.let { outputFile ->
-            this.secondaryStructure?.let { ss ->
-                val drawing = SecondaryStructureDrawing(ss, WorkingSession())
-                val frame = Rectangle2D.Double(0.0, 0.0, width, height)
+    fun build(): SecondaryStructureDrawing? {
+        this.secondaryStructure?.let { ss ->
+            val drawing = SecondaryStructureDrawing(ss, WorkingSession())
+            //the frame will have the size of the drawing
+            val drawingFrame = drawing.getFrame().bounds2D
+            val frame = if (drawingFrame.width < 1024 || drawingFrame.height < 768)
+                Rectangle2D.Double(0.0, 0.0, 1024.0, 768.0)
+            else
+                Rectangle2D.Double(0.0, 0.0, drawingFrame.width, drawingFrame.height)
 
-                this.themeBuilder?.let { themeBuilder ->
-                    themeBuilder.colors.forEach { colorBuilder ->
-                        if (colorBuilder.location != null) {
-                            val location = Location(colorBuilder.location!!)
-                            val t = AdvancedTheme()
-                            colorBuilder.type?.let { type ->
-                                val types = getSecondaryStructureType(type)
-                                types.forEach {
-                                    val selection = {e:DrawingElement -> location.positions.any {e.location.contains(it)} && e.type == it}
-                                    t.setConfigurationFor(selection, DrawingConfigurationParameter.color, colorBuilder.value.toString())
-                                }
+            this.themeBuilder?.let { themeBuilder ->
+                themeBuilder.colors.forEach { colorBuilder ->
+                    if (colorBuilder.location != null) {
+                        val location = Location(colorBuilder.location!!)
+                        val t = AdvancedTheme()
+                        colorBuilder.type?.let { type ->
+                            val types = getSecondaryStructureType(type)
+                            types.forEach {
+                                val selection = {e:DrawingElement -> location.positions.any {e.location.contains(it)} && e.type == it}
+                                t.setConfigurationFor(selection, DrawingConfigurationParameter.color, colorBuilder.value.toString())
                             }
-                            drawing.applyAdvancedTheme(t)
                         }
-                        else {
-                            val t = Theme()
-                            colorBuilder.type?.let { type ->
-                                val types = getSecondaryStructureType(type)
-                                types.forEach {
-                                    t.setConfigurationFor(it, DrawingConfigurationParameter.color, colorBuilder.value.toString())
-                                }
-                            }
-                            drawing.applyTheme(t)
-                        }
+                        drawing.applyAdvancedTheme(t)
                     }
-                    themeBuilder.details.forEach { detailsBuilder ->
-                        if (detailsBuilder.location != null) {
-                            val location = Location(detailsBuilder.location!!)
-                            val t = AdvancedTheme()
-                            detailsBuilder.type?.let { type ->
-                                val types = getSecondaryStructureType(type)
-                                types.forEach {
-                                    val selection = {e:DrawingElement -> location.positions.any {e.location.contains(it)} && e.type == it}
-                                    t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, detailsBuilder.value.equals("full").toString())
-                                }
+                    else {
+                        val t = Theme()
+                        colorBuilder.type?.let { type ->
+                            val types = getSecondaryStructureType(type)
+                            types.forEach {
+                                t.setConfigurationFor(it, DrawingConfigurationParameter.color, colorBuilder.value.toString())
                             }
-                            drawing.applyAdvancedTheme(t)
                         }
-                        else {
-                            val t = Theme()
-                            detailsBuilder.type?.let { type ->
-                                val types = getSecondaryStructureType(type)
-                                types.forEach {
-                                    t.setConfigurationFor(it, DrawingConfigurationParameter.fulldetails, detailsBuilder.value.equals("full").toString())
-                                }
-                            }
-                            drawing.applyTheme(t)
-                        }
-                    }
-                    themeBuilder.lines.forEach { lineBuilder ->
-                        if (lineBuilder.location != null) {
-                            val location = Location(lineBuilder.location!!)
-                            val t = AdvancedTheme()
-                            lineBuilder.type?.let { type ->
-                                val types = getSecondaryStructureType(type)
-                                types.forEach {
-                                    val selection = {e:DrawingElement -> location.positions.any {e.location.contains(it)} && e.type == it}
-                                    t.setConfigurationFor(selection, DrawingConfigurationParameter.linewidth, lineBuilder.value.toString())
-                                }
-                            }
-                            drawing.applyAdvancedTheme(t)
-                        }
-                        else {
-                            val t = Theme()
-                            lineBuilder.type?.let { type ->
-                                val types = getSecondaryStructureType(type)
-                                types.forEach {
-                                    t.setConfigurationFor(it, DrawingConfigurationParameter.linewidth, lineBuilder.value.toString())
-                                }
-                            }
-                            drawing.applyTheme(t)
-                        }
+                        drawing.applyTheme(t)
                     }
                 }
-                drawing.fitTo(frame)
-                val svgOutput = toSVG(drawing, width, height)
+                themeBuilder.details.forEach { detailsBuilder ->
+                    if (detailsBuilder.location != null) {
+                        val location = Location(detailsBuilder.location!!)
+                        val t = AdvancedTheme()
+                        detailsBuilder.type?.let { type ->
+                            val types = getSecondaryStructureType(type)
+                            types.forEach {
+                                val selection = {e:DrawingElement -> location.positions.any {e.location.contains(it)} && e.type == it}
+                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, detailsBuilder.value.equals("full").toString())
+                            }
+                        }
+                        drawing.applyAdvancedTheme(t)
+                    }
+                    else {
+                        val t = Theme()
+                        detailsBuilder.type?.let { type ->
+                            val types = getSecondaryStructureType(type)
+                            types.forEach {
+                                t.setConfigurationFor(it, DrawingConfigurationParameter.fulldetails, detailsBuilder.value.equals("full").toString())
+                            }
+                        }
+                        drawing.applyTheme(t)
+                    }
+                }
+                themeBuilder.lines.forEach { lineBuilder ->
+                    if (lineBuilder.location != null) {
+                        val location = Location(lineBuilder.location!!)
+                        val t = AdvancedTheme()
+                        lineBuilder.type?.let { type ->
+                            val types = getSecondaryStructureType(type)
+                            types.forEach {
+                                val selection = {e:DrawingElement -> location.positions.any {e.location.contains(it)} && e.type == it}
+                                t.setConfigurationFor(selection, DrawingConfigurationParameter.linewidth, lineBuilder.value.toString())
+                            }
+                        }
+                        drawing.applyAdvancedTheme(t)
+                    }
+                    else {
+                        val t = Theme()
+                        lineBuilder.type?.let { type ->
+                            val types = getSecondaryStructureType(type)
+                            types.forEach {
+                                t.setConfigurationFor(it, DrawingConfigurationParameter.linewidth, lineBuilder.value.toString())
+                            }
+                        }
+                        drawing.applyTheme(t)
+                    }
+                }
+            }
+            drawing.fitTo(frame)
+            this.file?.let { outputFile ->
+                val svgOutput = toSVG(drawing, frame.width, frame.height)
                 val f = File(outputFile)
                 f.createNewFile()
                 f.writeText(svgOutput)
-                return
             }
-            throw Exception("The secondary structure parameter is mandatory to define a drawing algorithm element")
+            return drawing
         }
-        throw Exception("The file parameter is mandatory to define a drawing algorithm element")
-
+        return null
     }
 
     fun ss(setup:SecondaryStructureBuilder.() -> Unit) {
@@ -362,7 +393,7 @@ class LineBuilder:ThemeConfigurationBuilder() {
     var value = 2.0
 }
 
-fun ss(setup:SecondaryStructureBuilder.() -> Unit): SecondaryStructure {
+fun ss(setup:SecondaryStructureBuilder.() -> Unit): SecondaryStructure? {
     val ssBuilder = SecondaryStructureBuilder()
     ssBuilder.setup()
     return ssBuilder.build()
@@ -374,10 +405,10 @@ fun booquet(setup:BooquetBuilder.() -> Unit) {
     booquetBuilder.build()
 }
 
-fun rnartist(setup:RNArtistBuilder.() -> Unit) {
+fun rnartist(setup:RNArtistBuilder.() -> Unit): SecondaryStructureDrawing? {
     val rnartistBuilder = RNArtistBuilder()
     rnartistBuilder.setup()
-    rnartistBuilder.build()
+    return rnartistBuilder.build()
 }
 
 private fun getSecondaryStructureType(type:String):List<SecondaryStructureType> {
@@ -393,6 +424,7 @@ private fun getSecondaryStructureType(type:String):List<SecondaryStructureType> 
             types.add(SecondaryStructureType.GShape)
             types.add(SecondaryStructureType.UShape)
             types.add(SecondaryStructureType.CShape)
+            types.add(SecondaryStructureType.XShape)
         }
         "R" -> {
             types.add(SecondaryStructureType.AShape)
@@ -412,6 +444,7 @@ private fun getSecondaryStructureType(type:String):List<SecondaryStructureType> 
             types.add(SecondaryStructureType.G)
             types.add(SecondaryStructureType.U)
             types.add(SecondaryStructureType.C)
+            types.add(SecondaryStructureType.X)
         }
         "r" -> {
             types.add(SecondaryStructureType.A)
@@ -428,6 +461,7 @@ private fun getSecondaryStructureType(type:String):List<SecondaryStructureType> 
         "tertiary_interaction" -> types.add(SecondaryStructureType.TertiaryInteraction)
         "phosphodiester_bond" -> types.add(SecondaryStructureType.PhosphodiesterBond)
         "interaction_symbol" -> types.add(SecondaryStructureType.InteractionSymbol)
+        "pknot" -> types.add(SecondaryStructureType.PKnot)
     }
     return types
 }

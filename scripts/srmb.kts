@@ -1,6 +1,7 @@
 import java.io.*
 import io.github.fjossinet.rnartist.core.model.*
 import io.github.fjossinet.rnartist.core.model.io.*
+import io.github.fjossinet.rnartist.core.rnartist
 import java.awt.Color
 import java.awt.Rectangle
 import java.awt.geom.Rectangle2D
@@ -436,253 +437,263 @@ fun annotatePDBfiles(pdbDir:String, outputdir:String) {
                     }
                 if (ok) {
                     if (ss.rna.length in 51..149) {
-                        val drawing = SecondaryStructureDrawing(ss)
-                        val frame = Rectangle(0, 0, 600, 600)
-                        drawing.applyTheme(t)
-                        drawing.fitTo(frame)
-                        if (!drawing.allTertiaryInteractions.isEmpty()) {
-                            drawing.allTertiaryInteractions.forEach {
-                                it.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                    "false"
-                                it.residues.forEach {
+                        rnartist {
+                            secondaryStructure = ss
+                        }?.let { drawing ->
+                            val frame = Rectangle(0, 0, 600, 600)
+                            drawing.applyTheme(t)
+                            drawing.fitTo(frame)
+                            if (!drawing.allTertiaryInteractions.isEmpty()) {
+                                drawing.allTertiaryInteractions.forEach {
                                     it.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                        "true"
+                                        "false"
+                                    it.residues.forEach {
+                                        it.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                            "true"
+                                    }
                                 }
-                            }
-                            File("${outputdir}/${pdbFile.name.split(".pdb").first()}_${ss.rna.name}.svg").writeText(
-                                toSVG(drawing, frame.width.toDouble(), frame.height.toDouble())
-                            )
-                            File("${outputdir}/${pdbFile.name.split(".pdb").first()}_${ss.rna.name}.json").writeText(
-                                toJSON(drawing)
-                            )
-                            val junctionsList = File("${outputdir}/${pdbFile.name.split(".pdb").first()}_${ss.rna.name}.txt")
-                            junctionsList.appendText("""boucles apicales : ${drawing.allJunctions.filter { it.junctionType == JunctionType.ApicalLoop }.size}
+                                File("${outputdir}/${pdbFile.name.split(".pdb").first()}_${ss.rna.name}.svg").writeText(
+                                    toSVG(drawing, frame.width.toDouble(), frame.height.toDouble())
+                                )
+                                File("${outputdir}/${
+                                    pdbFile.name.split(".pdb").first()
+                                }_${ss.rna.name}.json").writeText(
+                                    toJSON(drawing)
+                                )
+                                val junctionsList =
+                                    File("${outputdir}/${pdbFile.name.split(".pdb").first()}_${ss.rna.name}.txt")
+                                junctionsList.appendText("""boucles apicales : ${drawing.allJunctions.filter { it.junctionType == JunctionType.ApicalLoop }.size}
 bulles internes : ${drawing.allJunctions.filter { it.junctionType == JunctionType.InnerLoop }.size}
 jonctions triples : ${drawing.allJunctions.filter { it.junctionType == JunctionType.ThreeWay }.size}
 jonctions quadruples : ${drawing.allJunctions.filter { it.junctionType == JunctionType.FourWay }.size}""")
-                            var outputPDB = File("${outputdir}/${pdbFile.name.split(".pdb").first()}_${ss.rna.name}.pdb")
-                            pdbFile.readLines().forEach { line ->
-                                if (line.matches(Regex("^(ATOM.{17}|HETATM.{15})${ss.rna.name}.+$"))) {
-                                    outputPDB.appendText("$line\n")
+                                var outputPDB =
+                                    File("${outputdir}/${pdbFile.name.split(".pdb").first()}_${ss.rna.name}.pdb")
+                                pdbFile.readLines().forEach { line ->
+                                    if (line.matches(Regex("^(ATOM.{17}|HETATM.{15})${ss.rna.name}.+$"))) {
+                                        outputPDB.appendText("$line\n")
+                                    }
                                 }
-                            }
 
-                            drawing.allJunctions.forEach {
-                                it.radius = it.radius * 2.0
-                                it.layout = it.layout
-                                drawing.computeResidues(it)
-                            }
+                                drawing.allJunctions.forEach {
+                                    it.radius = it.radius * 2.0
+                                    it.layout = it.layout
+                                    drawing.computeResidues(it)
+                                }
 
-                            drawing.applyTheme(t2)
+                                drawing.applyTheme(t2)
 
-                            drawing.allJunctions.forEach { junctionDrawing ->
-                                for (i in drawing.allTertiaryInteractions.indices) {
-                                    var bounds: Rectangle2D? = null
-                                    var domains = mutableListOf<StructuralDomainDrawing>()
-                                    var tertiariesDisplayed = mutableListOf<TertiaryInteractionDrawing>()
-                                    val interaction = drawing.allTertiaryInteractions[i]
-                                    if (!interaction.isSingleHBond && interaction.start != interaction.end - 1) {
-                                        if (junctionDrawing.junction.locationWithoutSecondaries.contains(interaction.start) && junctionDrawing.junction.locationWithoutSecondaries.contains(
-                                                interaction.end
-                                            )
-                                        ) {
-                                            domains.add(junctionDrawing)
-                                            interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                                "true"
-                                            interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
-                                                getHTMLColorString(Color.LIGHT_GRAY)
-                                            interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                                "true"
-                                            interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
-                                                getHTMLColorString(Color.LIGHT_GRAY)
-                                            interaction.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                                "true"
-                                            interaction.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
-                                                getHTMLColorString(Color.RED)
-                                            interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                                "true"
-                                            interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
-                                                getHTMLColorString(Color.RED)
-                                            tertiariesDisplayed.add(interaction)
-                                        } else if (junctionDrawing.junction.locationWithoutSecondaries.contains(
-                                                interaction.start
-                                            )
-                                        ) {
-                                            domains.add(junctionDrawing)
-                                            when (interaction.pairedResidue.parent) {
-                                                is SecondaryInteractionDrawing -> {
-                                                    val h =
-                                                        (interaction.pairedResidue.parent as SecondaryInteractionDrawing).parent as HelixDrawing
-                                                    domains.add(h)
+                                drawing.allJunctions.forEach { junctionDrawing ->
+                                    for (i in drawing.allTertiaryInteractions.indices) {
+                                        var bounds: Rectangle2D? = null
+                                        var domains = mutableListOf<StructuralDomainDrawing>()
+                                        var tertiariesDisplayed = mutableListOf<TertiaryInteractionDrawing>()
+                                        val interaction = drawing.allTertiaryInteractions[i]
+                                        if (!interaction.isSingleHBond && interaction.start != interaction.end - 1) {
+                                            if (junctionDrawing.junction.locationWithoutSecondaries.contains(interaction.start) && junctionDrawing.junction.locationWithoutSecondaries.contains(
+                                                    interaction.end
+                                                )
+                                            ) {
+                                                domains.add(junctionDrawing)
+                                                interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                    "true"
+                                                interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                    getHTMLColorString(Color.LIGHT_GRAY)
+                                                interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                    "true"
+                                                interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                    getHTMLColorString(Color.LIGHT_GRAY)
+                                                interaction.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                    "true"
+                                                interaction.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                    getHTMLColorString(Color.RED)
+                                                interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                    "true"
+                                                interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                    getHTMLColorString(Color.RED)
+                                                tertiariesDisplayed.add(interaction)
+                                            } else if (junctionDrawing.junction.locationWithoutSecondaries.contains(
+                                                    interaction.start
+                                                )
+                                            ) {
+                                                domains.add(junctionDrawing)
+                                                when (interaction.pairedResidue.parent) {
+                                                    is SecondaryInteractionDrawing -> {
+                                                        val h =
+                                                            (interaction.pairedResidue.parent as SecondaryInteractionDrawing).parent as HelixDrawing
+                                                        domains.add(h)
+                                                    }
+                                                    is JunctionDrawing -> {
+                                                        val j = interaction.pairedResidue.parent as JunctionDrawing
+                                                        if (!domains.contains(j))
+                                                            domains.add(j)
+                                                    }
+                                                    is SingleStrandDrawing -> {
+                                                        val singlestrand =
+                                                            interaction.pairedResidue.parent as SingleStrandDrawing
+                                                        domains.add(singlestrand)
+                                                    }
                                                 }
-                                                is JunctionDrawing -> {
-                                                    val j = interaction.pairedResidue.parent as JunctionDrawing
-                                                    if (!domains.contains(j))
+                                                interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                    "true"
+                                                interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                    getHTMLColorString(Color.LIGHT_GRAY)
+                                                interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                    "true"
+                                                interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                    getHTMLColorString(Color.LIGHT_GRAY)
+                                                interaction.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                    "true"
+                                                interaction.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                    getHTMLColorString(Color.RED)
+                                                interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                    "true"
+                                                interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                    getHTMLColorString(Color.RED)
+                                                tertiariesDisplayed.add(interaction)
+                                            } else if (junctionDrawing.junction.locationWithoutSecondaries.contains(
+                                                    interaction.end
+                                                )
+                                            ) {
+                                                domains.add(junctionDrawing)
+                                                when (interaction.residue.parent) {
+                                                    is SecondaryInteractionDrawing -> {
+                                                        val h =
+                                                            (interaction.residue.parent as SecondaryInteractionDrawing).parent as HelixDrawing
+                                                        domains.add(h)
+                                                    }
+                                                    is JunctionDrawing -> {
+                                                        val j = interaction.residue.parent as JunctionDrawing
                                                         domains.add(j)
+                                                    }
+                                                    is SingleStrandDrawing -> {
+                                                        val singlestrand =
+                                                            interaction.residue.parent as SingleStrandDrawing
+                                                        domains.add(singlestrand)
+                                                    }
                                                 }
-                                                is SingleStrandDrawing -> {
-                                                    val singlestrand =
-                                                        interaction.pairedResidue.parent as SingleStrandDrawing
-                                                    domains.add(singlestrand)
-                                                }
+                                                interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                    "true"
+                                                interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                    getHTMLColorString(Color.LIGHT_GRAY)
+                                                interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                    "true"
+                                                interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                    getHTMLColorString(Color.LIGHT_GRAY)
+                                                interaction.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                    "true"
+                                                interaction.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                    getHTMLColorString(Color.RED)
+                                                interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                    "true"
+                                                interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                    getHTMLColorString(Color.RED)
+                                                tertiariesDisplayed.add(interaction)
                                             }
-                                            interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                                "true"
-                                            interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
-                                                getHTMLColorString(Color.LIGHT_GRAY)
-                                            interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                                "true"
-                                            interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
-                                                getHTMLColorString(Color.LIGHT_GRAY)
-                                            interaction.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                                "true"
-                                            interaction.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
-                                                getHTMLColorString(Color.RED)
-                                            interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                                "true"
-                                            interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
-                                                getHTMLColorString(Color.RED)
-                                            tertiariesDisplayed.add(interaction)
-                                        } else if (junctionDrawing.junction.locationWithoutSecondaries.contains(
-                                                interaction.end
-                                            )
-                                        ) {
-                                            domains.add(junctionDrawing)
-                                            when (interaction.residue.parent) {
-                                                is SecondaryInteractionDrawing -> {
-                                                    val h =
-                                                        (interaction.residue.parent as SecondaryInteractionDrawing).parent as HelixDrawing
-                                                    domains.add(h)
-                                                }
-                                                is JunctionDrawing -> {
-                                                    val j = interaction.residue.parent as JunctionDrawing
-                                                    domains.add(j)
-                                                }
-                                                is SingleStrandDrawing -> {
-                                                    val singlestrand = interaction.residue.parent as SingleStrandDrawing
-                                                    domains.add(singlestrand)
-                                                }
-                                            }
-                                            interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                                "true"
-                                            interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
-                                                getHTMLColorString(Color.LIGHT_GRAY)
-                                            interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                                "true"
-                                            interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
-                                                getHTMLColorString(Color.LIGHT_GRAY)
-                                            interaction.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                                "true"
-                                            interaction.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
-                                                getHTMLColorString(Color.RED)
-                                            interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                                "true"
-                                            interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
-                                                getHTMLColorString(Color.RED)
-                                            tertiariesDisplayed.add(interaction)
-                                        }
 
-                                        if (!domains.isEmpty()) {
+                                            if (!domains.isEmpty()) {
 
-                                            for (j in i + 1 until drawing.allTertiaryInteractions.size) {
-                                                val _interaction = drawing.allTertiaryInteractions[j]
-                                                if (!_interaction.isSingleHBond && _interaction.start != _interaction.end - 1) {
-                                                    if (domains.first().location.contains(_interaction.start) && domains.first().location.contains(
-                                                            _interaction.end
-                                                        ) || domains.last().location.contains(_interaction.start) && domains.last().location.contains(
-                                                            _interaction.end
-                                                        )
-                                                    ) {
-                                                        _interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                                            "true"
-                                                        _interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
-                                                            getHTMLColorString(Color.LIGHT_GRAY)
-                                                        _interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                                            "true"
-                                                        _interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
-                                                            getHTMLColorString(Color.LIGHT_GRAY)
-                                                        _interaction.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                                            "true"
-                                                        _interaction.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
-                                                            getHTMLColorString(Color.RED)
-                                                        _interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                                            "true"
-                                                        _interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
-                                                            getHTMLColorString(Color.RED)
-                                                        tertiariesDisplayed.add(_interaction)
+                                                for (j in i + 1 until drawing.allTertiaryInteractions.size) {
+                                                    val _interaction = drawing.allTertiaryInteractions[j]
+                                                    if (!_interaction.isSingleHBond && _interaction.start != _interaction.end - 1) {
+                                                        if (domains.first().location.contains(_interaction.start) && domains.first().location.contains(
+                                                                _interaction.end
+                                                            ) || domains.last().location.contains(_interaction.start) && domains.last().location.contains(
+                                                                _interaction.end
+                                                            )
+                                                        ) {
+                                                            _interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                                "true"
+                                                            _interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                                getHTMLColorString(Color.LIGHT_GRAY)
+                                                            _interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                                "true"
+                                                            _interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                                getHTMLColorString(Color.LIGHT_GRAY)
+                                                            _interaction.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                                "true"
+                                                            _interaction.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                                getHTMLColorString(Color.RED)
+                                                            _interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                                "true"
+                                                            _interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                                getHTMLColorString(Color.RED)
+                                                            tertiariesDisplayed.add(_interaction)
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
-                                    }
-                                    if (!domains.isEmpty() && !File(
-                                            "${outputdir}/${
-                                                pdbFile.name.split(".pdb").first()
-                                            }_${ss.rna.name}_${domains.first().name}_${domains.last().name}.svg"
-                                        ).exists() && !File(
-                                            "${outputdir}/${
-                                                pdbFile.name.split(".pdb").first()
-                                            }_${ss.rna.name}_${domains.last().name}_${domains.first().name}.svg"
-                                        ).exists()
-                                    ) {
-
-                                        domains.forEach { domain ->
-                                            bounds = if (bounds == null) {
-                                                domain.selectionFrame?.bounds
-                                            } else
-                                                bounds!!.createUnion(domain.selectionFrame?.bounds)
-                                        }
-
-                                        bounds?.let {
-                                            drawing.fitTo(frame, it)
-
-                                            File(
+                                        if (!domains.isEmpty() && !File(
                                                 "${outputdir}/${
                                                     pdbFile.name.split(".pdb").first()
                                                 }_${ss.rna.name}_${domains.first().name}_${domains.last().name}.svg"
-                                            ).writeText(toSVG(drawing, frame.width.toDouble(), frame.height.toDouble()))
-
-                                            val f = File(
+                                            ).exists() && !File(
                                                 "${outputdir}/${
                                                     pdbFile.name.split(".pdb").first()
-                                                }_${ss.rna.name}_${domains.first().name}_${domains.last().name}.txt"
-                                            )
+                                                }_${ss.rna.name}_${domains.last().name}_${domains.first().name}.svg"
+                                            ).exists()
+                                        ) {
 
-                                            File("${outputdir}/${
-                                                pdbFile.name.split(".pdb").first()
-                                            }_${ss.rna.name}_${domains.first().name}_${domains.last().name}.json").writeText(
-                                                toJSON(drawing)
-                                            )
-                                            var outputPDB = File("${outputdir}/${
-                                                pdbFile.name.split(".pdb").first()
-                                            }_${ss.rna.name}_${domains.first().name}_${domains.last().name}.pdb")
-                                            pdbFile.readLines().forEach { line ->
-                                                if (line.matches(Regex("^(ATOM.{17}|HETATM.{15})${ss.rna.name}.+$"))) {
-                                                    outputPDB.appendText("$line\n")
+                                            domains.forEach { domain ->
+                                                bounds = if (bounds == null) {
+                                                    domain.selectionFrame?.bounds
+                                                } else
+                                                    bounds!!.createUnion(domain.selectionFrame?.bounds)
+                                            }
+
+                                            bounds?.let {
+                                                drawing.fitTo(frame, it)
+
+                                                File(
+                                                    "${outputdir}/${
+                                                        pdbFile.name.split(".pdb").first()
+                                                    }_${ss.rna.name}_${domains.first().name}_${domains.last().name}.svg"
+                                                ).writeText(toSVG(drawing,
+                                                    frame.width.toDouble(),
+                                                    frame.height.toDouble()))
+
+                                                val f = File(
+                                                    "${outputdir}/${
+                                                        pdbFile.name.split(".pdb").first()
+                                                    }_${ss.rna.name}_${domains.first().name}_${domains.last().name}.txt"
+                                                )
+
+                                                File("${outputdir}/${
+                                                    pdbFile.name.split(".pdb").first()
+                                                }_${ss.rna.name}_${domains.first().name}_${domains.last().name}.json").writeText(
+                                                    toJSON(drawing)
+                                                )
+                                                var outputPDB = File("${outputdir}/${
+                                                    pdbFile.name.split(".pdb").first()
+                                                }_${ss.rna.name}_${domains.first().name}_${domains.last().name}.pdb")
+                                                pdbFile.readLines().forEach { line ->
+                                                    if (line.matches(Regex("^(ATOM.{17}|HETATM.{15})${ss.rna.name}.+$"))) {
+                                                        outputPDB.appendText("$line\n")
+                                                    }
+                                                }
+
+                                                tertiariesDisplayed.forEach {
+                                                    f.appendText("${it.start}-${it.interaction.toString()}-${it.end}\n")
                                                 }
                                             }
-
-                                            tertiariesDisplayed.forEach {
-                                                f.appendText("${it.start}-${it.interaction.toString()}-${it.end}\n")
-                                            }
+                                        }
+                                        tertiariesDisplayed.forEach {
+                                            it.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                "false"
+                                            it.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                "false"
+                                            it.residue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                "false"
+                                            it.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                "false"
                                         }
                                     }
-                                    tertiariesDisplayed.forEach {
-                                        it.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                            "false"
-                                        it.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                            "false"
-                                        it.residue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                            "false"
-                                        it.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
-                                            "false"
-                                    }
+
+
                                 }
-
-
                             }
-                        }
 
+                        }
                     }
                 }
             }
