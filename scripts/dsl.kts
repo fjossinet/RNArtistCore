@@ -176,8 +176,84 @@ rnartist {
     }
 }
 
-booquet {
+rnartist {
     file = "media/example3.svg"
+    ss {
+        pdb {
+            file = "/Volumes/Data/Projets/RNArtistCore/samples/1u6b.pdb"
+            name = "B"
+        }
+    }
+    theme {
+        details {
+            type = "helix"
+            value = "full"
+        }
+
+        details {
+            type = "junction"
+            value = "full"
+        }
+
+        details {
+            type = "single_strand"
+            value = "full"
+        }
+
+        details {
+            type = "secondary_interaction"
+            value = "full"
+        }
+
+        details {
+            type = "phosphodiester_bond"
+            value = "full"
+        }
+
+        details {
+            type = "interaction_symbol"
+            value = "full"
+        }
+
+        details {
+            type = "N"
+            value = "full"
+        }
+
+        details {
+            type = "n"
+            value = "full"
+        }
+
+        color {
+            type = "R"
+            value = "#EF946C"
+        }
+
+        color {
+            type = "Y"
+            value = "#C4A77D"
+        }
+
+        color {
+            type = "n"
+            value = "#000000"
+        }
+
+        line {
+            type = "phosphodiester_bond"
+            value = 2.0
+        }
+
+        line {
+            type = "secondary_interaction"
+            value = 4.0
+        }
+    }
+}
+
+booquet {
+    file = "media/example4.svg"
     junction_diameter = 15.0
     color = "#000000"
     line = 1.0
@@ -190,7 +266,7 @@ booquet {
 }
 
 booquet {
-    file = "media/example4.svg"
+    file = "media/example5.svg"
     junction_diameter = 15.0
     color = "#15BD15"
     line = 5.0
@@ -202,7 +278,7 @@ booquet {
 }
 
 booquet {
-    file = "media/example5.svg"
+    file = "media/example6.svg"
     junction_diameter = 15.0
     color = "#BD8515"
     ss {
@@ -213,7 +289,7 @@ booquet {
 }
 
 booquet {
-    file = "media/example6.svg"
+    file = "media/example7.svg"
     junction_diameter = 15.0
     color = "#BD8515"
     width = 1200.0
@@ -228,7 +304,7 @@ booquet {
 }
 
 booquet {
-    file = "media/example7.svg"
+    file = "media/example8.svg"
     junction_diameter = 15.0
     color = "#BD1576"
     ss {
@@ -238,14 +314,24 @@ booquet {
     }
 }
 
-rnartist {
-    file = "media/example8.svg"
+booquet {
+    file = "media/example9.svg"
+    junction_diameter = 15.0
+    color = "#000000"
+    line = 1.0
     ss {
-        pdb {
-            file = "/Volumes/Data/Projets/RNArtistCore/samples/1u6b.pdb"
-            name = "B"
+        rfam {
+            id = "RF00072"
         }
+    }
+}
 
+rnartist {
+    file = "media/example10.svg"
+    ss {
+        rfam {
+            id = "RF00072"
+        }
     }
     theme {
         details {

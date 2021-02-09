@@ -285,97 +285,95 @@ fun parseJSON(reader: Reader): SecondaryStructureDrawing? {
 
 class Project(val secondaryStructure: SecondaryStructure, val layout: Map<String, Map<String, String>>, val theme: Map<String, Map<String, Map<String, String>>>, val workingSession:WorkingSession)
 
-fun parseProject(project: Project): SecondaryStructureDrawing? {
-    rnartist {
-        secondaryStructure = project.secondaryStructure
-    }?.let { drawing ->
-        //LAYOUT
-        val layout: Map<String, Map<String, String>> = project.layout
-        val junctions = drawing.allJunctions
-        for (junction in junctions) {
-            val l = layout["" + junction.location.start]!!
-            junction.inId = ConnectorId.valueOf(l["in-id"]!!)
-            if (l.containsKey("out-ids")) {
-                junction.radius = l["radius"]!!.toDouble()
-                junction.layout =
-                    Arrays.stream(l["out-ids"]!!.split(" ").toTypedArray()).map { c: String? ->
-                        ConnectorId.valueOf(c!!)
-                    }.collect(Collectors.toList())
-                drawing.computeResidues(junction)
-            }
-
+fun parseProject(project: Project): SecondaryStructureDrawing {
+    val drawing  = rnartist {
+        secondaryStructures.add(project.secondaryStructure)
+    }.first()
+    //LAYOUT
+    val layout: Map<String, Map<String, String>> = project.layout
+    val junctions = drawing.allJunctions
+    for (junction in junctions) {
+        val l = layout["" + junction.location.start]!!
+        junction.inId = ConnectorId.valueOf(l["in-id"]!!)
+        if (l.containsKey("out-ids")) {
+            junction.radius = l["radius"]!!.toDouble()
+            junction.layout =
+                Arrays.stream(l["out-ids"]!!.split(" ").toTypedArray()).map { c: String? ->
+                    ConnectorId.valueOf(c!!)
+                }.collect(Collectors.toList())
+            drawing.computeResidues(junction)
         }
 
-        //THEME
-        val theme: Map<String, Map<String, Map<String, String>>> = project.theme
-        val residueShapes = theme["residue-shapes"]!!
-        val residueLetters = theme["residue-letters"]!!
-
-        val helices = theme["helices"]!!
-
-        for (h in drawing.allHelices) {
-            h.drawingConfiguration = DrawingConfiguration(helices["" + h.start]!!)
-            for (r in h.residues) {
-                r.drawingConfiguration = DrawingConfiguration(residueShapes["" + r.location.start]!!)
-                r.residueLetter.drawingConfiguration = DrawingConfiguration(residueLetters["" + r.location.start]!!)
-            }
-        }
-        val _junctions = theme["junctions"]!!
-
-        for (j in drawing.allJunctions) {
-            j.drawingConfiguration = DrawingConfiguration(_junctions["" + j.location.start]!!)
-            for (r in j.residues) {
-                r.drawingConfiguration = DrawingConfiguration(residueShapes["" + r.location.start]!!)
-                r.residueLetter.drawingConfiguration = DrawingConfiguration(residueLetters["" + r.location.start]!!)
-            }
-        }
-        val singlestrands = theme["single-strands"]!!
-        for (ss in drawing.singleStrands) {
-            ss.drawingConfiguration = DrawingConfiguration(singlestrands["" + ss.start]!!)
-            for (r in ss.residues) {
-                r.drawingConfiguration = DrawingConfiguration(residueShapes["" + r.location.start]!!)
-                r.residueLetter.drawingConfiguration = DrawingConfiguration(residueLetters["" + r.location.start]!!)
-            }
-        }
-
-        val interactions = theme["interactions"]!!
-        val interactionSymbols = theme["interaction-symbols"]!!
-
-        for (bp in drawing.allSecondaryInteractions) {
-            bp.drawingConfiguration = DrawingConfiguration(interactions["" + bp.location]!!)
-            bp.interactionSymbol.drawingConfiguration = DrawingConfiguration(interactionSymbols["" + bp.location]!!)
-        }
-        for (bp in drawing.tertiaryInteractions) {
-            bp.drawingConfiguration = DrawingConfiguration(interactions["" + bp.location]!!)
-            bp.interactionSymbol.drawingConfiguration = DrawingConfiguration(interactionSymbols["" + bp.location]!!)
-        }
-
-        val phosphos = theme["phosphobonds"]!!
-
-        for (p in drawing.allPhosphoBonds) {
-            p.drawingConfiguration = DrawingConfiguration(phosphos["" + p.start]!!)
-        }
-
-        val pknots =
-            theme["pknots"]!!
-        for (p in drawing.pknots) {
-            p.drawingConfiguration = DrawingConfiguration(pknots["" + p.location.start]!!)
-            for (bp in p.tertiaryInteractions) {
-                bp.drawingConfiguration = DrawingConfiguration(interactions["" + bp.location]!!)
-                bp.interactionSymbol.drawingConfiguration = DrawingConfiguration(interactionSymbols["" + bp.location]!!)
-            }
-        }
-
-        //WORKING SESSION
-        with(drawing) {
-            workingSession.viewX = project.workingSession.viewX
-            workingSession.viewY = project.workingSession.viewY
-            workingSession.zoomLevel = project.workingSession.zoomLevel
-        }
-
-        return drawing
     }
-    return null
+
+    //THEME
+    val theme: Map<String, Map<String, Map<String, String>>> = project.theme
+    val residueShapes = theme["residue-shapes"]!!
+    val residueLetters = theme["residue-letters"]!!
+
+    val helices = theme["helices"]!!
+
+    for (h in drawing.allHelices) {
+        h.drawingConfiguration = DrawingConfiguration(helices["" + h.start]!!)
+        for (r in h.residues) {
+            r.drawingConfiguration = DrawingConfiguration(residueShapes["" + r.location.start]!!)
+            r.residueLetter.drawingConfiguration = DrawingConfiguration(residueLetters["" + r.location.start]!!)
+        }
+    }
+    val _junctions = theme["junctions"]!!
+
+    for (j in drawing.allJunctions) {
+        j.drawingConfiguration = DrawingConfiguration(_junctions["" + j.location.start]!!)
+        for (r in j.residues) {
+            r.drawingConfiguration = DrawingConfiguration(residueShapes["" + r.location.start]!!)
+            r.residueLetter.drawingConfiguration = DrawingConfiguration(residueLetters["" + r.location.start]!!)
+        }
+    }
+    val singlestrands = theme["single-strands"]!!
+    for (ss in drawing.singleStrands) {
+        ss.drawingConfiguration = DrawingConfiguration(singlestrands["" + ss.start]!!)
+        for (r in ss.residues) {
+            r.drawingConfiguration = DrawingConfiguration(residueShapes["" + r.location.start]!!)
+            r.residueLetter.drawingConfiguration = DrawingConfiguration(residueLetters["" + r.location.start]!!)
+        }
+    }
+
+    val interactions = theme["interactions"]!!
+    val interactionSymbols = theme["interaction-symbols"]!!
+
+    for (bp in drawing.allSecondaryInteractions) {
+        bp.drawingConfiguration = DrawingConfiguration(interactions["" + bp.location]!!)
+        bp.interactionSymbol.drawingConfiguration = DrawingConfiguration(interactionSymbols["" + bp.location]!!)
+    }
+    for (bp in drawing.tertiaryInteractions) {
+        bp.drawingConfiguration = DrawingConfiguration(interactions["" + bp.location]!!)
+        bp.interactionSymbol.drawingConfiguration = DrawingConfiguration(interactionSymbols["" + bp.location]!!)
+    }
+
+    val phosphos = theme["phosphobonds"]!!
+
+    for (p in drawing.allPhosphoBonds) {
+        p.drawingConfiguration = DrawingConfiguration(phosphos["" + p.start]!!)
+    }
+
+    val pknots =
+        theme["pknots"]!!
+    for (p in drawing.pknots) {
+        p.drawingConfiguration = DrawingConfiguration(pknots["" + p.location.start]!!)
+        for (bp in p.tertiaryInteractions) {
+            bp.drawingConfiguration = DrawingConfiguration(interactions["" + bp.location]!!)
+            bp.interactionSymbol.drawingConfiguration = DrawingConfiguration(interactionSymbols["" + bp.location]!!)
+        }
+    }
+
+    //WORKING SESSION
+    with(drawing) {
+        workingSession.viewX = project.workingSession.viewX
+        workingSession.viewY = project.workingSession.viewY
+        workingSession.zoomLevel = project.workingSession.zoomLevel
+    }
+
+    return drawing
 }
 
 @Throws(Exception::class)

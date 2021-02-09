@@ -29,23 +29,22 @@ class RNABuilder {
 class SecondaryStructureBuilder {
     var rna:RNA? = null
     var bracket_notation:String? = null
-    private var secondaryStructure:SecondaryStructure? = null
+    private var secondaryStructures = mutableListOf<SecondaryStructure>()
 
-    fun build():SecondaryStructure? {
-        this.secondaryStructure?.let {
-            return it
-        }
+    fun build():List<SecondaryStructure> {
         this.bracket_notation?.let { bn ->
             this.rna?.let { rna ->
-                return SecondaryStructure(rna, bracketNotation = bn)
+                secondaryStructures.add(SecondaryStructure(rna, bracketNotation = bn))
+                return secondaryStructures
             }
             val sequence = StringBuffer()
             sequence.append((1..bn.length).map { listOf("A", "U", "G", "C").random()}.joinToString(separator = ""))
             val ss = SecondaryStructure(RNA(seq = sequence.toString()), bracketNotation = bn)
             ss.randomizeSeq()
-            return ss
+            secondaryStructures.add(ss)
+            return secondaryStructures
         }
-        return null
+        return secondaryStructures
     }
 
     fun rna(setup:RNABuilder.() -> Unit) {
@@ -57,37 +56,37 @@ class SecondaryStructureBuilder {
     fun rfam(setup:RfamBuilder.() -> Unit) {
         val rfamBuilder = RfamBuilder()
         rfamBuilder.setup()
-        secondaryStructure = rfamBuilder.build()
+        secondaryStructures.addAll(rfamBuilder.build())
     }
 
     fun vienna(setup:ViennaBuilder.() -> Unit) {
         val viennaBuilder = ViennaBuilder()
         viennaBuilder.setup()
-        secondaryStructure = viennaBuilder.build()
+        secondaryStructures.addAll(viennaBuilder.build())
     }
 
     fun bpseq(setup:BPSeqBuilder.() -> Unit) {
         val bpSeqBuilder = BPSeqBuilder()
         bpSeqBuilder.setup()
-        secondaryStructure = bpSeqBuilder.build()
+        secondaryStructures.addAll(bpSeqBuilder.build())
     }
 
     fun ct(setup:CTBuilder.() -> Unit) {
         val ctBuilder = CTBuilder()
         ctBuilder.setup()
-        secondaryStructure = ctBuilder.build()
+        secondaryStructures.addAll(ctBuilder.build())
     }
 
     fun pdb(setup:PDBBuilder.() -> Unit) {
         val pdbBuilder = PDBBuilder()
         pdbBuilder.setup()
-        secondaryStructure = pdbBuilder.build()
+        secondaryStructures.addAll(pdbBuilder.build())
     }
 
     fun stockholm(setup:StockholmBuilder.() -> Unit) {
         val stockholmBuilder = StockholmBuilder()
         stockholmBuilder.setup()
-        secondaryStructure = stockholmBuilder.build()
+        secondaryStructures.addAll(stockholmBuilder.build())
     }
 
 }
@@ -95,7 +94,7 @@ class SecondaryStructureBuilder {
 open abstract class FileBuilder {
     var file:String? = null
 
-    abstract fun build():SecondaryStructure?
+    abstract fun build():List<SecondaryStructure>
 }
 
 class PDBBuilder:FileBuilder() {
@@ -103,75 +102,73 @@ class PDBBuilder:FileBuilder() {
     var name:String? = null
     var id:String? = null
 
-    override fun build(): SecondaryStructure? {
+    override fun build(): List<SecondaryStructure> {
+        var secondaryStructures = listOf<SecondaryStructure>()
         if (this.id != null) {
             val pdbFile = java.io.File.createTempFile(this.id!!, ".pdb")
             pdbFile.writeText(PDB().getEntry(this.id!!).readText())
             this.file = pdbFile.absolutePath
         }
         if (this.file != null) {
-            var secondaryStructures = listOf<SecondaryStructure>()
             try {
                 secondaryStructures = Rnaview().annotate(File(file))
             } catch (e:Exception) {
                 println(e.message)
             }
-            if (secondaryStructures.size == 1)
-                return secondaryStructures.first()
-            else if (this.name != null) {
+            if (this.name != null) {
                 secondaryStructures.forEach {
                     if (it.rna.name.equals(this.name))
-                        return it
+                        return arrayListOf<SecondaryStructure>(it)
                 }
             }
+            return secondaryStructures
         }
-        return null
+        return listOf<SecondaryStructure>()
     }
 }
 
 class ViennaBuilder:FileBuilder() {
-    override fun build(): SecondaryStructure? {
+    override fun build(): List<SecondaryStructure> {
         this.file?.let {
-            return parseVienna(FileReader(this.file))
+            return arrayListOf<SecondaryStructure>(parseVienna(FileReader(this.file)))
         }
-        return null
+        return listOf<SecondaryStructure>()
     }
 }
 
 class BPSeqBuilder:FileBuilder() {
-    override fun build(): SecondaryStructure? {
+    override fun build(): List<SecondaryStructure> {
         this.file?.let {
-            return parseBPSeq(FileReader(this.file))
+            return arrayListOf<SecondaryStructure>(parseBPSeq(FileReader(this.file)))
         }
-        return null
+        return listOf<SecondaryStructure>()
     }
 }
 
 class CTBuilder:FileBuilder() {
-    override fun build(): SecondaryStructure? {
+    override fun build(): List<SecondaryStructure> {
         this.file?.let {
-            return parseCT(FileReader(this.file))
+            return arrayListOf<SecondaryStructure>(parseCT(FileReader(this.file)))
         }
-        return null
+        return listOf<SecondaryStructure>()
     }
 }
 
 class StockholmBuilder:FileBuilder() {
     var name:String? = null
 
-    override fun build(): SecondaryStructure? {
+    override fun build(): List<SecondaryStructure> {
         this.file?.let {
             var secondaryStructures = parseStockholm(FileReader(this.file), withConsensus2D = true)
-            if (secondaryStructures.size == 1)
-                return secondaryStructures.first()
-            else if (this.name != null) {
+            if (this.name != null) {
                 secondaryStructures.forEach {
                     if (it.rna.name.equals(this.name))
-                        return it
+                        arrayListOf<SecondaryStructure>(it)
                 }
-            }
+            } else
+                return secondaryStructures
         }
-        return null
+        return listOf<SecondaryStructure>()
     }
 }
 
@@ -179,28 +176,27 @@ open abstract class PublicDatabaseBuilder {
     var id:String? = null
     var name:String? = null
 
-    abstract fun build():SecondaryStructure?
+    abstract fun build():List<SecondaryStructure>
 }
 
 
 class RfamBuilder:PublicDatabaseBuilder() {
-    override fun build(): SecondaryStructure? {
+    override fun build(): List<SecondaryStructure> {
         this.id?.let { id ->
+            val secondaryStructures = parseStockholm(Rfam().getEntry(id), withConsensus2D = true)
             this.name?.let {
-                val secondaryStructures = parseStockholm(Rfam().getEntry(id), withConsensus2D = true)
                 if ("consensus".equals(name))
-                    return secondaryStructures.first()
+                    return arrayListOf<SecondaryStructure>(secondaryStructures.first())
                 else {
                     secondaryStructures.forEach {
                         if (name.equals(it.rna.name))
-                            return it
+                            return arrayListOf<SecondaryStructure>(it)
                     }
-                    return null
                 }
             }
-            return null
+            return secondaryStructures
         }
-        return null
+        return listOf<SecondaryStructure>()
     }
 }
 
@@ -211,16 +207,28 @@ class BooquetBuilder {
     var height = 300.0
     var junction_diameter = 25.0
     var color = getHTMLColorString(Color.BLACK)
-    var secondaryStructure: SecondaryStructure? = null
+    var secondaryStructures = mutableListOf<SecondaryStructure>()
     var line = 2.0
 
     fun build() {
         this.file?.let { outputFile ->
-            this.secondaryStructure?.let { ss ->
-                val svgOutput = Booquet(ss, this.width, this.height, junction_diameter = junction_diameter, lineWidth = line, color = getAWTColor(color))
+            if (this.secondaryStructures.size == 1) {
+                val svgOutput = Booquet(this.secondaryStructures.first(), this.width, this.height, junction_diameter = junction_diameter, lineWidth = line, color = getAWTColor(color))
                 val f = File(outputFile)
                 f.createNewFile()
                 f.writeText(svgOutput)
+            } else {
+                this.secondaryStructures.forEach { ss ->
+                    val svgOutput = Booquet(ss,
+                        this.width,
+                        this.height,
+                        junction_diameter = junction_diameter,
+                        lineWidth = line,
+                        color = getAWTColor(color))
+                    val f = File("${outputFile.split(".svg").first()}_${ss.rna.name.replace("/", "_")}.svg")
+                    f.createNewFile()
+                    f.writeText(svgOutput)
+                }
             }
         }
     }
@@ -228,26 +236,19 @@ class BooquetBuilder {
     fun ss(setup:SecondaryStructureBuilder.() -> Unit) {
         val secondaryStructureBuilder = SecondaryStructureBuilder()
         secondaryStructureBuilder.setup()
-        secondaryStructure = secondaryStructureBuilder.build()
+        secondaryStructures.addAll(secondaryStructureBuilder.build())
     }
 
 }
 
 class RNArtistBuilder {
     var file:String? = null
-    var secondaryStructure: SecondaryStructure? = null
+    var secondaryStructures = mutableListOf<SecondaryStructure>()
     var themeBuilder:ThemeBuilder? = null
 
-    fun build(): SecondaryStructureDrawing? {
-        this.secondaryStructure?.let { ss ->
-            val drawing = SecondaryStructureDrawing(ss, WorkingSession())
-            //the frame will have the size of the drawing
-            val drawingFrame = drawing.getFrame().bounds2D
-            val frame = if (drawingFrame.width < 1024 || drawingFrame.height < 768)
-                Rectangle2D.Double(0.0, 0.0, 1024.0, 768.0)
-            else
-                Rectangle2D.Double(0.0, 0.0, drawingFrame.width, drawingFrame.height)
-
+    fun build(): List<SecondaryStructureDrawing> {
+        if (this.secondaryStructures.size == 1) {
+            val drawing = SecondaryStructureDrawing(this.secondaryStructures.first(), WorkingSession())
             this.themeBuilder?.let { themeBuilder ->
                 themeBuilder.colors.forEach { colorBuilder ->
                     if (colorBuilder.location != null) {
@@ -322,22 +323,120 @@ class RNArtistBuilder {
                     }
                 }
             }
-            drawing.fitTo(frame)
             this.file?.let { outputFile ->
+                //the frame will have the size of the drawing
+                val drawingFrame = drawing.getFrame().bounds2D
+                val frame = if (drawingFrame.width < 1024 || drawingFrame.height < 768)
+                    Rectangle2D.Double(0.0, 0.0, 1024.0, 768.0)
+                else
+                    Rectangle2D.Double(0.0, 0.0, drawingFrame.width, drawingFrame.height)
+                drawing.fitTo(frame)
                 val svgOutput = toSVG(drawing, frame.width, frame.height)
                 val f = File(outputFile)
                 f.createNewFile()
                 f.writeText(svgOutput)
             }
-            return drawing
+            return arrayListOf(drawing)
         }
-        return null
+        val drawings = mutableListOf<SecondaryStructureDrawing>()
+        this.secondaryStructures.forEach { ss ->
+            val drawing = SecondaryStructureDrawing(ss, WorkingSession())
+            this.themeBuilder?.let { themeBuilder ->
+                themeBuilder.colors.forEach { colorBuilder ->
+                    if (colorBuilder.location != null) {
+                        val location = Location(colorBuilder.location!!)
+                        val t = AdvancedTheme()
+                        colorBuilder.type?.let { type ->
+                            val types = getSecondaryStructureType(type)
+                            types.forEach {
+                                val selection = {e:DrawingElement -> location.positions.any {e.location.contains(it)} && e.type == it}
+                                t.setConfigurationFor(selection, DrawingConfigurationParameter.color, colorBuilder.value.toString())
+                            }
+                        }
+                        drawing.applyAdvancedTheme(t)
+                    }
+                    else {
+                        val t = Theme()
+                        colorBuilder.type?.let { type ->
+                            val types = getSecondaryStructureType(type)
+                            types.forEach {
+                                t.setConfigurationFor(it, DrawingConfigurationParameter.color, colorBuilder.value.toString())
+                            }
+                        }
+                        drawing.applyTheme(t)
+                    }
+                }
+                themeBuilder.details.forEach { detailsBuilder ->
+                    if (detailsBuilder.location != null) {
+                        val location = Location(detailsBuilder.location!!)
+                        val t = AdvancedTheme()
+                        detailsBuilder.type?.let { type ->
+                            val types = getSecondaryStructureType(type)
+                            types.forEach {
+                                val selection = {e:DrawingElement -> location.positions.any {e.location.contains(it)} && e.type == it}
+                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, detailsBuilder.value.equals("full").toString())
+                            }
+                        }
+                        drawing.applyAdvancedTheme(t)
+                    }
+                    else {
+                        val t = Theme()
+                        detailsBuilder.type?.let { type ->
+                            val types = getSecondaryStructureType(type)
+                            types.forEach {
+                                t.setConfigurationFor(it, DrawingConfigurationParameter.fulldetails, detailsBuilder.value.equals("full").toString())
+                            }
+                        }
+                        drawing.applyTheme(t)
+                    }
+                }
+                themeBuilder.lines.forEach { lineBuilder ->
+                    if (lineBuilder.location != null) {
+                        val location = Location(lineBuilder.location!!)
+                        val t = AdvancedTheme()
+                        lineBuilder.type?.let { type ->
+                            val types = getSecondaryStructureType(type)
+                            types.forEach {
+                                val selection = {e:DrawingElement -> location.positions.any {e.location.contains(it)} && e.type == it}
+                                t.setConfigurationFor(selection, DrawingConfigurationParameter.linewidth, lineBuilder.value.toString())
+                            }
+                        }
+                        drawing.applyAdvancedTheme(t)
+                    }
+                    else {
+                        val t = Theme()
+                        lineBuilder.type?.let { type ->
+                            val types = getSecondaryStructureType(type)
+                            types.forEach {
+                                t.setConfigurationFor(it, DrawingConfigurationParameter.linewidth, lineBuilder.value.toString())
+                            }
+                        }
+                        drawing.applyTheme(t)
+                    }
+                }
+            }
+            this.file?.let { outputFile ->
+                //the frame will have the size of the drawing
+                val drawingFrame = drawing.getFrame().bounds2D
+                val frame = if (drawingFrame.width < 1024 || drawingFrame.height < 768)
+                    Rectangle2D.Double(0.0, 0.0, 1024.0, 768.0)
+                else
+                    Rectangle2D.Double(0.0, 0.0, drawingFrame.width, drawingFrame.height)
+                drawing.fitTo(frame)
+                val svgOutput = toSVG(drawing, frame.width, frame.height)
+                val f = File("${outputFile.split(".svg").first()}_${ss.rna.name.replace("/", "_")}.svg")
+                f.createNewFile()
+                f.writeText(svgOutput)
+            }
+            drawings.add(drawing)
+        }
+        return drawings
     }
 
     fun ss(setup:SecondaryStructureBuilder.() -> Unit) {
         val secondaryStructureBuilder = SecondaryStructureBuilder()
         secondaryStructureBuilder.setup()
-        secondaryStructure = secondaryStructureBuilder.build()
+        secondaryStructures.addAll(secondaryStructureBuilder.build())
     }
 
     fun theme(setup:ThemeBuilder.() -> Unit) {
@@ -393,7 +492,7 @@ class LineBuilder:ThemeConfigurationBuilder() {
     var value = 2.0
 }
 
-fun ss(setup:SecondaryStructureBuilder.() -> Unit): SecondaryStructure? {
+fun ss(setup:SecondaryStructureBuilder.() -> Unit): List<SecondaryStructure> {
     val ssBuilder = SecondaryStructureBuilder()
     ssBuilder.setup()
     return ssBuilder.build()
@@ -405,7 +504,7 @@ fun booquet(setup:BooquetBuilder.() -> Unit) {
     booquetBuilder.build()
 }
 
-fun rnartist(setup:RNArtistBuilder.() -> Unit): SecondaryStructureDrawing? {
+fun rnartist(setup:RNArtistBuilder.() -> Unit): List<SecondaryStructureDrawing> {
     val rnartistBuilder = RNArtistBuilder()
     rnartistBuilder.setup()
     return rnartistBuilder.build()

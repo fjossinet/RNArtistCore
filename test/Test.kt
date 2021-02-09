@@ -102,7 +102,7 @@ class Test {
         RNACentral().fetch(id)?.let {
             rnartist {
                 file = "${System.getProperty("user.home")}/${id}.svg"
-                secondaryStructure = it
+                secondaryStructures.add(it)
                 theme {
                     details {
                         type = "helix"

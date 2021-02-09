@@ -37,9 +37,9 @@ class RNACentral {
                ss {
                     this.rna = rna
                     bracket_notation = bn
-                }?.let { ss ->
-                   ss.source = "db:rnacentral:${id}"
-                   return ss
+                }.forEach {
+                   it.source = "db:rnacentral:${id}"
+                   return it
                }
             }
         }

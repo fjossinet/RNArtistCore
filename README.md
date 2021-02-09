@@ -175,8 +175,8 @@ rna {
 
 You have three different ways to define a seconday structure:
 * from scratch using the element **ss**
-* from a file using elements like **vienna**, **bpseq**, **ct**,...
-* from a public database using elements like **rfam**, **rnacentral**, **pdb**,...
+* from a file using elements like **vienna**, **bpseq**, **ct**, **stockholm**
+* from a public database using elements like **rfam**, **rnacentral**, **pdb**
 
 ***From scratch***
 
@@ -199,6 +199,14 @@ ss {
 }
 ```
 
+```kotlin
+ss {
+  
+  bracket_notation = "((((....))))"
+  
+}
+```
+
 ***From a file***
 
 You don't need to provide any ```rna``` element, it will be constructed automatically from the data stored in the file. 
@@ -207,7 +215,7 @@ To be able to use the PDB format, you need to have the RNAVIEW algorithm install
 
 The parameters available are:
 * **file**: the absolute path and the name of your file
-* **name**: if the file contains several molecular chains, this parameter allows to precise the one needed.
+* **name**: if the file contains several molecular chains, this parameter allows to precise the one needed. If no name is provided, all the molecular chains will be processed.
 
 Examples:
 ```kotlin
@@ -243,6 +251,16 @@ ss {
 }
 ```
 
+
+```kotlin
+ss {
+  stockholm {
+    file = "/home/bwayne/RF00072.stk"
+    name = "consensus"
+  }
+}
+```
+
 ```kotlin
 ss {
   stockholm {
@@ -252,13 +270,20 @@ ss {
 }
 ```
 
+```kotlin
+ss {
+  stockholm {
+    file = "/home/bwayne/RF00072.stk"
+  }
+}
+```
 ***From a public database***
 
 You don't need to provide any ```rna``` element, it will be constructed automatically from the data stored in the database entry.
 
 The parameters available are:
 * **id**: the id of your database entry
-* **name**: if the entry contains several molecular chains, this parameter allows to precise the one needed.
+* **name**: if the entry contains several molecular chains, this parameter allows to precise the one needed.  If no name is provided, all the molecular chains will be processed.
 
 Examples:
 
@@ -282,6 +307,14 @@ ss {
 
 ```kotlin
 ss {
+  rfam {
+    id = "RF00072"
+  }
+}
+```
+
+```kotlin
+ss {
   pdb {
     id = "1EHZ"
   }
@@ -297,13 +330,21 @@ ss {
 }
 ```
 
+```kotlin
+ss {
+  pdb {
+    id = "1JJ2"
+  }
+}
+```
+
 ### How to define a drawing algorithm
 
 Two algorithms are available:
 * the one used by the graphical tool [RNArtist](https://github.com/fjossinet/RNArtist)
 * booquet
 
-Both algorithms need a secondary structure (see previous paragraph) and save their results in an SVG file. Each algorithm has its own parameters to configure the drawing process and the final result.
+Both algorithms need a secondary structure element (see previous paragraph) and save their results in an SVG file. If several molecular chains have been processed (from a file or a database entry), each drawing will be saved in its own SVG file. Each algorithm has its own parameters to configure the drawing process and the final result.
 
 ***The RNArtist algorithm***
 
@@ -529,6 +570,86 @@ rnartist {
 
 ![](media/example2.png)
 
+```kotlin
+rnartist {
+    file = "media/example3.svg"
+    ss {
+        pdb {
+            file = "/Volumes/Data/Projets/RNArtistCore/samples/1u6b.pdb"
+            name = "B"
+        }
+
+    }
+    theme {
+        details {
+            type = "helix"
+            value = "full"
+        }
+
+        details {
+            type = "junction"
+            value = "full"
+        }
+
+        details {
+            type = "single_strand"
+            value = "full"
+        }
+
+        details {
+            type = "secondary_interaction"
+            value = "full"
+        }
+
+        details {
+            type = "phosphodiester_bond"
+            value = "full"
+        }
+
+        details {
+            type = "interaction_symbol"
+            value = "full"
+        }
+
+        details {
+            type = "N"
+            value = "full"
+        }
+
+        details {
+            type = "n"
+            value = "full"
+        }
+
+        color {
+            type = "R"
+            value = "#EF946C"
+        }
+
+        color {
+            type = "Y"
+            value = "#C4A77D"
+        }
+
+        color {
+            type = "n"
+            value = "#000000"
+        }
+
+        line {
+            type = "phosphodiester_bond"
+            value = 2.0
+        }
+
+        line {
+            type = "secondary_interaction"
+            value = 4.0
+        }
+    }
+}
+```
+![](media/example3.png)
+
 ***The Booquet algorithm***
 
 This algorithm has less options than the rnartist one. The parameters available are:
@@ -544,7 +665,7 @@ The drawing will be automatically zoomed to fit the view.
 
 ```kotlin
 booquet {
-    file = "media/example3.svg"
+    file = "media/example4.svg"
     junction_diameter = 15.0
     color = "#000000"
     line = 1.0
@@ -557,11 +678,11 @@ booquet {
 }
 ```
 
-![](media/example3.png)
+![](media/example4.png)
 
 ```kotlin
 booquet {
-    file = "media/example4.svg"
+    file = "media/example5.svg"
     junction_diameter = 15.0
     color = "#15BD15"
     line = 5.0
@@ -573,11 +694,11 @@ booquet {
 }
 ```
 
-![](media/example4.png)
+![](media/example5.png)
 
 ```kotlin
 booquet {
-    file = "media/example5.svg"
+    file = "media/example6.svg"
     junction_diameter = 15.0
     color = "#BD8515"
     ss {
@@ -588,11 +709,11 @@ booquet {
 }
 ```
 
-![](media/example5.png)
+![](media/example6.png)
 
 ```kotlin
 booquet {
-    file = "media/example6.svg"
+    file = "media/example7.svg"
     junction_diameter = 15.0
     color = "#BD8515"
     width = 1200.0
@@ -607,11 +728,11 @@ booquet {
 }
 ```
 
-![](media/example6.png)
+![](media/example7.png)
 
 ```kotlin
 booquet {
-    file = "media/example7.svg"
+    file = "media/example8.svg"
     junction_diameter = 15.0
     color = "#BD1576"
     ss {
@@ -622,7 +743,8 @@ booquet {
 }
 ```
 
-![](media/example7.png)
+![](media/example8.png)
+
 
 # RNArtistCore as a library
 

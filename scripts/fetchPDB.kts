@@ -168,8 +168,8 @@ ids.forEach { pdbId ->
                     s.add("Y")  //should never happen
                 if (!it.helices.isEmpty()) {
                     rnartist {
-                        secondaryStructure = it
-                    }?.let { drawing ->
+                        secondaryStructures.add(it)
+                    }.forEach { drawing ->
                         s.add("v1")
                         val drawingFrame = drawing.getFrame().bounds
                         val frame = if (drawingFrame.width < 1024 || drawingFrame.height < 768)
