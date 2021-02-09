@@ -58,8 +58,6 @@ Here is a real example:
 ```kotlin
 rnartist {
     file = "media/example1.svg"
-    width = 300.0
-    height = 800.0
     ss {
         bracket_notation =
             ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
