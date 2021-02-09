@@ -490,7 +490,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
 
             if (nextHelix == null) { // no next helix, do we have any remaining residues?
                 currentPos += 1
-                val remaining: Float = (this.secondaryStructure.length - currentPos + 1).toFloat()
+                val remaining = this.secondaryStructure.length - currentPos + 1
                 if (remaining > 0) {
                     val ss = this.secondaryStructure.singleStrands.find { it.start == currentPos }!!
                     this.singleStrands.add(

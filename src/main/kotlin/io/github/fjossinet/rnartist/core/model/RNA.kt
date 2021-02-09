@@ -629,115 +629,119 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
             }
         }
 
-        if (!bps.isEmpty()) {
-            bps.sortBy { it.start }
-            val bpInHelix = mutableSetOf<BasePair>()
-            BASEPAIRS@ for (i in 0 until bps.size-1) { //for each basepair with gather the successive stacked basepairs
-                if (bps[i].edge3 == Edge.SingleHBond || bps[i].edge5 == Edge.SingleHBond) //we can increase the stringency here, like only the canonical
-                    continue
-                var start1 = bps[i].start
-                var end1 = bps[i].end
-                for (h in this.helices) { //if an helix as already the same basepair, we will construct the same helix with less basepairs, so stop
-                    for (bb in h.secondaryInteractions) {
-                        if (bb.start == start1 && bb.end == end1)
-                            continue@BASEPAIRS
-                    }
-                }
-                var j = i+1
-                while (j < bps.size) {
-                    val start2 = bps[j].start
-                    val end2 = bps[j].end
-                    if (bps[j].edge3 == Edge.SingleHBond || bps[j].edge5 == Edge.SingleHBond) { //we can increase the stringency here, like only the canonical
-                        j++
+        if (bracketNotation != null || basePairs != null) { // to be sure to create a uniq single-strand only if no base-pairs in the bracket or basepairs list. If the seconday structure is created only with an RNA molecule, nothing is done at the structural level
+
+            if (!bps.isEmpty()) {
+                bps.sortBy { it.start }
+                val bpInHelix = mutableSetOf<BasePair>()
+                BASEPAIRS@ for (i in 0 until bps.size - 1) { //for each basepair with gather the successive stacked basepairs
+                    if (bps[i].edge3 == Edge.SingleHBond || bps[i].edge5 == Edge.SingleHBond) //we can increase the stringency here, like only the canonical
                         continue
-                    }
-                    if (start1 + 1 == start2 && end1 - 1 == end2) { //if successive basepair with the last one, extension of the current helix
-                        bpInHelix.add(bps[i])
-                        bpInHelix.add(bps[j])
-                        start1 = bps[j].start
-                        end1 = bps[j].end
-                    } else if (start2 > start1+1) { //since the base-pairs are sorted, we will never get more succcessive stacked bp. We can restart with the next basepairs in the list
-                        if (!bpInHelix.isEmpty()) {
-                            val h = Helix("H${this.helices.size+1}")
-                            for (bp in bpInHelix) {
-                                h.secondaryInteractions.add(bp)
-                            }
-                            this.helices.add(h)
-                            bpInHelix.clear()
+                    var start1 = bps[i].start
+                    var end1 = bps[i].end
+                    for (h in this.helices) { //if an helix as already the same basepair, we will construct the same helix with less basepairs, so stop
+                        for (bb in h.secondaryInteractions) {
+                            if (bb.start == start1 && bb.end == end1)
+                                continue@BASEPAIRS
                         }
-                        continue@BASEPAIRS
                     }
-                    j++
+                    var j = i + 1
+                    while (j < bps.size) {
+                        val start2 = bps[j].start
+                        val end2 = bps[j].end
+                        if (bps[j].edge3 == Edge.SingleHBond || bps[j].edge5 == Edge.SingleHBond) { //we can increase the stringency here, like only the canonical
+                            j++
+                            continue
+                        }
+                        if (start1 + 1 == start2 && end1 - 1 == end2) { //if successive basepair with the last one, extension of the current helix
+                            bpInHelix.add(bps[i])
+                            bpInHelix.add(bps[j])
+                            start1 = bps[j].start
+                            end1 = bps[j].end
+                        } else if (start2 > start1 + 1) { //since the base-pairs are sorted, we will never get more succcessive stacked bp. We can restart with the next basepairs in the list
+                            if (!bpInHelix.isEmpty()) {
+                                val h = Helix("H${this.helices.size + 1}")
+                                for (bp in bpInHelix) {
+                                    h.secondaryInteractions.add(bp)
+                                }
+                                this.helices.add(h)
+                                bpInHelix.clear()
+                            }
+                            continue@BASEPAIRS
+                        }
+                        j++
+                    }
+                    if (!bpInHelix.isEmpty()) {
+                        val h = Helix("H${this.helices.size + 1}")
+                        for (bp in bpInHelix) {
+                            h.secondaryInteractions.add(bp)
+                        }
+                        this.helices.add(h)
+                        bpInHelix.clear()
+                    }
                 }
                 if (!bpInHelix.isEmpty()) {
-                    val h = Helix("H${this.helices.size+1}")
+                    val h = Helix("H${this.helices.size + 1}")
                     for (bp in bpInHelix) {
                         h.secondaryInteractions.add(bp)
                     }
                     this.helices.add(h)
                     bpInHelix.clear()
                 }
-            }
-            if (!bpInHelix.isEmpty()) {
-                val h = Helix("H${this.helices.size+1}")
-                for (bp in bpInHelix) {
-                    h.secondaryInteractions.add(bp)
-                }
-                this.helices.add(h)
-                bpInHelix.clear()
-            }
 
-            //since a residue can interact through 3 edges, it can be in several helices (it makes two different interactions, each one consecutive to another one, and then making two different helices)
-            //then we need to check if several helices contains the same position, and keep the longest one
-            for (i in 0 until this.rna.length) {
-                var pknots = mutableListOf<Helix>()
-                for (h in this.helices) {
-                    if (h.location.contains(i)) {
-                        pknots.add(h)
-                    }
-                }
-                val longest = pknots.maxBy { it -> it.length }
-                for (h in pknots) {
-                    if (h != longest)
-                        this.helices.remove(h)
-                }
-            }
-
-
-            var foundPknot: Boolean
-
-            do {
-                foundPknot = false
-                I@ for (i in 0 until this.helices.size - 1) {
-                    for (j in i + 1 until this.helices.size) {
-                        if (this.helices[i].location.start > this.helices[j].location.start && this.helices[i].location.start < this.helices[j].location.end && this.helices[i].location.end > this.helices[j].location.end || this.helices[j].location.start > this.helices[i].location.start && this.helices[j].location.start < this.helices[i].location.end && this.helices[j].location.end > this.helices[i].location.end) {
-                            this.pknots.add(
-                                Pknot(
-                                    "PK${this.pknots.size + 1}",
-                                    this.helices[i],
-                                    this.helices[j],
-                                    this.pknots
-                                )
-                            )
-                            foundPknot = true
-                            break@I
+                //since a residue can interact through 3 edges, it can be in several helices (it makes two different interactions, each one consecutive to another one, and then making two different helices)
+                //then we need to check if several helices contains the same position, and keep the longest one
+                for (i in 0 until this.rna.length) {
+                    var pknots = mutableListOf<Helix>()
+                    for (h in this.helices) {
+                        if (h.location.contains(i)) {
+                            pknots.add(h)
                         }
                     }
+                    val longest = pknots.maxBy { it -> it.length }
+                    for (h in pknots) {
+                        if (h != longest)
+                            this.helices.remove(h)
+                    }
                 }
 
-                for (pknot in this.pknots) {
-                    this.helices.removeAll { !it.secondaryInteractions.intersect(pknot.tertiaryInteractions).isEmpty() }
-                    bps.removeAll { pknot.tertiaryInteractions.contains(it) }
-                }
 
-                //now the remaining interactions as tertiary interactions
-                bps.removeAll { secondaryInteractions.contains(it) }
-                for (bp in bps)
-                    this.tertiaryInteractions.add(bp)
+                var foundPknot: Boolean
 
-            } while (foundPknot)
+                do {
+                    foundPknot = false
+                    I@ for (i in 0 until this.helices.size - 1) {
+                        for (j in i + 1 until this.helices.size) {
+                            if (this.helices[i].location.start > this.helices[j].location.start && this.helices[i].location.start < this.helices[j].location.end && this.helices[i].location.end > this.helices[j].location.end || this.helices[j].location.start > this.helices[i].location.start && this.helices[j].location.start < this.helices[i].location.end && this.helices[j].location.end > this.helices[i].location.end) {
+                                this.pknots.add(
+                                    Pknot(
+                                        "PK${this.pknots.size + 1}",
+                                        this.helices[i],
+                                        this.helices[j],
+                                        this.pknots
+                                    )
+                                )
+                                foundPknot = true
+                                break@I
+                            }
+                        }
+                    }
 
-            /*var s = "-".repeat(rna.length).split("").toMutableList()
+                    for (pknot in this.pknots) {
+                        this.helices.removeAll {
+                            !it.secondaryInteractions.intersect(pknot.tertiaryInteractions).isEmpty()
+                        }
+                        bps.removeAll { pknot.tertiaryInteractions.contains(it) }
+                    }
+
+                    //now the remaining interactions as tertiary interactions
+                    bps.removeAll { secondaryInteractions.contains(it) }
+                    for (bp in bps)
+                        this.tertiaryInteractions.add(bp)
+
+                } while (foundPknot)
+
+                /*var s = "-".repeat(rna.length).split("").toMutableList()
 
             this.helices.forEach {
                 println("${it.name} ${it.location}")
@@ -747,24 +751,27 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
 
             print(s.distinct().joinToString("-"))*/
 
-            //now the junctions
-            this.findJunctions()
+                //now the junctions
+                this.findJunctions()
 
-        }
-
-        var currentPosition = 1
-
-        for (h in this.helices) {
-            val junctionsLinked = h.junctionsLinked
-            if (junctionsLinked.first == null || junctionsLinked.second == null) {
-                if (currentPosition <= h.location.start-1)
-                    this.singleStrands.add(SingleStrand("SS${this.singleStrands.size}", currentPosition, h.location.start-1))
-                currentPosition = h.end+1
             }
-        }
 
-        if (currentPosition <= this.length)
-            this.singleStrands.add(SingleStrand("SS${this.singleStrands.size}", currentPosition, this.length))
+            var currentPosition = 1
+
+            for (h in this.helices) {
+                val junctionsLinked = h.junctionsLinked
+                if (junctionsLinked.first == null || junctionsLinked.second == null) {
+                    if (currentPosition <= h.location.start - 1)
+                        this.singleStrands.add(SingleStrand("SS${this.singleStrands.size}",
+                            currentPosition,
+                            h.location.start - 1))
+                    currentPosition = h.end + 1
+                }
+            }
+
+            if (currentPosition <= this.length) //We create a uniq single-strand along the full sequence, but only if a bracket or a list of base pairs has been provided
+                this.singleStrands.add(SingleStrand("SS${this.singleStrands.size}", currentPosition, this.length))
+        }
 
     }
 

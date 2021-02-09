@@ -182,7 +182,7 @@ fun toJSON(drawing:SecondaryStructureDrawing): String {
 /**
  * This function reconstructs the SecondaryStructure object and delegates the work to the function parseProject to reconstruct and apply the layout, theme and working session.
  */
-fun parseJSON(reader: Reader): SecondaryStructureDrawing? {
+fun parseJSON(reader: Reader): SecondaryStructureDrawing {
     val gson = Gson()
     var map: Map<String, Any> = HashMap()
     val doc = gson.fromJson(reader, map.javaClass)
@@ -195,6 +195,7 @@ fun parseJSON(reader: Reader): SecondaryStructureDrawing? {
 
     val structure = doc["structure"] as Map<String, Map<String,Map<String, String>>>
     val helices = structure["helices"] as Map<String,Map<String, String>>
+    val single_strands = structure["single-strands"] as Map<String,Map<String, String>>
     val secondaries = structure["secondaries"] as Map<String,Map<String, String>>
     val tertiaries = structure["tertiaries"] as Map<String,Map<String, String>>
 
@@ -214,6 +215,13 @@ fun parseJSON(reader: Reader): SecondaryStructureDrawing? {
         }
         secondaryStructure.helices.add(h)
     }
+
+    for ((_, single_strand) in single_strands) {
+        val location = Location(single_strand["location"]!!)
+        val ss = SingleStrand(single_strand["name"]!!, location.start, location.end)
+        secondaryStructure.singleStrands.add(ss)
+    }
+
 
     val junctions = structure["junctions"] as Map<String,Map<String, String>>
     for ((_, junction) in junctions) {
@@ -372,7 +380,6 @@ fun parseProject(project: Project): SecondaryStructureDrawing {
         workingSession.viewY = project.workingSession.viewY
         workingSession.zoomLevel = project.workingSession.zoomLevel
     }
-
     return drawing
 }
 
