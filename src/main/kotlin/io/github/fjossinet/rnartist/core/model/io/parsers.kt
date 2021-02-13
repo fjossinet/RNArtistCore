@@ -186,6 +186,7 @@ fun parseJSON(reader: Reader): SecondaryStructureDrawing {
     val gson = Gson()
     var map: Map<String, Any> = HashMap()
     val doc = gson.fromJson(reader, map.javaClass)
+
     val rna = doc["rna"] as Map<String,String>
     val secondaryStructure = SecondaryStructure(
         RNA(

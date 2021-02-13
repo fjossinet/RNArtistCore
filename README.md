@@ -3,9 +3,13 @@ RNArtistCore
 
 RNArtistCore is a commandline tool and a Kotlin library used to describe and plot RNA secondary structures. As a library it is used in the projects [RNArtist](https://github.com/fjossinet/RNArtist) and [RNArtistBackend](https://github.com/fjossinet/RNArtistBackEnd).
 
-![](media/example7.png)
+![](media/booquet_from_pdb_0.png)
 
-![](media/example3.png)
+<p float="left">
+  <img src="/media/details_lvl5_colored_A.png" width="600" />
+  <img src="/media/hide_pyrimidines_A.png" width="600" />
+</p>
+
 # Installation
 
 You need to have the build tool [Maven](https://maven.apache.org) and a [Java distribution](https://www.oracle.com/java/technologies/javase-downloads.html) to be installed (type the commands ```mvn``` and ```java``` from a command line to check). 
@@ -57,54 +61,13 @@ Here is a real example:
 
 ```kotlin
 rnartist {
-    file = "media/example1.svg"
+    file = "media/real_example.svg"
     ss {
         bracket_notation =
             ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
     }
     theme {
-        details {
-            type = "helix"
-            value = "full"
-        }
-
-        details {
-            type = "junction"
-            value = "full"
-        }
-
-        details {
-            type = "single_strand"
-            value = "full"
-        }
-
-        details {
-            type = "secondary_interaction"
-            value = "full"
-        }
-
-        details {
-            type = "phosphodiester_bond"
-            value = "full"
-        }
-
-        details {
-            type = "R"
-            location="12:10"
-            value = "full"
-        }
-
-        details {
-            type = "Y"
-            location="25:10, 40:5"
-            value = "full"
-        }
-
-        details {
-            type = "r"
-            location="12:10"
-            value = "full"
-        }
+        details_lvl = 5
 
         color {
             type="A"
@@ -113,7 +76,7 @@ rnartist {
 
         color {
             type="a"
-            value = "#000000"
+            value = "black"
         }
 
         color {
@@ -123,7 +86,7 @@ rnartist {
 
         color {
             type="G"
-            value = "#93E557"
+            value = "darkgreen"
         }
 
         color {
@@ -135,7 +98,7 @@ rnartist {
 }
 ```
 
-![](media/example1.png)
+![](media/real_example_A.png)
 
 In the next paragraphs, we will detail the elements available to describe an RNA molecule, a secondary structure and a drawing algorithm.
 
@@ -280,8 +243,8 @@ ss {
 You don't need to provide any ```rna``` element, it will be constructed automatically from the data stored in the database entry.
 
 The parameters available are:
-* **id**: the id of your database entry
-* **name**: if the entry contains several molecular chains, this parameter allows to precise the one needed.  If no name is provided, all the molecular chains will be processed.
+* **```id```**: the id of your database entry
+* **```name```**: if the entry contains several molecular chains, this parameter allows to precise the one needed.  If no name is provided, all the molecular chains will be processed.
 
 Examples:
 
@@ -342,32 +305,164 @@ Two algorithms are available:
 * the one used by the graphical tool [RNArtist](https://github.com/fjossinet/RNArtist)
 * booquet
 
-Both algorithms need a secondary structure element (see previous paragraph) and save their results in an SVG file. If several molecular chains have been processed (from a file or a database entry), each drawing will be saved in its own SVG file. Each algorithm has its own parameters to configure the drawing process and the final result.
+Both algorithms need a secondary structure element (see previous paragraph) and save their results in SVG files. Each molecular chain will be exported in its own SVG file. Each algorithm has its own parameters to configure the drawing process and the final result.
 
 ***The RNArtist algorithm***
 
 The parameters available are:
-* **file**: the absolute path and the name of the SVG output file
-* **ss**: a secondary structure element (see above)
-* **theme**: see below
+* **```file```**: the absolute path and the name of the SVG output file. The name of the molecular chain will be merged to the file name.
+* **```ss```**: a secondary structure element (see above)
+* **```data```**: a dataset (see above)
+* **```theme```**: see below
 
 The size of the picture will fit the size of the drawing (with a minimum size of 1024x768 to see the residue letters).
 
-This algorithm can be configured with an element named **```theme```**. 
+____The **```data```** element____
 
-Inside ```theme```, you can add several times the following elements:
-* **details**: define the resolution of the element
-  * **value**: "full" to draw all the details
-  * **type**: the type of the elements targeted
-  * **location**: the location of the elements targeted
-* **color**: define the color of the element
-  * **value**: an HTML color code
-  * **type**: the type of the elements targeted
-  * **location**: the location of the elements targeted
-* **line**: define the width of the line
-  * **value**: a digit
-  * **type**: the type of the elements targeted
-  * **location**: the location of the elements targeted
+Datasets can be linked to a RNA secondary structure. You can either fill the dataset in the script, or load it from a file.
+
+```kotlin
+rnartist {
+    file = "example1.svg"
+    ss {
+        rna {
+            sequence = "GCUUCAUAUAAUCCUAAUGAUAUGGUUUGGGAGUUUCUACCAAGAGCCUUAAACUCUUGAUUAUGAAGUG"
+        }
+        bracket_notation = "((((((((...((((((.........))))))((....))((((((.......))))))..))))))))."
+    }
+    data {
+        "1" to 200.7
+        "2" to 192.3
+        "3" to 143.6
+    }
+}
+```
+
+```kotlin
+rnartist {
+    file = "example1.svg"
+    ss {
+        rna {
+            sequence = "GCUUCAUAUAAUCCUAAUGAUAUGGUUUGGGAGUUUCUACCAAGAGCCUUAAACUCUUGAUUAUGAAGUG"
+        }
+        bracket_notation = "((((((((...((((((.........))))))((....))((((((.......))))))..))))))))."
+    }
+    data {
+        file = "QuSHAPE_01_shape_mode_reactivities.txt"
+    }
+}
+```
+
+The values linked to each residue can be used as a selection criteria to define the colors, line width and details level (see below). 
+
+____The **```theme```** element____
+
+Using a **```theme```**, you can define your drawing options for any elements, from single residues to entire structural domains like helices or junctions.
+
+To quickly change the details level of your entire 2D, you can use the parameter named **```details_lvl```**. Five details level are available:
+
+```kotlin
+rnartist {
+    file = "media/details_lvl1.svg"
+    ss {
+        bracket_notation =
+            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+    }
+    theme {
+        details_lvl = 1
+    }
+}
+```
+
+![](media/details_lvl1_A.png)
+
+```kotlin
+rnartist {
+    file = "media/details_lvl2.svg"
+    ss {
+        bracket_notation =
+            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+    }
+    theme {
+        details_lvl = 2
+    }
+}
+```
+
+![](media/details_lvl2_A.png)
+
+```kotlin
+rnartist {
+    file = "media/details_lvl3.svg"
+    ss {
+        bracket_notation =
+            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+    }
+    theme {
+        details_lvl = 3
+    }
+}
+```
+
+![](media/details_lvl3_A.png)
+
+```kotlin
+rnartist {
+    file = "media/details_lvl4.svg"
+    ss {
+        bracket_notation =
+            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+    }
+    theme {
+        details_lvl = 4
+    }
+}
+```
+
+![](media/details_lvl4_A.png)
+
+```kotlin
+rnartist {
+    file = "media/details_lvl5.svg"
+    ss {
+        bracket_notation =
+            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+    }
+    theme {
+        details_lvl = 5
+    }
+}
+```
+
+![](media/details_lvl5_A.png)
+
+Inside a ```theme``` element, you can also add several times the following elements:
+* **```details```**: define the resolution of the element
+  * **```value```**: "full" to draw all the details
+  * **```type```**: the type of the elements targeted
+  * **```location```**: the location of the elements targeted
+* **```hide```**: hide residues
+  * **```type```**: can only be a lower or upper letter (default is "N"). Lower or upper letter will produce the same results (the letter and the shape of the delected residues is hidden)
+  * **```location```**: the location of the residues to hide
+  * **```data```**: selection based on the values linked to the residues
+* **```highlight```**: highlight residues
+  * **```type```**: can only be a lower or upper letter (default is "N"). Lower or upper letter will produce the same results (the letter and the shape of the delected residues is hidden)
+  * **```location```**: the location of the residues to hide
+  * **```data```**: selection based on the values linked to the residues
+  * **```color```**: an HTML color code or predefined color name (see below)
+  * **```width```**: the line width
+* **```color```**: define the color of the element
+  * **```value```**: an HTML color code or predefined color name (see below)
+  * **```from```**: first color in a gradient (HTML color code or predefined color name (see below))
+  * **```to```**: last color in a gradient (HTML color code or predefined color name (see below))
+  * **```type```**: the type of the elements targeted
+  * **```location```**: the location of the elements
+   targeted
+  * **```data```**: selection based on the values linked to the residues
+* **```line```**: define the width of the line
+  * **```value```**: the line width
+  * **```type```**: the type of the elements targeted
+  * **```location```**: the location of the elements targeted
 
 The parameter **```type```** can have the following values:
   * "A", "U", "G", "C", "X", "N", "R", "Y": using capital letters for residues target the circle surrounding the residue letter. "N" is for any residue, "R" for purines, and "Y" for pyrimidines 
@@ -383,287 +478,311 @@ The parameter **```type```** can have the following values:
 
 The parameter **```location```** needs to have the following format: "start_position_1:length, start_position_2:length, ..."
 
-Examples:
+____The **```details```** element____
+
+If a dataset is linked to the RNA secondary structure, the values can be used as a selection criteria. Using the parameter  **```data```**, you can select values lower than a value (lt), greater than a value (gt) or between two values (between).
 
 ```kotlin
 rnartist {
-    file = "media/example1.svg"
+    file = "media/dataset_hide.svg"
     ss {
         bracket_notation =
-            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+            "((((....))))"
+    }
+    data {
+        "1" to 200.7
+        "2" to 192.3
+        "3" to 143.6
+        "4" to 34.8
+        "5" to 4.5
+        "6" to 234.9
+        "7" to 12.3
+        "8" to 56.8
+        "9" to 59.8
+        "10" to 140.5
+        "11" to 0.2
+        "12" to 345.8
     }
     theme {
+        details_lvl = 4
+
         details {
-            type = "helix"
-            value = "full"
+            type = "N"
+            value = "none"
+            data between 10.0..350.0
         }
 
         details {
-            type = "junction"
-            value = "full"
+            type = "n"
+            value = "none"
+            data between 10.0..350.0
         }
 
-        details {
-            type = "single_strand"
-            value = "full"
-        }
-
-        details {
-            type = "secondary_interaction"
-            value = "full"
-        }
-
-        details {
-            type = "phosphodiester_bond"
-            value = "full"
-        }
-
-        details {
+        color {
             type = "R"
-            location="12:10"
-            value = "full"
+            value = "deepskyblue"
         }
 
-        details {
+        color {
             type = "Y"
-            location="25:10, 40:5"
-            value = "full"
+            value = "darkgreen"
         }
-
-        details {
-            type = "r"
-            location="12:10"
-            value = "full"
-        }
-
-        color {
-            type="A"
-            value = "#A0ECF5"
-        }
-
-        color {
-            type="a"
-            value = "#000000"
-        }
-
-        color {
-            type="U"
-            value = "#9157E5"
-        }
-
-        color {
-            type="G"
-            value = "#93E557"
-        }
-
-        color {
-            type="C"
-            value = "#E557E5"
-        }
-
     }
 }
 ```
 
-![](media/example1.png)
+![](media/dataset_hide_A.png)
 
 ```kotlin
 rnartist {
-    file = "media/example2.svg"
+    file = "media/hide_purines.svg"
     ss {
         bracket_notation =
             ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
-
     }
     theme {
-        details {
-            type = "helix"
-            value = "full"
-        }
+        details_lvl = 5
 
         details {
-            type = "junction"
-            value = "full"
-        }
-
-        details {
-            type = "single_strand"
-            value = "full"
-        }
-
-        details {
-            type = "secondary_interaction"
-            value = "full"
-        }
-
-        details {
-            type = "phosphodiester_bond"
-            value = "full"
-        }
-
-        details {
-            type = "interaction_symbol"
-            value = "full"
-        }
-
-        details {
-            type = "tertiary_interaction"
+            type = "R"
+            location="12:20"
             value = "none"
         }
 
         details {
-            type = "N"
-            value = "full"
-        }
-
-        details {
             type = "r"
-            value = "full"
-        }
-
-        details {
-            type = "y"
-            value = "full"
+            location="12:20"
+            value = "none"
         }
 
         color {
-            type = "R"
-            value = "#15BD1A"
+            type = "C"
+            value = "deepskyblue"
         }
 
         color {
-            type = "Y"
-            value = "#FFC300"
+            type = "U"
+            value = "darkgreen"
         }
 
-        color {
-            type = "r"
-            value = "#FFFFFF"
-        }
-
-        color {
-            type = "u"
-            value = "#000000"
-        }
-
-        color {
-            type = "c"
-            value = "#FE1102"
-        }
-
-        line {
-            type = "phosphodiester_bond"
-            value = 5.0
-        }
-
-        line {
-            type = "secondary_interaction"
-            value = 1.0
-        }
     }
 }
 ```
 
-![](media/example2.png)
+![](media/hide_purines_A.png)
+
+____The **```hide```** element____
 
 ```kotlin
 rnartist {
-    file = "media/example3.svg"
+    file = "media/hide_pyrimidines.svg"
     ss {
-        pdb {
-            file = "/Volumes/Data/Projets/RNArtistCore/samples/1u6b.pdb"
-            name = "B"
+        rna {
+            sequence = "GCGAAAAAUCGC"
         }
-
+        bracket_notation =
+            "((((....))))"
+    }
+    data {
+        "1" to 200.7
+        "2" to 192.3
+        "3" to 143.6
+        "4" to 34.8
+        "5" to 4.5
+        "6" to 234.9
+        "7" to 12.3
+        "8" to 56.8
+        "9" to 59.8
+        "10" to 140.5
+        "11" to 0.2
+        "12" to 345.8
     }
     theme {
-        details {
-            type = "helix"
-            value = "full"
+        details_lvl = 5
+
+        hide {
+            location="5:4"
         }
 
-        details {
-            type = "junction"
-            value = "full"
-        }
-
-        details {
-            type = "single_strand"
-            value = "full"
-        }
-
-        details {
-            type = "secondary_interaction"
-            value = "full"
-        }
-
-        details {
-            type = "phosphodiester_bond"
-            value = "full"
-        }
-
-        details {
-            type = "interaction_symbol"
-            value = "full"
-        }
-
-        details {
-            type = "N"
-            value = "full"
-        }
-
-        details {
-            type = "n"
-            value = "full"
+        hide {
+            type = "Y"
+            data lt 150.0
         }
 
         color {
             type = "R"
-            value = "#EF946C"
+            value = "deepskyblue"
         }
 
         color {
             type = "Y"
-            value = "#C4A77D"
+            value = "darkgreen"
         }
 
         color {
+            type = "Y"
+            value = "firebrick"
+            data gt 200.0
+        }
+
+    }
+}
+```
+
+![](media/hide_pyrimidines_A.png)
+
+____The **```color```** element____
+
+The parameters **```value```**, **```from```** and **```to```** can be an HTML color code or a predefined color name (see [the end of this file](https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/src/main/kotlin/io/github/fjossinet/rnartist/core/builders.kt) for an updated list of color names).
+
+Examples:
+
+```kotlin
+rnartist {
+    file = "media/details_lvl5_colored.svg"
+    ss {
+        bracket_notation =
+            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+    }
+    theme {
+        details_lvl = 5
+
+        color {
+            type = "Y"
+            value = "lavenderblush"
+        }
+
+        color {
+            type = "y"
+            value = "black"
+        }
+
+        color {
+            type = "R"
+            value = "green"
+        }
+        
+    }
+}
+```
+
+![](media/details_lvl5_colored_A.png)
+
+If a dataset is linked to the RNA secondary structure, a colored gradient can be defined inside the **```color```** element. You need to use the parameters  **```from```** and  **```to```**. To restrict the distribution of values to be used, you can use the parameter  **```data```**. You can select values lower than a value (lt), greater than a value (gt) or between two values (between).
+
+```kotlin
+rnartist {
+    file = "media/dataset.svg"
+    ss {
+        rna {
+            sequence = "GCGAAAAAUCGC"
+        }
+        bracket_notation =
+            "((((....))))"
+    }
+    data {
+        "1" to 200.7
+        "2" to 192.3
+        "3" to 143.6
+        "4" to 34.8
+        "5" to 4.5
+        "6" to 234.9
+        "7" to 12.3
+        "8" to 56.8
+        "9" to 59.8
+        "10" to 140.5
+        "11" to 0.2
+        "12" to 345.8
+    }
+    theme {
+        details_lvl = 4
+        color {
+            type = "N"
+            from = "lightyellow"
+            to = "firebrick"
+            data between 10.0..350.0
+        }
+        color {
             type = "n"
-            value = "#000000"
+            from = "black"
+            to = "white"
+            data between 10.0..350.0
         }
-
-        line {
-            type = "phosphodiester_bond"
-            value = 2.0
+        color {
+            type = "N"
+            value = "black"
+            data lt 10.0
         }
-
-        line {
-            type = "secondary_interaction"
-            value = 4.0
+        color {
+            type = "n"
+            value = "white"
+            data lt 10.0
         }
     }
 }
 ```
-![](media/example3.png)
+
+![](media/dataset_A.png)
+
+____Mix kotlin code____
+
+If you know Kotlin, you can embed Kotlin instructions to power your script.
+
+```kotlin
+rnartist {
+    file = "media/kotlin_powered.svg"
+    ss {
+        bracket_notation =
+            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+    }
+    data {
+        (1..secondaryStructures[0].length).forEach {
+            "${it}" to Math.random()
+        }
+    }
+    theme {
+        details_lvl = 5
+
+        color {
+            type = "R"
+            from = "lightyellow"
+            to = "firebrick"
+        }
+
+        color {
+            type = "r"
+            from = "black"
+            to = "white"
+        }
+
+        hide {
+            type = "Y"
+        }
+
+    }
+}
+```
+
+![](media/kotlin_powered_A.png)
 
 ***The Booquet algorithm***
 
 This algorithm has less options than the rnartist one. The parameters available are:
-* **file**: the absolute path and the name of the SVG output file
-* **width**: the width of the view containing the drawing (default:300)
-* **height**: the height of the view containing the drawingg (default:300)
-* **color**: an HTML color code
-* **line**: the width for the lines
-* **junction_diameter**: the diameter of the circles
-* **ss**: a secondary structure element (see above) 
+* **```file```**: the absolute path and the name of the SVG output file
+* **```width```**: the width of the view containing the drawing (default: 600)
+* **```height```**: the height of the view containing the drawingg (default: 600)
+* **```color```**: an HTML color code or color name
+* **```line```**: the width for the lines
+* **```junction_diameter```**: the diameter of the circles
+* **```ss```**: a secondary structure element (see above) 
 
 The drawing will be automatically zoomed to fit the view.
 
 ```kotlin
 booquet {
-    file = "media/example4.svg"
+    file = "media/booquet_from_rfam.svg"
     junction_diameter = 15.0
-    color = "#000000"
+    color = "midnightblue"
     line = 1.0
     ss {
         rfam {
@@ -674,14 +793,14 @@ booquet {
 }
 ```
 
-![](media/example4.png)
+![](media/booquet_from_rfam_AJ009730.1_1-133.png)
 
 ```kotlin
 booquet {
-    file = "media/example5.svg"
+    file = "media/booquet_from_vienna.svg"
     junction_diameter = 15.0
-    color = "#15BD15"
-    line = 5.0
+    color = "olive"
+    line = 3.0
     ss {
         vienna {
             file = "samples/rna.vienna"
@@ -690,13 +809,13 @@ booquet {
 }
 ```
 
-![](media/example5.png)
+![](media/booquet_from_vienna_A.png)
 
 ```kotlin
 booquet {
-    file = "media/example6.svg"
+    file = "media/booquet_from_ct.svg"
     junction_diameter = 15.0
-    color = "#BD8515"
+    color = "darkorchid"
     ss {
         ct {
             file = "samples/ASE_00010_from_RNA_STRAND_database.ct"
@@ -705,13 +824,13 @@ booquet {
 }
 ```
 
-![](media/example6.png)
+![](media/booquet_from_ct_A.png)
 
 ```kotlin
 booquet {
-    file = "media/example7.svg"
+    file = "media/booquet_from_pdb.svg"
     junction_diameter = 15.0
-    color = "#BD8515"
+    color = "darkmagenta"
     width = 1200.0
     height = 800.0
     line = 0.5
@@ -724,23 +843,7 @@ booquet {
 }
 ```
 
-![](media/example7.png)
-
-```kotlin
-booquet {
-    file = "media/example8.svg"
-    junction_diameter = 15.0
-    color = "#BD1576"
-    ss {
-        bpseq {
-            file = "samples/SRP_00001_from_RNA_STRAND_database.bpseq"
-        }
-    }
-}
-```
-
-![](media/example8.png)
-
+![](media/booquet_from_pdb_0.png)
 
 # RNArtistCore as a library
 
@@ -766,7 +869,7 @@ No stable release for now, only snapshots. To use RNArtistCore in a Java applica
         <dependency>
             <groupId>io.github.fjossinet.rnartist.core</groupId>
             <artifactId>rnartistcore</artifactId>
-            <version>0.2.2-SNAPSHOT</version>
+            <version>0.2.5-SNAPSHOT</version>
         </dependency>
     </dependencies>
 ```

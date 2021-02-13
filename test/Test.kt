@@ -12,18 +12,30 @@ import java.io.*
 class Test {
 
     fun testDsl() {
-        booquet {
-            file = "${System.getProperty("user.home")}/myFavRNA.svg"
-            junction_diameter = 15.0
-            color = "#E033FF"
+        rnartist {
+            file = "media/kotlin_powered.svg"
             ss {
-                rna {
-                    name = "My Fav RNA"
-                    sequence =
-                        "GGGACCGCCCGGGAAACGGGCGAAAAACGAGGUGCGGGCACCUCGUGACGACGGGAGUUCGACCGUGACGCAUGCGGAAAUUGGAGGUGAGUUCGCGAAUACAAAAGCAAGCGAAUACGCCCUGCUUACCGAAGCAAGCG"
-                }
                 bracket_notation =
-                    ".....((((((.....))))))....((((((((....))))))))....((((........))))..(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+                    ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+            }
+            data {
+                (1..secondaryStructures[0].length).forEach {
+                    "${it}" to Math.random()
+                }
+            }
+            theme {
+                details_lvl = 5
+
+                color {
+                    type = "R"
+                    from = "lightyellow"
+                    to = "firebrick"
+                }
+
+                hide {
+                    type = "Y"
+                }
+
             }
         }
     }
@@ -97,7 +109,7 @@ class Test {
         }
     }
 
-    fun testRNACentral() {
+    fun tRNACentral() {
         val id = "URS000044DFF6"
         RNACentral().fetch(id)?.let {
             rnartist {

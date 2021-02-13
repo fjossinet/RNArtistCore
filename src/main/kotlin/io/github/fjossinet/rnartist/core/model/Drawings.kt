@@ -236,7 +236,7 @@ class Theme(defaultConfigurations: Map<String, Map<String, String>> = mutableMap
     fun clear() = this.configurations.clear()
 }
 
-class AdvancedTheme(defaultConfigurations: MutableMap<(DrawingElement) -> Boolean, Pair<String, String>> = mutableMapOf()) {
+class AdvancedTheme() {
 
     var configurations: MutableMap<(DrawingElement) -> Boolean, Pair<String, String>> = mutableMapOf()
 
@@ -909,14 +909,14 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
     }
 
     fun fitTo(frame:Rectangle2D) {
-        val selectionFrame = this.getFrame()
-        val widthRatio = selectionFrame.bounds2D!!.width / frame.bounds2D.width
-        val heightRatio = selectionFrame.bounds2D!!.height / frame.bounds2D.height
+        val drawingFrame = this.getFrame()
+        val widthRatio = (drawingFrame.bounds2D!!.width+25) / frame.bounds2D.width
+        val heightRatio = (drawingFrame.bounds2D!!.height+25) / frame.bounds2D.height
         this.workingSession.zoomLevel =
             if (widthRatio > heightRatio) 1.0 / widthRatio else 1.0 / heightRatio
         var at = AffineTransform()
         at.scale(this.zoomLevel, this.zoomLevel)
-        val transformedBounds = at.createTransformedShape(selectionFrame)
+        val transformedBounds = at.createTransformedShape(drawingFrame)
         this.workingSession.viewX = frame.bounds2D.centerX - transformedBounds.bounds2D.centerX
         this.workingSession.viewY = frame.bounds2D.centerY - transformedBounds.bounds2D.centerY
 
@@ -4517,12 +4517,12 @@ fun Booquet(ss:SecondaryStructure, frameWidth:Double, frameHeight:Double, step:D
         }
     }
 
-    var minX = booquet.values.minBy<DoubleArray, Double> { it[0] }!!.get(0) - junction_diameter.toDouble()
+    var minX = booquet.values.minBy<DoubleArray, Double> { it[0] }!!.get(0) - junction_diameter.toDouble() - lineWidth
     var minY =
-        booquet.values.minBy { it[1] }!!.get(1) - junction_diameter.toDouble() - junction_diameter.toDouble()
+        booquet.values.minBy { it[1] }!!.get(1) - junction_diameter.toDouble() - lineWidth
 
-    var maxX = booquet.values.maxBy<DoubleArray, Double> { it[0] }!!.get(0) + junction_diameter.toDouble()
-    var maxY = booquet.values.maxBy { it[1] }!!.get(1).toDouble()
+    var maxX = booquet.values.maxBy<DoubleArray, Double> { it[0] }!!.get(0) + junction_diameter.toDouble() + lineWidth
+    var maxY = booquet.values.maxBy { it[1] }!!.get(1).toDouble() + lineWidth
 
     var width = maxX-minX
     var height = maxY-minY

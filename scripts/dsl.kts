@@ -4,54 +4,13 @@
 import io.github.fjossinet.rnartist.core.*
 
 rnartist {
-    file = "media/example1.svg"
+    file = "media/real_example.svg"
     ss {
         bracket_notation =
             ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
     }
     theme {
-        details {
-            type = "helix"
-            value = "full"
-        }
-
-        details {
-            type = "junction"
-            value = "full"
-        }
-
-        details {
-            type = "single_strand"
-            value = "full"
-        }
-
-        details {
-            type = "secondary_interaction"
-            value = "full"
-        }
-
-        details {
-            type = "phosphodiester_bond"
-            value = "full"
-        }
-
-        details {
-            type = "R"
-            location="12:10"
-            value = "full"
-        }
-
-        details {
-            type = "Y"
-            location="25:10, 40:5"
-            value = "full"
-        }
-
-        details {
-            type = "r"
-            location="12:10"
-            value = "full"
-        }
+        details_lvl = 5
 
         color {
             type="A"
@@ -60,7 +19,7 @@ rnartist {
 
         color {
             type="a"
-            value = "#000000"
+            value = "black"
         }
 
         color {
@@ -70,7 +29,7 @@ rnartist {
 
         color {
             type="G"
-            value = "#93E557"
+            value = "darkgreen"
         }
 
         color {
@@ -82,180 +41,311 @@ rnartist {
 }
 
 rnartist {
-    file = "media/example2.svg"
+    file = "media/details_lvl1.svg"
     ss {
         bracket_notation =
             ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
-
     }
     theme {
-        details {
-            type = "helix"
-            value = "full"
+        details_lvl = 1
+    }
+}
+
+rnartist {
+    file = "media/details_lvl2.svg"
+    ss {
+        bracket_notation =
+            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+    }
+    theme {
+        details_lvl = 2
+    }
+}
+
+
+rnartist {
+    file = "media/details_lvl3.svg"
+    ss {
+        bracket_notation =
+            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+    }
+    theme {
+        details_lvl = 3
+    }
+}
+
+rnartist {
+    file = "media/details_lvl4.svg"
+    ss {
+        bracket_notation =
+            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+    }
+    theme {
+        details_lvl = 4
+    }
+}
+
+rnartist {
+    file = "media/details_lvl5.svg"
+    ss {
+        bracket_notation =
+            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+    }
+    theme {
+        details_lvl = 5
+    }
+}
+
+rnartist {
+    file = "media/details_lvl5_colored.svg"
+    ss {
+        bracket_notation =
+            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+    }
+    theme {
+        details_lvl = 5
+
+        color {
+            type = "Y"
+            value = "lavenderblush"
         }
 
-        details {
-            type = "junction"
-            value = "full"
-        }
-
-        details {
-            type = "single_strand"
-            value = "full"
-        }
-
-        details {
-            type = "secondary_interaction"
-            value = "full"
-        }
-
-        details {
-            type = "phosphodiester_bond"
-            value = "full"
-        }
-
-        details {
-            type = "interaction_symbol"
-            value = "full"
-        }
-
-        details {
-            type = "tertiary_interaction"
-            value = "none"
-        }
-
-        details {
-            type = "N"
-            value = "full"
-        }
-
-        details {
-            type = "r"
-            value = "full"
-        }
-
-        details {
+        color {
             type = "y"
-            value = "full"
+            value = "black"
         }
 
         color {
             type = "R"
-            value = "#15BD1A"
+            value = "green"
+        }
+
+    }
+
+}
+
+rnartist {
+    file = "media/hide_purines.svg"
+    ss {
+        bracket_notation =
+            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+    }
+    theme {
+        details_lvl = 5
+
+        details {
+            type = "R"
+            location="12:20"
+            value = "none"
+        }
+
+        details {
+            type = "r"
+            location="12:20"
+            value = "none"
+        }
+
+        color {
+            type = "C"
+            value = "deepskyblue"
+        }
+
+        color {
+            type = "U"
+            value = "darkgreen"
+        }
+
+    }
+}
+
+rnartist {
+    file = "media/hide_pyrimidines.svg"
+    ss {
+        rna {
+            sequence = "GCGAAAAAUCGC"
+        }
+        bracket_notation =
+            "((((....))))"
+    }
+    data {
+        "1" to 200.7
+        "2" to 192.3
+        "3" to 143.6
+        "4" to 34.8
+        "5" to 4.5
+        "6" to 234.9
+        "7" to 12.3
+        "8" to 56.8
+        "9" to 59.8
+        "10" to 140.5
+        "11" to 0.2
+        "12" to 345.8
+    }
+    theme {
+        details_lvl = 5
+
+        hide {
+            location="5:4"
+        }
+
+        hide {
+            type = "Y"
+            data lt 150.0
+        }
+
+        color {
+            type = "R"
+            value = "deepskyblue"
         }
 
         color {
             type = "Y"
-            value = "#FFC300"
+            value = "darkgreen"
+        }
+
+        color {
+            type = "Y"
+            value = "firebrick"
+            data gt 200.0
+        }
+
+    }
+}
+
+rnartist {
+    file = "media/kotlin_powered.svg"
+    ss {
+        bracket_notation =
+            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+    }
+    data {
+        (1..secondaryStructures[0].length).forEach {
+            "${it}" to Math.random()
+        }
+    }
+    theme {
+        details_lvl = 5
+
+        color {
+            type = "R"
+            from = "lightyellow"
+            to = "firebrick"
         }
 
         color {
             type = "r"
-            value = "#FFFFFF"
+            from = "black"
+            to = "white"
         }
 
+        hide {
+            type = "Y"
+        }
+
+    }
+}
+
+rnartist {
+    file = "media/dataset.svg"
+    ss {
+        rna {
+            sequence = "GCGAAAAAUCGC"
+        }
+        bracket_notation =
+            "((((....))))"
+    }
+    data {
+        "1" to 200.7
+        "2" to 192.3
+        "3" to 143.6
+        "4" to 34.8
+        "5" to 4.5
+        "6" to 234.9
+        "7" to 12.3
+        "8" to 56.8
+        "9" to 59.8
+        "10" to 140.5
+        "11" to 0.2
+        "12" to 345.8
+    }
+    theme {
+        details_lvl = 4
         color {
-            type = "u"
-            value = "#000000"
+            type = "N"
+            from = "lightyellow"
+            to = "firebrick"
+            data between 10.0..350.0
         }
-
         color {
-            type = "c"
-            value = "#FE1102"
+            type = "n"
+            from = "black"
+            to = "white"
+            data between 10.0..350.0
         }
-
-        line {
-            type = "phosphodiester_bond"
-            value = 5.0
+        color {
+            type = "N"
+            value = "black"
+            data lt 10.0
         }
-
-        line {
-            type = "secondary_interaction"
-            value = 1.0
+        color {
+            type = "n"
+            value = "white"
+            data lt 10.0
         }
     }
 }
 
 rnartist {
-    file = "media/example3.svg"
+    file = "media/dataset_hide.svg"
     ss {
-        pdb {
-            file = "/Volumes/Data/Projets/RNArtistCore/samples/1u6b.pdb"
-            name = "B"
-        }
+        bracket_notation =
+            "((((....))))"
+    }
+    data {
+        "1" to 200.7
+        "2" to 192.3
+        "3" to 143.6
+        "4" to 34.8
+        "5" to 4.5
+        "6" to 234.9
+        "7" to 12.3
+        "8" to 56.8
+        "9" to 59.8
+        "10" to 140.5
+        "11" to 0.2
+        "12" to 345.8
     }
     theme {
-        details {
-            type = "helix"
-            value = "full"
-        }
-
-        details {
-            type = "junction"
-            value = "full"
-        }
-
-        details {
-            type = "single_strand"
-            value = "full"
-        }
-
-        details {
-            type = "secondary_interaction"
-            value = "full"
-        }
-
-        details {
-            type = "phosphodiester_bond"
-            value = "full"
-        }
-
-        details {
-            type = "interaction_symbol"
-            value = "full"
-        }
+        details_lvl = 4
 
         details {
             type = "N"
-            value = "full"
+            value = "none"
+            data between 10.0..350.0
         }
 
         details {
             type = "n"
-            value = "full"
+            value = "none"
+            data between 10.0..350.0
         }
 
         color {
             type = "R"
-            value = "#EF946C"
+            value = "deepskyblue"
         }
 
         color {
             type = "Y"
-            value = "#C4A77D"
-        }
-
-        color {
-            type = "n"
-            value = "#000000"
-        }
-
-        line {
-            type = "phosphodiester_bond"
-            value = 2.0
-        }
-
-        line {
-            type = "secondary_interaction"
-            value = 4.0
+            value = "darkgreen"
         }
     }
 }
 
 booquet {
-    file = "media/example4.svg"
+    file = "media/booquet_from_rfam.svg"
     junction_diameter = 15.0
-    color = "#000000"
+    color = "midnightblue"
     line = 1.0
     ss {
         rfam {
@@ -266,10 +356,10 @@ booquet {
 }
 
 booquet {
-    file = "media/example5.svg"
+    file = "media/booquet_from_vienna.svg"
     junction_diameter = 15.0
-    color = "#15BD15"
-    line = 5.0
+    color = "olive"
+    line = 3.0
     ss {
         vienna {
             file = "samples/rna.vienna"
@@ -278,9 +368,9 @@ booquet {
 }
 
 booquet {
-    file = "media/example6.svg"
+    file = "media/booquet_from_ct.svg"
     junction_diameter = 15.0
-    color = "#BD8515"
+    color = "darkorchid"
     ss {
         ct {
             file = "samples/ASE_00010_from_RNA_STRAND_database.ct"
@@ -289,9 +379,9 @@ booquet {
 }
 
 booquet {
-    file = "media/example7.svg"
+    file = "media/booquet_from_pdb.svg"
     junction_diameter = 15.0
-    color = "#BD8515"
+    color = "darkmagenta"
     width = 1200.0
     height = 800.0
     line = 0.5
@@ -303,100 +393,3 @@ booquet {
     }
 }
 
-booquet {
-    file = "media/example8.svg"
-    junction_diameter = 15.0
-    color = "#BD1576"
-    ss {
-        bpseq {
-            file = "samples/SRP_00001_from_RNA_STRAND_database.bpseq"
-        }
-    }
-}
-
-booquet {
-    file = "media/example9.svg"
-    junction_diameter = 15.0
-    color = "#000000"
-    line = 1.0
-    ss {
-        rfam {
-            id = "RF00072"
-        }
-    }
-}
-
-rnartist {
-    file = "media/example10.svg"
-    ss {
-        rfam {
-            id = "RF00072"
-        }
-    }
-    theme {
-        details {
-            type = "helix"
-            value = "full"
-        }
-
-        details {
-            type = "junction"
-            value = "full"
-        }
-
-        details {
-            type = "single_strand"
-            value = "full"
-        }
-
-        details {
-            type = "secondary_interaction"
-            value = "full"
-        }
-
-        details {
-            type = "phosphodiester_bond"
-            value = "full"
-        }
-
-        details {
-            type = "interaction_symbol"
-            value = "full"
-        }
-
-        details {
-            type = "N"
-            value = "full"
-        }
-
-        details {
-            type = "n"
-            value = "full"
-        }
-
-        color {
-            type = "R"
-            value = "#EF946C"
-        }
-
-        color {
-            type = "Y"
-            value = "#C4A77D"
-        }
-
-        color {
-            type = "n"
-            value = "#000000"
-        }
-
-        line {
-            type = "phosphodiester_bond"
-            value = 2.0
-        }
-
-        line {
-            type = "secondary_interaction"
-            value = 4.0
-        }
-    }
-}
