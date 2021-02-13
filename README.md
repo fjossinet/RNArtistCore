@@ -1,13 +1,13 @@
 RNArtistCore
 ============
 
-RNArtistCore is a commandline tool and a Kotlin library used to describe and plot RNA secondary structures. As a library it is used in the projects [RNArtist](https://github.com/fjossinet/RNArtist) and [RNArtistBackend](https://github.com/fjossinet/RNArtistBackEnd).
+RNArtistCore provides a DSL (Domain Specific Language) and a Kotlin library to describe and plot RNA secondary structures. As a library it is used in the projects [RNArtist](https://github.com/fjossinet/RNArtist) and [RNArtistBackend](https://github.com/fjossinet/RNArtistBackEnd).
 
 ![](media/booquet_from_pdb_0.png)
 
 <p float="left">
-  <img src="/media/details_lvl5_colored_A.png" width="600" />
-  <img src="/media/hide_pyrimidines_A.png" width="600" />
+  <img src="/media/details_lvl5_colored_A.png" width="300" />
+  <img src="/media/hide_pyrimidines_A.png" width="300" />
 </p>
 
 # Installation
@@ -20,7 +20,7 @@ Clone this repository and inside its root directory type:
 
 Once done, in the subdirectory named "target", you will find the file rnartistcore-{version}-jar-with-dependencies.jar. 
 
-# RNArtistCore from the commandline
+# The RNArtistCore DSL
 
 RNArtistCore provides a domain-specific language (DSL) to write scripts more easily. You can have a look at examples in the file scripts/dsl.kts
 
@@ -845,7 +845,7 @@ booquet {
 
 ![](media/booquet_from_pdb_0.png)
 
-# RNArtistCore as a library
+# The RNArtistCore library
 
 You need to have the build tool [Maven](https://maven.apache.org) installed. 
 No stable release for now, only snapshots. To use RNArtistCore in a Java application, just add the below dependency in your file pom.xml:
