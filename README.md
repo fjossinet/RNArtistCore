@@ -14,17 +14,17 @@ RNArtistCore provides a DSL (Domain Specific Language) and a Kotlin library to d
 * [Installation](#installation)
 * [The RNArtistCore DSL](#dsl)
     * [How to write your scripts](#script)
-    * [How to define an RNA molecule](#molecule)
-    * [How to define a Secondary Structure](#ss)
-    * [How to define a drawing algorithm](#drawing)
-      * [The RNArtist algorithm](#rnartist)
+    * [The ```rna``` element](#molecule)
+    * [The **```ss```** element](#ss)
+    * [The drawing algorithm element](#drawing)
+      * [The **```rnartist```** element](#rnartist)
         * [The **```data```** element](#data)
         * [The **```theme```** element](#theme)
             * [The **```color```** element](#color)
             * [The **```details```** element](#details)
             * [The **```hide```** element](#hide)
             * [The **```line```** element](#line)
-      * [The Booquet algorithm](#booquet)
+      * [The **```booquet```** element](#booquet)
     * [Embedded Kotlin code](#kotlin)
 * [The RNArtistCore Library](#library)
 
@@ -120,7 +120,7 @@ rnartist {
 
 In the next paragraphs, we will detail the elements available to describe an RNA molecule, a secondary structure and a drawing algorithm.
 
-### <a name="molecule"></a>How to define an RNA molecule
+### <a name="molecule"></a>The ```rna``` element 
 
 Using the element ```rna```, you can create an RNA molecule from scratch. The parameters available are:
 
@@ -150,7 +150,7 @@ rna {
 }
 ```
 
-### <a name="ss"></a>How to define a Secondary Structure
+### <a name="ss"></a>The ```ss``` element 
 
 You have three different ways to define a seconday structure:
 * from scratch using the element **ss**
@@ -317,7 +317,7 @@ ss {
 }
 ```
 
-### <a name="drawing"></a>How to define a drawing algorithm
+### <a name="drawing"></a>The drawing algorithm element
 
 Two algorithms are available:
 * the one used by the graphical tool [RNArtist](https://github.com/fjossinet/RNArtist)
@@ -325,7 +325,7 @@ Two algorithms are available:
 
 Both algorithms need a secondary structure element (see previous paragraph) and save their results in SVG files. Each molecular chain will be exported in its own SVG file. Each algorithm has its own parameters to configure the drawing process and the final result.
 
-<a name="rnartist"></a> ***The RNArtist algorithm***
+<a name="rnartist"></a> ***The **```rnartist```** element***
 
 The parameters available are:
 * **```file```**: the absolute path and the name of the SVG output file. The name of the molecular chain will be merged to the file name.
@@ -805,7 +805,7 @@ rnartist {
 
 ![](media/lines_A.png)
 
-<a name="booquet"></a> ***The Booquet algorithm***
+<a name="booquet"></a> ***The **```booquet```** element***
 
 This algorithm has less options than the rnartist one. The parameters available are:
 * **```file```**: the absolute path and the name of the SVG output file
