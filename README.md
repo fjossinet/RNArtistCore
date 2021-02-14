@@ -133,7 +133,7 @@ Examples:
 ```kotlin
 rna {
   name = "My Fav RNA"
-  sequence = "GGGACCGCCCGGGAAACGGGCGAAAAACGAGGUGCGGGCACCUCGUGACGACGGGAGUUCGACCGUGACGCAUGCGGAAAUUGGAGGUGAGUUCGCGAAUACAAAAGCAAGCGAAUACGCCCUGCUUACCGAAGCAAGCG"
+  sequence = "GGGACCGCCCGGGAAACGGGCGAAAAACGAGGUGCGGGCACCUCGUGACGACGGGAGUUCGACCGUGA"
 }
 ```
 
@@ -343,9 +343,6 @@ Datasets can be linked to a RNA secondary structure. You can either fill the dat
 rnartist {
     file = "example1.svg"
     ss {
-        rna {
-            sequence = "GCUUCAUAUAAUCCUAAUGAUAUGGUUUGGGAGUUUCUACCAAGAGCCUUAAACUCUUGAUUAUGAAGUG"
-        }
         bracket_notation = "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
     }
     data {
@@ -360,10 +357,7 @@ rnartist {
 rnartist {
     file = "example1.svg"
     ss {
-        rna {
-            sequence = "GCUUCAUAUAAUCCUAAUGAUAUGGUUUGGGAGUUUCUACCAAGAGCCUUAAACUCUUGAUUAUGAAGUG"
-        }
-        bracket_notation = "((((((((...((((((.........))))))((....))((((((.......))))))..))))))))."
+        bracket_notation = "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
     }
     data {
         file = "QuSHAPE_01_shape_mode_reactivities.txt"
