@@ -7,7 +7,7 @@ rnartist {
     file = "media/real_example.svg"
     ss {
         bracket_notation =
-            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
     }
     theme {
         details_lvl = 5
@@ -44,7 +44,7 @@ rnartist {
     file = "media/details_lvl1.svg"
     ss {
         bracket_notation =
-            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
     }
     theme {
         details_lvl = 1
@@ -55,7 +55,7 @@ rnartist {
     file = "media/details_lvl2.svg"
     ss {
         bracket_notation =
-            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
     }
     theme {
         details_lvl = 2
@@ -67,7 +67,7 @@ rnartist {
     file = "media/details_lvl3.svg"
     ss {
         bracket_notation =
-            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
     }
     theme {
         details_lvl = 3
@@ -78,7 +78,7 @@ rnartist {
     file = "media/details_lvl4.svg"
     ss {
         bracket_notation =
-            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
     }
     theme {
         details_lvl = 4
@@ -89,7 +89,7 @@ rnartist {
     file = "media/details_lvl5.svg"
     ss {
         bracket_notation =
-            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
     }
     theme {
         details_lvl = 5
@@ -100,7 +100,7 @@ rnartist {
     file = "media/details_lvl5_colored.svg"
     ss {
         bracket_notation =
-            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
     }
     theme {
         details_lvl = 5
@@ -128,19 +128,13 @@ rnartist {
     file = "media/hide_purines.svg"
     ss {
         bracket_notation =
-            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
     }
     theme {
         details_lvl = 5
 
         details {
-            type = "R"
-            location="12:20"
-            value = "none"
-        }
-
-        details {
-            type = "r"
+            type = "r R"
             location="12:20"
             value = "none"
         }
@@ -216,7 +210,7 @@ rnartist {
     file = "media/kotlin_powered.svg"
     ss {
         bracket_notation =
-            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
     }
     data {
         (1..secondaryStructures[0].length).forEach {
@@ -228,13 +222,13 @@ rnartist {
 
         color {
             type = "R"
-            from = "lightyellow"
+            value = "lightyellow"
             to = "firebrick"
         }
 
         color {
             type = "r"
-            from = "black"
+            value = "black"
             to = "white"
         }
 
@@ -272,13 +266,13 @@ rnartist {
         details_lvl = 4
         color {
             type = "N"
-            from = "lightyellow"
+            value = "lightyellow"
             to = "firebrick"
             data between 10.0..350.0
         }
         color {
             type = "n"
-            from = "black"
+            value = "black"
             to = "white"
             data between 10.0..350.0
         }
@@ -291,6 +285,28 @@ rnartist {
             type = "n"
             value = "white"
             data lt 10.0
+        }
+    }
+}
+
+rnartist {
+    file = "media/several_types.svg"
+    ss {
+        bracket_notation =
+            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+    }
+    theme {
+        details_lvl = 5
+
+        line {
+            type = "phosphodiester_bond interaction_symbol"
+            value = 0.1
+        }
+
+        line {
+            type = "phosphodiester_bond N"
+            value = 5.0
+            location = "8:6"
         }
     }
 }

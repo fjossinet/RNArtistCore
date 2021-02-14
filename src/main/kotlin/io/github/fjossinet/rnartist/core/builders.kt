@@ -902,10 +902,10 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
             }
         }
         this.colors.forEach { colorBuilder ->
-            if (colorBuilder.data.size != data.size || colorBuilder.from != null && colorBuilder.to != null) { //meaning that they have been filtered or that we want a gradient (even with non filtered data)
+            if (colorBuilder.data.size != data.size || colorBuilder.to != null) { //meaning that they have been filtered or that we want a gradient (even with non filtered data)
                 colorBuilder.data.forEach { position, value ->
                     var colorCode: String = getHTMLColorString(Color.BLACK)
-                    colorBuilder.from?.let { from ->
+                    colorBuilder.value?.let { from ->
                         val fromColor = getAWTColor(from)
                         colorBuilder.to?.let { to ->
                             val toColor = getAWTColor(to)
@@ -918,11 +918,7 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             colorCode = getHTMLColorString(Color(r, g, b))
                         }
                     }
-                    colorBuilder.value?.let {
-                        colorCode = it
-                    }
-                    colorBuilder.type?.let { type ->
-                        val types = getSecondaryStructureType(type)
+                    colorBuilder.getSecondaryStructureTypes()?.let { types ->
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
@@ -935,8 +931,7 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
             else if (colorBuilder.location != null) {
                 colorBuilder.location?.let {
                     val location = Location(it)
-                    colorBuilder.type?.let { type ->
-                        val types = getSecondaryStructureType(type)
+                    colorBuilder.getSecondaryStructureTypes()?.let { types ->
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> location.positions.any { e.location.contains(it) } && e.type == type }
@@ -948,8 +943,7 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                 }
             }
             else if (colorBuilder.type != null) {
-                colorBuilder.type?.let { type ->
-                    val types = getSecondaryStructureType(type)
+                colorBuilder.getSecondaryStructureTypes()?.let { types ->
                     types.forEach { type ->
                         val selection = { e: DrawingElement -> e.type == type }
                         t.setConfigurationFor(selection,
@@ -962,8 +956,7 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
         this.details.forEach { detailsBuilder ->
             if (detailsBuilder.data.isNotEmpty()) {
                 detailsBuilder.data.forEach { position, value ->
-                    detailsBuilder.type?.let { type ->
-                        val types = getSecondaryStructureType(type)
+                    detailsBuilder.getSecondaryStructureTypes()?.let { types ->
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
@@ -976,8 +969,7 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
             else if (detailsBuilder.location != null) {
                 detailsBuilder.location?.let {
                     val location = Location(it)
-                    detailsBuilder.type?.let { type ->
-                        val types = getSecondaryStructureType(type)
+                    detailsBuilder.getSecondaryStructureTypes()?.let { types ->
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> location.positions.any { e.location.contains(it) } && e.type == type }
@@ -989,8 +981,7 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                 }
             }
             else if (detailsBuilder.type != null) {
-                detailsBuilder.type?.let { type ->
-                    val types = getSecondaryStructureType(type)
+                detailsBuilder.getSecondaryStructureTypes()?.let { types ->
                     types.forEach { type ->
                         val selection = { e: DrawingElement -> e.type == type }
                         t.setConfigurationFor(selection,
@@ -1003,8 +994,7 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
         this.lines.forEach { lineBuilder ->
             if (lineBuilder.data.size != data.size) { //meaning that they have been filtered
                 lineBuilder.data.forEach { position, value ->
-                    lineBuilder.type?.let { type ->
-                        val types = getSecondaryStructureType(type)
+                    lineBuilder.getSecondaryStructureTypes()?.let { types ->
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
@@ -1017,8 +1007,7 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
             else if (lineBuilder.location != null) {
                 lineBuilder.location?.let {
                     val location = Location(it)
-                    lineBuilder.type?.let { type ->
-                        val types = getSecondaryStructureType(type)
+                    lineBuilder.getSecondaryStructureTypes()?.let { types ->
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> location.positions.any { e.location.contains(it) } && e.type == type }
@@ -1030,8 +1019,7 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                 }
             }
             else if (lineBuilder.type != null) {
-                lineBuilder.type?.let { type ->
-                    val types = getSecondaryStructureType(type)
+                lineBuilder.getSecondaryStructureTypes()?.let { types ->
                     types.forEach { type ->
                         val selection = { e: DrawingElement -> e.type == type }
                         t.setConfigurationFor(selection,
@@ -1071,6 +1059,8 @@ open class ThemeConfigurationBuilder(data:MutableMap<String, Double>) {
             remove(it.key)
         }
     }
+
+    fun getSecondaryStructureTypes() = this.type?.split(" ")?.flatMap { getSecondaryStructureType(it) }
 }
 
 class DetailsBuilder(data:MutableMap<String, Double>): ThemeConfigurationBuilder(data) {
@@ -1079,12 +1069,6 @@ class DetailsBuilder(data:MutableMap<String, Double>): ThemeConfigurationBuilder
 
 class ColorBuilder(data:MutableMap<String, Double>): ThemeConfigurationBuilder(data) {
     var value:String? = null
-        set(value) {
-            field = value?.let {
-                if (!value.startsWith("#")) getColorCode(value) else value
-            }
-        }
-    var from:String? = null
         set(value) {
             field = value?.let {
                 if (!value.startsWith("#")) getColorCode(value) else value

@@ -16,7 +16,7 @@ class Test {
             file = "media/kotlin_powered.svg"
             ss {
                 bracket_notation =
-                    ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+                    "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
             }
             data {
                 (1..secondaryStructures[0].length).forEach {
@@ -27,13 +27,26 @@ class Test {
                 details_lvl = 5
 
                 color {
-                    type = "R"
-                    from = "lightyellow"
+                    type = "R C"
+                    value = "lightyellow"
                     to = "firebrick"
                 }
 
-                hide {
-                    type = "Y"
+                color {
+                    type = "r c"
+                    value = "black"
+                    to = "white"
+                }
+
+                line {
+                    type = "phosphodiester_bond interaction_symbol"
+                    value = 0.1
+                }
+
+                line {
+                    type = "phosphodiester_bond N"
+                    value = 5.0
+                    location = "8:6"
                 }
 
             }
@@ -95,7 +108,7 @@ class Test {
                             type = "n"
                             value = "full"
                         }
-                        RnartistConfig.colorSchemes.get("Persian Carolina")!!.forEach { elementType, config ->
+                        RnartistConfig.colorSchemes["Persian Carolina"]!!.forEach { elementType, config ->
                             config.forEach {
                                 color {
                                     type = elementType
@@ -156,7 +169,7 @@ class Test {
                         type = "n"
                         value = "full"
                     }
-                    RnartistConfig.colorSchemes.get("Persian Carolina")!!.forEach { elementType, config ->
+                    RnartistConfig.colorSchemes["Persian Carolina"]!!.forEach { elementType, config ->
                         config.forEach {
                             color {
                                 type = elementType
