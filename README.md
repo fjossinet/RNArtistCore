@@ -460,7 +460,6 @@ Inside a ```theme``` element, you can also add several times the following eleme
   * **```color```**: an HTML color code or predefined color name (see below)
   * **```width```**: the line width-->
 
-![](media/several_types_A.png)
 
 <a name="color"></a> ____The **```color```** element____
 
