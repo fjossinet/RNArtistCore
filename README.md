@@ -511,56 +511,7 @@ Parameters:
   * **```location```**: the location of the elements targeted
   * **```data```**: selection based on the values linked to the residues
 
-
-|      |       |      |
-| :-----------: |:-------------:| :-----------: |
-| <span style="color:white ; background-color:black;">white</span> |<span style="color:ivory ; background-color:black;">ivory</span> | <span style="color:lightyellow ; background-color:black;">lightyellow</span>|
-| <span style="color:yellow ; background-color:black;">yellow</span> |<span style="color:snow ; background-color:black;">snow</span> | <span style="color:floralwhite ; background-color:black;">floralwhite</span>|
-| <span style="color:lemonchiffon ; background-color:black;">lemonchiffon</span> |<span style="color:cornsilk ; background-color:black;">cornsilk</span> | <span style="color:seashell ; background-color:black;">seashell</span>|
-| <span style="color:lavenderblush ; background-color:black;">lavenderblush</span> |<span style="color:papayawhip ; background-color:black;">papayawhip</span> | <span style="color:blanchedalmond ; background-color:black;">blanchedalmond</span>|
-| <span style="color:mistyrose">mistyrose</span> |<span style="color:bisque">bisque</span> | <span style="color:moccasin">moccasin</span>|
-| <span style="color:navajowhite">navajowhite</span> |<span style="color:peachpuff">peachpuff</span> | <span style="color:gold">gold</span>|
-| <span style="color:pink">pink</span> |<span style="color:lightpink">lightpink</span> | <span style="color:orange">orange</span>|
-| <span style="color:lightsalmon">lightsalmon</span> |<span style="color:darkorange">darkorange</span> | <span style="color:coral">coral</span>|
-| <span style="color:hotpink">hotpink</span> |<span style="color:tomato">tomato</span> | <span style="color:orangered">orangered</span>|
-| <span style="color:deeppink">deeppink</span> |<span style="color:fuchsia">fuchsia</span> | <span style="color:magenta">magenta</span>|
-| <span style="color:red">red</span> |<span style="color:oldlace ; background-color:black;">oldlace</span> | <span style="color:lightgoldenrodyellow ; background-color:black;">lightgoldenrodyellow</span>|
-| <span style="color:linen ; background-color:black;">linen</span> |<span style="color:antiquewhite ; background-color:black;">antiquewhite</span> | <span style="color:salmon">salmon</span>|
-| <span style="color:ghostwhite ; background-color:black;">ghostwhite</span> |<span style="color:mintcream ; background-color:black;">mintcream</span> | <span style="color:whitesmoke ; background-color:black;">whitesmoke</span>|
-| <span style="color:beige ; background-color:black;">beige</span> |<span style="color:wheat">wheat</span> | <span style="color:sandybrown">sandybrown</span>|
-| <span style="color:azure ; background-color:black;">azure</span> |<span style="color:honeydew ; background-color:black;">honeydew</span> | <span style="color:aliceblue ; background-color:black;">aliceblue</span>|
-| <span style="color:khaki">khaki</span> |<span style="color:lightcoral">lightcoral</span> | <span style="color:palegoldenrod">palegoldenrod</span>|
-| <span style="color:violet">violet</span> |<span style="color:darksalmon">darksalmon</span> | <span style="color:lavender">lavender</span>|
-| <span style="color:lightcyan ; background-color:black;">lightcyan</span> |<span style="color:burlywood">burlywood</span> | <span style="color:plum">plum</span>|
-| <span style="color:gainsboro">gainsboro</span> |<span style="color:crimson">crimson</span> | <span style="color:palevioletred">palevioletred</span>|
-| <span style="color:goldenrod">goldenrod</span> |<span style="color:orchid">orchid</span> | <span style="color:thistle">thistle</span>|
-| <span style="color:lightgrey">lightgrey</span> |<span style="color:tan">tan</span> | <span style="color:chocolate">chocolate</span>|
-| <span style="color:peru">peru</span> |<span style="color:indianred">indianred</span> | <span style="color:mediumvioletred">mediumvioletred</span>|
-| <span style="color:silver">silver</span> |<span style="color:darkkhaki">darkkhaki</span> | <span style="color:rosybrown">rosybrown</span>|
-| <span style="color:mediumorchid">mediumorchid</span> |<span style="color:darkgoldenrod">darkgoldenrod</span> | <span style="color:firebrick">firebrick</span>|
-| <span style="color:powderblue">powderblue</span> |<span style="color:lightsteelblue">lightsteelblue</span> | <span style="color:paleturquoise">paleturquoise</span>|
-| <span style="color:greenyellow">greenyellow</span> |<span style="color:lightblue">lightblue</span> | <span style="color:darkgray">darkgray</span>|
-| <span style="color:brown">brown</span> |<span style="color:sienna">sienna</span> | <span style="color:yellowgreen">yellowgreen</span>|
-| <span style="color:darkorchid">darkorchid</span> |<span style="color:palegreen">palegreen</span> | <span style="color:darkviolet">darkviolet</span>|
-| <span style="color:mediumpurple">mediumpurple</span> |<span style="color:lightgreen">lightgreen</span> | <span style="color:darkseagreen">darkseagreen</span>|
-| <span style="color:saddlebrown">saddlebrown</span> |<span style="color:darkmagenta">darkmagenta</span> | <span style="color:darkred">darkred</span>|
-| <span style="color:blueviolet">blueviolet</span> |<span style="color:lightskyblue">lightskyblue</span> | <span style="color:skyblue">skyblue</span>|
-| <span style="color:gray">gray</span> |<span style="color:olive">olive</span> | <span style="color:purple">purple</span>|
-| <span style="color:maroon">maroon</span> |<span style="color:aquamarine">aquamarine</span> | <span style="color:chartreuse">chartreuse</span>|
-| <span style="color:lawngreen">lawngreen</span> |<span style="color:mediumslateblue">mediumslateblue</span> | <span style="color:lightslategray">lightslategray</span>|
-| <span style="color:slategray">slategray</span> |<span style="color:olivedrab">olivedrab</span> | <span style="color:slateblue">slateblue</span>|
-| <span style="color:dimgray">dimgray</span> |<span style="color:mediumaquamarine">mediumaquamarine</span> | <span style="color:cornflowerblue">cornflowerblue</span>|
-| <span style="color:cadetblue">cadetblue</span> |<span style="color:darkolivegreen">darkolivegreen</span> | <span style="color:indigo">indigo</span>|
-| <span style="color:mediumturquoise">mediumturquoise</span> |<span style="color:darkslateblue">darkslateblue</span> | <span style="color:steelblue">steelblue</span>|
-| <span style="color:royalblue">royalblue</span> |<span style="color:turquoise">turquoise</span> | <span style="color:mediumseagreen">mediumseagreen</span>|
-| <span style="color:limegreen">limegreen</span> |<span style="color:darkslategray">darkslategray</span> | <span style="color:seagreen">seagreen</span>|
-| <span style="color:forestgreen">forestgreen</span> |<span style="color:lightseagreen">lightseagreen</span> | <span style="color:dodgerblue">dodgerblue</span>|
-| <span style="color:midnightblue">midnightblue</span> |<span style="color:aqua">aqua</span> | <span style="color:cyan">cyan</span>|
-| <span style="color:springgreen">springgreen</span> |<span style="color:lime">lime</span> | <span style="color:mediumspringgreen">mediumspringgreen</span>|
-| <span style="color:darkturquoise">darkturquoise</span> |<span style="color:deepskyblue">deepskyblue</span> | <span style="color:darkcyan">darkcyan</span>|
-| <span style="color:teal">teal</span> |<span style="color:green">green</span> | <span style="color:darkgreen">darkgreen</span>|
-| <span style="color:blue">blue</span> |<span style="color:mediumblue">mediumblue</span> | <span style="color:darkblue">darkblue</span>|
-| <span style="color:navy">navy</span> |<span style="color:black">black</span> ||
+You can find here [the list of color names](https://en.wikipedia.org/wiki/Web_colors#/media/File:SVG_Recognized_color_keyword_names.svg) 
 
 Examples:
 
