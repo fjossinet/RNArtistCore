@@ -13,30 +13,30 @@ RNArtistCore provides a DSL (Domain Specific Language) and a Kotlin library to d
 
 * [Installation](#installation)
 * [The RNArtistCore DSL](#dsl)
-    * [How to write your scripts](#script)
-    * [The **```rna```** element](#molecule)
-    * [The **```ss```** element](#ss)
-    * [The drawing algorithm element](#drawing)
-      * [The **```rnartist```** element](#rnartist)
-        * [The **```data```** element](#data)
-        * [The **```theme```** element](#theme)
-            * [The **```color```** element](#color)
-            * [The **```details```** element](#details)
-            * [The **```hide```** element](#hide)
-            * [The **```line```** element](#line)
-      * [The **```booquet```** element](#booquet)
-    * [Embedded Kotlin code](#kotlin)
+  * [How to write your scripts](#script)
+  * [The **```rna```** element](#molecule)
+  * [The **```ss```** element](#ss)
+  * [The drawing algorithm element](#drawing)
+    * [The **```rnartist```** element](#rnartist)
+      * [The **```data```** element](#data)
+      * [The **```theme```** element](#theme)
+        * [The **```color```** element](#color)
+        * [The **```details```** element](#details)
+        * [The **```hide```** element](#hide)
+        * [The **```line```** element](#line)
+    * [The **```booquet```** element](#booquet)
+  * [Embedded Kotlin code](#kotlin)
 * [The RNArtistCore Library](#library)
 
 # <a name="installation"></a>Installation
 
-You need to have the build tool [Maven](https://maven.apache.org) and a [Java distribution](https://www.oracle.com/java/technologies/javase-downloads.html) to be installed (type the commands ```mvn``` and ```java``` from a command line to check). 
+You need to have the build tool [Maven](https://maven.apache.org) and a [Java distribution](https://www.oracle.com/java/technologies/javase-downloads.html) to be installed (type the commands ```mvn``` and ```java``` from a command line to check).
 
 Clone this repository and inside its root directory type:
 
 <pre>mvn clean package</pre>
 
-Once done, in the subdirectory named "target", you will find the file rnartistcore-{version}-jar-with-dependencies.jar. 
+Once done, in the subdirectory named "target", you will find the file rnartistcore-{version}-jar-with-dependencies.jar.
 
 # <a name="dsl"></a>The RNArtistCore DSL
 
@@ -64,10 +64,10 @@ drawing_algorithm {
     parameter_4 = value
 
     rna {
-        parameter_5 = value
-        parameter_6 = "value"
+      parameter_5 = value
+      parameter_6 = "value"
     }
-  
+
   }
 
 }
@@ -79,40 +79,40 @@ Here is a real example:
 
 ```kotlin
 rnartist {
-    file = "media/real_example.svg"
-    ss {
-        bracket_notation =
-            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+  file = "media/real_example.svg"
+  ss {
+    bracket_notation =
+      ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+  }
+  theme {
+    details_lvl = 5
+
+    color {
+      type="A"
+      value = "#A0ECF5"
     }
-    theme {
-        details_lvl = 5
 
-        color {
-            type="A"
-            value = "#A0ECF5"
-        }
-
-        color {
-            type="a"
-            value = "black"
-        }
-
-        color {
-            type="U"
-            value = "#9157E5"
-        }
-
-        color {
-            type="G"
-            value = "darkgreen"
-        }
-
-        color {
-            type="C"
-            value = "#E557E5"
-        }
-
+    color {
+      type="a"
+      value = "black"
     }
+
+    color {
+      type="U"
+      value = "#9157E5"
+    }
+
+    color {
+      type="G"
+      value = "darkgreen"
+    }
+
+    color {
+      type="C"
+      value = "#E557E5"
+    }
+
+  }
 }
 ```
 
@@ -120,7 +120,7 @@ rnartist {
 
 In the next paragraphs, we will detail the elements available to describe an RNA molecule, a secondary structure and a drawing algorithm.
 
-### <a name="molecule"></a>The ```rna``` element 
+### <a name="molecule"></a>The ```rna``` element
 
 Using the element ```rna```, you can create an RNA molecule from scratch. The parameters available are:
 
@@ -150,7 +150,7 @@ rna {
 }
 ```
 
-### <a name="ss"></a>The ```ss``` element 
+### <a name="ss"></a>The ```ss``` element
 
 You have three different ways to define a seconday structure:
 * from scratch using the element **ss**
@@ -167,28 +167,28 @@ Examples:
 
 ```kotlin
 ss {
-  
+
   rna {
     name = "My Fav RNA"
     length = 12
   }
-  
+
   bracket_notation = "((((....))))"
-  
+
 }
 ```
 
 ```kotlin
 ss {
-  
+
   bracket_notation = "((((....))))"
-  
+
 }
 ```
 
 ***From a file***
 
-You don't need to provide any ```rna``` element, it will be constructed automatically from the data stored in the file. 
+You don't need to provide any ```rna``` element, it will be constructed automatically from the data stored in the file.
 
 To be able to use the PDB format, you need to have the RNAVIEW algorithm installed with the [Docker container assemble2](https://hub.docker.com/r/fjossinet/assemble2/). RNArtistCore will delegate to RNAVIEW the annotation of the 3D structure into a 2D.
 
@@ -330,14 +330,14 @@ Both algorithms need a secondary structure element (see previous paragraph) and 
 The parameters available are:
 * **```file```**: the absolute path and the name of the SVG output file. The name of the molecular chain will be merged to the file name.
 * **```ss```**: a secondary structure element (see above)
-* **```data```**: a dataset (see above)
-* **```theme```**: see below
+* **```data```**: a dataset to map values to residues (see below)
+* **```theme```**: to change the colors, details, line width,... for any element in the 2D (see below)
 
-The size of the picture will fit the size of the drawing (with a minimum size of 1024x768 to see the residue letters).
+The size of the picture will fit the size of the drawing (with a minimum size of 1024x768 to see the residue characters).
 
 <a name="data"> ____The **```data```** element____
 
-Datasets can be linked to a RNA secondary structure. You can either fill the dataset in the script, or load it from a file.
+Datasets can be linked to an RNA secondary structure. You can either fill the dataset within the script, or load it from a file.
 
 ```kotlin
 rnartist {
@@ -365,7 +365,7 @@ rnartist {
 }
 ```
 
-The values linked to each residue can be used as a selection criteria to define the colors, line width and details level (see below). 
+The values linked to each residue can be used as a selection criteria to define the colors, line width and details level (see below).
 
 <a name="theme"></a> ____The **```theme```** element____
 
@@ -454,49 +454,11 @@ Inside a ```theme``` element, you can also add several times the following eleme
 * **```line```**: define the width for the line
 * **```hide```**: hide residues
 <!--* **```highlight```**: highlight residues
-  * **```type```**: can only be a lower or upper letter (default is "N"). Lower or upper letter will produce the same results (the letter and the shape of the delected residues is hidden)
+  * **```type```**: can only be a lower or upper character (default is "N"). Lower or upper character will produce the same results (the character and the shape of the delected residues is hidden)
   * **```location```**: the location of the residues to hide
   * **```data```**: selection based on the values linked to the residues
   * **```color```**: an HTML color code or predefined color name (see below)
   * **```width```**: the line width-->
-
-The parameter **```type```** can have the following values:
-  * **```A```**, **```U```**, **```G```**, **```C```**, **```X```**, **```N```**, **```R```**, **```Y```**: capital letters for residues target the circle surrounding the residue letter. **```N```** is for any residue, **```R```** for purines, and **```Y```** for pyrimidines 
-  * **```a```**, **```u```**, **```g```**, **```c```**, **```x```**, **```n```**, **```r```**, **```y```**: lowercase letters for residues target the letter inside the circle. **```n```** is for any residue, **```r```** for purines, and **```y```** for pyrimidines 
-  * **```helix```**
-  * **```single_strand```**
-  * **```junction```**
-  * **```secondary_interaction```**
-  * **```tertiary_interaction```**
-  * **```phosphodiester_bond```**
-  * **```interaction_symbol```**
-  * **```pknot```**
-
-You can define several types in the same string using a space as separator: **```"single_strand R C interaction_symbol"```**
-
-```kotlin
-rnartist {
-    file = "media/several_types.svg"
-    ss {
-        bracket_notation =
-            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
-    }
-    theme {
-        details_lvl = 5
-
-        line {
-            type = "phosphodiester_bond interaction_symbol"
-            value = 0.1
-        }
-
-        line {
-            type = "phosphodiester_bond N"
-            value = 5.0
-            location = "8:6"
-        }
-    }
-}
-```
 
 ![](media/several_types_A.png)
 
@@ -505,13 +467,27 @@ The parameter **```location```** needs to have the following format: **```start_
 <a name="color"></a> ____The **```color```** element____
 
 Parameters:
-  * **```value```**: an HTML color code or predefined color name (see below)
-  * **```to```**: last color in a gradient (HTML color code or predefined color name (see below))
-  * **```type```**: the type of the elements targeted
-  * **```location```**: the location of the elements targeted
-  * **```data```**: selection based on the values linked to the residues
+* **```value```**: an HTML color code or predefined color name (see below)
+* **```to```**: last color in a gradient (HTML color code or predefined color name (see below))
+* **```type```**: the type of the elements targeted
+* **```location```**: the location of the elements targeted
+* **```data```**: selection based on the values linked to the residues
 
-You can find here [the list of color names](https://en.wikipedia.org/wiki/Web_colors#/media/File:SVG_Recognized_color_keyword_names.svg) 
+The parameter **```type```** can have the following values:
+* **```A```**, **```U```**, **```G```**, **```C```**, **```X```**, **```N```**, **```R```**, **```Y```**: capital characters for residues target the circle surrounding the residue character. **```N```** is for any residue, **```R```** for purines, and **```Y```** for pyrimidines
+* **```a```**, **```u```**, **```g```**, **```c```**, **```x```**, **```n```**, **```r```**, **```y```**: lowercase characters for residues target the character inside the circle. **```n```** is for any residue, **```r```** for purines, and **```y```** for pyrimidines
+* **```helix```**
+* **```single_strand```**
+* **```junction```**
+* **```secondary_interaction```**
+* **```tertiary_interaction```**
+* **```phosphodiester_bond```**
+* **```interaction_symbol```**
+* **```pknot```**
+
+You can define several types in the same string using a space as separator: **```"single_strand R C interaction_symbol"```**
+
+You can define a color with its HTML color code or its name ([list of color names](https://en.wikipedia.org/wiki/Web_colors#/media/File:SVG_Recognized_color_keyword_names.svg)).
 
 Examples:
 
@@ -605,10 +581,24 @@ rnartist {
 <a name="details"></a> ____The **```details```** element____
 
 Parameters:
-  * **```value```**: **```"full"```** or **```"none"```**
-  * **```type```**: the type of the elements targeted
-  * **```location```**: the location of the elements targeted
-  * **```data```**: selection based on the values linked to the residues
+* **```value```**: **```"full"```** or **```"none"```**
+* **```type```**: the type of the elements targeted
+* **```location```**: the location of the elements targeted
+* **```data```**: selection based on the values linked to the residues
+
+The parameter **```type```** can have the following values:
+* **```A```**, **```U```**, **```G```**, **```C```**, **```X```**, **```N```**, **```R```**, **```Y```**: capital characters for residues target the circle surrounding the residue character. **```N```** is for any residue, **```R```** for purines, and **```Y```** for pyrimidines
+* **```a```**, **```u```**, **```g```**, **```c```**, **```x```**, **```n```**, **```r```**, **```y```**: lowercase characters for residues target the character inside the circle. **```n```** is for any residue, **```r```** for purines, and **```y```** for pyrimidines
+* **```helix```**
+* **```single_strand```**
+* **```junction```**
+* **```secondary_interaction```**
+* **```tertiary_interaction```**
+* **```phosphodiester_bond```**
+* **```interaction_symbol```**
+* **```pknot```**
+
+You can define several types in the same string using a space as separator: **```"single_strand R C interaction_symbol"```**
 
 If a dataset is linked to the RNA secondary structure, the values can be used as a selection criteria. Using the parameter  **```data```**, you can select values lower than a value (lt), greater than a value (gt) or between two values (between).
 
@@ -698,63 +688,63 @@ rnartist {
 <a name="hide"></a> ____The **```hide```** element____
 
 Parameters:
-  * **```type```**: can only be a lower or upper letter (default is **```N```**). Lower or upper letter will produce the same results (the letter and the shape of the delected residues is hidden)
-  * **```location```**: the location of the residues to hide
-  * **```data```**: selection based on the values linked to the residues
+* **```type```**: can only be a lower or upper character (default is **```N```**). Lower or upper character will produce the same results (the character and the shape of the delected residues is hidden)
+* **```location```**: the location of the residues to hide
+* **```data```**: selection based on the values linked to the residues
 
 ```kotlin
 rnartist {
-    file = "media/hide_pyrimidines.svg"
-    ss {
-        rna {
-            sequence = "GCGAAAAAUCGC"
-        }
-        bracket_notation =
-            "((((....))))"
+  file = "media/hide_pyrimidines.svg"
+  ss {
+    rna {
+      sequence = "GCGAAAAAUCGC"
     }
-    data {
-        "1" to 200.7
-        "2" to 192.3
-        "3" to 143.6
-        "4" to 34.8
-        "5" to 4.5
-        "6" to 234.9
-        "7" to 12.3
-        "8" to 56.8
-        "9" to 59.8
-        "10" to 140.5
-        "11" to 0.2
-        "12" to 345.8
+    bracket_notation =
+      "((((....))))"
+  }
+  data {
+    "1" to 200.7
+    "2" to 192.3
+    "3" to 143.6
+    "4" to 34.8
+    "5" to 4.5
+    "6" to 234.9
+    "7" to 12.3
+    "8" to 56.8
+    "9" to 59.8
+    "10" to 140.5
+    "11" to 0.2
+    "12" to 345.8
+  }
+  theme {
+    details_lvl = 5
+
+    hide {
+      location="5:4"
     }
-    theme {
-        details_lvl = 5
 
-        hide {
-            location="5:4"
-        }
-
-        hide {
-            type = "Y"
-            data lt 150.0
-        }
-
-        color {
-            type = "R"
-            value = "deepskyblue"
-        }
-
-        color {
-            type = "Y"
-            value = "darkgreen"
-        }
-
-        color {
-            type = "Y"
-            value = "firebrick"
-            data gt 200.0
-        }
-
+    hide {
+      type = "Y"
+      data lt 150.0
     }
+
+    color {
+      type = "R"
+      value = "deepskyblue"
+    }
+
+    color {
+      type = "Y"
+      value = "darkgreen"
+    }
+
+    color {
+      type = "Y"
+      value = "firebrick"
+      data gt 200.0
+    }
+
+  }
 }
 ```
 
@@ -764,42 +754,56 @@ rnartist {
 <a name="line"></a> ____The **```line```** element____
 
 Parameters:
-  * **```value```**: the line width
-  * **```type```**: the type of the elements targeted
-  * **```location```**: the location of the elements targeted
+* **```value```**: the line width
+* **```type```**: the type of the elements targeted
+* **```location```**: the location of the elements targeted
+
+The parameter **```type```** can have the following values:
+* **```A```**, **```U```**, **```G```**, **```C```**, **```X```**, **```N```**, **```R```**, **```Y```**: capital characters for residues target the circle surrounding the residue character. **```N```** is for any residue, **```R```** for purines, and **```Y```** for pyrimidines
+* **```a```**, **```u```**, **```g```**, **```c```**, **```x```**, **```n```**, **```r```**, **```y```**: lowercase characters for residues target the character inside the circle. **```n```** is for any residue, **```r```** for purines, and **```y```** for pyrimidines
+* **```helix```**
+* **```single_strand```**
+* **```junction```**
+* **```secondary_interaction```**
+* **```tertiary_interaction```**
+* **```phosphodiester_bond```**
+* **```interaction_symbol```**
+* **```pknot```**
+
+You can define several types in the same string using a space as separator: **```"single_strand R C interaction_symbol"```**
 
 ```kotlin
 rnartist {
-    file = "media/lines.svg"
-    ss {
-        bracket_notation =
-            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+  file = "media/lines.svg"
+  ss {
+    bracket_notation =
+      "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+  }
+  theme {
+    details_lvl = 5
+
+    color {
+      type = "Y y"
+      value = "chartreuse"
     }
-    theme {
-        details_lvl = 5
 
-        color {
-            type = "Y y"
-            value = "chartreuse"
-        }
-
-        color {
-            type = "R r"
-            value = "turquoise"
-        }
-
-        line {
-            type = "phosphodiester_bond interaction_symbol"
-            value = 0.1
-        }
-
-        line {
-            type = "phosphodiester_bond N"
-            value = 5.0
-            location = "8:6"
-        }
-
+    color {
+      type = "R r"
+      value = "turquoise"
     }
+
+    line {
+      type = "phosphodiester_bond interaction_symbol"
+      value = 0.1
+    }
+
+    line {
+      type = "phosphodiester_bond N"
+      value = 5.0
+      location = "8:6"
+    }
+
+  }
 }
 ```
 
@@ -814,22 +818,22 @@ This algorithm has less options than the rnartist one. The parameters available 
 * **```color```**: an HTML color code or color name
 * **```line```**: the width for the lines
 * **```junction_diameter```**: the diameter of the circles
-* **```ss```**: a secondary structure element (see above) 
+* **```ss```**: a secondary structure element (see above)
 
 The drawing will be automatically zoomed to fit the view.
 
 ```kotlin
 booquet {
-    file = "media/booquet_from_rfam.svg"
-    junction_diameter = 15.0
-    color = "midnightblue"
-    line = 1.0
-    ss {
-        rfam {
-            id = "RF00072"
-            name = "AJ009730.1/1-133"
-        }
+  file = "media/booquet_from_rfam.svg"
+  junction_diameter = 15.0
+  color = "midnightblue"
+  line = 1.0
+  ss {
+    rfam {
+      id = "RF00072"
+      name = "AJ009730.1/1-133"
     }
+  }
 }
 ```
 
@@ -837,15 +841,15 @@ booquet {
 
 ```kotlin
 booquet {
-    file = "media/booquet_from_vienna.svg"
-    junction_diameter = 15.0
-    color = "olive"
-    line = 3.0
-    ss {
-        vienna {
-            file = "samples/rna.vienna"
-        }
+  file = "media/booquet_from_vienna.svg"
+  junction_diameter = 15.0
+  color = "olive"
+  line = 3.0
+  ss {
+    vienna {
+      file = "samples/rna.vienna"
     }
+  }
 }
 ```
 
@@ -853,14 +857,14 @@ booquet {
 
 ```kotlin
 booquet {
-    file = "media/booquet_from_ct.svg"
-    junction_diameter = 15.0
-    color = "darkorchid"
-    ss {
-        ct {
-            file = "samples/ASE_00010_from_RNA_STRAND_database.ct"
-        }
+  file = "media/booquet_from_ct.svg"
+  junction_diameter = 15.0
+  color = "darkorchid"
+  ss {
+    ct {
+      file = "samples/ASE_00010_from_RNA_STRAND_database.ct"
     }
+  }
 }
 ```
 
@@ -868,18 +872,18 @@ booquet {
 
 ```kotlin
 booquet {
-    file = "media/booquet_from_pdb.svg"
-    junction_diameter = 15.0
-    color = "darkmagenta"
-    width = 1200.0
-    height = 800.0
-    line = 0.5
-    ss {
-        pdb {
-            file = "/Volumes/Data/Projets/RNArtistCore/samples/1jj2.pdb"
-            name = "0"
-        }
+  file = "media/booquet_from_pdb.svg"
+  junction_diameter = 15.0
+  color = "darkmagenta"
+  width = 1200.0
+  height = 800.0
+  line = 0.5
+  ss {
+    pdb {
+      file = "/Volumes/Data/Projets/RNArtistCore/samples/1jj2.pdb"
+      name = "0"
     }
+  }
 }
 ```
 
@@ -891,36 +895,36 @@ If you know Kotlin, you can embed Kotlin instructions to power your script.
 
 ```kotlin
 rnartist {
-    file = "media/kotlin_powered.svg"
-    ss {
-        bracket_notation =
-            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+  file = "media/kotlin_powered.svg"
+  ss {
+    bracket_notation =
+      "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+  }
+  data {
+    (1..secondaryStructures[0].length).forEach {
+      "${it}" to Math.random()
     }
-    data {
-        (1..secondaryStructures[0].length).forEach {
-            "${it}" to Math.random()
-        }
+  }
+  theme {
+    details_lvl = 5
+
+    color {
+      type = "R"
+      value = "lightyellow"
+      to = "firebrick"
     }
-    theme {
-        details_lvl = 5
 
-        color {
-            type = "R"
-            value = "lightyellow"
-            to = "firebrick"
-        }
-
-        color {
-            type = "r"
-            value = "black"
-            to = "white"
-        }
-
-        hide {
-            type = "Y"
-        }
-
+    color {
+      type = "r"
+      value = "black"
+      to = "white"
     }
+
+    hide {
+      type = "Y"
+    }
+
+  }
 }
 ```
 
@@ -928,29 +932,29 @@ rnartist {
 
 # <a name="library"></a>The RNArtistCore library
 
-You need to have the build tool [Maven](https://maven.apache.org) installed. 
+You need to have the build tool [Maven](https://maven.apache.org) installed.
 No stable release for now, only snapshots. To use RNArtistCore in a Java application, just add the below dependency in your file pom.xml:
 
 ```xml
     <repositories>
-        <repository>
-            <id>maven-snapshots</id>
-            <url>http://oss.sonatype.org/content/repositories/snapshots</url>
-            <layout>default</layout>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
+  <repository>
+    <id>maven-snapshots</id>
+    <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+    <layout>default</layout>
+    <releases>
+      <enabled>false</enabled>
+    </releases>
+    <snapshots>
+      <enabled>true</enabled>
+    </snapshots>
+  </repository>
+</repositories>
 
-    <dependencies>
-        <dependency>
-            <groupId>io.github.fjossinet.rnartist.core</groupId>
-            <artifactId>rnartistcore</artifactId>
-            <version>0.2.5-SNAPSHOT</version>
-        </dependency>
-    </dependencies>
+<dependencies>
+<dependency>
+  <groupId>io.github.fjossinet.rnartist.core</groupId>
+  <artifactId>rnartistcore</artifactId>
+  <version>0.2.5-SNAPSHOT</version>
+</dependency>
+</dependencies>
 ```
