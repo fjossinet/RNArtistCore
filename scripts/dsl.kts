@@ -207,6 +207,39 @@ rnartist {
 }
 
 rnartist {
+    file = "media/lines.svg"
+    ss {
+        bracket_notation =
+            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+    }
+    theme {
+        details_lvl = 5
+
+        color {
+            type = "Y y"
+            value = "chartreuse"
+        }
+
+        color {
+            type = "R r"
+            value = "turquoise"
+        }
+
+        line {
+            type = "phosphodiester_bond interaction_symbol"
+            value = 0.1
+        }
+
+        line {
+            type = "phosphodiester_bond N"
+            value = 5.0
+            location = "8:6"
+        }
+
+    }
+}
+
+rnartist {
     file = "media/kotlin_powered.svg"
     ss {
         bracket_notation =

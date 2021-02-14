@@ -8,6 +8,7 @@ RNArtistCore provides a DSL (Domain Specific Language) and a Kotlin library to d
 <p float="left">
   <img src="/media/details_lvl5_colored_A.png" />
   <img src="/media/hide_pyrimidines_A.png" />
+  <img src="/media/lines_A.png" />
 </p>
 
 * [Installation](#installation)
@@ -22,8 +23,9 @@ RNArtistCore provides a DSL (Domain Specific Language) and a Kotlin library to d
         * [The **```details```** element](#details)
         * [The **```hide```** element](#hide)
         * [The **```color```** element](#color)
+        * [The **```line```** element](#line)
       * [The Booquet algorithm](#booquet)
-    * [How to embed Kotlin code](#kotlin)
+    * [Embedded Kotlin code](#kotlin)
 * [The RNArtistCore Library](#library)
 
 # <a name="installation"></a>Installation
@@ -453,30 +455,16 @@ rnartist {
 ![](media/details_lvl5_A.png)
 
 Inside a ```theme``` element, you can also add several times the following elements:
-* **```details```**: define the resolution of the element
-  * **```value```**: "full" to draw all the details
-  * **```type```**: the type of the elements targeted
-  * **```location```**: the location of the elements targeted
+* **```details```**: define the resolution for the element
 * **```hide```**: hide residues
-  * **```type```**: can only be a lower or upper letter (default is **```N```**). Lower or upper letter will produce the same results (the letter and the shape of the delected residues is hidden)
-  * **```location```**: the location of the residues to hide
-  * **```data```**: selection based on the values linked to the residues
 <!--* **```highlight```**: highlight residues
   * **```type```**: can only be a lower or upper letter (default is "N"). Lower or upper letter will produce the same results (the letter and the shape of the delected residues is hidden)
   * **```location```**: the location of the residues to hide
   * **```data```**: selection based on the values linked to the residues
   * **```color```**: an HTML color code or predefined color name (see below)
   * **```width```**: the line width-->
-* **```color```**: define the color of the element
-  * **```value```**: an HTML color code or predefined color name (see below)
-  * **```to```**: last color in a gradient (HTML color code or predefined color name (see below))
-  * **```type```**: the type of the elements targeted
-  * **```location```**: the location of the elements targeted
-  * **```data```**: selection based on the values linked to the residues
-* **```line```**: define the width of the line
-  * **```value```**: the line width
-  * **```type```**: the type of the elements targeted
-  * **```location```**: the location of the elements targeted
+* **```color```**: define the color for the element
+* **```line```**: define the width for the line
 
 The parameter **```type```** can have the following values:
   * **```A```**, **```U```**, **```G```**, **```C```**, **```X```**, **```N```**, **```R```**, **```Y```**: capital letters for residues target the circle surrounding the residue letter. **```N```** is for any residue, **```R```** for purines, and **```Y```** for pyrimidines 
@@ -521,6 +509,12 @@ rnartist {
 The parameter **```location```** needs to have the following format: **```start_position_1:length, start_position_2:length, ...```**
 
 <a name="details"></a> ____The **```details```** element____
+
+Parameters:
+  * **```value```**: **```"full"```** or **```"none"```**
+  * **```type```**: the type of the elements targeted
+  * **```location```**: the location of the elements targeted
+  * **```data```**: selection based on the values linked to the residues
 
 If a dataset is linked to the RNA secondary structure, the values can be used as a selection criteria. Using the parameter  **```data```**, you can select values lower than a value (lt), greater than a value (gt) or between two values (between).
 
@@ -609,6 +603,11 @@ rnartist {
 
 <a name="hide"></a> ____The **```hide```** element____
 
+Parameters:
+  * **```type```**: can only be a lower or upper letter (default is **```N```**). Lower or upper letter will produce the same results (the letter and the shape of the delected residues is hidden)
+  * **```location```**: the location of the residues to hide
+  * **```data```**: selection based on the values linked to the residues
+
 ```kotlin
 rnartist {
     file = "media/hide_pyrimidines.svg"
@@ -669,7 +668,14 @@ rnartist {
 
 <a name="color"></a> ____The **```color```** element____
 
-The parameters **```value```** and **```to```** can be defined as an HTML color code or a predefined color name (see [the end of this file](https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/src/main/kotlin/io/github/fjossinet/rnartist/core/builders.kt) for an updated list of color names).
+Parameters:
+  * **```value```**: an HTML color code or predefined color name (see below)
+  * **```to```**: last color in a gradient (HTML color code or predefined color name (see below))
+  * **```type```**: the type of the elements targeted
+  * **```location```**: the location of the elements targeted
+  * **```data```**: selection based on the values linked to the residues
+
+See [the end of this file](https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/src/main/kotlin/io/github/fjossinet/rnartist/core/builders.kt) for an updated list of color names.
 
 Examples:
 
@@ -760,6 +766,50 @@ rnartist {
 
 ![](media/dataset_A.png)
 
+<a name="line"></a> ____The **```line```** element____
+
+Parameters:
+  * **```value```**: the line width
+  * **```type```**: the type of the elements targeted
+  * **```location```**: the location of the elements targeted
+
+```kotlin
+rnartist {
+    file = "media/lines.svg"
+    ss {
+        bracket_notation =
+            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+    }
+    theme {
+        details_lvl = 5
+
+        color {
+            type = "Y y"
+            value = "chartreuse"
+        }
+
+        color {
+            type = "R r"
+            value = "turquoise"
+        }
+
+        line {
+            type = "phosphodiester_bond interaction_symbol"
+            value = 0.1
+        }
+
+        line {
+            type = "phosphodiester_bond N"
+            value = 5.0
+            location = "8:6"
+        }
+
+    }
+}
+```
+
+![](media/lines_A.png)
+
 <a name="booquet"></a> ***The Booquet algorithm***
 
 This algorithm has less options than the rnartist one. The parameters available are:
@@ -840,7 +890,7 @@ booquet {
 
 ![](media/booquet_from_pdb_0.png)
 
-### <a name="kotlin"></a>Embedded Kotlin code
+### <a name="kotlin"></a>How to embed Kotlin code
 
 If you know Kotlin, you can embed Kotlin instructions to power your script.
 
