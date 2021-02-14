@@ -449,10 +449,10 @@ rnartist {
 ![](media/details_lvl5_A.png)
 
 Inside a ```theme``` element, you can also add several times the following elements:
-* **```details```**: define the resolution for the element
-* **```color```**: define the color for the element
-* **```line```**: define the width for the line
+* **```color```**: define the color for elements
+* **```details```**: define the details level for elements
 * **```hide```**: hide residues
+* **```line```**: define the line width for elements
 <!--* **```highlight```**: highlight residues
   * **```type```**: can only be a lower or upper character (default is "N"). Lower or upper character will produce the same results (the character and the shape of the delected residues is hidden)
   * **```location```**: the location of the residues to hide
@@ -461,8 +461,6 @@ Inside a ```theme``` element, you can also add several times the following eleme
   * **```width```**: the line width-->
 
 ![](media/several_types_A.png)
-
-The parameter **```location```** needs to have the following format: **```start_position_1:length, start_position_2:length, ...```**
 
 <a name="color"></a> ____The **```color```** element____
 
@@ -486,6 +484,8 @@ The parameter **```type```** can have the following values:
 * **```pknot```**
 
 You can define several types in the same string using a space as separator: **```"single_strand R C interaction_symbol"```**
+
+The parameter **```location```** needs to have the following format: **```start_position_1:length, start_position_2:length, ...```**
 
 You can define a color with its HTML color code or its name ([list of color names](https://en.wikipedia.org/wiki/Web_colors#/media/File:SVG_Recognized_color_keyword_names.svg)).
 
@@ -600,6 +600,8 @@ The parameter **```type```** can have the following values:
 
 You can define several types in the same string using a space as separator: **```"single_strand R C interaction_symbol"```**
 
+The parameter **```location```** needs to have the following format: **```start_position_1:length, start_position_2:length, ...```**
+
 If a dataset is linked to the RNA secondary structure, the values can be used as a selection criteria. Using the parameter  **```data```**, you can select values lower than a value (lt), greater than a value (gt) or between two values (between).
 
 ```kotlin
@@ -692,6 +694,8 @@ Parameters:
 * **```location```**: the location of the residues to hide
 * **```data```**: selection based on the values linked to the residues
 
+The parameter **```location```** needs to have the following format: **```start_position_1:length, start_position_2:length, ...```**
+
 ```kotlin
 rnartist {
   file = "media/hide_pyrimidines.svg"
@@ -771,6 +775,8 @@ The parameter **```type```** can have the following values:
 * **```pknot```**
 
 You can define several types in the same string using a space as separator: **```"single_strand R C interaction_symbol"```**
+
+The parameter **```location```** needs to have the following format: **```start_position_1:length, start_position_2:length, ...```**
 
 ```kotlin
 rnartist {
