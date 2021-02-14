@@ -20,10 +20,10 @@ RNArtistCore provides a DSL (Domain Specific Language) and a Kotlin library to d
       * [The RNArtist algorithm](#rnartist)
         * [The **```data```** element](#data)
         * [The **```theme```** element](#theme)
-        * [The **```details```** element](#details)
-        * [The **```hide```** element](#hide)
-        * [The **```color```** element](#color)
-        * [The **```line```** element](#line)
+            * [The **```color```** element](#color)
+            * [The **```details```** element](#details)
+            * [The **```hide```** element](#hide)
+            * [The **```line```** element](#line)
       * [The Booquet algorithm](#booquet)
     * [Embedded Kotlin code](#kotlin)
 * [The RNArtistCore Library](#library)
@@ -450,6 +450,8 @@ rnartist {
 
 Inside a ```theme``` element, you can also add several times the following elements:
 * **```details```**: define the resolution for the element
+* **```color```**: define the color for the element
+* **```line```**: define the width for the line
 * **```hide```**: hide residues
 <!--* **```highlight```**: highlight residues
   * **```type```**: can only be a lower or upper letter (default is "N"). Lower or upper letter will produce the same results (the letter and the shape of the delected residues is hidden)
@@ -457,8 +459,6 @@ Inside a ```theme``` element, you can also add several times the following eleme
   * **```data```**: selection based on the values linked to the residues
   * **```color```**: an HTML color code or predefined color name (see below)
   * **```width```**: the line width-->
-* **```color```**: define the color for the element
-* **```line```**: define the width for the line
 
 The parameter **```type```** can have the following values:
   * **```A```**, **```U```**, **```G```**, **```C```**, **```X```**, **```N```**, **```R```**, **```Y```**: capital letters for residues target the circle surrounding the residue letter. **```N```** is for any residue, **```R```** for purines, and **```Y```** for pyrimidines 
@@ -501,6 +501,106 @@ rnartist {
 ![](media/several_types_A.png)
 
 The parameter **```location```** needs to have the following format: **```start_position_1:length, start_position_2:length, ...```**
+
+<a name="color"></a> ____The **```color```** element____
+
+Parameters:
+  * **```value```**: an HTML color code or predefined color name (see below)
+  * **```to```**: last color in a gradient (HTML color code or predefined color name (see below))
+  * **```type```**: the type of the elements targeted
+  * **```location```**: the location of the elements targeted
+  * **```data```**: selection based on the values linked to the residues
+
+See [the end of this file](https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/src/main/kotlin/io/github/fjossinet/rnartist/core/builders.kt) for an updated list of color names.
+
+Examples:
+
+```kotlin
+rnartist {
+    file = "media/details_lvl5_colored.svg"
+    ss {
+        bracket_notation =
+            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+    }
+    theme {
+        details_lvl = 5
+
+        color {
+            type = "Y"
+            value = "lavenderblush"
+        }
+
+        color {
+            type = "y"
+            value = "black"
+        }
+
+        color {
+            type = "R"
+            value = "green"
+        }
+        
+    }
+}
+```
+
+![](media/details_lvl5_colored_A.png)
+
+If a dataset is linked to the RNA secondary structure, a colored gradient can be defined inside the **```color```** element. You need to use the parameters  **```value```** and  **```to```**. To restrict the distribution of values to be used, you can use the parameter  **```data```**. You can select values lower than a value (lt), greater than a value (gt) or between two values (between).
+
+```kotlin
+rnartist {
+    file = "media/dataset.svg"
+    ss {
+        rna {
+            sequence = "GCGAAAAAUCGC"
+        }
+        bracket_notation =
+            "((((....))))"
+    }
+    data {
+        "1" to 200.7
+        "2" to 192.3
+        "3" to 143.6
+        "4" to 34.8
+        "5" to 4.5
+        "6" to 234.9
+        "7" to 12.3
+        "8" to 56.8
+        "9" to 59.8
+        "10" to 140.5
+        "11" to 0.2
+        "12" to 345.8
+    }
+    theme {
+        details_lvl = 4
+        color {
+            type = "N"
+            value = "lightyellow"
+            to = "firebrick"
+            data between 10.0..350.0
+        }
+        color {
+            type = "n"
+            value = "black"
+            to = "white"
+            data between 10.0..350.0
+        }
+        color {
+            type = "N"
+            value = "black"
+            data lt 10.0
+        }
+        color {
+            type = "n"
+            value = "white"
+            data lt 10.0
+        }
+    }
+}
+```
+
+![](media/dataset_A.png)
 
 <a name="details"></a> ____The **```details```** element____
 
@@ -660,105 +760,6 @@ rnartist {
 
 ![](media/hide_pyrimidines_A.png)
 
-<a name="color"></a> ____The **```color```** element____
-
-Parameters:
-  * **```value```**: an HTML color code or predefined color name (see below)
-  * **```to```**: last color in a gradient (HTML color code or predefined color name (see below))
-  * **```type```**: the type of the elements targeted
-  * **```location```**: the location of the elements targeted
-  * **```data```**: selection based on the values linked to the residues
-
-See [the end of this file](https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/src/main/kotlin/io/github/fjossinet/rnartist/core/builders.kt) for an updated list of color names.
-
-Examples:
-
-```kotlin
-rnartist {
-    file = "media/details_lvl5_colored.svg"
-    ss {
-        bracket_notation =
-            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
-    }
-    theme {
-        details_lvl = 5
-
-        color {
-            type = "Y"
-            value = "lavenderblush"
-        }
-
-        color {
-            type = "y"
-            value = "black"
-        }
-
-        color {
-            type = "R"
-            value = "green"
-        }
-        
-    }
-}
-```
-
-![](media/details_lvl5_colored_A.png)
-
-If a dataset is linked to the RNA secondary structure, a colored gradient can be defined inside the **```color```** element. You need to use the parameters  **```value```** and  **```to```**. To restrict the distribution of values to be used, you can use the parameter  **```data```**. You can select values lower than a value (lt), greater than a value (gt) or between two values (between).
-
-```kotlin
-rnartist {
-    file = "media/dataset.svg"
-    ss {
-        rna {
-            sequence = "GCGAAAAAUCGC"
-        }
-        bracket_notation =
-            "((((....))))"
-    }
-    data {
-        "1" to 200.7
-        "2" to 192.3
-        "3" to 143.6
-        "4" to 34.8
-        "5" to 4.5
-        "6" to 234.9
-        "7" to 12.3
-        "8" to 56.8
-        "9" to 59.8
-        "10" to 140.5
-        "11" to 0.2
-        "12" to 345.8
-    }
-    theme {
-        details_lvl = 4
-        color {
-            type = "N"
-            value = "lightyellow"
-            to = "firebrick"
-            data between 10.0..350.0
-        }
-        color {
-            type = "n"
-            value = "black"
-            to = "white"
-            data between 10.0..350.0
-        }
-        color {
-            type = "N"
-            value = "black"
-            data lt 10.0
-        }
-        color {
-            type = "n"
-            value = "white"
-            data lt 10.0
-        }
-    }
-}
-```
-
-![](media/dataset_A.png)
 
 <a name="line"></a> ____The **```line```** element____
 
