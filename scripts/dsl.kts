@@ -408,7 +408,7 @@ rnartist {
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
     }
     theme {
-        details_lvl = 4
+        details_lvl = 3
 
         color {
             type = "Y"
