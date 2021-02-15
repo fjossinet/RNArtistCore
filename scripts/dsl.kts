@@ -408,15 +408,15 @@ rnartist {
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
     }
     theme {
-        details_lvl = 5
+        details_lvl = 4
 
         color {
-            type = "Y y"
+            type = "Y"
             value = "chartreuse"
         }
 
         color {
-            type = "R r"
+            type = "R"
             value = "turquoise"
         }
 
