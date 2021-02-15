@@ -34,6 +34,15 @@ class Location:Serializable {
         get() {
             return this.blocks.last().end
         }
+    val ends:List<Int>
+        get() {
+            val positions = arrayListOf<Int>()
+            this.blocks.forEach {
+                positions.add(it.start)
+                positions.add(it.end)
+            }
+            return positions.sorted()
+        }
     val length:Int
         get() {
             return this.blocks.sumBy { it.length }
@@ -89,6 +98,8 @@ class Location:Serializable {
     fun differenceOf(l: Location) = Location((this.positions - l.positions).toIntArray())
 
     fun contains(position:Int) = this.blocks.any { it.contains(position) }
+
+    fun contains(location:Location) = location.positions.all{this.contains(it)}
 
     override fun toString() = this.description
 

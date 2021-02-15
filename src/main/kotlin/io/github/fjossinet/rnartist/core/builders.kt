@@ -924,8 +924,9 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                                 { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
                             t.setConfigurationFor(selection, DrawingConfigurationParameter.color, colorCode)
                         }
+                    } ?: run {
+                        t.setConfigurationFor({ e: DrawingElement -> e.location.start == position.toInt() }, DrawingConfigurationParameter.color, colorCode)
                     }
-
                 }
             }
             else if (colorBuilder.location != null) {
@@ -934,11 +935,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                     colorBuilder.getSecondaryStructureTypes()?.let { types ->
                         types.forEach { type ->
                             val selection =
-                                { e: DrawingElement -> location.positions.any { e.location.contains(it) } && e.type == type }
+                                { e: DrawingElement -> e.type == type && e.inside(location)}
                             t.setConfigurationFor(selection,
                                 DrawingConfigurationParameter.color,
                                 colorBuilder.value.toString())
                         }
+                    } ?: run {
+                        t.setConfigurationFor({ e: DrawingElement -> e.inside(location) }, DrawingConfigurationParameter.color, colorBuilder.value.toString())
                     }
                 }
             }
@@ -951,7 +954,8 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             colorBuilder.value.toString())
                     }
                 }
-            }
+            } else
+                t.setConfigurationFor({ e: DrawingElement -> true }, DrawingConfigurationParameter.color, colorBuilder.value.toString())
         }
         this.details.forEach { detailsBuilder ->
             if (detailsBuilder.data.isNotEmpty()) {
@@ -962,8 +966,9 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                                 { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
                             t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, detailsBuilder.value.equals("full").toString())
                         }
+                    } ?: run {
+                        t.setConfigurationFor({ e: DrawingElement -> e.location.start == position.toInt() }, DrawingConfigurationParameter.fulldetails, detailsBuilder.value.equals("full").toString())
                     }
-
                 }
             }
             else if (detailsBuilder.location != null) {
@@ -972,11 +977,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                     detailsBuilder.getSecondaryStructureTypes()?.let { types ->
                         types.forEach { type ->
                             val selection =
-                                { e: DrawingElement -> location.positions.any { e.location.contains(it) } && e.type == type }
+                                { e: DrawingElement -> e.type == type && e.inside(location) }
                             t.setConfigurationFor(selection,
                                 DrawingConfigurationParameter.fulldetails,
                                 detailsBuilder.value.equals("full").toString())
                         }
+                    } ?: run {
+                        t.setConfigurationFor({ e: DrawingElement -> e.inside(location) }, DrawingConfigurationParameter.fulldetails, detailsBuilder.value.equals("full").toString())
                     }
                 }
             }
@@ -989,7 +996,8 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             detailsBuilder.value.equals("full").toString())
                     }
                 }
-            }
+            } else
+                t.setConfigurationFor({ e: DrawingElement -> true }, DrawingConfigurationParameter.fulldetails,  detailsBuilder.value.equals("full").toString())
         }
         this.lines.forEach { lineBuilder ->
             if (lineBuilder.data.size != data.size) { //meaning that they have been filtered
@@ -1000,8 +1008,9 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                                 { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
                             t.setConfigurationFor(selection, DrawingConfigurationParameter.linewidth, lineBuilder.value.toString())
                         }
+                    } ?: run {
+                        t.setConfigurationFor({ e: DrawingElement -> e.location.start == position.toInt() }, DrawingConfigurationParameter.linewidth, lineBuilder.value.toString())
                     }
-
                 }
             }
             else if (lineBuilder.location != null) {
@@ -1010,11 +1019,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                     lineBuilder.getSecondaryStructureTypes()?.let { types ->
                         types.forEach { type ->
                             val selection =
-                                { e: DrawingElement -> location.positions.any { e.location.contains(it) } && e.type == type }
+                                { e: DrawingElement -> e.type == type && e.inside(location) }
                             t.setConfigurationFor(selection,
                                 DrawingConfigurationParameter.linewidth,
                                 lineBuilder.value.toString())
                         }
+                    } ?: run {
+                        t.setConfigurationFor({ e: DrawingElement -> e.inside(location) }, DrawingConfigurationParameter.linewidth, lineBuilder.value.toString())
                     }
                 }
             }
@@ -1027,7 +1038,8 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             lineBuilder.value.toString())
                     }
                 }
-            }
+            } else
+                t.setConfigurationFor({ e: DrawingElement -> true }, DrawingConfigurationParameter.linewidth, lineBuilder.value.toString())
         }
         return t
     }

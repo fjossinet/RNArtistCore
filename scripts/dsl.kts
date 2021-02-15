@@ -6,6 +6,9 @@ import io.github.fjossinet.rnartist.core.*
 rnartist {
     file = "media/real_example.svg"
     ss {
+        rna {
+            sequence = "CAACAUCAUACGUACUGCGCCCAAGCGUAACGCGAACACCACGAGUGGUGACUGGUGCUUG"
+        }
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
     }
@@ -203,6 +206,198 @@ rnartist {
             data gt 200.0
         }
 
+    }
+}
+
+rnartist {
+    file = "media/all_red.svg"
+    ss {
+        bracket_notation =
+            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+    }
+    theme {
+        details_lvl = 4
+
+        color {
+            value = "red"
+        }
+
+        color {
+            type = "a c"
+            value = "white"
+        }
+
+        color {
+            type = "g u"
+            value = "black"
+            location = "10:10"
+        }
+
+    }
+}
+
+rnartist {
+    file = "media/partially_detailed.svg"
+    ss {
+        bracket_notation =
+            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+    }
+    theme {
+        details_lvl = 1
+
+        details {
+            location = "6:3,53:3"
+            value = "full"
+        }
+
+        details {
+            type ="helix secondary_interaction phosphodiester_bond"
+            location = "16:6,24:6"
+            value = "full"
+        }
+
+        details {
+            location = "21:4"
+            value = "full"
+        }
+
+    }
+}
+
+rnartist {
+    file = "media/helix_details1.svg"
+    ss {
+        bracket_notation =
+            "..((..((((....))))..))"
+    }
+    theme {
+        details_lvl = 1
+    }
+}
+
+rnartist {
+    file = "media/helix_details2.svg"
+    ss {
+        bracket_notation =
+            "..((..((((....))))..))"
+    }
+    theme {
+        details_lvl = 1
+
+        details {
+            type = "helix"
+            value = "full"
+            location="7:4,15:4"
+        }
+    }
+}
+
+rnartist {
+    file = "media/helix_details3.svg"
+    ss {
+        bracket_notation =
+            "..((..((((....))))..))"
+    }
+    theme {
+        details_lvl = 1
+
+        details {
+            type = "helix phosphodiester_bond"
+            value = "full"
+            location="7:4,15:4"
+        }
+    }
+}
+
+rnartist {
+    file = "media/helix_details4.svg"
+    ss {
+        bracket_notation =
+            "..((..((((....))))..))"
+    }
+    theme {
+        details_lvl = 1
+
+        details {
+            type = "helix phosphodiester_bond secondary_interaction"
+            value = "full"
+            location="7:4,15:4"
+        }
+    }
+}
+
+rnartist {
+    file = "media/helix_details5.svg"
+    ss {
+        bracket_notation =
+            "..((..((((....))))..))"
+    }
+    theme {
+        details_lvl = 1
+
+        details {
+            type = "helix phosphodiester_bond secondary_interaction N"
+            value = "full"
+            location="7:4,15:4"
+        }
+    }
+}
+
+rnartist {
+    file = "media/helix_details6.svg"
+    ss {
+        bracket_notation =
+            "..((..((((....))))..))"
+    }
+    theme {
+        details_lvl = 1
+
+        details {
+            type = "helix phosphodiester_bond secondary_interaction N n"
+            value = "full"
+            location="7:4,15:4"
+        }
+    }
+}
+
+rnartist {
+    file = "media/helix_combination_details.svg"
+    ss {
+        bracket_notation =
+            "..((..((((....))))..))"
+    }
+    theme {
+        details_lvl = 1
+
+        details {
+            type = "helix phosphodiester_bond"
+            value = "full"
+            location="7:4,15:4"
+        }
+
+        details {
+            type = "secondary_interaction"
+            value = "full"
+            location="8,17"
+        }
+
+        details {
+            type = "N"
+            value = "full"
+            location="8"
+        }
+
+        details {
+            type = "secondary_interaction N"
+            value = "full"
+            location="9,16"
+        }
+
+        details {
+            type = "n"
+            value = "full"
+            location="16"
+        }
     }
 }
 

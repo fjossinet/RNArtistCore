@@ -40,7 +40,7 @@ Once done, in the subdirectory named "target", you will find the file rnartistco
 
 # <a name="dsl"></a>The RNArtistCore DSL
 
-RNArtistCore provides a domain-specific language (DSL) to write scripts more easily. You can have a look at examples in the file scripts/dsl.kts
+RNArtistCore exposes a domain-specific language (DSL) to write scripts more easily. You can have a look at examples in the file scripts/dsl.kts
 
 To run a script, you need to have the [kotlin command installed on you computer](https://kotlinlang.org/docs/tutorials/command-line.html).
 
@@ -50,7 +50,7 @@ To run a script, type the following command:
 
 ### <a name="script"></a>How to write your scripts
 
-Using pseudo-code, here is the structure that your script has to follow:
+Using pseudo-code, here is the structure that your script has to fit with:
 
 ```kotlin
 drawing_algorithm {
@@ -70,10 +70,14 @@ drawing_algorithm {
 
   }
 
+  theme {
+
+  }
+
 }
 ```
 
-As you can see, you need to describe an RNA molecule, on which is constructed a secondary structure, used by an algorithm to produce a drawing.
+As you can see, you need to describe an RNA molecule, on which is constructed a secondary structure, used by an algorithm to produce a drawing. This drawing can be customized with a theme to suit your needs.
 
 Here is a real example:
 
@@ -81,8 +85,11 @@ Here is a real example:
 rnartist {
   file = "media/real_example.svg"
   ss {
+    rna {
+      sequence = "CAACAUCAUACGUACUGCGCCCAAGCGUAACGCGAACACCACGAGUGGUGACUGGUGCUUG"
+    }
     bracket_notation =
-      ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+      "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
   }
   theme {
     details_lvl = 5
@@ -124,7 +131,7 @@ In the next paragraphs, we will detail the elements available to describe an RNA
 
 Using the element ```rna```, you can create an RNA molecule from scratch. The parameters available are:
 
-* **name**: the name of the molecule (default value: "A")
+* **name**: the name of the molecule (default value: **```A```**)
 * **sequence**: the sequence of your molecule. If the parameter length is not provided, the sequence is mandatory
 * **length**: the length of your sequence. If this parameter is provided, a random sequence will be computed. If the parameter sequence is not provided, the length is mandatory
 
@@ -160,7 +167,7 @@ You have three different ways to define a seconday structure:
 ***From scratch***
 
 The parameters available are:
-* **rna**: an rna molecule described with the **```rna```** element (see previous paragraph). If you don't provide any ```rna``` element, it will be computed for you with the default name and a random sequence fitting the base-pairing constraints.
+* **rna**: an rna molecule described with the **```rna```** element (see previous paragraph). If you don't provide any **```rna```** element, it will be computed for you with the default name and a random sequence fitting the base-pairing constraints.
 * **bracket_notation**: the secondary structure described with the dot-bracket notation
 
 Examples:
@@ -188,7 +195,7 @@ ss {
 
 ***From a file***
 
-You don't need to provide any ```rna``` element, it will be constructed automatically from the data stored in the file.
+You don't need to provide any **```rna```** element, it will be constructed automatically from the data stored in the file.
 
 To be able to use the PDB format, you need to have the RNAVIEW algorithm installed with the [Docker container assemble2](https://hub.docker.com/r/fjossinet/assemble2/). RNArtistCore will delegate to RNAVIEW the annotation of the 3D structure into a 2D.
 
@@ -258,7 +265,7 @@ ss {
 ```
 ***From a public database***
 
-You don't need to provide any ```rna``` element, it will be constructed automatically from the data stored in the database entry.
+You don't need to provide any **```rna```** element, it will be constructed automatically from the data stored in the database entry.
 
 The parameters available are:
 * **```id```**: the id of your database entry
@@ -331,11 +338,11 @@ The parameters available are:
 * **```file```**: the absolute path and the name of the SVG output file. The name of the molecular chain will be merged to the file name.
 * **```ss```**: a secondary structure element (see above)
 * **```data```**: a dataset to map values to residues (see below)
-* **```theme```**: to change the colors, details, line width,... for any element in the 2D (see below)
+* **```theme```**: to change the colors, details, line width,... for any object in the 2D (see below)
 
 The size of the picture will fit the size of the drawing (with a minimum size of 1024x768 to see the residue characters).
 
-<a name="data"> ____The **```data```** element____
+<a name="data"></a> ____The **```data```** element____
 
 Datasets can be linked to an RNA secondary structure. You can either fill the dataset within the script, or load it from a file.
 
@@ -369,9 +376,9 @@ The values linked to each residue can be used as a selection criteria to define 
 
 <a name="theme"></a> ____The **```theme```** element____
 
-Using a **```theme```**, you can define your drawing options for any elements, from single residues to entire structural domains like helices or junctions.
+Using a **```theme```**, you can define your drawing options for any 2D objects, from single residues to entire structural domains like helices or junctions.
 
-To quickly change the details level of your entire 2D, you can use the parameter named **```details_lvl```**. Five details level are available:
+To quickly change the details level of your entire 2D, you can use the parameter named **```details_lvl```**. Five details levels are available:
 
 ```kotlin
 rnartist {
@@ -448,11 +455,11 @@ rnartist {
 
 ![](media/details_lvl5_A.png)
 
-Inside a ```theme``` element, you can also add several times the following elements:
-* **```color```**: define the color for elements
-* **```details```**: define the details level for elements
+Inside a **```theme```**, you can also add several times the following elements:
+* **```color```**: define the color for 2D objects
+* **```details```**: define the details level for 2D objects
 * **```hide```**: hide residues
-* **```line```**: define the line width for elements
+* **```line```**: define the line width for 2D objects
 <!--* **```highlight```**: highlight residues
   * **```type```**: can only be a lower or upper character (default is "N"). Lower or upper character will produce the same results (the character and the shape of the delected residues is hidden)
   * **```location```**: the location of the residues to hide
@@ -464,10 +471,10 @@ Inside a ```theme``` element, you can also add several times the following eleme
 <a name="color"></a> ____The **```color```** element____
 
 Parameters:
-* **```value```**: an HTML color code or predefined color name (see below)
-* **```to```**: last color in a gradient (HTML color code or predefined color name (see below))
-* **```type```**: the type of the elements targeted
-* **```location```**: the location of the elements targeted
+* **```value```**: an HTML color code or predefined color name (see below). If the parameter **```to```** is defined, this parameter defines the first color for the gradient.
+* **```to```**: the last color in a gradient (HTML color code or predefined color name (see below))
+* **```type```**: the type of the 2D objects targeted
+* **```location```**: the location of the 2D objects targeted
 * **```data```**: selection based on the values linked to the residues
 
 The parameter **```type```** can have the following values:
@@ -482,13 +489,46 @@ The parameter **```type```** can have the following values:
 * **```interaction_symbol```**
 * **```pknot```**
 
+If the parameter **```type```** is not defined, all the types available are targeted.
+
 You can define several types in the same string using a space as separator: **```"single_strand R C interaction_symbol"```**
 
-The parameter **```location```** needs to have the following format: **```start_position_1:length, start_position_2:length, ...```**
+The parameter **```location```** needs to have the following format: **```start_position_1:length, start_position_2:length, ...```**. A 2D object is targeted if its own location is inside the one defined with this parameter.
 
 You can define a color with its HTML color code or its name ([list of color names](https://en.wikipedia.org/wiki/Web_colors#/media/File:SVG_Recognized_color_keyword_names.svg)).
 
 Examples:
+
+```kotlin
+rnartist {
+    file = "media/all_red.svg"
+    ss {
+        bracket_notation =
+            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+    }
+    theme {
+        details_lvl = 4
+
+        color {
+            value = "red"
+        }
+
+        color {
+            type = "a c"
+            value = "white"
+        }
+
+        color {
+            type = "g u"
+            value = "black"
+            location = "10:10"
+        }
+
+    }
+}
+```
+
+![](media/all_red_A.png)
 
 ```kotlin
 rnartist {
@@ -521,7 +561,7 @@ rnartist {
 
 ![](media/details_lvl5_colored_A.png)
 
-If a dataset is linked to the RNA secondary structure, a colored gradient can be defined inside the **```color```** element. You need to use the parameters  **```value```** and  **```to```**. To restrict the distribution of values to be used, you can use the parameter  **```data```**. You can select values lower than a value (lt), greater than a value (gt) or between two values (between).
+If a dataset is linked to the RNA secondary structure, a colored gradient can be defined inside the **```color```** element. You need to use the parameters  **```value```** and  **```to```**. To restrict the distribution of values to be used, you can use the parameter  **```data```**. You can select values lower than a value (**```lt```**), greater than a value (**```gt```**) or between two values (**```between```**).
 
 ```kotlin
 rnartist {
@@ -579,10 +619,187 @@ rnartist {
 
 <a name="details"></a> ____The **```details```** element____
 
+This element allows to decide if a 2D object can be drawn with full details or not. Full details means a combination of:
+* the own rendering of the 2D object (if not drawn with full details, an helix is a simple line, a juntion is a circle, an interaction symbol will not render the LW symbols,...)
+* allowing the children for this 2D object to be drawn (if not drawn with full details, an helix will not allow its phosphodiester bonds and secondary interactions to be drawn).
+
+| 2D object       | "none"   | "full"   |
+| :-------------: |:-------------:| ----------------|
+| helix           | Line          | Render: <ul><li>phosphodiester_bond</li><li>secondary_interaction</li></ul> |
+| junction        | Circle        |   Render: <ul><li>phosphodiester_bond</li><li>residues (A U G C N Y R)</li></ul> |
+| single_strand   | Line          |    Render: <ul><li>phosphodiester_bond</li><li>residues (A U G C N Y R)</li></ul> |
+| phosphodiester_bond   | No rendering          |    Line |
+| secondary_interaction  | No rendering         |    Render: <ul><li>interaction_symbol</li><li>residues (A U G C N Y R)</li></ul> |
+| interaction_symbol  | Line         |    LW symbols |
+| residues (A U G C N Y R)  | Circle         |    Render: <ul><li>Circle</li><li>residue characters (a u g c n y r)</li></ul> |
+| residue characters (a u g c n y r)  | No rendering         |   Character |
+
+Examples:
+
+```kotlin
+rnartist {
+    file = "media/helix_details1.svg"
+    ss {
+        bracket_notation =
+            "..((..((((....))))..))"
+    }
+    theme {
+        details_lvl = 1
+    }
+}
+```
+![](media/helix_details1_A.png)
+
+```kotlin
+rnartist {
+    file = "media/helix_details2.svg"
+    ss {
+        bracket_notation =
+            "..((..((((....))))..))"
+    }
+    theme {
+        details_lvl = 1
+
+        details {
+          type = "helix"
+          value = "full"
+          location="7:4,15:4"
+        }
+    }
+}
+```
+![](media/helix_details2_A.png)
+
+```kotlin
+rnartist {
+    file = "media/helix_details3.svg"
+    ss {
+        bracket_notation =
+            "..((..((((....))))..))"
+    }
+    theme {
+        details_lvl = 1
+
+        details {
+          type = "helix phosphodiester_bond"
+          value = "full"
+          location="7:4,15:4"
+        }
+    }
+}
+```
+![](media/helix_details3_A.png)
+
+```kotlin
+rnartist {
+    file = "media/helix_details4.svg"
+    ss {
+        bracket_notation =
+            "..((..((((....))))..))"
+    }
+    theme {
+        details_lvl = 1
+
+        details {
+          type = "helix phosphodiester_bond secondary_interaction"
+          value = "full"
+          location="7:4,15:4"
+        }
+    }
+}
+```
+![](media/helix_details4_A.png)
+
+```kotlin
+rnartist {
+    file = "media/helix_details5.svg"
+    ss {
+        bracket_notation =
+            "..((..((((....))))..))"
+    }
+    theme {
+        details_lvl = 1
+
+        details {
+          type = "helix phosphodiester_bond secondary_interaction N"
+          value = "full"
+          location="7:4,15:4"
+        }
+    }
+}
+```
+![](media/helix_details5_A.png)
+
+```kotlin
+rnartist {
+    file = "media/helix_details6.svg"
+    ss {
+        bracket_notation =
+            "..((..((((....))))..))"
+    }
+    theme {
+        details_lvl = 1
+
+        details {
+          type = "helix phosphodiester_bond secondary_interaction N n"
+          value = "full"
+          location="7:4,15:4"
+        }
+    }
+}
+```
+![](media/helix_details6_A.png)
+
+You can then combine different details levels to have a rendering that fit your needs:
+
+```kotlin
+rnartist {
+    file = "media/helix_combination_details.svg"
+    ss {
+        bracket_notation =
+            "..((..((((....))))..))"
+    }
+    theme {
+        details_lvl = 1
+
+        details {
+            type = "helix phosphodiester_bond"
+            value = "full"
+            location="7:4,15:4"
+        }
+
+        details {
+            type = "secondary_interaction"
+            value = "full"
+            location="8,17"
+        }
+
+        details {
+            type = "N"
+            value = "full"
+            location="8"
+        }
+
+        details {
+            type = "secondary_interaction N"
+            value = "full"
+            location="9,16"
+        }
+
+        details {
+            type = "n"
+            value = "full"
+            location="16"
+        }
+    }
+}
+```
+![](media/helix_combination_details_A.png)
+
 Parameters:
 * **```value```**: **```"full"```** or **```"none"```**
-* **```type```**: the type of the elements targeted
-* **```location```**: the location of the elements targeted
+* **```type```**: the type of the 2D objects targeted
+* **```location```**: the location of the 2D objects targeted
 * **```data```**: selection based on the values linked to the residues
 
 The parameter **```type```** can have the following values:
@@ -597,11 +814,79 @@ The parameter **```type```** can have the following values:
 * **```interaction_symbol```**
 * **```pknot```**
 
+If the parameter **```type```** is not defined, all the types available are targeted.
+
 You can define several types in the same string using a space as separator: **```"single_strand R C interaction_symbol"```**
 
-The parameter **```location```** needs to have the following format: **```start_position_1:length, start_position_2:length, ...```**
+The parameter **```location```** needs to have the following format: **```start_position_1:length, start_position_2:length, ...```**. A 2D object is targeted if its own location is inside the one defined with this parameter.
 
-If a dataset is linked to the RNA secondary structure, the values can be used as a selection criteria. Using the parameter  **```data```**, you can select values lower than a value (lt), greater than a value (gt) or between two values (between).
+Examples:
+
+```kotlin
+rnartist {
+    file = "media/partially_detailed.svg"
+    ss {
+        bracket_notation =
+            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+    }
+    theme {
+        details_lvl = 1
+
+        details {
+            location = "6:3,53:3"
+            value = "full"
+        }
+
+        details {
+            type ="helix secondary_interaction phosphodiester_bond"
+            location = "16:6,24:6"
+            value = "full"
+        }
+
+        details {
+            location = "21:4"
+            value = "full"
+        }
+
+    }
+}
+```
+
+![](media/partially_detailed_A.png)
+
+```kotlin
+rnartist {
+    file = "media/hide_purines.svg"
+    ss {
+        bracket_notation =
+            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
+    }
+    theme {
+        details_lvl = 5
+
+        details {
+            type = "r R"
+            location="12:20"
+            value = "none"
+        }
+
+        color {
+            type = "C"
+            value = "deepskyblue"
+        }
+
+        color {
+            type = "U"
+            value = "darkgreen"
+        }
+
+    }
+}
+```
+
+![](media/hide_purines_A.png)
+
+If a dataset is linked to the RNA secondary structure, the values can be used as a selection criteria. Using the parameter  **```data```**, you can select values lower than a value (**```lt```**), greater than a value (**```gt```**) or between two values (**```between```**).
 
 ```kotlin
 rnartist {
@@ -654,46 +939,16 @@ rnartist {
 
 ![](media/dataset_hide_A.png)
 
-```kotlin
-rnartist {
-    file = "media/hide_purines.svg"
-    ss {
-        bracket_notation =
-            ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
-    }
-    theme {
-        details_lvl = 5
-
-        details {
-            type = "r R"
-            location="12:20"
-            value = "none"
-        }
-
-        color {
-            type = "C"
-            value = "deepskyblue"
-        }
-
-        color {
-            type = "U"
-            value = "darkgreen"
-        }
-
-    }
-}
-```
-
-![](media/hide_purines_A.png)
-
 <a name="hide"></a> ____The **```hide```** element____
 
 Parameters:
-* **```type```**: can only be a lower or upper character (default is **```N```**). Lower or upper character will produce the same results (the character and the shape of the delected residues is hidden)
+* **```type```**: can only be a lower or upper character (default is **```N```**). Lower or upper character will produce the same results (the character and the shape for the selected residues are both hidden)
 * **```location```**: the location of the residues to hide
 * **```data```**: selection based on the values linked to the residues
 
-The parameter **```location```** needs to have the following format: **```start_position_1:length, start_position_2:length, ...```**
+The parameter **```location```** needs to have the following format: **```start_position_1:length, start_position_2:length, ...```**. A 2D object is targeted if its own location is inside the one defined with this parameter.
+
+If a dataset is linked to the RNA secondary structure, the values can be used as a selection criteria. Using the parameter  **```data```**, you can select values lower than a value (**```lt```**), greater than a value (**```gt```**) or between two values (**```between```**).
 
 ```kotlin
 rnartist {
@@ -758,8 +1013,8 @@ rnartist {
 
 Parameters:
 * **```value```**: the line width
-* **```type```**: the type of the elements targeted
-* **```location```**: the location of the elements targeted
+* **```type```**: the type of the 2D objects targeted
+* **```location```**: the location of the 2D objects targeted
 
 The parameter **```type```** can have the following values:
 * **```A```**, **```U```**, **```G```**, **```C```**, **```X```**, **```N```**, **```R```**, **```Y```**: capital characters for residues target the circle surrounding the residue character. **```N```** is for any residue, **```R```** for purines, and **```Y```** for pyrimidines
@@ -773,9 +1028,15 @@ The parameter **```type```** can have the following values:
 * **```interaction_symbol```**
 * **```pknot```**
 
+If the parameter **```type```** is not defined, all the types available are targeted.
+
 You can define several types in the same string using a space as separator: **```"single_strand R C interaction_symbol"```**
 
-The parameter **```location```** needs to have the following format: **```start_position_1:length, start_position_2:length, ...```**
+The parameter **```location```** needs to have the following format: **```start_position_1:length, start_position_2:length, ...```**. A 2D object is targeted if its own location is inside the one defined with this parameter.
+
+If a dataset is linked to the RNA secondary structure, the values can be used as a selection criteria. Using the parameter  **```data```**, you can select values lower than a value (**```lt```**), greater than a value (**```gt```**) or between two values (**```between```**).
+
+Examples:
 
 ```kotlin
 rnartist {

@@ -312,6 +312,8 @@ abstract class DrawingElement(val ssDrawing: SecondaryStructureDrawing, var pare
             }
         }
 
+    abstract fun inside(location:Location):Boolean
+
     var residues: List<ResidueDrawing> = this.ssDrawing.getResiduesFromAbsPositions(*this.location.positions.toIntArray())
 
     abstract fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D)
@@ -1319,6 +1321,8 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
     val absPos: Int
         get() = this.location.start
 
+    override fun inside(location:Location) = location.contains(this.location.start)
+
     lateinit var circle: Ellipse2D
 
     lateinit var residueLetter:ResidueLetterDrawing
@@ -1609,6 +1613,8 @@ abstract class ResidueLetterDrawing(parent: ResidueDrawing?, ssDrawing: Secondar
         get() = this.parent!!.selectionPoints
 
     abstract fun asSVG(at:AffineTransform): String
+
+    override fun inside(location:Location) = location.contains(this.location.start)
 }
 
 class A(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: Int) : ResidueLetterDrawing(parent, ssDrawing, SecondaryStructureType.A, absPos) {
@@ -1761,6 +1767,8 @@ class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, private val pknot: Pkno
            return this.helix.selectionPoints
         }
 
+    override fun inside(location: Location) = helix.inside(location) && tertiaryInteractions.all { it.inside(location) }
+
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (this.isFullDetails())
             for (interaction in this.tertiaryInteractions)
@@ -1848,6 +1856,8 @@ class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructure
 
     val length: Int
         get() = this.helix.length
+
+   override  fun inside(location:Location) = ends.all { location.contains(it) }
 
     override val selectionPoints:List<Point2D>
         get() {
@@ -1959,6 +1969,8 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
 
     var previousBranch:JunctionDrawing? = null
     var nextBranch:JunctionDrawing? = null
+
+    override fun inside(location: Location) = location.contains(this.start) && location.contains(this.end)
 
     override val selectionPoints:List<Point2D>
         get() {
@@ -2181,6 +2193,8 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
         }
 
     val junctionType = this.junction.junctionType
+
+    override fun inside(location:Location) = this.junction.locationWithoutSecondaries.ends.all { location.contains(it) }
 
     override val selectionPoints: List<Point2D>
         get() {
@@ -2600,6 +2614,8 @@ abstract class LWSymbolDrawing(parent: DrawingElement?, ssDrawing: SecondaryStru
 
     abstract fun setShape(p1: Point2D, p2: Point2D)
 
+    override fun inside(location:Location) = location.ends.all {location.contains(it)}
+
     override val selectionPoints: List<Point2D>
         get() {
             val points = mutableListOf<Point2D>()
@@ -2934,6 +2950,8 @@ abstract class BaseBaseInteractionDrawing(parent: DrawingElement?, val interacti
             return this.location.end
         }
 
+    override fun inside(location:Location) = location.contains(this.start) && location.contains(this.end)
+
     val isCanonical: Boolean
         get() {
             return this.interaction.edge5 == Edge.WC && this.interaction.edge3 == Edge.WC && this.interaction.orientation == Orientation.cis && (
@@ -3230,6 +3248,8 @@ class InteractionSymbolDrawing(parent: DrawingElement?, val interaction: BasePai
 
     override val selectionPoints = mutableListOf<Point2D>()
 
+    override fun inside(location: Location) = location.contains(interaction.start) && location.contains(interaction.end)
+
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (this.getLineWidth() > 0) {
             if (this.isFullDetails()) {
@@ -3487,6 +3507,8 @@ open class PhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing: Seconda
         }
 
     override val selectionPoints = mutableListOf<Point2D>()
+
+    override fun inside(location:Location) = location.contains(this.start) && location.contains(this.end)
 
     init {
         this.residue = this.ssDrawing.getResiduesFromAbsPositions(this.start).first()

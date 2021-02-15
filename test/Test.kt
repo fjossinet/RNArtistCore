@@ -13,42 +13,139 @@ class Test {
 
     fun testDsl() {
         rnartist {
-            file = "media/kotlin_powered.svg"
+            file = "media/helix_details1.svg"
             ss {
                 bracket_notation =
-                    "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
-            }
-            data {
-                (1..secondaryStructures[0].length).forEach {
-                    "${it}" to Math.random()
-                }
+                    "..((..((((....))))..))"
             }
             theme {
-                details_lvl = 5
+                details_lvl = 1
+            }
+        }
 
-                color {
-                    type = "R C"
-                    value = "lightyellow"
-                    to = "firebrick"
+        rnartist {
+            file = "media/helix_details2.svg"
+            ss {
+                bracket_notation =
+                    "..((..((((....))))..))"
+            }
+            theme {
+                details_lvl = 1
+
+                details {
+                    type = "helix"
+                    value = "full"
+                    location="7:4,15:4"
+                }
+            }
+        }
+
+        rnartist {
+            file = "media/helix_details3.svg"
+            ss {
+                bracket_notation =
+                    "..((..((((....))))..))"
+            }
+            theme {
+                details_lvl = 1
+
+                details {
+                    type = "helix phosphodiester_bond"
+                    value = "full"
+                    location="7:4,15:4"
+                }
+            }
+        }
+
+        rnartist {
+            file = "media/helix_details4.svg"
+            ss {
+                bracket_notation =
+                    "..((..((((....))))..))"
+            }
+            theme {
+                details_lvl = 1
+
+                details {
+                    type = "helix phosphodiester_bond secondary_interaction"
+                    value = "full"
+                    location="7:4,15:4"
+                }
+            }
+        }
+
+        rnartist {
+            file = "media/helix_details5.svg"
+            ss {
+                bracket_notation =
+                    "..((..((((....))))..))"
+            }
+            theme {
+                details_lvl = 1
+
+                details {
+                    type = "helix phosphodiester_bond secondary_interaction N"
+                    value = "full"
+                    location="7:4,15:4"
+                }
+            }
+        }
+
+        rnartist {
+            file = "media/helix_details6.svg"
+            ss {
+                bracket_notation =
+                    "..((..((((....))))..))"
+            }
+            theme {
+                details_lvl = 1
+
+                details {
+                    type = "helix phosphodiester_bond secondary_interaction N n"
+                    value = "full"
+                    location="7:4,15:4"
+                }
+            }
+        }
+
+        rnartist {
+            file = "media/helix_combination_details.svg"
+            ss {
+                bracket_notation =
+                    "..((..((((....))))..))"
+            }
+            theme {
+                details_lvl = 1
+
+                details {
+                    type = "helix phosphodiester_bond"
+                    value = "full"
+                    location="7:4,15:4"
                 }
 
-                color {
-                    type = "r c"
-                    value = "black"
-                    to = "white"
+                details {
+                    type = "secondary_interaction"
+                    value = "full"
+                    location="8,17"
                 }
 
-                line {
-                    type = "phosphodiester_bond interaction_symbol"
-                    value = 0.1
+                details {
+                    type = "N"
+                    value = "full"
+                    location="8"
                 }
 
-                line {
-                    type = "phosphodiester_bond N"
-                    value = 5.0
-                    location = "8:6"
+                details {
+                    type = "secondary_interaction N"
+                    value = "full"
+                    location="9,16"
                 }
 
+                details {
+                    type = "n"
+                    value = "full"
+                    location="16"
+                }
             }
         }
     }
