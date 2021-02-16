@@ -380,7 +380,12 @@ The values linked to each residue can be used as a selection criteria to define 
 
 Using a **```theme```**, you can define your drawing options for any 2D objects, from single residues to entire structural domains like helices or junctions.
 
-To quickly change the details level of your entire 2D, you can use the parameter named **```details_lvl```**. Five details levels are available:
+To quickly change the details level of your entire 2D, you can use the parameter named **```details_lvl```**. This parameter is a shortcut to define the details level for the entire 2D objects. Five details levels are available.
+
+Level 1
+\--------
+
+All 2D objects set to **```none```**
 
 ```kotlin
 rnartist {
@@ -397,6 +402,11 @@ rnartist {
 
 ![](media/details_lvl1_A.png)
 
+Level 2
+\---------
+
+The following 2D objets are set to **```full```**: helix, secondary_interaction, junction, single-strand, phosphodiester_bond
+
 ```kotlin
 rnartist {
     file = "media/details_lvl2.svg"
@@ -411,6 +421,11 @@ rnartist {
 ```
 
 ![](media/details_lvl2_A.png)
+
+Level 3
+\---------
+
+In addition to those listed in the level 2, this level set the following 2D objects to **```full```** : N (all the residue circles)
 
 ```kotlin
 rnartist {
@@ -427,6 +442,11 @@ rnartist {
 
 ![](media/details_lvl3_A.png)
 
+Level 4
+\---------
+
+In addition to those listed in the level 3, this level set the following 2D objects to **```full```** : n (all the residue characters)
+
 ```kotlin
 rnartist {
     file = "media/details_lvl4.svg"
@@ -441,6 +461,11 @@ rnartist {
 ```
 
 ![](media/details_lvl4_A.png)
+
+Level 5
+\---------
+
+In addition to those listed in the level 4, this level set the following 2D objects to **```full```** : interaction_symbol
 
 ```kotlin
 rnartist {
@@ -636,7 +661,7 @@ This element allows to decide if a 2D object can be drawn with full details or n
 | residues (A U G C N Y R)  | Circle         |    Render: <ul><li>Circle</li><li>residue characters (a u g c n y r)</li></ul> |
 | residue characters (a u g c n y r)  | No rendering         |   Character |
 
-Examples:
+In the following examples, we will start with the details level 1 (the details for all 2D objects is set to **```none```**). Then we increase the details level for some parts of a single helix defined by its location. 
 
 ```kotlin
 rnartist {
@@ -670,7 +695,11 @@ rnartist {
     }
 }
 ```
+The helix will disappear since its components have still their details set to **```none```**.
+
 ![](media/helix_details2_A.png)
+
+Now we display the phosphodiester bonds.
 
 ```kotlin
 rnartist {
@@ -692,6 +721,8 @@ rnartist {
 ```
 ![](media/helix_details3_A.png)
 
+Now we display the secondary interactions.
+
 ```kotlin
 rnartist {
     file = "media/helix_details4.svg"
@@ -712,6 +743,8 @@ rnartist {
 ```
 ![](media/helix_details4_A.png)
 
+Now we display the residue circles.
+
 ```kotlin
 rnartist {
     file = "media/helix_details5.svg"
@@ -731,6 +764,8 @@ rnartist {
 }
 ```
 ![](media/helix_details5_A.png)
+
+Now we display the residue characters.
 
 ```kotlin
 rnartist {
