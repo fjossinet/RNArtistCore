@@ -12,142 +12,158 @@ import java.io.*
 class Test {
 
     fun testDsl() {
+
         rnartist {
-            file = "media/helix_details1.svg"
+            file = "media/3way_1.svg"
             ss {
                 bracket_notation =
-                    "..((..((((....))))..))"
+                    "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
             }
             theme {
                 details_lvl = 1
+            }
+
+            layout {
+
+                junction {
+                    type = 3
+                    to ="nnw nne"
+                }
+
             }
         }
 
         rnartist {
-            file = "media/helix_details2.svg"
+            file = "media/3way_2.svg"
             ss {
                 bracket_notation =
-                    "..((..((((....))))..))"
+                    "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
             }
             theme {
-                details_lvl = 1
+                details_lvl = 5
 
-                details {
-                    type = "helix"
-                    value = "full"
-                    location="7:4,15:4"
+                color {
+                    type = "C"
+                    value = "deepskyblue"
+                }
+
+                color {
+                    type = "U"
+                    value = "darkgreen"
                 }
             }
-        }
 
-        rnartist {
-            file = "media/helix_details3.svg"
-            ss {
-                bracket_notation =
-                    "..((..((((....))))..))"
-            }
-            theme {
-                details_lvl = 1
+            layout {
 
-                details {
-                    type = "helix phosphodiester_bond"
-                    value = "full"
-                    location="7:4,15:4"
-                }
-            }
-        }
-
-        rnartist {
-            file = "media/helix_details4.svg"
-            ss {
-                bracket_notation =
-                    "..((..((((....))))..))"
-            }
-            theme {
-                details_lvl = 1
-
-                details {
-                    type = "helix phosphodiester_bond secondary_interaction"
-                    value = "full"
-                    location="7:4,15:4"
+                junction {
+                    type = 3
+                    to ="nw ne"
                 }
             }
         }
 
         rnartist {
-            file = "media/helix_details5.svg"
+            file = "media/3way_3.svg"
             ss {
                 bracket_notation =
-                    "..((..((((....))))..))"
+                    "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
             }
             theme {
-                details_lvl = 1
+                details_lvl = 5
 
-                details {
-                    type = "helix phosphodiester_bond secondary_interaction N"
-                    value = "full"
-                    location="7:4,15:4"
+                color {
+                    type = "R"
+                    value = "deepskyblue"
+                }
+
+                color {
+                    type = "Y"
+                    value = "darkgreen"
+                }
+            }
+
+            layout {
+
+                junction {
+                    type = 3
+                    to ="wnw ene"
                 }
             }
         }
 
         rnartist {
-            file = "media/helix_details6.svg"
+            file = "media/3way_4.svg"
             ss {
                 bracket_notation =
-                    "..((..((((....))))..))"
+                    "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
             }
             theme {
-                details_lvl = 1
+                details_lvl = 5
 
                 details {
-                    type = "helix phosphodiester_bond secondary_interaction N n"
-                    value = "full"
-                    location="7:4,15:4"
+                    type = "r R"
+                    location="12:20"
+                    value = "none"
+                }
+
+                color {
+                    type = "C"
+                    value = "deepskyblue"
+                }
+
+                color {
+                    type = "U"
+                    value = "darkgreen"
+                }
+            }
+
+            layout {
+
+                junction {
+                    type = 3
+                    to ="w e"
                 }
             }
         }
 
         rnartist {
-            file = "media/helix_combination_details.svg"
+            file = "media/3way_5.svg"
             ss {
                 bracket_notation =
-                    "..((..((((....))))..))"
+                    "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
             }
             theme {
                 details_lvl = 1
+            }
 
-                details {
-                    type = "helix phosphodiester_bond"
-                    value = "full"
-                    location="7:4,15:4"
-                }
+            layout {
 
-                details {
-                    type = "secondary_interaction"
-                    value = "full"
-                    location="8,17"
-                }
-
-                details {
-                    type = "N"
-                    value = "full"
-                    location="8"
-                }
-
-                details {
-                    type = "secondary_interaction N"
-                    value = "full"
-                    location="9,16"
-                }
-
-                details {
-                    type = "n"
-                    value = "full"
-                    location="16"
+                junction {
+                    type = 3
+                    to ="w n"
                 }
             }
         }
+
+        rnartist {
+            file = "media/3way_6.svg"
+            ss {
+                bracket_notation =
+                    "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
+            }
+            theme {
+                details_lvl = 1
+            }
+
+            layout {
+
+                junction {
+                    type = 3
+                    to ="n e"
+                }
+            }
+        }
+
     }
 
     fun tPDB() {

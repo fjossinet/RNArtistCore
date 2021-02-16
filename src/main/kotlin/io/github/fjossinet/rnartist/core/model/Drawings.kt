@@ -2241,27 +2241,27 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
 
             var outId = getOutId(helixRank)
 
-            if (this.junctionType == JunctionType.InnerLoop && (this.junction.location.blocks[0].length < 5 || this.junction.location.blocks[1].length < 5)) {
+            /*if (this.junctionType == JunctionType.InnerLoop && (this.junction.location.blocks[0].length < 5 || this.junction.location.blocks[1].length < 5)) {
                 outId = oppositeConnectorId(inId)
-            } else if (this.junctionType == JunctionType.InnerLoop) {
+            } else*/ if (this.junctionType == JunctionType.InnerLoop) {
                 when (inId) {
-                    ConnectorId.sso -> outId =
+                    ConnectorId.ssw -> outId =
                             ConnectorId.n
-                    ConnectorId.so -> outId =
+                    ConnectorId.sw -> outId =
                             ConnectorId.n
-                    ConnectorId.oso -> outId =
+                    ConnectorId.wsw -> outId =
                             ConnectorId.n
-                    ConnectorId.o ->
-                        outId = if (this.previousJunction != null && this.previousJunction.inId.value > ConnectorId.o.value && this.previousJunction.inId.value < ConnectorId.e.value) { //we want the same orientation than for the previous junction
+                    ConnectorId.w ->
+                        outId = if (this.previousJunction != null && this.previousJunction.inId.value > ConnectorId.w.value && this.previousJunction.inId.value < ConnectorId.e.value) { //we want the same orientation than for the previous junction
                             ConnectorId.s
                         } else {
                             ConnectorId.n
                         }
-                    ConnectorId.ono -> outId =
+                    ConnectorId.wnw -> outId =
                             ConnectorId.s
-                    ConnectorId.no -> outId =
+                    ConnectorId.nw -> outId =
                             ConnectorId.s
-                    ConnectorId.nno -> outId =
+                    ConnectorId.nnw -> outId =
                             ConnectorId.s
                     ConnectorId.n -> outId =
                             ConnectorId.s
@@ -2272,7 +2272,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
                     ConnectorId.ene -> outId =
                             ConnectorId.s
                     ConnectorId.e ->
-                        outId = if (this.previousJunction != null && this.previousJunction.inId.value > ConnectorId.o.value && this.previousJunction.inId.value < ConnectorId.e.value) { //we want the same orientation than for the previous junction
+                        outId = if (this.previousJunction != null && this.previousJunction.inId.value > ConnectorId.w.value && this.previousJunction.inId.value < ConnectorId.e.value) { //we want the same orientation than for the previous junction
                             ConnectorId.s
                         } else {
                             ConnectorId.n
@@ -3996,13 +3996,13 @@ class HelicesDirectLinkPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDraw
 
 enum class ConnectorId(val value: Int) {
     s(0),
-    sso(1),
-    so(2),
-    oso(3),
-    o(4),
-    ono(5),
-    no(6),
-    nno(7),
+    ssw(1),
+    sw(2),
+    wsw(3),
+    w(4),
+    wnw(5),
+    nw(6),
+    nnw(7),
     n(8),
     nne(9),
     ne(10),
@@ -4026,7 +4026,7 @@ typealias Layout = List<ConnectorId>
 /**
 Each layout direction will be reevaluated according to the inId and the helixRank. The layout is always RELATIVE to the inId.
  **/
-val defaultLayouts = mapOf<JunctionType, Layout>(
+val defaultLayouts = mutableMapOf<JunctionType, Layout>(
         Pair(JunctionType.InnerLoop, listOf(ConnectorId.n)),
         Pair(
                 JunctionType.ThreeWay, listOf(
@@ -4035,39 +4035,39 @@ val defaultLayouts = mapOf<JunctionType, Layout>(
         )),
         Pair(
                 JunctionType.FourWay, listOf(
-                ConnectorId.o,
+                ConnectorId.w,
                 ConnectorId.n,
                 ConnectorId.e
         )),
         Pair(
                 JunctionType.FiveWay, listOf(
-                ConnectorId.o,
-                ConnectorId.no,
+                ConnectorId.w,
+                ConnectorId.nw,
                 ConnectorId.n,
                 ConnectorId.e
         )),
         Pair(
                 JunctionType.SixWay, listOf(
-                ConnectorId.o,
-                ConnectorId.no,
+                ConnectorId.w,
+                ConnectorId.nw,
                 ConnectorId.n,
                 ConnectorId.ne,
                 ConnectorId.e
         )),
         Pair(
                 JunctionType.SevenWay, listOf(
-                ConnectorId.so,
-                ConnectorId.o,
-                ConnectorId.no,
+                ConnectorId.sw,
+                ConnectorId.w,
+                ConnectorId.nw,
                 ConnectorId.n,
                 ConnectorId.ne,
                 ConnectorId.e
         )),
         Pair(
                 JunctionType.EightWay, listOf(
-                ConnectorId.so,
-                ConnectorId.o,
-                ConnectorId.no,
+                ConnectorId.sw,
+                ConnectorId.w,
+                ConnectorId.nw,
                 ConnectorId.n,
                 ConnectorId.ne,
                 ConnectorId.e,
@@ -4075,10 +4075,10 @@ val defaultLayouts = mapOf<JunctionType, Layout>(
         )),
         Pair(
                 JunctionType.NineWay, listOf(
-                ConnectorId.so,
-                ConnectorId.o,
-                ConnectorId.no,
-                ConnectorId.nno,
+                ConnectorId.sw,
+                ConnectorId.w,
+                ConnectorId.nw,
+                ConnectorId.nnw,
                 ConnectorId.n,
                 ConnectorId.ne,
                 ConnectorId.e,
@@ -4086,10 +4086,10 @@ val defaultLayouts = mapOf<JunctionType, Layout>(
         )),
         Pair(
                 JunctionType.TenWay, listOf(
-                ConnectorId.so,
-                ConnectorId.o,
-                ConnectorId.no,
-                ConnectorId.nno,
+                ConnectorId.sw,
+                ConnectorId.w,
+                ConnectorId.nw,
+                ConnectorId.nnw,
                 ConnectorId.n,
                 ConnectorId.nne,
                 ConnectorId.ne,
@@ -4098,11 +4098,11 @@ val defaultLayouts = mapOf<JunctionType, Layout>(
         )),
         Pair(
                 JunctionType.ElevenWay, listOf(
-                ConnectorId.so,
-                ConnectorId.o,
-                ConnectorId.ono,
-                ConnectorId.no,
-                ConnectorId.nno,
+                ConnectorId.sw,
+                ConnectorId.w,
+                ConnectorId.wnw,
+                ConnectorId.nw,
+                ConnectorId.nnw,
                 ConnectorId.n,
                 ConnectorId.nne,
                 ConnectorId.ne,
@@ -4111,11 +4111,11 @@ val defaultLayouts = mapOf<JunctionType, Layout>(
         )),
         Pair(
                 JunctionType.TwelveWay, listOf(
-                ConnectorId.so,
-                ConnectorId.o,
-                ConnectorId.ono,
-                ConnectorId.no,
-                ConnectorId.nno,
+                ConnectorId.sw,
+                ConnectorId.w,
+                ConnectorId.wnw,
+                ConnectorId.nw,
+                ConnectorId.nnw,
                 ConnectorId.n,
                 ConnectorId.nne,
                 ConnectorId.ne,
@@ -4125,12 +4125,12 @@ val defaultLayouts = mapOf<JunctionType, Layout>(
         )),
         Pair(
                 JunctionType.ThirteenWay, listOf(
-                ConnectorId.so,
-                ConnectorId.oso,
-                ConnectorId.o,
-                ConnectorId.ono,
-                ConnectorId.no,
-                ConnectorId.nno,
+                ConnectorId.sw,
+                ConnectorId.wsw,
+                ConnectorId.w,
+                ConnectorId.wnw,
+                ConnectorId.nw,
+                ConnectorId.nnw,
                 ConnectorId.n,
                 ConnectorId.nne,
                 ConnectorId.ne,
@@ -4140,12 +4140,12 @@ val defaultLayouts = mapOf<JunctionType, Layout>(
         )),
         Pair(
                 JunctionType.FourteenWay, listOf(
-                ConnectorId.so,
-                ConnectorId.oso,
-                ConnectorId.o,
-                ConnectorId.ono,
-                ConnectorId.no,
-                ConnectorId.nno,
+                ConnectorId.sw,
+                ConnectorId.wsw,
+                ConnectorId.w,
+                ConnectorId.wnw,
+                ConnectorId.nw,
+                ConnectorId.nnw,
                 ConnectorId.n,
                 ConnectorId.nne,
                 ConnectorId.ne,
@@ -4156,13 +4156,13 @@ val defaultLayouts = mapOf<JunctionType, Layout>(
         )),
         Pair(
                 JunctionType.FifthteenWay, listOf(
-                ConnectorId.sso,
-                ConnectorId.so,
-                ConnectorId.oso,
-                ConnectorId.o,
-                ConnectorId.ono,
-                ConnectorId.no,
-                ConnectorId.nno,
+                ConnectorId.ssw,
+                ConnectorId.sw,
+                ConnectorId.wsw,
+                ConnectorId.w,
+                ConnectorId.wnw,
+                ConnectorId.nw,
+                ConnectorId.nnw,
                 ConnectorId.n,
                 ConnectorId.nne,
                 ConnectorId.ne,
@@ -4173,13 +4173,13 @@ val defaultLayouts = mapOf<JunctionType, Layout>(
         )),
         Pair(
                 JunctionType.SixteenWay, listOf(
-                ConnectorId.sso,
-                ConnectorId.so,
-                ConnectorId.oso,
-                ConnectorId.o,
-                ConnectorId.ono,
-                ConnectorId.no,
-                ConnectorId.nno,
+                ConnectorId.ssw,
+                ConnectorId.sw,
+                ConnectorId.wsw,
+                ConnectorId.w,
+                ConnectorId.wnw,
+                ConnectorId.nw,
+                ConnectorId.nnw,
                 ConnectorId.n,
                 ConnectorId.nne,
                 ConnectorId.ne,
@@ -4209,7 +4209,7 @@ Compute the center of a circle according to the entry point
 fun centerFrom(inId: ConnectorId, inPoint: Point2D, radius: Double): Point2D {
     when (inId) {
         ConnectorId.s -> return Point2D.Double(inPoint.x, inPoint.y - radius)
-        ConnectorId.sso -> return Point2D.Double(inPoint.x + adjacentSideFrom(
+        ConnectorId.ssw -> return Point2D.Double(inPoint.x + adjacentSideFrom(
                 (-3 * 360 / ConnectorId.values().size).toDouble(),
                 radius
         ), inPoint.y + oppositeSideFrom(
@@ -4217,7 +4217,7 @@ fun centerFrom(inId: ConnectorId, inPoint: Point2D, radius: Double): Point2D {
                 radius
         )
         )
-        ConnectorId.so -> return Point2D.Double(inPoint.x + adjacentSideFrom(
+        ConnectorId.sw -> return Point2D.Double(inPoint.x + adjacentSideFrom(
                 (-2 * 360 / ConnectorId.values().size).toDouble(),
                 radius
         ), inPoint.y + oppositeSideFrom(
@@ -4225,7 +4225,7 @@ fun centerFrom(inId: ConnectorId, inPoint: Point2D, radius: Double): Point2D {
                 radius
         )
         )
-        ConnectorId.oso -> return Point2D.Double(inPoint.x + adjacentSideFrom(
+        ConnectorId.wsw -> return Point2D.Double(inPoint.x + adjacentSideFrom(
                 (-360 / ConnectorId.values().size).toDouble(),
                 radius
         ), inPoint.y + oppositeSideFrom(
@@ -4233,8 +4233,8 @@ fun centerFrom(inId: ConnectorId, inPoint: Point2D, radius: Double): Point2D {
                 radius
         )
         )
-        ConnectorId.o -> return Point2D.Double(inPoint.x + radius, inPoint.y)
-        ConnectorId.ono -> return Point2D.Double(inPoint.x + adjacentSideFrom(
+        ConnectorId.w -> return Point2D.Double(inPoint.x + radius, inPoint.y)
+        ConnectorId.wnw -> return Point2D.Double(inPoint.x + adjacentSideFrom(
                 (360 / ConnectorId.values().size).toDouble(),
                 radius
         ), inPoint.y + oppositeSideFrom(
@@ -4242,7 +4242,7 @@ fun centerFrom(inId: ConnectorId, inPoint: Point2D, radius: Double): Point2D {
                 radius
         )
         )
-        ConnectorId.no -> return Point2D.Double(inPoint.x + adjacentSideFrom(
+        ConnectorId.nw -> return Point2D.Double(inPoint.x + adjacentSideFrom(
                 (2 * 360 / ConnectorId.values().size).toDouble(),
                 radius
         ), inPoint.y + oppositeSideFrom(
@@ -4250,7 +4250,7 @@ fun centerFrom(inId: ConnectorId, inPoint: Point2D, radius: Double): Point2D {
                 radius
         )
         )
-        ConnectorId.nno -> return Point2D.Double(inPoint.x + adjacentSideFrom(
+        ConnectorId.nnw -> return Point2D.Double(inPoint.x + adjacentSideFrom(
                 (3 * 360 / ConnectorId.values().size).toDouble(),
                 radius
         ), inPoint.y + oppositeSideFrom(

@@ -5,11 +5,7 @@ RNArtistCore provides a DSL (Domain Specific Language) and a Kotlin library to d
 
 ![](media/booquet_from_pdb_0.png)
 
-<p float="left">
-  <img src="/media/details_lvl5_colored_A.png" />
-  <img src="/media/hide_pyrimidines_A.png" />
-  <img src="/media/lines_A.png" />
-</p>
+![](media/3way_full_details_A.png)
 
 * [Installation](#installation)
 * [The RNArtistCore DSL](#dsl)
@@ -24,6 +20,7 @@ RNArtistCore provides a DSL (Domain Specific Language) and a Kotlin library to d
         * [The **```details```** element](#details)
         * [The **```hide```** element](#hide)
         * [The **```line```** element](#line)
+      * [The **```layout```** element](#layout)
     * [The **```booquet```** element](#booquet)
   * [Embedded Kotlin code](#kotlin)
 * [The RNArtistCore Library](#library)
@@ -71,6 +68,10 @@ drawing_algorithm {
   }
 
   theme {
+
+  }
+
+  layout {
 
   }
 
@@ -339,6 +340,7 @@ The parameters available are:
 * **```ss```**: a secondary structure element (see above)
 * **```data```**: a dataset to map values to residues (see below)
 * **```theme```**: to change the colors, details, line width,... for any object in the 2D (see below)
+* **```layout```**: to change the default layouts for the junctions
 
 The size of the picture will fit the size of the drawing (with a minimum size of 1024x768 to see the residue characters).
 
@@ -1074,6 +1076,200 @@ rnartist {
 ```
 
 ![](media/lines_A.png)
+
+<a name="layout"></a> ____The **```layout```** element____
+
+The rnartist drawing algorithm computes the layout to avoid overlapping of 2D objects. One of the parameter used is the default orientation of the helices linked to each type of junction (inner loops, 3-way junctions,...). Each junction is linked to an entering helix (the red arrow in the diagram below) and to helices leaving it (black arrows). The layout for the leaving helices are defined according to the directions of a compass, the entering helix making the south direction.
+
+![](media/layout_explanation.png)
+
+
+You can redefine the default layout for each type of junction by adding one or several **```junction```** elements to the layout. A **```junction```** element has the following parameters:
+* **```type```**: the type of the junction (2 for inner loops, 3 for 3-way junctions,...)
+* **```to```**: the compass directions for the leaving helices
+
+In the following examples, you can see the different results when we modify the layout for the 3-way junctions.
+
+```kotlin
+rnartist {
+    file = "media/3way_1.svg"
+    ss {
+        bracket_notation =
+            "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
+    }
+    theme {
+        details_lvl = 1
+    }
+
+    layout {
+
+        junction {
+            type = 3
+            to ="nnw nne"
+        }
+
+    }
+}
+```
+
+![](media/3way_1_A.png)
+
+```kotlin
+rnartist {
+    file = "media/3way_2.svg"
+    ss {
+        bracket_notation =
+            "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
+    }
+    theme {
+        details_lvl = 1
+    }
+
+    layout {
+
+        junction {
+            type = 3
+            to ="nw ne"
+        }
+
+    }
+}
+```
+
+![](media/3way_2_A.png)
+
+```kotlin
+rnartist {
+    file = "media/3way_3.svg"
+    ss {
+        bracket_notation =
+            "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
+    }
+    theme {
+        details_lvl = 1
+    }
+
+    layout {
+
+        junction {
+            type = 3
+            to ="wnw ene"
+        }
+
+    }
+}
+```
+
+![](media/3way_3_A.png)
+
+```kotlin
+rnartist {
+    file = "media/3way_4.svg"
+    ss {
+        bracket_notation =
+            "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
+    }
+    theme {
+        details_lvl = 1
+    }
+
+    layout {
+
+        junction {
+            type = 3
+            to ="w e"
+        }
+
+    }
+}
+```
+
+![](media/3way_4_A.png)
+
+```kotlin
+rnartist {
+    file = "media/3way_5.svg"
+    ss {
+        bracket_notation =
+            "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
+    }
+    theme {
+        details_lvl = 1
+    }
+
+    layout {
+
+        junction {
+            type = 3
+            to ="w n"
+        }
+
+    }
+}
+```
+
+![](media/3way_5_A.png)
+
+```kotlin
+rnartist {
+    file = "media/3way_6.svg"
+    ss {
+        bracket_notation =
+            "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
+    }
+    theme {
+        details_lvl = 1
+    }
+
+    layout {
+
+        junction {
+            type = 3
+            to ="n e"
+        }
+
+    }
+}
+```
+
+![](media/3way_6_A.png)
+
+And now with full details:
+
+```kotlin
+rnartist {
+    file = "media/3way_full_details.svg"
+    ss {
+        bracket_notation =
+            "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
+    }
+    theme {
+        details_lvl = 5
+
+        color {
+            type = "R"
+            value = "deepskyblue"
+        }
+
+        color {
+            type = "Y"
+            value = "darkgreen"
+        }
+    }
+
+    layout {
+
+        junction {
+            type = 3
+            to ="nw ne"
+        }
+
+    }
+}
+```
+
+![](media/3way_full_details_A.png)
+
 
 <a name="booquet"></a> ***The **```booquet```** element***
 

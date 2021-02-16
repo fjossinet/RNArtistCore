@@ -7,6 +7,8 @@ import java.awt.geom.Rectangle2D
 import java.io.File
 import java.io.FileReader
 import java.lang.Exception
+import java.util.*
+import java.util.stream.Collectors
 
 class RNABuilder {
     var name:String = "A"
@@ -239,14 +241,37 @@ class RNArtistBuilder {
     var secondaryStructures = mutableListOf<SecondaryStructure>()
     var theme:AdvancedTheme? = null
     var data:MutableMap<String, Double> = mutableMapOf()
+    private var layouts:List<Pair<Int,String>>? = null
 
     fun build(): List<SecondaryStructureDrawing> {
+        this.layouts?.let { layouts ->
+            layouts.forEach { layout ->
+                val outIds = Arrays.stream(layout.second.split(" ").toTypedArray()).map { c: String? ->
+                    ConnectorId.valueOf(c!!)
+                }.collect(Collectors.toList())
+                when (layout.first) {
+                    2 -> {
+                        defaultLayouts[JunctionType.InnerLoop] = outIds
+                    }
+                    3 -> {
+                        defaultLayouts[JunctionType.ThreeWay] = outIds
+                    }
+                    4 -> {
+                        defaultLayouts[JunctionType.FourWay] = outIds
+                    }
+                    5 -> {
+                        defaultLayouts[JunctionType.FiveWay] = outIds
+                    }
+                }
+            }
+        }
         val drawings = mutableListOf<SecondaryStructureDrawing>()
         this.secondaryStructures.forEach { ss ->
             val drawing = SecondaryStructureDrawing(ss, WorkingSession())
             this.theme?.let { theme ->
                 drawing.applyAdvancedTheme(theme)
             }
+
             this.file?.let { outputFile ->
                 //the frame will have the size of the drawing
                 val drawingFrame = drawing.getFrame().bounds2D
@@ -277,6 +302,12 @@ class RNArtistBuilder {
         this.theme = themeBuilder.build()
     }
 
+    fun layout(setup:LayoutBuilder.() -> Unit) {
+        val layoutBuilder = LayoutBuilder()
+        layoutBuilder.setup()
+        this.layouts = layoutBuilder.build()
+    }
+
     fun data(setup:DataBuilder.() -> Unit) {
         val dataBuilder = DataBuilder()
         dataBuilder.setup()
@@ -302,14 +333,45 @@ class DataBuilder {
 
 }
 
+class LayoutBuilder() {
+
+    private val junctions = mutableListOf<JunctionLayoutBuilder>()
+
+    fun junction(setup:JunctionLayoutBuilder.() -> Unit) {
+        val junctionBuilder = JunctionLayoutBuilder()
+        this.junctions.add(junctionBuilder)
+        junctionBuilder.setup()
+    }
+
+    fun build():List<Pair<Int,String>> {
+        val j = mutableListOf<Pair<Int,String>>()
+        junctions.forEach {
+            it.type?.let { type ->
+                it.to?.let { to ->
+                    j.add(Pair(type, to))
+                }
+            }
+        }
+        return j
+    }
+
+}
+
+class JunctionLayoutBuilder() {
+    var type:Int? = null
+    var to:String? = null
+    var radius:Double? = null
+
+}
+
 
 class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
     var details_lvl:Int? = null
-    val colors = mutableListOf<ColorBuilder>()
-    val details = mutableListOf<DetailsBuilder>()
-    val lines = mutableListOf<LineBuilder>()
-    val hides = mutableListOf<HideBuilder>()
-    val data = data.toMutableMap()
+    private val colors = mutableListOf<ColorBuilder>()
+    private val details = mutableListOf<DetailsBuilder>()
+    private val lines = mutableListOf<LineBuilder>()
+    private val hides = mutableListOf<HideBuilder>()
+    private val data = data.toMutableMap()
 
     fun details(setup:DetailsBuilder.() -> Unit) {
         val detailsBuilder = DetailsBuilder(this.data)
