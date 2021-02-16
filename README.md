@@ -1081,6 +1081,8 @@ rnartist {
 
 The rnartist drawing algorithm computes the layout to avoid overlapping of 2D objects. One of the parameter used is the default orientation of the helices linked to each type of junction (inner loops, 3-way junctions,...). Each junction is linked to an entering helix (the red arrow in the diagram below) and to helices leaving it (black arrows). The layout for the leaving helices are defined according to the directions of a compass, the entering helix making the south direction.
 
+![](media/3way_full_details_A.png)
+
 ![](media/layout_explanation.png)
 
 
