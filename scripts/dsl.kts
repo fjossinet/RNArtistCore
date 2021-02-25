@@ -599,7 +599,6 @@ rnartist {
     layout {
 
         junction {
-            type = 3
             to ="nnw nne"
         }
 
@@ -619,7 +618,6 @@ rnartist {
     layout {
 
         junction {
-            type = 3
             to ="nw ne"
         }
     }
@@ -638,7 +636,6 @@ rnartist {
     layout {
 
         junction {
-            type = 3
             to ="wnw ene"
         }
     }
@@ -657,7 +654,6 @@ rnartist {
     layout {
 
         junction {
-            type = 3
             to ="w e"
         }
     }
@@ -676,7 +672,6 @@ rnartist {
     layout {
 
         junction {
-            type = 3
             to ="w n"
         }
     }
@@ -695,7 +690,6 @@ rnartist {
     layout {
 
         junction {
-            type = 3
             to ="n e"
         }
     }
@@ -724,7 +718,6 @@ rnartist {
     layout {
 
         junction {
-            type = 3
             to ="nw ne"
         }
 

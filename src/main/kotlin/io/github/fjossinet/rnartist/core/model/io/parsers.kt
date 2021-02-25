@@ -306,9 +306,9 @@ fun parseProject(project: Project): SecondaryStructureDrawing {
         junction.inId = ConnectorId.valueOf(l["in-id"]!!)
         if (l.containsKey("out-ids")) {
             junction.radius = l["radius"]!!.toDouble()
-            junction.layout =
+            junction.currentLayout =
                 Arrays.stream(l["out-ids"]!!.split(" ").toTypedArray()).map { c: String? ->
-                    ConnectorId.valueOf(c!!)
+                    ConnectorId.valueOf(c!!.replace("o", "w")) //compatibility when the west direction was described with the character o
                 }.collect(Collectors.toList())
             drawing.computeResidues(junction)
         }
@@ -821,7 +821,7 @@ fun dumpLayout(drawing: SecondaryStructureDrawing): Map<String,Map<String, Strin
                     "p2-x" to "%.2f".format(Locale.UK, (it.parent as HelixDrawing).line.p2.x),
                     "p2-y" to "%.2f".format(Locale.UK, (it.parent as HelixDrawing).line.p2.y),
                 )
-                it.layout?.let {
+                it.currentLayout?.let {
                     junction["out-ids"] = (it.map { it.toString() }).joinToString(separator = " ")
                 }
                 layout[it.location.start.toString()] = junction

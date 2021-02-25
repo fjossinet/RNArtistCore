@@ -478,7 +478,6 @@ jonctions quadruples : ${drawing.allJunctions.filter { it.junctionType == Juncti
 
                             drawing.allJunctions.forEach {
                                 it.radius = it.radius * 2.0
-                                it.layout = it.layout
                                 drawing.computeResidues(it)
                             }
 

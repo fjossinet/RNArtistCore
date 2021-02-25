@@ -233,9 +233,18 @@ interface StructuralDomain {
     val start:Int
     val end:Int
     val length:Int
+    var maxBranchLength:Int
 }
 
-class Helix(val name:String="MyHelix"): StructuralDomain {
+abstract class AbstractStructuralDomain: StructuralDomain {
+    override var maxBranchLength = 0
+        set(value) {
+            if (value > field)
+                field = value
+        }
+}
+
+class Helix(val name:String="MyHelix"): AbstractStructuralDomain() {
 
     val secondaryInteractions = mutableListOf<BasePair>()
     var junctionsLinked = Pair<Junction?, Junction?>(null,null)
@@ -296,7 +305,7 @@ class Helix(val name:String="MyHelix"): StructuralDomain {
     }
 }
 
-class Junction(var name:String="MyJunction", override val location: Location, val helicesLinked:List<Helix>):StructuralDomain {
+class Junction(var name:String="MyJunction", override val location: Location, val helicesLinked:MutableList<Helix>):AbstractStructuralDomain() {
 
     override val length:Int
         get() {
@@ -321,6 +330,7 @@ class Junction(var name:String="MyJunction", override val location: Location, va
     val locationWithoutSecondaries:Location
 
     init {
+        this.helicesLinked.sortBy { it.start }
         for (h in helicesLinked)
             h.setJunction(this)
         val j = Location()
@@ -752,18 +762,26 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
 
                 } while (foundPknot)
 
-                /*var s = "-".repeat(rna.length).split("").toMutableList()
-
-            this.helices.forEach {
-                println("${it.name} ${it.location}")
-                s[it.location.start] = "[${it.name}"
-                s[it.location.end] = "${it.name}]"
-            }
-
-            print(s.distinct().joinToString("-"))*/
-
                 //now the junctions
                 this.findJunctions()
+
+                //the max branch length for each
+                this.junctions.forEach { junction ->
+                    if (junction.junctionType == JunctionType.ApicalLoop) {
+                        var length = 1
+                        var currentJunction = junction
+                        currentJunction.maxBranchLength = length++
+                        currentJunction.helicesLinked[0].maxBranchLength = length++
+                        var previousJunction = currentJunction.helicesLinked[0].junctionsLinked.toList().find { it != currentJunction }
+                        while (previousJunction != null) {
+                            currentJunction = previousJunction
+                            currentJunction.maxBranchLength = length++
+                            currentJunction.helicesLinked[0].maxBranchLength = length++
+                            previousJunction = currentJunction.helicesLinked[0].junctionsLinked.toList().find { it != currentJunction }
+                        }
+
+                    }
+                }
 
             }
 
@@ -876,8 +894,8 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
     private fun findJunctions() {
         this.junctions.clear()
         var junctionCount = 0
-        for (h in this.helices) {
-            h.junctionsLinked = Pair<Junction?, Junction?>(null,null)
+        this.helices.forEach {
+            it.junctionsLinked = Pair<Junction?, Junction?>(null,null)
         }
         var positionsInJunction = mutableListOf<Int>()
         var helicesLinked = mutableListOf<Helix>()

@@ -241,27 +241,15 @@ class RNArtistBuilder {
     var secondaryStructures = mutableListOf<SecondaryStructure>()
     var theme:AdvancedTheme? = null
     var data:MutableMap<String, Double> = mutableMapOf()
-    private var layouts:List<Pair<Int,String>>? = null
+    private var layout:SecondaryStructureLayout? = null
 
     fun build(): List<SecondaryStructureDrawing> {
-        this.layouts?.let { layouts ->
-            layouts.forEach { layout ->
-                val outIds = Arrays.stream(layout.second.split(" ").toTypedArray()).map { c: String? ->
-                    ConnectorId.valueOf(c!!)
-                }.collect(Collectors.toList())
-                when (layout.first) {
-                    2 -> {
-                        defaultLayouts[JunctionType.InnerLoop] = outIds
-                    }
-                    3 -> {
-                        defaultLayouts[JunctionType.ThreeWay] = outIds
-                    }
-                    4 -> {
-                        defaultLayouts[JunctionType.FourWay] = outIds
-                    }
-                    5 -> {
-                        defaultLayouts[JunctionType.FiveWay] = outIds
-                    }
+        this.layout?.let {
+            it.junctionLayouts.forEach { junctionLayout ->
+                junctionsBehaviors[junctionLayout.junctionType] = { junctionDrawing: JunctionDrawing, helixRank: Int ->
+                    val defaultLayout = junctionLayout.connectors
+                    ConnectorId.values()
+                        .first { it.value == (junctionDrawing.inId.value + defaultLayout[helixRank - 1].value) % ConnectorId.values().size }
                 }
             }
         }
@@ -302,10 +290,10 @@ class RNArtistBuilder {
         this.theme = themeBuilder.build()
     }
 
-    fun layout(setup:LayoutBuilder.() -> Unit) {
-        val layoutBuilder = LayoutBuilder()
+    fun layout(setup:SecondaryStructureLayoutBuilder.() -> Unit) {
+        val layoutBuilder = SecondaryStructureLayoutBuilder()
         layoutBuilder.setup()
-        this.layouts = layoutBuilder.build()
+        this.layout = layoutBuilder.build()
     }
 
     fun data(setup:DataBuilder.() -> Unit) {
@@ -333,37 +321,62 @@ class DataBuilder {
 
 }
 
-class LayoutBuilder() {
+class SecondaryStructureLayoutBuilder() {
 
-    private val junctions = mutableListOf<JunctionLayoutBuilder>()
+    private val junctionBuilders = mutableListOf<JunctionLayoutBuilder>()
 
     fun junction(setup:JunctionLayoutBuilder.() -> Unit) {
         val junctionBuilder = JunctionLayoutBuilder()
-        this.junctions.add(junctionBuilder)
+        this.junctionBuilders.add(junctionBuilder)
         junctionBuilder.setup()
     }
 
-    fun build():List<Pair<Int,String>> {
-        val j = mutableListOf<Pair<Int,String>>()
-        junctions.forEach {
-            it.type?.let { type ->
-                it.to?.let { to ->
-                    j.add(Pair(type, to))
-                }
+    fun build():SecondaryStructureLayout {
+        val ssLayout = SecondaryStructureLayout()
+        junctionBuilders.forEach { junctionBuilder ->
+            junctionBuilder.to?.let { compass ->
+                ssLayout.addJunctionLayout(compass)
             }
         }
-        return j
+        return ssLayout
     }
 
 }
 
-class JunctionLayoutBuilder() {
-    var type:Int? = null
-    var to:String? = null
-    var radius:Double? = null
+class SecondaryStructureLayout {
+    val junctionLayouts = mutableListOf<JunctionLayout>()
 
+    fun addJunctionLayout(layout:String) {
+        val tokens = layout.split(" ")
+        val junctionType = when (tokens.size +1) {
+            2 -> JunctionType.InnerLoop
+            3 -> JunctionType.ThreeWay
+            4 -> JunctionType.FourWay
+            5 -> JunctionType.FiveWay
+            6 -> JunctionType.SixWay
+            7 -> JunctionType.SevenWay
+            8 -> JunctionType.EightWay
+            9 -> JunctionType.NineWay
+            10 -> JunctionType.TenWay
+            11 -> JunctionType.ElevenWay
+            12 -> JunctionType.TwelveWay
+            13 -> JunctionType.ThirteenWay
+            14 -> JunctionType.FourteenWay
+            15 -> JunctionType.FifthteenWay
+            16 -> JunctionType.SixteenWay
+            else -> JunctionType.Flower
+        }
+        val connectors = Arrays.stream(tokens.toTypedArray()).map { c: String? ->
+                ConnectorId.valueOf(c!!)
+            }.collect(Collectors.toList())
+        connectors.sortBy { it.value }
+        this.junctionLayouts.add(JunctionLayout(junctionType = junctionType, connectors = connectors))
+    }
 }
 
+class JunctionLayoutBuilder(var name:String? = null, var location:String? = null, var to:String? = null, var radius:Double? = null)
+
+class JunctionLayout(val name:String? = null, val location:Location? = null, val junctionType:JunctionType, val connectors:List<ConnectorId>)
 
 class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
     var details_lvl:Int? = null
@@ -1186,6 +1199,12 @@ fun theme(setup:ThemeBuilder.() -> Unit): AdvancedTheme {
     val themeBuilder = ThemeBuilder()
     themeBuilder.setup()
     return themeBuilder.build()
+}
+
+fun layout(setup:SecondaryStructureLayoutBuilder.() -> Unit): SecondaryStructureLayout {
+    val layoutBuilder = SecondaryStructureLayoutBuilder()
+    layoutBuilder.setup()
+    return layoutBuilder.build()
 }
 
 private fun getColorCode(name:String):String {

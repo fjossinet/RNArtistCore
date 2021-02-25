@@ -321,9 +321,8 @@ abstract class DrawingElement(val ssDrawing: SecondaryStructureDrawing, var pare
     fun pathToRoot():List<DrawingElement> {
         val l = mutableListOf<DrawingElement>()
         l.add(this)
-        while (l.last().parent != null) {
+        while (l.last().parent != null)
             l.add(l.last().parent!!)
-        }
         return l
     }
 
@@ -1184,8 +1183,20 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
                         p2 = this.residues[b.start - 1].center,
                         p3 = this.residues[b.end - 1].center
                 )
+                println(j.name)
+                println(cp)
                 if (cp < 0) {
                     angle -= 360
+                    //we need to check if we are in the case where an helix crossed another one and then place the residues in between wrongly. The trick is to measure if the distance on the first residue in between is larger than the distance between the ends of the block
+                    if (j.junctionType != JunctionType.ApicalLoop && b.length >= 3) {//at least one residue
+                        val distance = distance(this.residues[b.start - 1].center, rotatePoint(
+                            this.residues[b.start - 1].center,
+                            j.center,
+                            -angle / (b.end - b.start).toDouble()
+                        ))
+                        if (distance >  distance(this.residues[b.start - 1].center, this.residues[b.end - 1].center))
+                            angle += 360
+                    }
                 } else {
                     angle = -angle
                 }
@@ -1358,7 +1369,7 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
             )
             g.draw(_c)
             g.stroke = previousStroke
-            if ((absPos % 5 == 0 || absPos == 1 || absPos == ssDrawing.length))
+            if ((absPos % 5 == 0 || absPos == 1 || absPos == ssDrawing.length) && g.font.size-4 > 4 && this.getOpacity() > 0)
                 this.drawNumbering(g, at)
         }
         if (g.font.size > 8 && this.getOpacity() > 0) { //the conditions to draw a letter
@@ -1384,180 +1395,178 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
     }
 
     private fun drawNumbering(g: Graphics2D, at: AffineTransform) {
-        if (g.font.size-4 > 4 && this.getOpacity() > 0) {
-            g.color = Color(
-                Color.DARK_GRAY.red, Color.DARK_GRAY.green, Color.DARK_GRAY.blue,
-                this.getOpacity()
+        g.color = Color(
+            Color.DARK_GRAY.red, Color.DARK_GRAY.green, Color.DARK_GRAY.blue,
+            this.getOpacity()
+        )
+        val n = "$absPos".length
+        var p: Pair<Point2D, Point2D>? = null
+        var e: Shape? = null
+        g.font = Font(g.font.fontName, g.font.style, g.font.size - 4)
+        val numberDim = getStringBoundsRectangle2D(g, "0", g.font)
+        (this.parent as? SecondaryInteractionDrawing)?.let {
+            val pairedCenter = (if (it.residue == this) it.pairedResidue else it.residue).center
+            p = pointsFrom(this.center, pairedCenter, -getLineWidth() / 2.0 - radiusConst - radiusConst / 3.0)
+            e = at.createTransformedShape(
+                Ellipse2D.Double(
+                    (p as Pair<Point2D, Point2D>).first.x - radiusConst / 3.0,
+                    (p as Pair<Point2D, Point2D>).first.y - radiusConst / 3.0,
+                    2.0 * radiusConst / 3.0,
+                    2.0 * radiusConst / 3.0
+                )
             )
-            val n = "$absPos".length
-            var p: Pair<Point2D, Point2D>? = null
-            var e: Shape? = null
-            g.font = Font(g.font.fontName, g.font.style, g.font.size - 4)
-            val numberDim = getStringBoundsRectangle2D(g, "0", g.font)
-            (this.parent as? SecondaryInteractionDrawing)?.let {
-                val pairedCenter = (if (it.residue == this) it.pairedResidue else it.residue).center
-                p = pointsFrom(this.center, pairedCenter, -getLineWidth() / 2.0 - radiusConst - radiusConst / 3.0)
-                e = at.createTransformedShape(
-                    Ellipse2D.Double(
-                        (p as Pair<Point2D, Point2D>).first.x - radiusConst / 3.0,
-                        (p as Pair<Point2D, Point2D>).first.y - radiusConst / 3.0,
-                        2.0 * radiusConst / 3.0,
-                        2.0 * radiusConst / 3.0
-                    )
-                )
-                g.fill(e)
+            g.fill(e)
 
-                p = pointsFrom(
-                    this.center,
-                    pairedCenter,
-                    -getLineWidth() / 2.0 - radiusConst - radiusConst - numberDim.width / (2.0 * ssDrawing.zoomLevel)
+            p = pointsFrom(
+                this.center,
+                pairedCenter,
+                -getLineWidth() / 2.0 - radiusConst - radiusConst - numberDim.width / (2.0 * ssDrawing.zoomLevel)
+            )
+            e = at.createTransformedShape(
+                Ellipse2D.Double(
+                    (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                    (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                    numberDim.width / ssDrawing.zoomLevel,
+                    numberDim.width / ssDrawing.zoomLevel
                 )
-                e = at.createTransformedShape(
-                    Ellipse2D.Double(
-                        (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
-                        (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.zoomLevel),
-                        numberDim.width / ssDrawing.zoomLevel,
-                        numberDim.width / ssDrawing.zoomLevel
-                    )
-                )
+            )
 
-            }
-            (this.parent as? JunctionDrawing)?.let {
-                p = pointsFrom(this.center, it.center, -getLineWidth() / 2.0 - radiusConst - radiusConst / 3.0)
-                e = at.createTransformedShape(
-                    Ellipse2D.Double(
-                        (p as Pair<Point2D, Point2D>).first.x - 2,
-                        (p as Pair<Point2D, Point2D>).first.y - 2,
-                        2.0 * radiusConst / 3.0,
-                        2.0 * radiusConst / 3.0
-                    )
-                )
-                g.fill(e)
-
-                p = pointsFrom(
-                    this.center,
-                    it.center,
-                    -getLineWidth() / 2.0 - radiusConst - radiusConst - numberDim.width / (2.0 * ssDrawing.zoomLevel)
-                )
-                e = at.createTransformedShape(
-                    Ellipse2D.Double(
-                        (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
-                        (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.zoomLevel),
-                        numberDim.width.toDouble() / ssDrawing.zoomLevel,
-                        numberDim.width.toDouble() / ssDrawing.zoomLevel
-                    )
-                )
-            }
-            (this.parent as? SingleStrandDrawing)?.let {
-                p = pointsFrom(
-                    Point2D.Double(this.center.x, this.center.y + radiusConst),
-                    Point2D.Double(this.center.x, this.center.y - radiusConst),
-                    -getLineWidth() / 2.0 - radiusConst / 3.0
-                )
-                e = at.createTransformedShape(
-                    Ellipse2D.Double(
-                        (p as Pair<Point2D, Point2D>).first.x - 2,
-                        (p as Pair<Point2D, Point2D>).first.y - 2,
-                        2.0 * radiusConst / 3.0,
-                        2.0 * radiusConst / 3.0
-                    )
-                )
-                g.fill(e)
-
-                p = pointsFrom(
-                    Point2D.Double(this.center.x, this.center.y + radiusConst),
-                    Point2D.Double(this.center.x, this.center.y - radiusConst),
-                    -getLineWidth() / 2.0 - radiusConst - radiusConst / 2.0 - numberDim.width / (2.0 * ssDrawing.zoomLevel)
-                )
-                e = at.createTransformedShape(
-                    Ellipse2D.Double(
-                        (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
-                        (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.zoomLevel),
-                        numberDim.width.toDouble() / ssDrawing.zoomLevel,
-                        numberDim.width.toDouble() / ssDrawing.zoomLevel
-                    )
-                )
-            }
-
-            if (e != null && p != null) {
-                val transX = (e!!.bounds2D.width - numberDim.width.toDouble()).toFloat() / 2F
-                val transY = (e!!.bounds2D.height + numberDim.height.toDouble()).toFloat() / 2F
-                val cp =
-                    crossProduct(center, Point2D.Double(center.x, center.y - 20), (p as Pair<Point2D, Point2D>).first)
-                if (cp >= 0) {
-                    g.drawString(
-                        "$absPos".substring(0, 1),
-                        e!!.bounds2D.minX.toFloat() + transX,
-                        e!!.bounds2D.minY.toFloat() + transY
-                    )
-                    var i = 1
-                    while (i < n) {
-                        var _p = pointsFrom(
-                            Point2D.Double(
-                                (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
-                                (p as Pair<Point2D, Point2D>).first.y
-                            ),
-                            Point2D.Double(
-                                (p as Pair<Point2D, Point2D>).first.x + numberDim.width / (2.0 * ssDrawing.zoomLevel),
-                                (p as Pair<Point2D, Point2D>).first.y
-                            ),
-                            -(2 * (i - 1) + 1) * numberDim.width / (2.0 * ssDrawing.zoomLevel)
-                        )
-                        e = at.createTransformedShape(
-                            Ellipse2D.Double(
-                                _p.second.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
-                                _p.second.y - numberDim.width / (2.0 * ssDrawing.zoomLevel),
-                                numberDim.width / ssDrawing.zoomLevel,
-                                numberDim.width / ssDrawing.zoomLevel
-                            )
-                        )
-                        g.drawString(
-                            "$absPos".substring(i, i + 1),
-                            e!!.bounds2D.minX.toFloat() + transX,
-                            e!!.bounds2D.minY.toFloat() + transY
-                        )
-                        i++
-                    }
-                } else {
-                    g.drawString(
-                        "$absPos".substring(n - 1, n),
-                        e!!.bounds2D.minX.toFloat() + transX,
-                        e!!.bounds2D.minY.toFloat() + transY
-                    )
-                    var i = 1
-                    while (i < n) {
-                        var _p = pointsFrom(
-                            Point2D.Double(
-                                (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
-                                (p as Pair<Point2D, Point2D>).first.y
-                            ),
-                            Point2D.Double(
-                                (p as Pair<Point2D, Point2D>).first.x + numberDim.width / (2.0 * ssDrawing.zoomLevel),
-                                (p as Pair<Point2D, Point2D>).first.y
-                            ),
-                            -(2 * (i - 1) + 1) * numberDim.width / (2.0 * ssDrawing.zoomLevel)
-                        )
-                        e = at.createTransformedShape(
-                            Ellipse2D.Double(
-                                _p.first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
-                                _p.first.y - numberDim.width / (2.0 * ssDrawing.zoomLevel),
-                                numberDim.width / ssDrawing.zoomLevel,
-                                numberDim.width / ssDrawing.zoomLevel
-                            )
-                        )
-                        g.drawString(
-                            "$absPos".substring(n - 1 - i, n - i),
-                            e!!.bounds2D.minX.toFloat() + transX,
-                            e!!.bounds2D.minY.toFloat() + transY
-                        )
-                        i++
-                    }
-                }
-
-            }
-
-            g.font = Font(g.font.fontName, g.font.style, g.font.size + 4)
         }
+        (this.parent as? JunctionDrawing)?.let {
+            p = pointsFrom(this.center, it.center, -getLineWidth() / 2.0 - radiusConst - radiusConst / 3.0)
+            e = at.createTransformedShape(
+                Ellipse2D.Double(
+                    (p as Pair<Point2D, Point2D>).first.x - 2,
+                    (p as Pair<Point2D, Point2D>).first.y - 2,
+                    2.0 * radiusConst / 3.0,
+                    2.0 * radiusConst / 3.0
+                )
+            )
+            g.fill(e)
+
+            p = pointsFrom(
+                this.center,
+                it.center,
+                -getLineWidth() / 2.0 - radiusConst - radiusConst - numberDim.width / (2.0 * ssDrawing.zoomLevel)
+            )
+            e = at.createTransformedShape(
+                Ellipse2D.Double(
+                    (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                    (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                    numberDim.width.toDouble() / ssDrawing.zoomLevel,
+                    numberDim.width.toDouble() / ssDrawing.zoomLevel
+                )
+            )
+        }
+        (this.parent as? SingleStrandDrawing)?.let {
+            p = pointsFrom(
+                Point2D.Double(this.center.x, this.center.y + radiusConst),
+                Point2D.Double(this.center.x, this.center.y - radiusConst),
+                -getLineWidth() / 2.0 - radiusConst / 3.0
+            )
+            e = at.createTransformedShape(
+                Ellipse2D.Double(
+                    (p as Pair<Point2D, Point2D>).first.x - 2,
+                    (p as Pair<Point2D, Point2D>).first.y - 2,
+                    2.0 * radiusConst / 3.0,
+                    2.0 * radiusConst / 3.0
+                )
+            )
+            g.fill(e)
+
+            p = pointsFrom(
+                Point2D.Double(this.center.x, this.center.y + radiusConst),
+                Point2D.Double(this.center.x, this.center.y - radiusConst),
+                -getLineWidth() / 2.0 - radiusConst - radiusConst / 2.0 - numberDim.width / (2.0 * ssDrawing.zoomLevel)
+            )
+            e = at.createTransformedShape(
+                Ellipse2D.Double(
+                    (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                    (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                    numberDim.width.toDouble() / ssDrawing.zoomLevel,
+                    numberDim.width.toDouble() / ssDrawing.zoomLevel
+                )
+            )
+        }
+
+        if (e != null && p != null) {
+            val transX = (e!!.bounds2D.width - numberDim.width.toDouble()).toFloat() / 2F
+            val transY = (e!!.bounds2D.height + numberDim.height.toDouble()).toFloat() / 2F
+            val cp =
+                crossProduct(center, Point2D.Double(center.x, center.y - 20), (p as Pair<Point2D, Point2D>).first)
+            if (cp >= 0) {
+                g.drawString(
+                    "$absPos".substring(0, 1),
+                    e!!.bounds2D.minX.toFloat() + transX,
+                    e!!.bounds2D.minY.toFloat() + transY
+                )
+                var i = 1
+                while (i < n) {
+                    var _p = pointsFrom(
+                        Point2D.Double(
+                            (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                            (p as Pair<Point2D, Point2D>).first.y
+                        ),
+                        Point2D.Double(
+                            (p as Pair<Point2D, Point2D>).first.x + numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                            (p as Pair<Point2D, Point2D>).first.y
+                        ),
+                        -(2 * (i - 1) + 1) * numberDim.width / (2.0 * ssDrawing.zoomLevel)
+                    )
+                    e = at.createTransformedShape(
+                        Ellipse2D.Double(
+                            _p.second.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                            _p.second.y - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                            numberDim.width / ssDrawing.zoomLevel,
+                            numberDim.width / ssDrawing.zoomLevel
+                        )
+                    )
+                    g.drawString(
+                        "$absPos".substring(i, i + 1),
+                        e!!.bounds2D.minX.toFloat() + transX,
+                        e!!.bounds2D.minY.toFloat() + transY
+                    )
+                    i++
+                }
+            } else {
+                g.drawString(
+                    "$absPos".substring(n - 1, n),
+                    e!!.bounds2D.minX.toFloat() + transX,
+                    e!!.bounds2D.minY.toFloat() + transY
+                )
+                var i = 1
+                while (i < n) {
+                    var _p = pointsFrom(
+                        Point2D.Double(
+                            (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                            (p as Pair<Point2D, Point2D>).first.y
+                        ),
+                        Point2D.Double(
+                            (p as Pair<Point2D, Point2D>).first.x + numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                            (p as Pair<Point2D, Point2D>).first.y
+                        ),
+                        -(2 * (i - 1) + 1) * numberDim.width / (2.0 * ssDrawing.zoomLevel)
+                    )
+                    e = at.createTransformedShape(
+                        Ellipse2D.Double(
+                            _p.first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                            _p.first.y - numberDim.width / (2.0 * ssDrawing.zoomLevel),
+                            numberDim.width / ssDrawing.zoomLevel,
+                            numberDim.width / ssDrawing.zoomLevel
+                        )
+                    )
+                    g.drawString(
+                        "$absPos".substring(n - 1 - i, n - i),
+                        e!!.bounds2D.minX.toFloat() + transX,
+                        e!!.bounds2D.minY.toFloat() + transY
+                    )
+                    i++
+                }
+            }
+
+        }
+
+        g.font = Font(g.font.fontName, g.font.style, g.font.size + 4)
 
     }
 
@@ -1837,7 +1846,9 @@ class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, private val pknot: Pkno
     }
 }
 
-abstract class StructuralDomainDrawing(ssDrawing:SecondaryStructureDrawing, parent:DrawingElement?, name:String, location:Location, type:SecondaryStructureType):DrawingElement(ssDrawing, parent, name, location, type)
+abstract class StructuralDomainDrawing(ssDrawing:SecondaryStructureDrawing, parent:DrawingElement?, name:String, location:Location, type:SecondaryStructureType):DrawingElement(ssDrawing, parent, name, location, type) {
+
+}
 
 class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructureDrawing, val helix: Helix, start: Point2D, end: Point2D) : StructuralDomainDrawing(ssDrawing, parent, helix.name, helix.location, SecondaryStructureType.Helix) {
 
@@ -1857,7 +1868,10 @@ class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructure
     val length: Int
         get() = this.helix.length
 
-   override  fun inside(location:Location) = ends.all { location.contains(it) }
+    val maxBranchLength:Int
+        get() = this.helix.maxBranchLength
+
+    override fun inside(location:Location) = ends.all { location.contains(it) }
 
     override val selectionPoints:List<Point2D>
         get() {
@@ -2081,96 +2095,25 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
     val connectors: Array<Point2D> = Array(ConnectorId.values().size, { Point2D.Float(0F, 0F) }) //the connector points on the circle
     private val residuesWithClosingBasePairs: List<ResidueDrawing> = this.ssDrawing.getResiduesFromAbsPositions(*this.junction.location.positions.toIntArray())
 
-    var layout: MutableList<ConnectorId>? = defaultLayouts[this.junction.junctionType]?.toMutableList()
+    /**
+     * The absolute layout defined by the used or computed after the init. Each connector id is recomputed according to the position of the inId dor this junction.
+     */
+    var currentLayout = mutableListOf<ConnectorId>()
         set(value) {
-            //we order the helices according to the start but with inHelix as the first one
-            val sortedHelix = this.junction.helicesLinked.sortedBy { it.start - (this.parent as HelixDrawing).helix.start }
             field = value
-            //we change the entry point for each connected circle, we update the self.connectedCircles dict and we warn the connected circles that their entry point has been changed (we call their setEntryPoint() function)
-            var newConnectedJunctions = mutableMapOf<ConnectorId, JunctionDrawing>() //we need to store the new connections in a temp dict otherwise the update of a connection could remove an old connection stored and not already checked.
-            //this.helices = mutableListOf<HelixLine>()
-            var helixRank = 0
-            for (helix in sortedHelix) {
-                if (helix != (this.parent as HelixDrawing).helix) {
-                    helixRank += 1
-                    var inPoint: Point2D?
-                    val outId = getOutId(helixRank)
-
-                    if (outId != null) {
-                        //we compute the inPoint (center - self.connectors[connectorId] -[length helix*offset]- inPoint)
-                        inPoint = pointsFrom(
-                                this.center,
-                                this.connectors[outId.value],
-                                -helixDrawingLength(helix)
-                        ).second
-
-                        if (helix.junctionsLinked.first != null && helix.junctionsLinked.first != this.junction) {
-                            //we search the circle already connected for this helix
-                            lateinit var connectedJunction: MutableMap.MutableEntry<ConnectorId, JunctionDrawing>
-                            for (c in this.connectedJunctions) {
-                                if (c.value.location == helix.junctionsLinked.first!!.location) {
-                                    connectedJunction = c
-                                    break
-                                }
-                            }
-
-                            //we record its outId
-                            newConnectedJunctions[outId] = connectedJunction.value
-                            for (h in this.outHelices) {
-                                if (h.helix == helix) {
-                                    h.line = Line2D.Double(this.connectors[outId.value], inPoint)
-                                    break
-                                }
-                            }
-
-                            connectedJunction.value.setEntryPoint(
-                                    oppositeConnectorId(
-                                            outId
-                                    ), inPoint)
-                        } else if (helix.junctionsLinked.second != null && helix.junctionsLinked.second != this.junction) {
-                            //we search the circle already connected for this helix
-                            lateinit var connectedJunction: MutableMap.MutableEntry<ConnectorId, JunctionDrawing>
-                            for (c in this.connectedJunctions) {
-                                if (c.value.location == helix.junctionsLinked.second!!.location) {
-                                    connectedJunction = c
-                                    break
-                                }
-                            }
-
-                            //we record its outId
-                            newConnectedJunctions[outId] = connectedJunction.value
-                            for (h in this.outHelices) {
-                                if (h.helix == helix) {
-                                    h.line = Line2D.Double(this.connectors[outId.value], inPoint)
-                                    break
-                                }
-                            }
-
-                            connectedJunction.value.setEntryPoint(
-                                    getConnectorId(
-                                            (outId.value + ConnectorId.values().size / 2) % ConnectorId.values().size
-                                    ), inPoint)
-                        }
-
-                    }
-                }
-            }
-            //last step, we substitute the connected circles for the new ones
-            this.connectedJunctions = newConnectedJunctions
+            this.update()
         }
+
     var radius: Double = 0.0
         set(value) {
             field = value
-            this.center = centerFrom(
-                    this.inId,
-                    this.connectors[this.inId.value],
-                    this.radius
-            )
-            this.computeCircle()
+            this.update()
         }
+
+
     lateinit var center: Point2D
     lateinit var circle: Ellipse2D
-    private val previousJunction = previousJunction //allows to get some info backward. For example, useful for an InnerLoop to check the previous orientation in order to keep it if the inID is .o or .e (instead to choose .n in any case)
+    val previousJunction = previousJunction //allows to get some info backward. For example, useful for an InnerLoop to check the previous orientation in order to keep it if the inID is .o or .e (instead to choose .n in any case)
 
     val minX: Double
         get() {
@@ -2218,6 +2161,9 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
     val end: Int
         get() = this.junction.end
 
+    val maxBranchLength:Int
+        get() = this.junction.maxBranchLength
+
     init {
         this.residues = this.ssDrawing.getResiduesFromAbsPositions(*this.junction.locationWithoutSecondaries.positions.toIntArray())
         this.connectors[this.inId.value] = inPoint
@@ -2226,12 +2172,10 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
         this.radius = circumference / (2F * Math.PI).toDouble()
         circlesFromBranchSoFar.add(Triple<Point2D, Double, Ellipse2D>(this.center, this.radius, this.circle)) //this array allows to get easily the shapes already drawn for the branch in order to avoid overlaps with the shapes for this junction
 
-        val sortedHelix = this.junction.helicesLinked.sortedBy { it.start }
-
         var helixRank = 0
 
-        for (k in 1..sortedHelix.size + 1) {
-            val helix = sortedHelix[(sortedHelix.indexOf(inHelix) + k) % sortedHelix.size]
+        for (k in 1..this.junction.helicesLinked.size + 1) {
+            val helix = this.junction.helicesLinked[(this.junction.helicesLinked.indexOf(inHelix) + k) % this.junction.helicesLinked.size]
             if (helix == (this.parent as HelixDrawing).helix) {
                 break
             }
@@ -2239,60 +2183,13 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
             helixRank += 1
             var inPoint: Point2D
 
-            var outId = getOutId(helixRank)
+            var outId = junctionsBehaviors[this.junctionType]?.let { it(this, helixRank) }
 
-            /*if (this.junctionType == JunctionType.InnerLoop && (this.junction.location.blocks[0].length < 5 || this.junction.location.blocks[1].length < 5)) {
-                outId = oppositeConnectorId(inId)
-            } else*/ if (this.junctionType == JunctionType.InnerLoop) {
-                when (inId) {
-                    ConnectorId.ssw -> outId =
-                            ConnectorId.n
-                    ConnectorId.sw -> outId =
-                            ConnectorId.n
-                    ConnectorId.wsw -> outId =
-                            ConnectorId.n
-                    ConnectorId.w ->
-                        outId = if (this.previousJunction != null && this.previousJunction.inId.value > ConnectorId.w.value && this.previousJunction.inId.value < ConnectorId.e.value) { //we want the same orientation than for the previous junction
-                            ConnectorId.s
-                        } else {
-                            ConnectorId.n
-                        }
-                    ConnectorId.wnw -> outId =
-                            ConnectorId.s
-                    ConnectorId.nw -> outId =
-                            ConnectorId.s
-                    ConnectorId.nnw -> outId =
-                            ConnectorId.s
-                    ConnectorId.n -> outId =
-                            ConnectorId.s
-                    ConnectorId.nne -> outId =
-                            ConnectorId.s
-                    ConnectorId.ne -> outId =
-                            ConnectorId.s
-                    ConnectorId.ene -> outId =
-                            ConnectorId.s
-                    ConnectorId.e ->
-                        outId = if (this.previousJunction != null && this.previousJunction.inId.value > ConnectorId.w.value && this.previousJunction.inId.value < ConnectorId.e.value) { //we want the same orientation than for the previous junction
-                            ConnectorId.s
-                        } else {
-                            ConnectorId.n
-                        }
-                    ConnectorId.ese -> outId =
-                            ConnectorId.n
-                    ConnectorId.se -> outId =
-                            ConnectorId.n
-                    ConnectorId.sse -> outId =
-                            ConnectorId.n
-                    ConnectorId.s -> outId =
-                            ConnectorId.n
-                }
-            }
-
-            var junction: Junction? = null
+            var nextJunction: Junction? = null
             if (helix.junctionsLinked.first != null && helix.junctionsLinked.first != this.junction) {
-                junction = helix.junctionsLinked.first!!
+                nextJunction = helix.junctionsLinked.first!!
             } else if (helix.junctionsLinked.second != null && helix.junctionsLinked.second != this.junction) {
-                junction = helix.junctionsLinked.second!!
+                nextJunction = helix.junctionsLinked.second!!
             }
 
             if (outId != null) {
@@ -2302,14 +2199,14 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
                 from = if (helixRank == 1) {
                     getConnectorId((inId.value + 1) % ConnectorId.values().size)
                 } else {
-                    getConnectorId((getOutId(helixRank - 1)!!.value + 1) % ConnectorId.values().size)
+                    getConnectorId((junctionsBehaviors[this.junctionType]!!(this, helixRank - 1)!!.value + 1) % ConnectorId.values().size)
                 }
 
-                to = if (helixRank == sortedHelix.size - 1) {
+                to = if (helixRank == this.junction.helicesLinked.size - 1) {
                     val newRawValue = if (inId.value - 1 < 0) ConnectorId.values().size - 1 else inId.value - 1
                     getConnectorId(newRawValue)
                 } else {
-                    val newRawValue = if (getOutId(helixRank + 1)!!.value - 1 < 0) ConnectorId.values().size - 1 else getOutId(helixRank + 1)!!.value - 1
+                    val newRawValue = if (junctionsBehaviors[this.junctionType]!!(this, helixRank + 1)!!.value - 1 < 0) ConnectorId.values().size - 1 else junctionsBehaviors[this.junctionType]!!(this, helixRank + 1)!!.value - 1
                     getConnectorId(newRawValue)
                 }
 
@@ -2361,7 +2258,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
                             -helixDrawingLength(helix)
                     ).second
 
-                    val nextCircumference = (junction!!.length.toFloat() - (junction.junctionType.value) * 2).toFloat() * (radiusConst * 2) + (junction.junctionType.value).toFloat() * helixDrawingWidth()
+                    val nextCircumference = (nextJunction!!.length.toFloat() - (nextJunction.junctionType.value) * 2).toFloat() * (radiusConst * 2) + (nextJunction.junctionType.value).toFloat() * helixDrawingWidth()
                     val nextRadius = nextCircumference / (2F * Math.PI)
                     val nextCenter = pointsFrom(
                             this.center,
@@ -2446,23 +2343,28 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
                     ).second
                 }
 
-                //we need to update the layout with the orientation chosen
-                this.layout!![helixRank - 1] = getConnectorId((outId!!.value + ConnectorId.values().size - inId.value) % ConnectorId.values().size)
+                this.currentLayout.add(
+                    if (outId!!.value < this.inId.value)
+                        ConnectorId.values()
+                            .first { it.value ==  outId!!.value+ConnectorId.values().size-this.inId.value}
+                    else
+                    ConnectorId.values()
+                    .first { it.value == Math.abs(outId!!.value-this.inId.value)}
+                )
+
                 val h = HelixDrawing(this,
                         ssDrawing,
                         helix,
-                        this.connectors[outId.value],
+                        this.connectors[outId!!.value],
                         inPoint
                 )
-                this.outHelices.add(
-                        h
-                )
+                this.outHelices.add(h)
 
-                var points = mutableListOf<Point2D>(this.connectors[outId.value])
+                var points = mutableListOf<Point2D>(this.connectors[outId!!.value])
                 if (helix.length > 2) {
                     for (j in 1..helix.length - 2) {
                         val p = pointsFrom(
-                                p1 = this.connectors[outId.value],
+                                p1 = this.connectors[outId!!.value],
                                 p2 = inPoint,
                                 dist = j.toFloat() * helixDrawingLength(
                                         helix
@@ -2483,15 +2385,113 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
                         inId = oppositeConnectorId(outId),
                         inPoint = inPoint,
                         inHelix = helix,
-                        junction = junction
+                        junction = nextJunction
                 )
             }
         }
-        if (this.junctionType == JunctionType.ApicalLoop) {
-            val p = this.pathToRoot()
-            val branch = p[p.size-2] as Branch
-            if (p.size > branch.branchLength ) branch.branchLength = p.size
+    }
+
+    /**
+     * Update the junction if the radius, the currentLayout (outIds) or the entry point (inId) has been modified
+     */
+    fun update() {
+        this.center = centerFrom(
+            this.inId,
+            this.connectors[this.inId.value],
+            this.radius
+        )
+        this.circle = Ellipse2D.Double(this.center.x - this.radius, this.center.y - this.radius, this.radius * 2.toDouble(), this.radius * 2.toDouble())
+        //the (x,y) coords for the connectors
+        for (i in 1 until ConnectorId.values().size) {
+            this.connectors[(this.inId.value + i) % ConnectorId.values().size] =
+                rotatePoint(
+                    this.connectors[this.inId.value],
+                    this.center,
+                    i * 360.0 / ConnectorId.values().size.toDouble()
+                )
         }
+        if (currentLayout.isNotEmpty()) {
+            val sortedHelix =
+                this.junction.helicesLinked.sortedBy { it.start - (this.parent as HelixDrawing).helix.start }
+            var newConnectedJunctions =
+                mutableMapOf<ConnectorId, JunctionDrawing>() //we need to store the new connections in a temp dict otherwise the update of a connection could remove an old connection stored and not already checked.
+            var helixRank = 0
+            for (helix in sortedHelix) {
+                if (helix != (this.parent as HelixDrawing).helix) {
+                    helixRank += 1
+                    var inPoint: Point2D?
+                    val outId = ConnectorId.values()
+                        .first { it.value == (this.inId.value + this.currentLayout[helixRank - 1].value) % ConnectorId.values().size }
+
+                    if (outId != null) {
+                        //we compute the inPoint (center - self.connectors[connectorId] -[length helix*offset]- inPoint)
+                        inPoint = pointsFrom(
+                            this.center,
+                            this.connectors[outId.value],
+                            -helixDrawingLength(helix)
+                        ).second
+
+                        if (helix.junctionsLinked.first != null && helix.junctionsLinked.first != this.junction) {
+                            //we search the circle already connected for this helix
+                            lateinit var connectedJunction: MutableMap.MutableEntry<ConnectorId, JunctionDrawing>
+                            for (c in this.connectedJunctions) {
+                                if (c.value.location == helix.junctionsLinked.first!!.location) {
+                                    connectedJunction = c
+                                    break
+                                }
+                            }
+
+                            //we record its outId
+                            newConnectedJunctions[outId] = connectedJunction.value
+                            for (h in this.outHelices) {
+                                if (h.helix == helix) {
+                                    h.line = Line2D.Double(this.connectors[outId.value], inPoint)
+                                    break
+                                }
+                            }
+
+                            connectedJunction.value.setEntryPoint(
+                                oppositeConnectorId(
+                                    outId
+                                ), inPoint)
+                        } else if (helix.junctionsLinked.second != null && helix.junctionsLinked.second != this.junction) {
+                            //we search the circle already connected for this helix
+                            lateinit var connectedJunction: MutableMap.MutableEntry<ConnectorId, JunctionDrawing>
+                            for (c in this.connectedJunctions) {
+                                if (c.value.location == helix.junctionsLinked.second!!.location) {
+                                    connectedJunction = c
+                                    break
+                                }
+                            }
+
+                            //we record its outId
+                            newConnectedJunctions[outId] = connectedJunction.value
+                            for (h in this.outHelices) {
+                                if (h.helix == helix) {
+                                    h.line = Line2D.Double(this.connectors[outId.value], inPoint)
+                                    break
+                                }
+                            }
+
+                            connectedJunction.value.setEntryPoint(
+                                getConnectorId(
+                                    (outId.value + ConnectorId.values().size / 2) % ConnectorId.values().size
+                                ), inPoint)
+                        }
+
+                    }
+                }
+            }
+            //last step, we substitute the connected circles for the new ones
+            this.connectedJunctions = newConnectedJunctions
+        }
+    }
+
+    //the previous JunctionCircle has modified its link with this one.
+    private fun setEntryPoint(inId: ConnectorId, inPoint: Point2D) {
+        this.inId = inId
+        this.connectors[this.inId.value] = inPoint
+        this.update()
     }
 
     fun junctionsFromBranch(): List<JunctionDrawing> {
@@ -2511,40 +2511,6 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
             helices.addAll(j.helicesFromBranch())
         }
         return helices.toList()
-    }
-
-    fun computeCircle() {
-        this.circle = Ellipse2D.Double(this.center.x - this.radius, this.center.y - this.radius, this.radius * 2.toDouble(), this.radius * 2.toDouble())
-        //the (x,y) coords for the connectors
-        for (i in 1 until ConnectorId.values().size) {
-            this.connectors[(this.inId.value + i) % ConnectorId.values().size] =
-                rotatePoint(
-                    this.connectors[this.inId.value],
-                    this.center,
-                    i * 360.0 / ConnectorId.values().size.toDouble()
-                )
-        }
-    }
-
-    private fun getOutId(helixRank: Int) = when (this.junction.junctionType) {
-            JunctionType.ApicalLoop -> null
-            //the int in the array are the offset to be added to reach the next connectorId according to the type of junction. The new connector ID is the connector Id for the entry point + the offset of the corresponding helix rank (max:ConnectorId.count-1, if above we restart at 0). In the absolute layout, the connector ID for the entry point is lowerMiddle (0) and for the relative layout anything else.
-            JunctionType.Flower -> null
-            else -> ConnectorId.values().first { it.value == (this.inId.value + this.layout!![helixRank - 1].value) % ConnectorId.values().size }
-        }
-
-    //the previous JunctionCircle has modified its link with this one.
-    private fun setEntryPoint(inId: ConnectorId, inPoint: Point2D) {
-        this.inId = inId
-        this.connectors[this.inId.value] = inPoint
-        //the (x,y) coords for the center
-        this.center = centerFrom(
-                this.inId,
-                this.connectors[this.inId.value],
-                this.radius
-        )
-        this.computeCircle()
-        this.layout = this.layout //a trick to warn the connected circles, and so on...
     }
 
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
@@ -2603,8 +2569,6 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
 }
 
 class Branch(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing, circlesFromBranchSoFar: MutableList<Triple<Point2D, Double, Ellipse2D>>, linesFromBranchSoFar: MutableList<List<Point2D>>, inId: ConnectorId, inPoint: Point2D, inHelix: Helix,junction: Junction):JunctionDrawing(parent, ssDrawing, circlesFromBranchSoFar, linesFromBranchSoFar, null, inId, inPoint, inHelix, junction) {
-
-    var branchLength:Int = 0
 
 }
 
@@ -4013,7 +3977,7 @@ enum class ConnectorId(val value: Int) {
     sse(15);
 }
 
-fun getConnectorId(value: Int) = ConnectorId.values().first { it.value == value }
+fun getConnectorId(value: Int) = ConnectorId.values().first { it.value == (value % ConnectorId.values().size) }
 
 fun nextConnectorId(c: ConnectorId) = ConnectorId.values().first { it.value == (c.value + 1) % ConnectorId.values().size }
 
@@ -4021,110 +3985,276 @@ fun previousConnectorId(c: ConnectorId) = if (c.value - 1 < 0) ConnectorId.value
 
 fun oppositeConnectorId(c: ConnectorId) = ConnectorId.values().first { it.value == (c.value + ConnectorId.values().size / 2) % ConnectorId.values().size }
 
-typealias Layout = List<ConnectorId>
-
-/**
-Each layout direction will be reevaluated according to the inId and the helixRank. The layout is always RELATIVE to the inId.
- **/
-val defaultLayouts = mutableMapOf<JunctionType, Layout>(
-        Pair(JunctionType.InnerLoop, listOf(ConnectorId.n)),
-        Pair(
-                JunctionType.ThreeWay, listOf(
-                ConnectorId.n,
-                ConnectorId.e
-        )),
-        Pair(
-                JunctionType.FourWay, listOf(
-                ConnectorId.w,
-                ConnectorId.n,
-                ConnectorId.e
-        )),
-        Pair(
-                JunctionType.FiveWay, listOf(
-                ConnectorId.w,
-                ConnectorId.nw,
-                ConnectorId.n,
-                ConnectorId.e
-        )),
-        Pair(
-                JunctionType.SixWay, listOf(
-                ConnectorId.w,
-                ConnectorId.nw,
-                ConnectorId.n,
-                ConnectorId.ne,
-                ConnectorId.e
-        )),
-        Pair(
-                JunctionType.SevenWay, listOf(
-                ConnectorId.sw,
-                ConnectorId.w,
-                ConnectorId.nw,
-                ConnectorId.n,
-                ConnectorId.ne,
-                ConnectorId.e
-        )),
-        Pair(
-                JunctionType.EightWay, listOf(
-                ConnectorId.sw,
-                ConnectorId.w,
-                ConnectorId.nw,
-                ConnectorId.n,
-                ConnectorId.ne,
-                ConnectorId.e,
-                ConnectorId.se
-        )),
-        Pair(
-                JunctionType.NineWay, listOf(
-                ConnectorId.sw,
-                ConnectorId.w,
-                ConnectorId.nw,
-                ConnectorId.nnw,
-                ConnectorId.n,
-                ConnectorId.ne,
-                ConnectorId.e,
-                ConnectorId.se
-        )),
-        Pair(
-                JunctionType.TenWay, listOf(
-                ConnectorId.sw,
-                ConnectorId.w,
-                ConnectorId.nw,
-                ConnectorId.nnw,
-                ConnectorId.n,
-                ConnectorId.nne,
-                ConnectorId.ne,
-                ConnectorId.e,
-                ConnectorId.se
-        )),
-        Pair(
-                JunctionType.ElevenWay, listOf(
-                ConnectorId.sw,
-                ConnectorId.w,
-                ConnectorId.wnw,
-                ConnectorId.nw,
-                ConnectorId.nnw,
-                ConnectorId.n,
-                ConnectorId.nne,
-                ConnectorId.ne,
-                ConnectorId.e,
-                ConnectorId.se
-        )),
-        Pair(
-                JunctionType.TwelveWay, listOf(
-                ConnectorId.sw,
-                ConnectorId.w,
-                ConnectorId.wnw,
-                ConnectorId.nw,
-                ConnectorId.nnw,
-                ConnectorId.n,
-                ConnectorId.nne,
-                ConnectorId.ne,
-                ConnectorId.ene,
-                ConnectorId.e,
-                ConnectorId.se
-        )),
-        Pair(
-                JunctionType.ThirteenWay, listOf(
+//the different behaviors to compute the outId of an helix according to its rank for a given junction type
+val junctionsBehaviors = mutableMapOf<JunctionType, (junctionDrawing: JunctionDrawing, helixRank: Int) -> ConnectorId?>(
+    Pair(JunctionType.ApicalLoop, { junctionDrawing: JunctionDrawing, helixRank: Int -> null }),
+    Pair(JunctionType.InnerLoop, { junctionDrawing: JunctionDrawing, helixRank: Int ->
+        if (junctionDrawing.junction.location.blocks[0].length < 5 || junctionDrawing.junction.location.blocks[1].length < 5) {
+            oppositeConnectorId(junctionDrawing.inId)
+        } else {
+            when (junctionDrawing.inId) {
+                ConnectorId.ssw -> ConnectorId.n
+                ConnectorId.sw -> ConnectorId.n
+                ConnectorId.wsw -> ConnectorId.n
+                ConnectorId.w ->
+                    if (junctionDrawing.previousJunction != null && junctionDrawing.previousJunction.inId.value > ConnectorId.w.value && junctionDrawing.previousJunction.inId.value < ConnectorId.e.value) { //we want the same orientation than for the previous junction
+                        ConnectorId.s
+                    } else {
+                        ConnectorId.n
+                    }
+                ConnectorId.wnw -> ConnectorId.s
+                ConnectorId.nw -> ConnectorId.s
+                ConnectorId.nnw -> ConnectorId.s
+                ConnectorId.n -> ConnectorId.s
+                ConnectorId.nne -> ConnectorId.s
+                ConnectorId.ne -> ConnectorId.s
+                ConnectorId.ene -> ConnectorId.s
+                ConnectorId.e ->
+                    if (junctionDrawing.previousJunction != null && junctionDrawing.previousJunction.inId.value > ConnectorId.w.value && junctionDrawing.previousJunction.inId.value < ConnectorId.e.value) { //we want the same orientation than for the previous junction
+                        ConnectorId.s
+                    } else {
+                        ConnectorId.n
+                    }
+                ConnectorId.ese -> ConnectorId.n
+                ConnectorId.se -> ConnectorId.n
+                ConnectorId.sse -> ConnectorId.n
+                ConnectorId.s -> ConnectorId.n
+            }
+        }
+    }),
+    Pair(JunctionType.ThreeWay,
+        { junctionDrawing: JunctionDrawing, helixRank: Int ->
+            var outIdForLongest = ConnectorId.n
+            var longest = junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
+            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            var dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val helicesBeforelongest = longestRank -1
+            val helicesAfterlongest = junctionDrawing.junction.helicesLinked.size-longestRank-1
+            if (dist_InId_OutIdLongest < helicesBeforelongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value + helicesBeforelongest - (dist_InId_OutIdLongest))
+            } else if (16 - dist_InId_OutIdLongest-2 < helicesAfterlongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value - helicesAfterlongest - (16-dist_InId_OutIdLongest-2))
+            }
+            dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val step = dist_InId_OutIdLongest/longestRank
+            if (helixRank == longestRank) {
+                outIdForLongest
+            } else if (helixRank < longestRank) {
+                getConnectorId(junctionDrawing.inId.value + helixRank*(step+1))
+            } else {
+                getConnectorId(outIdForLongest.value + ((helixRank-longestRank)*(16-dist_InId_OutIdLongest)/(helicesAfterlongest+1)))
+            }
+        }),
+    Pair(JunctionType.FourWay,
+        { junctionDrawing: JunctionDrawing, helixRank: Int ->
+            var outIdForLongest = ConnectorId.n
+            var longest = junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
+            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            var dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val helicesBeforelongest = longestRank -1
+            val helicesAfterlongest = junctionDrawing.junction.helicesLinked.size-longestRank-1
+            if (dist_InId_OutIdLongest < helicesBeforelongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value + helicesBeforelongest - (dist_InId_OutIdLongest))
+            } else if (16 - dist_InId_OutIdLongest-2 < helicesAfterlongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value - helicesAfterlongest - (16-dist_InId_OutIdLongest-2))
+            }
+            dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val step = dist_InId_OutIdLongest/longestRank
+            if (helixRank == longestRank) {
+                outIdForLongest
+            } else if (helixRank < longestRank) {
+                getConnectorId(junctionDrawing.inId.value + helixRank*(step+1))
+            } else {
+                getConnectorId(outIdForLongest.value + ((helixRank-longestRank)*(16-dist_InId_OutIdLongest)/(helicesAfterlongest+1)))
+            }
+        }),
+    Pair(JunctionType.FiveWay,
+        { junctionDrawing: JunctionDrawing, helixRank: Int ->
+            var outIdForLongest = ConnectorId.n
+            var longest = junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
+            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            var dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val helicesBeforelongest = longestRank -1
+            val helicesAfterlongest = junctionDrawing.junction.helicesLinked.size-longestRank-1
+            if (dist_InId_OutIdLongest < helicesBeforelongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value + helicesBeforelongest - (dist_InId_OutIdLongest))
+            } else if (16 - dist_InId_OutIdLongest-2 < helicesAfterlongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value - helicesAfterlongest - (16-dist_InId_OutIdLongest-2))
+            }
+            dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val step = dist_InId_OutIdLongest/longestRank
+            if (helixRank == longestRank) {
+                outIdForLongest
+            } else if (helixRank < longestRank) {
+                getConnectorId(junctionDrawing.inId.value + helixRank*(step+1))
+            } else {
+                getConnectorId(outIdForLongest.value + ((helixRank-longestRank)*(16-dist_InId_OutIdLongest)/(helicesAfterlongest+1)))
+            }
+        }),
+    Pair(JunctionType.SixWay,
+        { junctionDrawing: JunctionDrawing, helixRank: Int ->
+            var outIdForLongest = ConnectorId.n
+            var longest = junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
+            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            var dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val helicesBeforelongest = longestRank -1
+            val helicesAfterlongest = junctionDrawing.junction.helicesLinked.size-longestRank-1
+            if (dist_InId_OutIdLongest < helicesBeforelongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value + helicesBeforelongest - (dist_InId_OutIdLongest))
+            } else if (16 - dist_InId_OutIdLongest-2 < helicesAfterlongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value - helicesAfterlongest - (16-dist_InId_OutIdLongest-2))
+            }
+            dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val step = dist_InId_OutIdLongest/longestRank
+            if (helixRank == longestRank) {
+                outIdForLongest
+            } else if (helixRank < longestRank) {
+                getConnectorId(junctionDrawing.inId.value + helixRank*(step+1))
+            } else {
+                getConnectorId(outIdForLongest.value + ((helixRank-longestRank)*(16-dist_InId_OutIdLongest)/(helicesAfterlongest+1)))
+            }
+        }),
+    Pair(JunctionType.SevenWay,
+        { junctionDrawing: JunctionDrawing, helixRank: Int ->
+            var outIdForLongest = ConnectorId.n
+            var longest = junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
+            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            var dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val helicesBeforelongest = longestRank -1
+            val helicesAfterlongest = junctionDrawing.junction.helicesLinked.size-longestRank-1
+            if (dist_InId_OutIdLongest < helicesBeforelongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value + helicesBeforelongest - (dist_InId_OutIdLongest))
+            } else if (16 - dist_InId_OutIdLongest-2 < helicesAfterlongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value - helicesAfterlongest - (16-dist_InId_OutIdLongest-2))
+            }
+            dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val step = dist_InId_OutIdLongest/longestRank
+            if (helixRank == longestRank) {
+                outIdForLongest
+            } else if (helixRank < longestRank) {
+                getConnectorId(junctionDrawing.inId.value + helixRank*(step+1))
+            } else {
+                getConnectorId(outIdForLongest.value + ((helixRank-longestRank)*(16-dist_InId_OutIdLongest)/(helicesAfterlongest+1)))
+            }
+        }),
+    Pair(JunctionType.EightWay,
+        { junctionDrawing: JunctionDrawing, helixRank: Int ->
+            var outIdForLongest = ConnectorId.n
+            var longest = junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
+            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            var dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val helicesBeforelongest = longestRank -1
+            val helicesAfterlongest = junctionDrawing.junction.helicesLinked.size-longestRank-1
+            if (dist_InId_OutIdLongest < helicesBeforelongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value + helicesBeforelongest - (dist_InId_OutIdLongest))
+            } else if (16 - dist_InId_OutIdLongest-2 < helicesAfterlongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value - helicesAfterlongest - (16-dist_InId_OutIdLongest-2))
+            }
+            dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val step = dist_InId_OutIdLongest/longestRank
+            if (helixRank == longestRank) {
+                outIdForLongest
+            } else if (helixRank < longestRank) {
+                getConnectorId(junctionDrawing.inId.value + helixRank*(step+1))
+            } else {
+                getConnectorId(outIdForLongest.value + ((helixRank-longestRank)*(16-dist_InId_OutIdLongest)/(helicesAfterlongest+1)))
+            }
+        }),
+    Pair(JunctionType.NineWay,
+        { junctionDrawing: JunctionDrawing, helixRank: Int ->
+            var outIdForLongest = ConnectorId.n
+            var longest = junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
+            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            var dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val helicesBeforelongest = longestRank -1
+            val helicesAfterlongest = junctionDrawing.junction.helicesLinked.size-longestRank-1
+            if (dist_InId_OutIdLongest < helicesBeforelongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value + helicesBeforelongest - (dist_InId_OutIdLongest))
+            } else if (16 - dist_InId_OutIdLongest-2 < helicesAfterlongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value - helicesAfterlongest - (16-dist_InId_OutIdLongest-2))
+            }
+            dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val step = dist_InId_OutIdLongest/longestRank
+            if (helixRank == longestRank) {
+                outIdForLongest
+            } else if (helixRank < longestRank) {
+                getConnectorId(junctionDrawing.inId.value + helixRank*(step+1))
+            } else {
+                getConnectorId(outIdForLongest.value + ((helixRank-longestRank)*(16-dist_InId_OutIdLongest)/(helicesAfterlongest+1)))
+            }
+        }),
+    Pair(JunctionType.TenWay,
+        { junctionDrawing: JunctionDrawing, helixRank: Int ->
+            var outIdForLongest = ConnectorId.n
+            var longest = junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
+            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            var dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val helicesBeforelongest = longestRank -1
+            val helicesAfterlongest = junctionDrawing.junction.helicesLinked.size-longestRank-1
+            if (dist_InId_OutIdLongest < helicesBeforelongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value + helicesBeforelongest - (dist_InId_OutIdLongest))
+            } else if (16 - dist_InId_OutIdLongest-2 < helicesAfterlongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value - helicesAfterlongest - (16-dist_InId_OutIdLongest-2))
+            }
+            dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val step = dist_InId_OutIdLongest/longestRank
+            if (helixRank == longestRank) {
+                outIdForLongest
+            } else if (helixRank < longestRank) {
+                getConnectorId(junctionDrawing.inId.value + helixRank*(step+1))
+            } else {
+                getConnectorId(outIdForLongest.value + ((helixRank-longestRank)*(16-dist_InId_OutIdLongest)/(helicesAfterlongest+1)))
+            }
+        }),
+    Pair(JunctionType.ElevenWay,
+        { junctionDrawing: JunctionDrawing, helixRank: Int ->
+            var outIdForLongest = ConnectorId.n
+            var longest = junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
+            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            var dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val helicesBeforelongest = longestRank -1
+            val helicesAfterlongest = junctionDrawing.junction.helicesLinked.size-longestRank-1
+            if (dist_InId_OutIdLongest < helicesBeforelongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value + helicesBeforelongest - (dist_InId_OutIdLongest))
+            } else if (16 - dist_InId_OutIdLongest-2 < helicesAfterlongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value - helicesAfterlongest - (16-dist_InId_OutIdLongest-2))
+            }
+            dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val step = dist_InId_OutIdLongest/longestRank
+            if (helixRank == longestRank) {
+                outIdForLongest
+            } else if (helixRank < longestRank) {
+                getConnectorId(junctionDrawing.inId.value + helixRank*(step+1))
+            } else {
+                getConnectorId(outIdForLongest.value + ((helixRank-longestRank)*(16-dist_InId_OutIdLongest)/(helicesAfterlongest+1)))
+            }
+        }),
+    Pair(JunctionType.TwelveWay,
+        { junctionDrawing: JunctionDrawing, helixRank: Int ->
+            var outIdForLongest = ConnectorId.n
+            var longest = junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
+            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            var dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val helicesBeforelongest = longestRank -1
+            val helicesAfterlongest = junctionDrawing.junction.helicesLinked.size-longestRank-1
+            if (dist_InId_OutIdLongest < helicesBeforelongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value + helicesBeforelongest - (dist_InId_OutIdLongest))
+            } else if (16 - dist_InId_OutIdLongest-2 < helicesAfterlongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value - helicesAfterlongest - (16-dist_InId_OutIdLongest-2))
+            }
+            dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val step = dist_InId_OutIdLongest/longestRank
+            if (helixRank == longestRank) {
+                outIdForLongest
+            } else if (helixRank < longestRank) {
+                getConnectorId(junctionDrawing.inId.value + helixRank*(step+1))
+            } else {
+                getConnectorId(outIdForLongest.value + ((helixRank-longestRank)*(16-dist_InId_OutIdLongest)/(helicesAfterlongest+1)))
+            }
+        }),
+    Pair(JunctionType.ThirteenWay,
+        { junctionDrawing: JunctionDrawing, helixRank: Int ->
+            var defaultLayout = listOf(
                 ConnectorId.sw,
                 ConnectorId.wsw,
                 ConnectorId.w,
@@ -4137,9 +4267,13 @@ val defaultLayouts = mutableMapOf<JunctionType, Layout>(
                 ConnectorId.ene,
                 ConnectorId.e,
                 ConnectorId.se
-        )),
-        Pair(
-                JunctionType.FourteenWay, listOf(
+            )
+            ConnectorId.values()
+                .first { it.value == (junctionDrawing.inId.value + defaultLayout[helixRank - 1].value) % ConnectorId.values().size }
+        }),
+    Pair(JunctionType.FourteenWay,
+        { junctionDrawing: JunctionDrawing, helixRank: Int ->
+            var defaultLayout = listOf(
                 ConnectorId.sw,
                 ConnectorId.wsw,
                 ConnectorId.w,
@@ -4153,9 +4287,13 @@ val defaultLayouts = mutableMapOf<JunctionType, Layout>(
                 ConnectorId.e,
                 ConnectorId.ese,
                 ConnectorId.se
-        )),
-        Pair(
-                JunctionType.FifthteenWay, listOf(
+            )
+            ConnectorId.values()
+                .first { it.value == (junctionDrawing.inId.value + defaultLayout[helixRank - 1].value) % ConnectorId.values().size }
+        }),
+    Pair(JunctionType.FifthteenWay,
+        { junctionDrawing: JunctionDrawing, helixRank: Int ->
+            var defaultLayout = listOf(
                 ConnectorId.ssw,
                 ConnectorId.sw,
                 ConnectorId.wsw,
@@ -4170,9 +4308,13 @@ val defaultLayouts = mutableMapOf<JunctionType, Layout>(
                 ConnectorId.e,
                 ConnectorId.ese,
                 ConnectorId.se
-        )),
-        Pair(
-                JunctionType.SixteenWay, listOf(
+            )
+            ConnectorId.values()
+                .first { it.value == (junctionDrawing.inId.value + defaultLayout[helixRank - 1].value) % ConnectorId.values().size }
+        }),
+    Pair(JunctionType.SixteenWay,
+        { junctionDrawing: JunctionDrawing, helixRank: Int ->
+            var defaultLayout = listOf(
                 ConnectorId.ssw,
                 ConnectorId.sw,
                 ConnectorId.wsw,
@@ -4188,19 +4330,11 @@ val defaultLayouts = mutableMapOf<JunctionType, Layout>(
                 ConnectorId.ese,
                 ConnectorId.se,
                 ConnectorId.sse
-        )))
-
-typealias ColorScheme = Map<SecondaryStructureType, Color>
-
-val Fall: ColorScheme = mapOf(
-        Pair(SecondaryStructureType.A, Color.BLACK),
-        Pair(SecondaryStructureType.U, Color.BLACK),
-        Pair(SecondaryStructureType.G, Color.BLACK),
-        Pair(SecondaryStructureType.C, Color.BLACK),
-        Pair(SecondaryStructureType.X, Color.BLACK),
-        Pair(SecondaryStructureType.SecondaryInteraction, Color.BLACK),
-        Pair(SecondaryStructureType.TertiaryInteraction, Color.BLACK),
-        Pair(SecondaryStructureType.PhosphodiesterBond, Color.BLACK)
+            )
+            ConnectorId.values()
+                .first { it.value == (junctionDrawing.inId.value + defaultLayout[helixRank - 1].value) % ConnectorId.values().size }
+        }),
+    Pair(JunctionType.Flower, { junctionDrawing: JunctionDrawing, helixRank: Int -> null })
 )
 
 /**

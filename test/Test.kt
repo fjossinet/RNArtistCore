@@ -14,22 +14,13 @@ class Test {
     fun testDsl() {
 
         rnartist {
-            file = "media/3way_1.svg"
+            file = "media/3way_0.svg"
             ss {
                 bracket_notation =
                     "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
             }
             theme {
                 details_lvl = 1
-            }
-
-            layout {
-
-                junction {
-                    type = 3
-                    to ="nnw nne"
-                }
-
             }
         }
 
@@ -56,7 +47,6 @@ class Test {
             layout {
 
                 junction {
-                    type = 3
                     to ="nw ne"
                 }
             }
@@ -85,7 +75,6 @@ class Test {
             layout {
 
                 junction {
-                    type = 3
                     to ="wnw ene"
                 }
             }
@@ -120,7 +109,6 @@ class Test {
             layout {
 
                 junction {
-                    type = 3
                     to ="w e"
                 }
             }
@@ -139,7 +127,6 @@ class Test {
             layout {
 
                 junction {
-                    type = 3
                     to ="w n"
                 }
             }
@@ -158,7 +145,6 @@ class Test {
             layout {
 
                 junction {
-                    type = 3
                     to ="n e"
                 }
             }
