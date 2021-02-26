@@ -1451,9 +1451,9 @@ No stable release for now, only snapshots. To use RNArtistCore in a Java applica
 
 <dependencies>
 <dependency>
-  <groupId>io.github.fjossinet.rnartist.core</groupId>
+  <groupId>io.github.fjossinet.rnartist</groupId>
   <artifactId>rnartistcore</artifactId>
-  <version>0.2.5-SNAPSHOT</version>
+  <version>0.2.7-SNAPSHOT</version>
 </dependency>
 </dependencies>
 ```
