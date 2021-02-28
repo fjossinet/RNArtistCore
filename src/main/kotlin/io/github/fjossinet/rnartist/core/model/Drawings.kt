@@ -521,8 +521,8 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
                         nextHelix.third
                 ))
 
-                var circles = mutableListOf<Triple<Point2D, Double, Ellipse2D>>()
-                var lines = mutableListOf<List<Point2D>>()
+                var circles = this.allJunctions.toMutableList()
+                var lines = this.allHelices.toMutableList()
 
                 val h = HelixDrawing(null,
                         this,
@@ -578,12 +578,14 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
                     top
                 )
 
-                //first we want to find the maxX of the previous branch to avoid an overlap with the new branch
+                //first we want to find the maxX of the previous branches to avoid an overlap with the new branch
                 var lastJunctions = mutableListOf<JunctionDrawing>()
-                lastJunctions.addAll(this.branches.last().junctionsFromBranch())
+                this.branches.forEach {
+                    lastJunctions.addAll(it.junctionsFromBranch())
+                }
 
-                var circles = mutableListOf<Triple<Point2D, Double, Ellipse2D>>()
-                var lines = mutableListOf<List<Point2D>>()
+                var circles = mutableListOf<JunctionDrawing>()
+                var lines = mutableListOf<HelixDrawing>()
                 val newBranchConstructed = Branch(h,
                         this,
                         circles,
@@ -593,39 +595,25 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
                         nextHelix.third,
                         junction
                 )
-                var minY: Double = newBranchConstructed.minY //to search for the circles from the previous branches at the same level
+
                 //first we check the circles from the last branch constructed at the same level than the new branch constructed
-                var circlesAtTheSameLevel = mutableListOf<Ellipse2D>()
-                for (lastC in lastJunctions) {
-                    if (lastC.circle.bounds.minY >= minY) {
-                        circlesAtTheSameLevel.add(lastC.circle)
+
+                val allTransX = arrayListOf<Double>()
+                allTransX.add(branches.last().maxX-bottom.x+6.0* radiusConst) //the minimal transX is half of the width of the previous branch
+
+                for (newJunction in newBranchConstructed.junctionsFromBranch()) {
+                    var circlesAtTheSameLevel = mutableListOf<JunctionDrawing>()
+                    for (lastC in lastJunctions) {
+                        if (lastC.circle.bounds.maxY >= newJunction.circle.bounds.minY && lastC.circle.bounds.minY <= newJunction.circle.bounds.maxY) {
+                            circlesAtTheSameLevel.add(lastC)
+                        }
                     }
+                    for (cATTheSameLevel in circlesAtTheSameLevel)
+                        if (cATTheSameLevel.circle.bounds.maxX > newJunction.circle.bounds.minX)
+                            allTransX.add(cATTheSameLevel.circle.bounds.maxX-newJunction.circle.bounds.minX+6.0* radiusConst)
                 }
 
-                var maxX = if (circlesAtTheSameLevel.isEmpty()) bottom.x else circlesAtTheSameLevel.maxBy { it.bounds.maxX }!!.bounds.maxX
-                maxX += 2 * radiusConst //we take care of the occupancy of a residue
-
-                //now we search for the circles of the new branch that are at the same level than the circles recovered in the step before var maxX = if (circlesAtTheSameLevel.isEmpty()) bottom.x else circlesAtTheSameLevel.maxBy { it.bounds.maxX }!!.bounds.maxX
-                val newJunctions = newBranchConstructed.junctionsFromBranch()
-
-                circlesAtTheSameLevel = mutableListOf<Ellipse2D>()
-                minY = this.branches.last().minY
-
-                for (newC in newJunctions) {
-                    if (newC.circle.bounds.minY >= minY) {
-                        circlesAtTheSameLevel.add(newC.circle)
-                    }
-                }
-
-                var minX = if (circlesAtTheSameLevel.isEmpty()) bottom.x else circlesAtTheSameLevel.minBy { it.bounds.minX }!!.bounds.minX
-
-                minX -= 2 * radiusConst //we take care of the occupancy of a residue
-
-                var transX = maxX - bottom.x
-
-                if (minX + transX < maxX) { //if despite the transX that will be applied, thhe minX of the new branch is still on the left of the maxX of the previous branches
-                    transX += maxX - (minX + transX)
-                }
+                var transX = allTransX.max()!!
 
                 if (this.fitToResiduesBetweenBranches) {
                     val minimalTransX = (nextHelix.first - currentPos + 2) * radiusConst * 2
@@ -660,8 +648,8 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
                     top
                 )
 
-                circles = arrayListOf<Triple<Point2D, Double, Ellipse2D>>()
-                lines = arrayListOf<List<Point2D>>()
+                circles = this.allJunctions.toMutableList()
+                lines = this.allHelices.toMutableList()
 
                 lastBranchConstructed = Branch(h,
                         this,
@@ -1183,8 +1171,6 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
                         p2 = this.residues[b.start - 1].center,
                         p3 = this.residues[b.end - 1].center
                 )
-                println(j.name)
-                println(cp)
                 if (cp < 0) {
                     angle -= 360
                     //we need to check if we are in the case where an helix crossed another one and then place the residues in between wrongly. The trick is to measure if the distance on the first residue in between is larger than the distance between the ends of the block
@@ -2085,7 +2071,7 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
     }
 }
 
-open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing, circlesFromBranchSoFar: MutableList<Triple<Point2D, Double, Ellipse2D>>, linesFromBranchSoFar: MutableList<List<Point2D>>, previousJunction: JunctionDrawing? = null, var inId: ConnectorId, inPoint: Point2D, val inHelix: Helix, val junction: Junction) : StructuralDomainDrawing(ssDrawing, parent, junction.name, junction.location, SecondaryStructureType.Junction) {
+open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing, circlesFromBranchSoFar: MutableList<JunctionDrawing>, linesFromBranchSoFar: MutableList<HelixDrawing>, previousJunction: JunctionDrawing? = null, var inId: ConnectorId, inPoint: Point2D, val inHelix: Helix, val junction: Junction) : StructuralDomainDrawing(ssDrawing, parent, junction.name, junction.location, SecondaryStructureType.Junction) {
 
     private val noOverlapWithLines = true
     private val noOverlapWithCircles = true
@@ -2170,7 +2156,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
         //we compute the initial radius according to the junction length and type
         val circumference = (this.junction.length.toFloat() - this.junction.junctionType.value * 2).toFloat() * (radiusConst * 2).toFloat() + this.junction.junctionType.value * helixDrawingWidth()
         this.radius = circumference / (2F * Math.PI).toDouble()
-        circlesFromBranchSoFar.add(Triple<Point2D, Double, Ellipse2D>(this.center, this.radius, this.circle)) //this array allows to get easily the shapes already drawn for the branch in order to avoid overlaps with the shapes for this junction
+        circlesFromBranchSoFar.add(this) //this array allows to get easily the shapes already drawn for the branch in order to avoid overlaps with the shapes for this junction
 
         var helixRank = 0
 
@@ -2267,56 +2253,40 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
                     ).second
                     val nextCircle = Ellipse2D.Double(nextCenter.x - nextRadius, nextCenter.y - nextRadius, nextRadius * 2F, nextRadius * 2F)
 
-                    val nextLine = Line2D.Double(this.connectors[outId.value], inPoint)
-
                     var nextPoints = mutableListOf<Point2D>()
-                    val points = pointsFrom(
-                            this.connectors[outId.value],
-                            inPoint,
-                            radiusConst
-                    ) //i cannot use the ends of the line since they are also in their connected circles (so overlap de facto)
-                    nextPoints.add(points.first)
-                    nextPoints.add(points.second)
-
-                    if (helix.length > 2) {
-                        for (j in 1..helix.length - 2) {
-                            val p = pointsFrom(
-                                    this.connectors[outId.value],
-                                    inPoint,
-                                    j.toFloat() * helixDrawingLength(
-                                            helix
-                                    ) / helix.length.toFloat()
-                            ).second
-                            nextPoints.add(p)
-                        }
-                    }
+                    nextPoints.add(this.connectors[outId.value])
+                    nextPoints.add(inPoint)
 
                     if (this.noOverlapWithCircles) {
-                        outerloop@ for ((center, radius, circle) in circlesFromBranchSoFar) {
-                            if (intersects(
-                                            nextCenter,
-                                            nextRadius + radiusConst * 2,
-                                            center,
-                                            radius
-                                    )
-                            ) {
+                        outerloop@ for (junctionDrawing in circlesFromBranchSoFar) {
+                            if (junctionDrawing.circle.bounds2D.intersects(nextCircle.bounds2D)) {
                                 fine = false
                                 break@outerloop
                             }
-                            for (p in nextPoints) {
-                                if (circle.contains(p)) {
-                                    fine = false
-                                    break@outerloop
-                                }
+                            var diameter1 = Line2D.Double(junctionDrawing.center.x, junctionDrawing.center.y-junctionDrawing.radius, junctionDrawing.center.x, junctionDrawing.center.y+junctionDrawing.radius)
+                            var diameter2 = Line2D.Double(junctionDrawing.center.x-junctionDrawing.radius, junctionDrawing.center.y, junctionDrawing.center.x+junctionDrawing.radius, junctionDrawing.center.y)
+                            if (intersects(
+                                    nextPoints.first(),
+                                    nextPoints.last(),
+                                    diameter1.p1,
+                                    diameter1.p2
+                                ) || intersects(
+                                    nextPoints.first(),
+                                    nextPoints.last(),
+                                    diameter2.p1,
+                                    diameter2.p2
+                                ) ) {
+                                fine = false
+                                break@outerloop
                             }
                         }
                     }
 
                     if (fine && this.noOverlapWithLines) {
-                        outerloop@ for (pts in linesFromBranchSoFar) {
+                        outerloop@ for (helixDrawing in linesFromBranchSoFar) {
                             if (!nextPoints.isEmpty() && intersects(
-                                            pts.first(),
-                                            pts.last(),
+                                    helixDrawing.line.p1,
+                                    helixDrawing.line.p2,
                                             nextPoints.first(),
                                             nextPoints.last()
                                     )
@@ -2324,11 +2294,22 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
                                 fine = false
                                 break@outerloop
                             }
-                            for (p in pts)
-                                if (nextCircle.contains(p)) {
-                                    fine = false
-                                    break@outerloop
-                                }
+                            var diameter1 = Line2D.Double(nextCenter.x, nextCenter.y-nextRadius, nextCenter.x, nextCenter.y+nextRadius)
+                            var diameter2 = Line2D.Double(nextCenter.x-nextRadius, nextCenter.y, nextCenter.x+nextRadius, nextCenter.y)
+                            if (intersects(
+                                    helixDrawing.line.p1,
+                                    helixDrawing.line.p2,
+                                    diameter1.p1,
+                                    diameter1.p2
+                                ) || intersects(
+                                    helixDrawing.line.p1,
+                                    helixDrawing.line.p2,
+                                    diameter2.p1,
+                                    diameter2.p2
+                                ) ) {
+                                fine = false
+                                break@outerloop
+                            }
                         }
                     }
                     i += 1
@@ -2360,22 +2341,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
                 )
                 this.outHelices.add(h)
 
-                var points = mutableListOf<Point2D>(this.connectors[outId!!.value])
-                if (helix.length > 2) {
-                    for (j in 1..helix.length - 2) {
-                        val p = pointsFrom(
-                                p1 = this.connectors[outId!!.value],
-                                p2 = inPoint,
-                                dist = j.toFloat() * helixDrawingLength(
-                                        helix
-                                ) / helix.length.toFloat()
-                        ).second
-                        points.add(Point2D.Double(p.x, p.y))
-                    }
-                }
-                points.add(inPoint)
-
-                linesFromBranchSoFar.add(points)
+                linesFromBranchSoFar.add(h)
 
                 this.connectedJunctions[outId] = JunctionDrawing(h,
                         ssDrawing,
@@ -2568,7 +2534,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
     }
 }
 
-class Branch(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing, circlesFromBranchSoFar: MutableList<Triple<Point2D, Double, Ellipse2D>>, linesFromBranchSoFar: MutableList<List<Point2D>>, inId: ConnectorId, inPoint: Point2D, inHelix: Helix,junction: Junction):JunctionDrawing(parent, ssDrawing, circlesFromBranchSoFar, linesFromBranchSoFar, null, inId, inPoint, inHelix, junction) {
+class Branch(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing, circlesFromBranchSoFar: MutableList<JunctionDrawing>, linesFromBranchSoFar: MutableList<HelixDrawing>, inId: ConnectorId, inPoint: Point2D, inHelix: Helix,junction: Junction):JunctionDrawing(parent, ssDrawing, circlesFromBranchSoFar, linesFromBranchSoFar, null, inId, inPoint, inHelix, junction) {
 
 }
 
@@ -3989,9 +3955,9 @@ fun oppositeConnectorId(c: ConnectorId) = ConnectorId.values().first { it.value 
 val junctionsBehaviors = mutableMapOf<JunctionType, (junctionDrawing: JunctionDrawing, helixRank: Int) -> ConnectorId?>(
     Pair(JunctionType.ApicalLoop, { junctionDrawing: JunctionDrawing, helixRank: Int -> null }),
     Pair(JunctionType.InnerLoop, { junctionDrawing: JunctionDrawing, helixRank: Int ->
-        if (junctionDrawing.junction.location.blocks[0].length < 5 || junctionDrawing.junction.location.blocks[1].length < 5) {
+        /*if (junctionDrawing.junction.location.blocks[0].length < 5 || junctionDrawing.junction.location.blocks[1].length < 5) {
             oppositeConnectorId(junctionDrawing.inId)
-        } else {
+        } else {*/
             when (junctionDrawing.inId) {
                 ConnectorId.ssw -> ConnectorId.n
                 ConnectorId.sw -> ConnectorId.n
@@ -4020,7 +3986,7 @@ val junctionsBehaviors = mutableMapOf<JunctionType, (junctionDrawing: JunctionDr
                 ConnectorId.sse -> ConnectorId.n
                 ConnectorId.s -> ConnectorId.n
             }
-        }
+       /* }*/
     }),
     Pair(JunctionType.ThreeWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
@@ -4254,85 +4220,95 @@ val junctionsBehaviors = mutableMapOf<JunctionType, (junctionDrawing: JunctionDr
         }),
     Pair(JunctionType.ThirteenWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
-            var defaultLayout = listOf(
-                ConnectorId.sw,
-                ConnectorId.wsw,
-                ConnectorId.w,
-                ConnectorId.wnw,
-                ConnectorId.nw,
-                ConnectorId.nnw,
-                ConnectorId.n,
-                ConnectorId.nne,
-                ConnectorId.ne,
-                ConnectorId.ene,
-                ConnectorId.e,
-                ConnectorId.se
-            )
-            ConnectorId.values()
-                .first { it.value == (junctionDrawing.inId.value + defaultLayout[helixRank - 1].value) % ConnectorId.values().size }
+            var outIdForLongest = ConnectorId.n
+            var longest = junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
+            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            var dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val helicesBeforelongest = longestRank -1
+            val helicesAfterlongest = junctionDrawing.junction.helicesLinked.size-longestRank-1
+            if (dist_InId_OutIdLongest < helicesBeforelongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value + helicesBeforelongest - (dist_InId_OutIdLongest))
+            } else if (16 - dist_InId_OutIdLongest-2 < helicesAfterlongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value - helicesAfterlongest - (16-dist_InId_OutIdLongest-2))
+            }
+            dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val step = dist_InId_OutIdLongest/longestRank
+            if (helixRank == longestRank) {
+                outIdForLongest
+            } else if (helixRank < longestRank) {
+                getConnectorId(junctionDrawing.inId.value + helixRank*(step+1))
+            } else {
+                getConnectorId(outIdForLongest.value + ((helixRank-longestRank)*(16-dist_InId_OutIdLongest)/(helicesAfterlongest+1)))
+            }
         }),
     Pair(JunctionType.FourteenWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
-            var defaultLayout = listOf(
-                ConnectorId.sw,
-                ConnectorId.wsw,
-                ConnectorId.w,
-                ConnectorId.wnw,
-                ConnectorId.nw,
-                ConnectorId.nnw,
-                ConnectorId.n,
-                ConnectorId.nne,
-                ConnectorId.ne,
-                ConnectorId.ene,
-                ConnectorId.e,
-                ConnectorId.ese,
-                ConnectorId.se
-            )
-            ConnectorId.values()
-                .first { it.value == (junctionDrawing.inId.value + defaultLayout[helixRank - 1].value) % ConnectorId.values().size }
+            var outIdForLongest = ConnectorId.n
+            var longest = junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
+            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            var dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val helicesBeforelongest = longestRank -1
+            val helicesAfterlongest = junctionDrawing.junction.helicesLinked.size-longestRank-1
+            if (dist_InId_OutIdLongest < helicesBeforelongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value + helicesBeforelongest - (dist_InId_OutIdLongest))
+            } else if (16 - dist_InId_OutIdLongest-2 < helicesAfterlongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value - helicesAfterlongest - (16-dist_InId_OutIdLongest-2))
+            }
+            dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val step = dist_InId_OutIdLongest/longestRank
+            if (helixRank == longestRank) {
+                outIdForLongest
+            } else if (helixRank < longestRank) {
+                getConnectorId(junctionDrawing.inId.value + helixRank*(step+1))
+            } else {
+                getConnectorId(outIdForLongest.value + ((helixRank-longestRank)*(16-dist_InId_OutIdLongest)/(helicesAfterlongest+1)))
+            }
         }),
     Pair(JunctionType.FifthteenWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
-            var defaultLayout = listOf(
-                ConnectorId.ssw,
-                ConnectorId.sw,
-                ConnectorId.wsw,
-                ConnectorId.w,
-                ConnectorId.wnw,
-                ConnectorId.nw,
-                ConnectorId.nnw,
-                ConnectorId.n,
-                ConnectorId.nne,
-                ConnectorId.ne,
-                ConnectorId.ene,
-                ConnectorId.e,
-                ConnectorId.ese,
-                ConnectorId.se
-            )
-            ConnectorId.values()
-                .first { it.value == (junctionDrawing.inId.value + defaultLayout[helixRank - 1].value) % ConnectorId.values().size }
+            var outIdForLongest = ConnectorId.n
+            var longest = junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
+            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            var dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val helicesBeforelongest = longestRank -1
+            val helicesAfterlongest = junctionDrawing.junction.helicesLinked.size-longestRank-1
+            if (dist_InId_OutIdLongest < helicesBeforelongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value + helicesBeforelongest - (dist_InId_OutIdLongest))
+            } else if (16 - dist_InId_OutIdLongest-2 < helicesAfterlongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value - helicesAfterlongest - (16-dist_InId_OutIdLongest-2))
+            }
+            dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val step = dist_InId_OutIdLongest/longestRank
+            if (helixRank == longestRank) {
+                outIdForLongest
+            } else if (helixRank < longestRank) {
+                getConnectorId(junctionDrawing.inId.value + helixRank*(step+1))
+            } else {
+                getConnectorId(outIdForLongest.value + ((helixRank-longestRank)*(16-dist_InId_OutIdLongest)/(helicesAfterlongest+1)))
+            }
         }),
     Pair(JunctionType.SixteenWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
-            var defaultLayout = listOf(
-                ConnectorId.ssw,
-                ConnectorId.sw,
-                ConnectorId.wsw,
-                ConnectorId.w,
-                ConnectorId.wnw,
-                ConnectorId.nw,
-                ConnectorId.nnw,
-                ConnectorId.n,
-                ConnectorId.nne,
-                ConnectorId.ne,
-                ConnectorId.ene,
-                ConnectorId.e,
-                ConnectorId.ese,
-                ConnectorId.se,
-                ConnectorId.sse
-            )
-            ConnectorId.values()
-                .first { it.value == (junctionDrawing.inId.value + defaultLayout[helixRank - 1].value) % ConnectorId.values().size }
+            var outIdForLongest = ConnectorId.n
+            var longest = junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
+            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            var dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val helicesBeforelongest = longestRank -1
+            val helicesAfterlongest = junctionDrawing.junction.helicesLinked.size-longestRank-1
+            if (dist_InId_OutIdLongest < helicesBeforelongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value + helicesBeforelongest - (dist_InId_OutIdLongest))
+            } else if (16 - dist_InId_OutIdLongest-2 < helicesAfterlongest) {
+                outIdForLongest = getConnectorId(outIdForLongest.value - helicesAfterlongest - (16-dist_InId_OutIdLongest-2))
+            }
+            dist_InId_OutIdLongest = if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value +  outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value-1
+            val step = dist_InId_OutIdLongest/longestRank
+            if (helixRank == longestRank) {
+                outIdForLongest
+            } else if (helixRank < longestRank) {
+                getConnectorId(junctionDrawing.inId.value + helixRank*(step+1))
+            } else {
+                getConnectorId(outIdForLongest.value + ((helixRank-longestRank)*(16-dist_InId_OutIdLongest)/(helicesAfterlongest+1)))
+            }
         }),
     Pair(JunctionType.Flower, { junctionDrawing: JunctionDrawing, helixRank: Int -> null })
 )
