@@ -599,7 +599,8 @@ rnartist {
     layout {
 
         junction {
-            to ="nnw nne"
+            type = 3
+            out_ids ="nnw nne"
         }
 
     }
@@ -618,7 +619,8 @@ rnartist {
     layout {
 
         junction {
-            to ="nw ne"
+            type = 3
+            out_ids ="nw ne"
         }
     }
 }
@@ -636,7 +638,8 @@ rnartist {
     layout {
 
         junction {
-            to ="wnw ene"
+            type = 3
+            out_ids ="wnw ene"
         }
     }
 }
@@ -654,7 +657,8 @@ rnartist {
     layout {
 
         junction {
-            to ="w e"
+            type = 3
+            out_ids ="w e"
         }
     }
 }
@@ -672,7 +676,8 @@ rnartist {
     layout {
 
         junction {
-            to ="w n"
+            type = 3
+            out_ids ="w n"
         }
     }
 }
@@ -690,7 +695,8 @@ rnartist {
     layout {
 
         junction {
-            to ="n e"
+            type = 3
+            out_ids ="n e"
         }
     }
 }
@@ -718,7 +724,8 @@ rnartist {
     layout {
 
         junction {
-            to ="nw ne"
+            type = 3
+            out_ids ="nw ne"
         }
 
     }

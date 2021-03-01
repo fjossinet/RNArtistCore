@@ -1122,8 +1122,8 @@ The rnartist drawing algorithm computes the layout to avoid overlapping of 2D ob
 
 
 You can redefine the default layout for each type of junction by adding one or several **```junction```** elements to the layout. A **```junction```** element has the following parameters:
-* **```type```**: the type of the junction (2 for inner loops, 3 for 3-way junctions,...)
-* **```to```**: the compass directions for the leaving helices
+* **```type```**: the type of the junction (1 for apical loops, 2 for inner loops, 3 for 3-way junctions,...)
+* **```out_ids```**: the compass directions for the leaving helices
 
 In the following examples, you can see the different results when we modify the layout for the 3-way junctions.
 
@@ -1142,7 +1142,7 @@ rnartist {
 
         junction {
             type = 3
-            to ="nnw nne"
+            out_ids ="nnw nne"
         }
 
     }
@@ -1166,7 +1166,7 @@ rnartist {
 
         junction {
             type = 3
-            to ="nw ne"
+            out_ids ="nw ne"
         }
 
     }
@@ -1190,7 +1190,7 @@ rnartist {
 
         junction {
             type = 3
-            to ="wnw ene"
+            out_ids ="wnw ene"
         }
 
     }
@@ -1214,7 +1214,7 @@ rnartist {
 
         junction {
             type = 3
-            to ="w e"
+            out_ids ="w e"
         }
 
     }
@@ -1238,7 +1238,7 @@ rnartist {
 
         junction {
             type = 3
-            to ="w n"
+            out_ids ="w n"
         }
 
     }
@@ -1262,7 +1262,7 @@ rnartist {
 
         junction {
             type = 3
-            to ="n e"
+            out_ids ="n e"
         }
 
     }
@@ -1298,7 +1298,7 @@ rnartist {
 
         junction {
             type = 3
-            to ="nw ne"
+            out_ids ="nw ne"
         }
 
     }

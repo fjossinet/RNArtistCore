@@ -6,22 +6,22 @@ import java.awt.Color
 import java.awt.geom.Point2D
 import java.io.File
 
-listOf<Int>(11, 17, 36, 457).forEach {
+listOf<Int>(11, 17, 36, 457, 1071).forEach {
     val rfamID = "RF${"%05d".format(it)}"
     println(rfamID)
     val outputFile = "/Users/fjossinet/Downloads/${rfamID}_rnartist.svg"
     if (!File("/Users/fjossinet/Downloads/${rfamID}_rnartist_consensus.svg").exists()) {
         try {
-            /*booquet {
-            file = "/Users/fjossinet/Downloads/${rfamID}_booquet.svg"
-            junction_diameter = 15.0
-            ss {
-                rfam {
-                    id = rfamID
-                    name="consensus"
+            booquet {
+                file = "/Users/fjossinet/Downloads/${rfamID}_booquet.svg"
+                junction_diameter = 15.0
+                ss {
+                    rfam {
+                        id = rfamID
+                        name="consensus"
+                    }
                 }
             }
-        }*/
             rnartist {
                 file = outputFile
                 ss {

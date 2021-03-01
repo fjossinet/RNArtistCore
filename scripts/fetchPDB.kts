@@ -23,93 +23,93 @@ val colorScheme = "Persian Carolina"
 val t = Theme()
 t.setConfigurationFor(
     SecondaryStructureType.Helix,
-    DrawingConfigurationParameter.fulldetails,
+    ThemeParameter.fulldetails,
     "true"
 )
 t.setConfigurationFor(
     SecondaryStructureType.SecondaryInteraction,
-    DrawingConfigurationParameter.fulldetails,
+    ThemeParameter.fulldetails,
     "true"
 )
 t.setConfigurationFor(
     SecondaryStructureType.SingleStrand,
-    DrawingConfigurationParameter.fulldetails,
+    ThemeParameter.fulldetails,
     "true"
 )
 t.setConfigurationFor(
     SecondaryStructureType.PKnot,
-    DrawingConfigurationParameter.fulldetails,
+    ThemeParameter.fulldetails,
     "true"
 )
 t.setConfigurationFor(
     SecondaryStructureType.InteractionSymbol,
-    DrawingConfigurationParameter.fulldetails,
+    ThemeParameter.fulldetails,
     "true"
 )
 t.setConfigurationFor(
     SecondaryStructureType.PhosphodiesterBond,
-    DrawingConfigurationParameter.fulldetails,
+    ThemeParameter.fulldetails,
     "true"
 )
 t.setConfigurationFor(
     SecondaryStructureType.Junction,
-    DrawingConfigurationParameter.fulldetails,
+    ThemeParameter.fulldetails,
     "true"
 )
 t.setConfigurationFor(
     SecondaryStructureType.AShape,
-    DrawingConfigurationParameter.fulldetails,
+    ThemeParameter.fulldetails,
     "true"
 )
 t.setConfigurationFor(
     SecondaryStructureType.UShape,
-    DrawingConfigurationParameter.fulldetails,
+    ThemeParameter.fulldetails,
     "true"
 )
 t.setConfigurationFor(
     SecondaryStructureType.GShape,
-    DrawingConfigurationParameter.fulldetails,
+    ThemeParameter.fulldetails,
     "true"
 )
 t.setConfigurationFor(
     SecondaryStructureType.CShape,
-    DrawingConfigurationParameter.fulldetails,
+    ThemeParameter.fulldetails,
     "true"
 )
 t.setConfigurationFor(
     SecondaryStructureType.XShape,
-    DrawingConfigurationParameter.fulldetails,
+    ThemeParameter.fulldetails,
     "true"
 )
 t.setConfigurationFor(
     SecondaryStructureType.A,
-    DrawingConfigurationParameter.fulldetails,
+    ThemeParameter.fulldetails,
     "true"
 )
 t.setConfigurationFor(
     SecondaryStructureType.U,
-    DrawingConfigurationParameter.fulldetails,
+    ThemeParameter.fulldetails,
     "true"
 )
 t.setConfigurationFor(
     SecondaryStructureType.G,
-    DrawingConfigurationParameter.fulldetails,
+    ThemeParameter.fulldetails,
     "true"
 )
 t.setConfigurationFor(
     SecondaryStructureType.C,
-    DrawingConfigurationParameter.fulldetails,
+    ThemeParameter.fulldetails,
     "true"
 )
 t.setConfigurationFor(
     SecondaryStructureType.X,
-    DrawingConfigurationParameter.fulldetails,
+    ThemeParameter.fulldetails,
     "true"
 )
 
 t.setConfigurationFor(
     SecondaryStructureType.TertiaryInteraction,
-    DrawingConfigurationParameter.fulldetails,
+    ThemeParameter.fulldetails,
     "true"
 )
 
@@ -117,7 +117,7 @@ RnartistConfig.colorSchemes[colorScheme]!!.forEach { elementType, config ->
     config.forEach {
         t.setConfigurationFor(
             SecondaryStructureType.valueOf(elementType),
-            DrawingConfigurationParameter.valueOf(it.key),
+            ThemeParameter.valueOf(it.key),
             it.value
         )
     }

@@ -8,7 +8,6 @@ import java.io.File
 import java.io.FileReader
 import java.lang.Exception
 import java.util.*
-import java.util.stream.Collectors
 
 class RNABuilder {
     var name:String = "A"
@@ -241,25 +240,18 @@ class RNArtistBuilder {
     var secondaryStructures = mutableListOf<SecondaryStructure>()
     var theme:AdvancedTheme? = null
     var data:MutableMap<String, Double> = mutableMapOf()
-    private var layout:SecondaryStructureLayout? = null
+    private var layout:Layout? = null
 
     fun build(): List<SecondaryStructureDrawing> {
-        this.layout?.let {
-            it.junctionLayouts.forEach { junctionLayout ->
-                junctionsBehaviors[junctionLayout.junctionType] = { junctionDrawing: JunctionDrawing, helixRank: Int ->
-                    val defaultLayout = junctionLayout.connectors
-                    ConnectorId.values()
-                        .first { it.value == (junctionDrawing.inId.value + defaultLayout[helixRank - 1].value) % ConnectorId.values().size }
-                }
-            }
-        }
         val drawings = mutableListOf<SecondaryStructureDrawing>()
         this.secondaryStructures.forEach { ss ->
             val drawing = SecondaryStructureDrawing(ss, WorkingSession())
             this.theme?.let { theme ->
                 drawing.applyAdvancedTheme(theme)
             }
-
+            this.layout?.let { layout ->
+                drawing.applyLayout(layout)
+            }
             this.file?.let { outputFile ->
                 //the frame will have the size of the drawing
                 val drawingFrame = drawing.getFrame().bounds2D
@@ -290,8 +282,8 @@ class RNArtistBuilder {
         this.theme = themeBuilder.build()
     }
 
-    fun layout(setup:SecondaryStructureLayoutBuilder.() -> Unit) {
-        val layoutBuilder = SecondaryStructureLayoutBuilder()
+    fun layout(setup:LayoutBuilder.() -> Unit) {
+        val layoutBuilder = LayoutBuilder()
         layoutBuilder.setup()
         this.layout = layoutBuilder.build()
     }
@@ -321,62 +313,72 @@ class DataBuilder {
 
 }
 
-class SecondaryStructureLayoutBuilder() {
-
-    private val junctionBuilders = mutableListOf<JunctionLayoutBuilder>()
+class LayoutBuilder {
+    private val junctionLayoutBuilders = mutableListOf<JunctionLayoutBuilder>()
 
     fun junction(setup:JunctionLayoutBuilder.() -> Unit) {
-        val junctionBuilder = JunctionLayoutBuilder()
-        this.junctionBuilders.add(junctionBuilder)
-        junctionBuilder.setup()
+        val junctionLayoutBuilder = JunctionLayoutBuilder()
+        junctionLayoutBuilder.setup()
+        this.junctionLayoutBuilders.add(junctionLayoutBuilder)
     }
 
-    fun build():SecondaryStructureLayout {
-        val ssLayout = SecondaryStructureLayout()
-        junctionBuilders.forEach { junctionBuilder ->
-            junctionBuilder.to?.let { compass ->
-                ssLayout.addJunctionLayout(compass)
+    fun build(): Layout {
+        val layout = Layout()
+        junctionLayoutBuilders.forEach { junctionLayoutBuilder ->
+            junctionLayoutBuilder.name?.let { name ->
+                val selection =
+                    { e: DrawingElement -> e is JunctionDrawing && e.name.equals(name)}
+                junctionLayoutBuilder.radius?.let { radius ->
+                    layout.setConfigurationFor(selection, LayoutParameter.radius, radius.toString())
+                }
+                junctionLayoutBuilder.out_ids?.let { out_ids ->
+                    layout.setConfigurationFor(selection, LayoutParameter.out_ids, out_ids)
+                }
+            }
+            junctionLayoutBuilder.type?.let { type ->
+                val junctionType = when (type) {
+                    1 -> JunctionType.ApicalLoop
+                    2 -> JunctionType.InnerLoop
+                    3 -> JunctionType.ThreeWay
+                    4 -> JunctionType.FourWay
+                    5 -> JunctionType.FiveWay
+                    6 -> JunctionType.SixWay
+                    7 -> JunctionType.SevenWay
+                    8 -> JunctionType.EightWay
+                    9 -> JunctionType.NineWay
+                    10 -> JunctionType.TenWay
+                    11 -> JunctionType.ElevenWay
+                    12 -> JunctionType.TwelveWay
+                    13 -> JunctionType.ThirteenWay
+                    14 -> JunctionType.FourteenWay
+                    15 -> JunctionType.FifthteenWay
+                    16 -> JunctionType.SixteenWay
+                    else -> JunctionType.Flower
+                }
+                val selection =
+                    { e: DrawingElement -> e is JunctionDrawing && e.junctionType.equals(junctionType)}
+                junctionLayoutBuilder.radius?.let { radius ->
+                    layout.setConfigurationFor(selection, LayoutParameter.radius, radius.toString())
+                }
+                junctionLayoutBuilder.out_ids?.let { out_ids ->
+                    val tokens = out_ids.split(" ")
+                    if (junctionType != JunctionType.ApicalLoop /*we cannot change the apical loop layout*/ && tokens.size == type-1 /*this needs to be coherent*/)
+                        layout.setConfigurationFor(selection, LayoutParameter.out_ids, out_ids)
+                }
             }
         }
-        return ssLayout
-    }
-
-}
-
-class SecondaryStructureLayout {
-    val junctionLayouts = mutableListOf<JunctionLayout>()
-
-    fun addJunctionLayout(layout:String) {
-        val tokens = layout.split(" ")
-        val junctionType = when (tokens.size +1) {
-            2 -> JunctionType.InnerLoop
-            3 -> JunctionType.ThreeWay
-            4 -> JunctionType.FourWay
-            5 -> JunctionType.FiveWay
-            6 -> JunctionType.SixWay
-            7 -> JunctionType.SevenWay
-            8 -> JunctionType.EightWay
-            9 -> JunctionType.NineWay
-            10 -> JunctionType.TenWay
-            11 -> JunctionType.ElevenWay
-            12 -> JunctionType.TwelveWay
-            13 -> JunctionType.ThirteenWay
-            14 -> JunctionType.FourteenWay
-            15 -> JunctionType.FifthteenWay
-            16 -> JunctionType.SixteenWay
-            else -> JunctionType.Flower
-        }
-        val connectors = Arrays.stream(tokens.toTypedArray()).map { c: String? ->
-                ConnectorId.valueOf(c!!)
-            }.collect(Collectors.toList())
-        connectors.sortBy { it.value }
-        this.junctionLayouts.add(JunctionLayout(junctionType = junctionType, connectors = connectors))
+        return layout
     }
 }
 
-class JunctionLayoutBuilder(var name:String? = null, var location:String? = null, var to:String? = null, var radius:Double? = null)
-
-class JunctionLayout(val name:String? = null, val location:Location? = null, val junctionType:JunctionType, val connectors:List<ConnectorId>)
+class JunctionLayoutBuilder() {
+    var name:String? = null
+    var location:String? = null
+    var type:Int? = null
+    var in_id:String? = null
+    var out_ids:String? = null
+    var radius:Double? = null
+}
 
 class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
     var details_lvl:Int? = null
@@ -416,206 +418,206 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
             when (it) {
                 1 -> {
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.Helix},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.SecondaryInteraction},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.Junction},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.SingleStrand},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.PhosphodiesterBond},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.AShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.A}, DrawingConfigurationParameter.fulldetails, "false")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.A}, ThemeParameter.fulldetails, "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.UShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.U}, DrawingConfigurationParameter.fulldetails, "false")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.U}, ThemeParameter.fulldetails, "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.GShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.G}, DrawingConfigurationParameter.fulldetails, "false")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.G}, ThemeParameter.fulldetails, "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.CShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.C}, DrawingConfigurationParameter.fulldetails, "false")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.C}, ThemeParameter.fulldetails, "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.XShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.X}, DrawingConfigurationParameter.fulldetails, "false")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.X}, ThemeParameter.fulldetails, "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.InteractionSymbol},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
                     t
                 }
                 2 -> {
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.Helix},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.SecondaryInteraction},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.Junction},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.SingleStrand},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.PhosphodiesterBond},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.AShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.A}, DrawingConfigurationParameter.fulldetails, "false")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.A}, ThemeParameter.fulldetails, "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.UShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.U}, DrawingConfigurationParameter.fulldetails, "false")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.U}, ThemeParameter.fulldetails, "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.GShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.G}, DrawingConfigurationParameter.fulldetails, "false")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.G}, ThemeParameter.fulldetails, "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.CShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.C}, DrawingConfigurationParameter.fulldetails, "false")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.C}, ThemeParameter.fulldetails, "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.XShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.X}, DrawingConfigurationParameter.fulldetails, "false")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.X}, ThemeParameter.fulldetails, "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.InteractionSymbol},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
                     t
                 }
                 3 -> {
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.Helix},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.SecondaryInteraction},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.Junction},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.SingleStrand},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.PhosphodiesterBond},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.AShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.A}, DrawingConfigurationParameter.fulldetails, "false")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.A}, ThemeParameter.fulldetails, "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.UShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.U}, DrawingConfigurationParameter.fulldetails, "false")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.U}, ThemeParameter.fulldetails, "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.GShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.G}, DrawingConfigurationParameter.fulldetails, "false")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.G}, ThemeParameter.fulldetails, "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.CShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.C}, DrawingConfigurationParameter.fulldetails, "false")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.C}, ThemeParameter.fulldetails, "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.XShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.X}, DrawingConfigurationParameter.fulldetails, "false")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.X}, ThemeParameter.fulldetails, "false")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.InteractionSymbol},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
                     t
                 }
                 4 -> {
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.Helix},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.SecondaryInteraction},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.Junction},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.SingleStrand},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.PhosphodiesterBond},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.AShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.A}, DrawingConfigurationParameter.fulldetails, "true")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.A}, ThemeParameter.fulldetails, "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.UShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.U}, DrawingConfigurationParameter.fulldetails, "true")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.U}, ThemeParameter.fulldetails, "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.GShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.G}, DrawingConfigurationParameter.fulldetails, "true")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.G}, ThemeParameter.fulldetails, "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.CShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.C}, DrawingConfigurationParameter.fulldetails, "true")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.C}, ThemeParameter.fulldetails, "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.XShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.X}, DrawingConfigurationParameter.fulldetails, "true")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.X}, ThemeParameter.fulldetails, "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.InteractionSymbol},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "false")
                     t
                 }
                 else -> {
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.Helix},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.SecondaryInteraction},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.Junction},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.SingleStrand},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.PhosphodiesterBond},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.AShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.A}, DrawingConfigurationParameter.fulldetails, "true")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.A}, ThemeParameter.fulldetails, "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.UShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.U}, DrawingConfigurationParameter.fulldetails, "true")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.U}, ThemeParameter.fulldetails, "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.GShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.G}, DrawingConfigurationParameter.fulldetails, "true")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.G}, ThemeParameter.fulldetails, "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.CShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.C}, DrawingConfigurationParameter.fulldetails, "true")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.C}, ThemeParameter.fulldetails, "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.XShape},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
-                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.X}, DrawingConfigurationParameter.fulldetails, "true")
+                    t.setConfigurationFor({el -> el.type == SecondaryStructureType.X}, ThemeParameter.fulldetails, "true")
                     t.setConfigurationFor({el -> el.type == SecondaryStructureType.InteractionSymbol},
-                        DrawingConfigurationParameter.fulldetails,
+                        ThemeParameter.fulldetails,
                         "true")
                     t
                 }
@@ -630,13 +632,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                             types = getSecondaryStructureType("a")
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                         }
                         "U" , "u" -> {
@@ -644,13 +646,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                             types = getSecondaryStructureType("u")
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                         }
                         "G" , "g" -> {
@@ -658,13 +660,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                             types = getSecondaryStructureType("g")
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                         }
                         "C" , "c" -> {
@@ -672,13 +674,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                             types = getSecondaryStructureType("c")
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                         }
                         "X" , "x" -> {
@@ -686,13 +688,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                             types = getSecondaryStructureType("x")
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                         }
                         "R" , "r" -> {
@@ -700,13 +702,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                             types = getSecondaryStructureType("r")
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                         }
                         "Y" , "y" -> {
@@ -714,13 +716,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                             types = getSecondaryStructureType("y")
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                         }
                         else -> {
@@ -728,13 +730,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                             types = getSecondaryStructureType("n")
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                         }
                     }
@@ -749,13 +751,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                             types = getSecondaryStructureType("a")
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                         }
                         "U" , "u" -> {
@@ -763,13 +765,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                             types = getSecondaryStructureType("u")
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                         }
                         "G" , "g" -> {
@@ -777,13 +779,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                             types = getSecondaryStructureType("g")
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                         }
                         "C" , "c" -> {
@@ -791,13 +793,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                             types = getSecondaryStructureType("c")
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                         }
                         "X" , "x" -> {
@@ -805,13 +807,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                             types = getSecondaryStructureType("x")
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                         }
                         "R" , "r" -> {
@@ -819,13 +821,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                             types = getSecondaryStructureType("r")
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                         }
                         "Y" , "y" -> {
@@ -833,13 +835,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                             types = getSecondaryStructureType("y")
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                         }
                         else -> {
@@ -847,13 +849,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                             types = getSecondaryStructureType("n")
                             types.forEach { type ->
                                 val selection =
                                     { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                             }
                         }
                     }
@@ -866,13 +868,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                         }
                         types = getSecondaryStructureType("a")
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                         }
                     }
                     "U" , "u" -> {
@@ -880,13 +882,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                         }
                         types = getSecondaryStructureType("u")
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                         }
                     }
                     "G" , "g" -> {
@@ -894,13 +896,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                         }
                         types = getSecondaryStructureType("g")
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                         }
                     }
                     "C" , "c" -> {
@@ -908,13 +910,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                         }
                         types = getSecondaryStructureType("c")
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                         }
                     }
                     "X" , "x" -> {
@@ -922,13 +924,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                         }
                         types = getSecondaryStructureType("x")
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                         }
                     }
                     "R" , "r" -> {
@@ -936,13 +938,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                         }
                         types = getSecondaryStructureType("r")
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                         }
                     }
                     "Y" , "y" -> {
@@ -950,13 +952,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                         }
                         types = getSecondaryStructureType("y")
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                         }
                     }
                     else -> {
@@ -964,13 +966,13 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                         }
                         types = getSecondaryStructureType("n")
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, "none")
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
                         }
                     }
                 }
@@ -997,10 +999,10 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.color, colorCode)
+                            t.setConfigurationFor(selection, ThemeParameter.color, colorCode)
                         }
                     } ?: run {
-                        t.setConfigurationFor({ e: DrawingElement -> e.location.start == position.toInt() }, DrawingConfigurationParameter.color, colorCode)
+                        t.setConfigurationFor({ e: DrawingElement -> e.location.start == position.toInt() }, ThemeParameter.color, colorCode)
                     }
                 }
             }
@@ -1012,11 +1014,11 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             val selection =
                                 { e: DrawingElement -> e.type == type && e.inside(location)}
                             t.setConfigurationFor(selection,
-                                DrawingConfigurationParameter.color,
+                                ThemeParameter.color,
                                 colorBuilder.value.toString())
                         }
                     } ?: run {
-                        t.setConfigurationFor({ e: DrawingElement -> e.inside(location) }, DrawingConfigurationParameter.color, colorBuilder.value.toString())
+                        t.setConfigurationFor({ e: DrawingElement -> e.inside(location) }, ThemeParameter.color, colorBuilder.value.toString())
                     }
                 }
             }
@@ -1025,12 +1027,12 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                     types.forEach { type ->
                         val selection = { e: DrawingElement -> e.type == type }
                         t.setConfigurationFor(selection,
-                            DrawingConfigurationParameter.color,
+                            ThemeParameter.color,
                             colorBuilder.value.toString())
                     }
                 }
             } else
-                t.setConfigurationFor({ e: DrawingElement -> true }, DrawingConfigurationParameter.color, colorBuilder.value.toString())
+                t.setConfigurationFor({ e: DrawingElement -> true }, ThemeParameter.color, colorBuilder.value.toString())
         }
         this.details.forEach { detailsBuilder ->
             if (detailsBuilder.data.isNotEmpty()) {
@@ -1039,10 +1041,10 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.fulldetails, detailsBuilder.value.equals("full").toString())
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, detailsBuilder.value.equals("full").toString())
                         }
                     } ?: run {
-                        t.setConfigurationFor({ e: DrawingElement -> e.location.start == position.toInt() }, DrawingConfigurationParameter.fulldetails, detailsBuilder.value.equals("full").toString())
+                        t.setConfigurationFor({ e: DrawingElement -> e.location.start == position.toInt() }, ThemeParameter.fulldetails, detailsBuilder.value.equals("full").toString())
                     }
                 }
             }
@@ -1054,11 +1056,11 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             val selection =
                                 { e: DrawingElement -> e.type == type && e.inside(location) }
                             t.setConfigurationFor(selection,
-                                DrawingConfigurationParameter.fulldetails,
+                                ThemeParameter.fulldetails,
                                 detailsBuilder.value.equals("full").toString())
                         }
                     } ?: run {
-                        t.setConfigurationFor({ e: DrawingElement -> e.inside(location) }, DrawingConfigurationParameter.fulldetails, detailsBuilder.value.equals("full").toString())
+                        t.setConfigurationFor({ e: DrawingElement -> e.inside(location) }, ThemeParameter.fulldetails, detailsBuilder.value.equals("full").toString())
                     }
                 }
             }
@@ -1067,12 +1069,12 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                     types.forEach { type ->
                         val selection = { e: DrawingElement -> e.type == type }
                         t.setConfigurationFor(selection,
-                            DrawingConfigurationParameter.fulldetails,
+                            ThemeParameter.fulldetails,
                             detailsBuilder.value.equals("full").toString())
                     }
                 }
             } else
-                t.setConfigurationFor({ e: DrawingElement -> true }, DrawingConfigurationParameter.fulldetails,  detailsBuilder.value.equals("full").toString())
+                t.setConfigurationFor({ e: DrawingElement -> true }, ThemeParameter.fulldetails,  detailsBuilder.value.equals("full").toString())
         }
         this.lines.forEach { lineBuilder ->
             if (lineBuilder.data.size != data.size) { //meaning that they have been filtered
@@ -1081,10 +1083,10 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
-                            t.setConfigurationFor(selection, DrawingConfigurationParameter.linewidth, lineBuilder.value.toString())
+                            t.setConfigurationFor(selection, ThemeParameter.linewidth, lineBuilder.value.toString())
                         }
                     } ?: run {
-                        t.setConfigurationFor({ e: DrawingElement -> e.location.start == position.toInt() }, DrawingConfigurationParameter.linewidth, lineBuilder.value.toString())
+                        t.setConfigurationFor({ e: DrawingElement -> e.location.start == position.toInt() }, ThemeParameter.linewidth, lineBuilder.value.toString())
                     }
                 }
             }
@@ -1096,11 +1098,11 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             val selection =
                                 { e: DrawingElement -> e.type == type && e.inside(location) }
                             t.setConfigurationFor(selection,
-                                DrawingConfigurationParameter.linewidth,
+                                ThemeParameter.linewidth,
                                 lineBuilder.value.toString())
                         }
                     } ?: run {
-                        t.setConfigurationFor({ e: DrawingElement -> e.inside(location) }, DrawingConfigurationParameter.linewidth, lineBuilder.value.toString())
+                        t.setConfigurationFor({ e: DrawingElement -> e.inside(location) }, ThemeParameter.linewidth, lineBuilder.value.toString())
                     }
                 }
             }
@@ -1109,12 +1111,12 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                     types.forEach { type ->
                         val selection = { e: DrawingElement -> e.type == type }
                         t.setConfigurationFor(selection,
-                            DrawingConfigurationParameter.linewidth,
+                            ThemeParameter.linewidth,
                             lineBuilder.value.toString())
                     }
                 }
             } else
-                t.setConfigurationFor({ e: DrawingElement -> true }, DrawingConfigurationParameter.linewidth, lineBuilder.value.toString())
+                t.setConfigurationFor({ e: DrawingElement -> true }, ThemeParameter.linewidth, lineBuilder.value.toString())
         }
         return t
     }
@@ -1177,6 +1179,12 @@ class LineBuilder(data:MutableMap<String, Double>):ThemeConfigurationBuilder(dat
 class HideBuilder(data:MutableMap<String, Double>):ThemeConfigurationBuilder(data) {
 }
 
+fun rna(setup:RNABuilder.() -> Unit): RNA? {
+    val rnaBuilder = RNABuilder()
+    rnaBuilder.setup()
+    return rnaBuilder.build()
+}
+
 fun ss(setup:SecondaryStructureBuilder.() -> Unit): List<SecondaryStructure> {
     val ssBuilder = SecondaryStructureBuilder()
     ssBuilder.setup()
@@ -1201,8 +1209,8 @@ fun theme(setup:ThemeBuilder.() -> Unit): AdvancedTheme {
     return themeBuilder.build()
 }
 
-fun layout(setup:SecondaryStructureLayoutBuilder.() -> Unit): SecondaryStructureLayout {
-    val layoutBuilder = SecondaryStructureLayoutBuilder()
+fun layout(setup:LayoutBuilder.() -> Unit): Layout {
+    val layoutBuilder = LayoutBuilder()
     layoutBuilder.setup()
     return layoutBuilder.build()
 }

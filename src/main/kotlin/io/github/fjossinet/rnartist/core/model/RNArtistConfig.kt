@@ -25,973 +25,973 @@ object RnartistConfig {
         "Persian Carolina" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#5398BE"
+                        ThemeParameter.color.toString() to "#5398BE"
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#F2CD5D"
+                        ThemeParameter.color.toString() to "#F2CD5D"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#D741A7"
+                        ThemeParameter.color.toString() to "#D741A7"
                     ),
             SecondaryStructureType.A.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#3A1772"
+                        ThemeParameter.color.toString() to "#3A1772"
                     ),
             SecondaryStructureType.U.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#5398BE"
+                        ThemeParameter.color.toString() to "#5398BE"
                     ),
             SecondaryStructureType.G.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#F2CD5D"
+                        ThemeParameter.color.toString() to "#F2CD5D"
                     ),
             SecondaryStructureType.C.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.XShape.toString() to
                     mutableMapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
         "Snow Lavender" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#4E8098"
+                        ThemeParameter.color.toString() to "#4E8098"
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#A31621"
+                        ThemeParameter.color.toString() to "#A31621"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#A31621"
+                        ThemeParameter.color.toString() to "#A31621"
                     ),
             SecondaryStructureType.A.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#FCF7F8"
+                        ThemeParameter.color.toString() to "#FCF7F8"
                     ),
             SecondaryStructureType.U.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.GShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#CED3DC"
+                        ThemeParameter.color.toString() to "#CED3DC"
                     ),
             SecondaryStructureType.G.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.CShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#4E8098"
+                        ThemeParameter.color.toString() to "#4E8098"
                     ),
             SecondaryStructureType.C.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
         "Fuzzy French" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#48A9A6"
+                        ThemeParameter.color.toString() to "#48A9A6"
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#731DD8"
+                        ThemeParameter.color.toString() to "#731DD8"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#731DD8"
+                        ThemeParameter.color.toString() to "#731DD8"
                     ),
             SecondaryStructureType.A.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#48A9A6"
+                        ThemeParameter.color.toString() to "#48A9A6"
                     ),
             SecondaryStructureType.U.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#E4DFDA"
+                        ThemeParameter.color.toString() to "#E4DFDA"
                     ),
             SecondaryStructureType.G.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.CShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#D4B483"
+                        ThemeParameter.color.toString() to "#D4B483"
                     ),
             SecondaryStructureType.C.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.XShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
         "Chestnut Navajo" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#8A6552"
+                        ThemeParameter.color.toString() to "#8A6552"
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#CA2E55"
+                        ThemeParameter.color.toString() to "#CA2E55"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#CA2E55"
+                        ThemeParameter.color.toString() to "#CA2E55"
                     ),
             SecondaryStructureType.A.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#FFE0B5"
+                        ThemeParameter.color.toString() to "#FFE0B5"
                     ),
             SecondaryStructureType.U.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.GShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#8A6552"
+                        ThemeParameter.color.toString() to "#8A6552"
                     ),
             SecondaryStructureType.G.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#462521"
+                        ThemeParameter.color.toString() to "#462521"
                     ),
             SecondaryStructureType.C.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
         "Irresistible Turquoise" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#9D44B5"
+                        ThemeParameter.color.toString() to "#9D44B5"
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#B5446E"
+                        ThemeParameter.color.toString() to "#B5446E"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#9D44B5"
+                        ThemeParameter.color.toString() to "#9D44B5"
                     ),
             SecondaryStructureType.A.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#B5446E"
+                        ThemeParameter.color.toString() to "#B5446E"
                     ),
             SecondaryStructureType.U.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#525252"
+                        ThemeParameter.color.toString() to "#525252"
                     ),
             SecondaryStructureType.G.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#BADEFC"
+                        ThemeParameter.color.toString() to "#BADEFC"
                     ),
             SecondaryStructureType.C.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.XShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
         "Charm Jungle" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#45CB85"
+                        ThemeParameter.color.toString() to "#45CB85"
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#E08DAC"
+                        ThemeParameter.color.toString() to "#E08DAC"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#E08DAC"
+                        ThemeParameter.color.toString() to "#E08DAC"
                     ),
             SecondaryStructureType.A.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#6A7FDB"
+                        ThemeParameter.color.toString() to "#6A7FDB"
                     ),
             SecondaryStructureType.U.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#57E2E5"
+                        ThemeParameter.color.toString() to "#57E2E5"
                     ),
             SecondaryStructureType.G.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.CShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#45CB85"
+                        ThemeParameter.color.toString() to "#45CB85"
                     ),
             SecondaryStructureType.C.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
         "Atomic Xanadu" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#C4A77D"
+                        ThemeParameter.color.toString() to "#C4A77D"
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#EF946C"
+                        ThemeParameter.color.toString() to "#EF946C"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#EF946C"
+                        ThemeParameter.color.toString() to "#EF946C"
                     ),
             SecondaryStructureType.A.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.UShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#C4A77D"
+                        ThemeParameter.color.toString() to "#C4A77D"
                     ),
             SecondaryStructureType.U.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#70877F"
+                        ThemeParameter.color.toString() to "#70877F"
                     ),
             SecondaryStructureType.G.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#454372"
+                        ThemeParameter.color.toString() to "#454372"
                     ),
             SecondaryStructureType.C.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
         "Pale Coral" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#75B9BE"
+                        ThemeParameter.color.toString() to "#75B9BE"
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#987284"
+                        ThemeParameter.color.toString() to "#987284"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#987284"
+                        ThemeParameter.color.toString() to "#987284"
                     ),
             SecondaryStructureType.A.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#75B9BE"
+                        ThemeParameter.color.toString() to "#75B9BE"
                     ),
             SecondaryStructureType.U.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#D0D6B5"
+                        ThemeParameter.color.toString() to "#D0D6B5"
                     ),
             SecondaryStructureType.G.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.CShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#F9B5AC"
+                        ThemeParameter.color.toString() to "#F9B5AC"
                     ),
             SecondaryStructureType.C.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
         "Maximum Salmon" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#6DB1BF"
+                        ThemeParameter.color.toString() to "#6DB1BF"
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#F39A9D"
+                        ThemeParameter.color.toString() to "#F39A9D"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#301A4B"
+                        ThemeParameter.color.toString() to "#301A4B"
                     ),
             SecondaryStructureType.A.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#6DB1BF"
+                        ThemeParameter.color.toString() to "#6DB1BF"
                     ),
             SecondaryStructureType.U.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#FFEAEC"
+                        ThemeParameter.color.toString() to "#FFEAEC"
                     ),
             SecondaryStructureType.G.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.CShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#F39A9D"
+                        ThemeParameter.color.toString() to "#F39A9D"
                     ),
             SecondaryStructureType.C.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
         ),
         "Pacific Dream" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#46ACC2"
+                        ThemeParameter.color.toString() to "#46ACC2"
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#498C8A"
+                        ThemeParameter.color.toString() to "#498C8A"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#42F2F7"
+                        ThemeParameter.color.toString() to "#42F2F7"
                     ),
             SecondaryStructureType.A.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.UShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#46ACC2"
+                        ThemeParameter.color.toString() to "#46ACC2"
                     ),
             SecondaryStructureType.U.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#498C8A"
+                        ThemeParameter.color.toString() to "#498C8A"
                     ),
             SecondaryStructureType.G.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#4B6858"
+                        ThemeParameter.color.toString() to "#4B6858"
                     ),
             SecondaryStructureType.C.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
         ),
         "New York Camel" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#CE796B"
+                        ThemeParameter.color.toString() to "#CE796B"
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#C18C5D"
+                        ThemeParameter.color.toString() to "#C18C5D"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#ECC8AF"
+                        ThemeParameter.color.toString() to "#ECC8AF"
                     ),
             SecondaryStructureType.A.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.UShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#E7AD99"
+                        ThemeParameter.color.toString() to "#E7AD99"
                     ),
             SecondaryStructureType.U.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#CE796B"
+                        ThemeParameter.color.toString() to "#CE796B"
                     ),
             SecondaryStructureType.G.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#C18C5D"
+                        ThemeParameter.color.toString() to "#C18C5D"
                     ),
             SecondaryStructureType.C.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
         ),
         "Screamin' Olive" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#7494EA"
+                        ThemeParameter.color.toString() to "#7494EA"
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#494947"
+                        ThemeParameter.color.toString() to "#494947"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#494947"
+                        ThemeParameter.color.toString() to "#494947"
                     ),
             SecondaryStructureType.A.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#35FF69"
+                        ThemeParameter.color.toString() to "#35FF69"
                     ),
             SecondaryStructureType.U.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#44CCFF"
+                        ThemeParameter.color.toString() to "#44CCFF"
                     ),
             SecondaryStructureType.G.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#7494EA"
+                        ThemeParameter.color.toString() to "#7494EA"
                     ),
             SecondaryStructureType.C.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
         "Baby Lilac" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#A4A8D1"
+                        ThemeParameter.color.toString() to "#A4A8D1"
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#BBA0B2"
+                        ThemeParameter.color.toString() to "#BBA0B2"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#9D858D"
+                        ThemeParameter.color.toString() to "#9D858D"
                     ),
             SecondaryStructureType.A.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.UShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#BBA0B2"
+                        ThemeParameter.color.toString() to "#BBA0B2"
                     ),
             SecondaryStructureType.U.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#A4A8D1"
+                        ThemeParameter.color.toString() to "#A4A8D1"
                     ),
             SecondaryStructureType.G.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#A4BFEB"
+                        ThemeParameter.color.toString() to "#A4BFEB"
                     ),
             SecondaryStructureType.C.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.XShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
         "Celeste Olivine" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#B0C592"
+                        ThemeParameter.color.toString() to "#B0C592"
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#A97C73"
+                        ThemeParameter.color.toString() to "#A97C73"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#9CFFFA"
+                        ThemeParameter.color.toString() to "#9CFFFA"
                     ),
             SecondaryStructureType.A.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.UShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#ACF39D"
+                        ThemeParameter.color.toString() to "#ACF39D"
                     ),
             SecondaryStructureType.U.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.GShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#B0C592"
+                        ThemeParameter.color.toString() to "#B0C592"
                     ),
             SecondaryStructureType.G.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#A97C73"
+                        ThemeParameter.color.toString() to "#A97C73"
                     ),
             SecondaryStructureType.C.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
         "Midnight Paradise" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#EF476F"
+                        ThemeParameter.color.toString() to "#EF476F"
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#118AB2"
+                        ThemeParameter.color.toString() to "#118AB2"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#EF476F"
+                        ThemeParameter.color.toString() to "#EF476F"
                     ),
             SecondaryStructureType.A.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#FFD166"
+                        ThemeParameter.color.toString() to "#FFD166"
                     ),
             SecondaryStructureType.U.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.GShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#06D6A0"
+                        ThemeParameter.color.toString() to "#06D6A0"
                     ),
             SecondaryStructureType.G.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#118AB2"
+                        ThemeParameter.color.toString() to "#118AB2"
                     ),
             SecondaryStructureType.C.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
         "African Lavender" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#B18FCF"
+                        ThemeParameter.color.toString() to "#B18FCF"
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#978897"
+                        ThemeParameter.color.toString() to "#978897"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.A.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#D8D8F6"
+                        ThemeParameter.color.toString() to "#D8D8F6"
                     ),
             SecondaryStructureType.UShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#B18FCF"
+                        ThemeParameter.color.toString() to "#B18FCF"
                     ),
             SecondaryStructureType.U.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#978897"
+                        ThemeParameter.color.toString() to "#978897"
                     ),
             SecondaryStructureType.G.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#494850"
+                        ThemeParameter.color.toString() to "#494850"
                     ),
             SecondaryStructureType.C.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
         "Charcoal Lazuli" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#33658A"
+                        ThemeParameter.color.toString() to "#33658A"
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#F6AE2D"
+                        ThemeParameter.color.toString() to "#F6AE2D"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#2F4858"
+                        ThemeParameter.color.toString() to "#2F4858"
                     ),
             SecondaryStructureType.A.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#33658A"
+                        ThemeParameter.color.toString() to "#33658A"
                     ),
             SecondaryStructureType.U.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#86BBD8"
+                        ThemeParameter.color.toString() to "#86BBD8"
                     ),
             SecondaryStructureType.G.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#F6AE2D"
+                        ThemeParameter.color.toString() to "#F6AE2D"
                     ),
             SecondaryStructureType.C.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.XShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
         "Pumpkin Vegas" to mapOf<String, Map<String, String>>(
             SecondaryStructureType.Helix.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#FA7921"
+                        ThemeParameter.color.toString() to "#FA7921"
                     ),
             SecondaryStructureType.Junction.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#566E3D"
+                        ThemeParameter.color.toString() to "#566E3D"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#FA7921"
+                        ThemeParameter.color.toString() to "#FA7921"
                     ),
             SecondaryStructureType.A.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#FE9920"
+                        ThemeParameter.color.toString() to "#FE9920"
                     ),
             SecondaryStructureType.U.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#B9A44C"
+                        ThemeParameter.color.toString() to "#B9A44C"
                     ),
             SecondaryStructureType.G.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to "#566E3D"
+                        ThemeParameter.color.toString() to "#566E3D"
                     ),
             SecondaryStructureType.C.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.WHITE)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
                     mapOf<String, String>(
-                        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.BLACK)
+                        ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         )
 
@@ -1001,11 +1001,11 @@ object RnartistConfig {
     private var document: Document? = null
 
     val defaultConfiguration = mutableMapOf<String, String>(
-        DrawingConfigurationParameter.color.toString() to getHTMLColorString(Color.DARK_GRAY),
-        DrawingConfigurationParameter.linewidth.toString() to "1.0",
-        DrawingConfigurationParameter.lineshift.toString() to "1.0",
-        DrawingConfigurationParameter.opacity.toString() to "255", //alpha value goes from 0 to 255
-        DrawingConfigurationParameter.fulldetails.toString() to "false"
+        ThemeParameter.color.toString() to getHTMLColorString(Color.DARK_GRAY),
+        ThemeParameter.linewidth.toString() to "1.0",
+        ThemeParameter.lineshift.toString() to "1.0",
+        ThemeParameter.opacity.toString() to "255", //alpha value goes from 0 to 255
+        ThemeParameter.fulldetails.toString() to "false"
     )
 
     @JvmStatic
@@ -1402,10 +1402,12 @@ object RnartistConfig {
     @JvmStatic
     fun isDockerInstalled():Boolean {
         return try {
-            val pb  = ProcessBuilder("which", "docker");
+            val pb  = ProcessBuilder("docker");
             val p = pb.start();
-            val result = InputStreamReader(p.getInputStream()).buffered().use(BufferedReader::readText);
-            result.trim().matches(Regex("^.+docker$"));
+            val result = InputStreamReader(p.errorStream).buffered().use(BufferedReader::readText);
+            println(result.trim())
+            println(Regex("Usage:  docker").containsMatchIn(result.trim()))
+            Regex("Usage:  docker").containsMatchIn(result.trim())
         } catch (e:Exception ) {
             false;
         }
@@ -1417,7 +1419,7 @@ object RnartistConfig {
             val pb  = ProcessBuilder("docker", "images");
             val p = pb.start();
             val result = InputStreamReader(p.getInputStream()).buffered().use(BufferedReader::readText);
-            "fjossinet/assemble2".toRegex().find(result.trim()) != null;
+            "fjossinet/assemble2".toRegex().containsMatchIn(result.trim())
         } catch (e:Exception ) {
             false;
         }

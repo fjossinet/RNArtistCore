@@ -193,233 +193,233 @@ fun annotatePDBfiles(pdbDir: String, outputdir: String) {
     val t = Theme()
     t.setConfigurationFor(
         SecondaryStructureType.Helix,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "true"
     )
     t.setConfigurationFor(
         SecondaryStructureType.SecondaryInteraction,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "true"
     )
     t.setConfigurationFor(
         SecondaryStructureType.SingleStrand,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "true"
     )
     t.setConfigurationFor(
         SecondaryStructureType.PKnot,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "true"
     )
     t.setConfigurationFor(
         SecondaryStructureType.InteractionSymbol,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
 
     t.setConfigurationFor(
         SecondaryStructureType.PhosphodiesterBond,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "true"
     )
     t.setConfigurationFor(
         SecondaryStructureType.Junction,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "true"
     )
     t.setConfigurationFor(
         SecondaryStructureType.AShape,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "true"
     )
 
     t.setConfigurationFor(
         SecondaryStructureType.AShape,
-        DrawingConfigurationParameter.color,
+        ThemeParameter.color,
         getHTMLColorString(Color.LIGHT_GRAY)
     )
 
     t.setConfigurationFor(
         SecondaryStructureType.UShape,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "true"
     )
 
     t.setConfigurationFor(
         SecondaryStructureType.UShape,
-        DrawingConfigurationParameter.color,
+        ThemeParameter.color,
         getHTMLColorString(Color.LIGHT_GRAY)
     )
 
     t.setConfigurationFor(
         SecondaryStructureType.GShape,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "true"
     )
 
     t.setConfigurationFor(
         SecondaryStructureType.GShape,
-        DrawingConfigurationParameter.color,
+        ThemeParameter.color,
         getHTMLColorString(Color.LIGHT_GRAY)
     )
 
 
     t.setConfigurationFor(
         SecondaryStructureType.CShape,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "true"
     )
 
     t.setConfigurationFor(
         SecondaryStructureType.CShape,
-        DrawingConfigurationParameter.color,
+        ThemeParameter.color,
         getHTMLColorString(Color.LIGHT_GRAY)
     )
 
     t.setConfigurationFor(
         SecondaryStructureType.XShape,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "true"
     )
 
     t.setConfigurationFor(
         SecondaryStructureType.XShape,
-        DrawingConfigurationParameter.color,
+        ThemeParameter.color,
         getHTMLColorString(Color.LIGHT_GRAY)
     )
 
     t.setConfigurationFor(
         SecondaryStructureType.A,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
     t.setConfigurationFor(
         SecondaryStructureType.U,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
     t.setConfigurationFor(
         SecondaryStructureType.G,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
     t.setConfigurationFor(
         SecondaryStructureType.C,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
     t.setConfigurationFor(
         SecondaryStructureType.X,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
 
     t.setConfigurationFor(
         SecondaryStructureType.TertiaryInteraction,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
 
     val t2 = Theme()
     t2.setConfigurationFor(
         SecondaryStructureType.Helix,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "true"
     )
     t2.setConfigurationFor(
         SecondaryStructureType.SecondaryInteraction,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "true"
     )
     t2.setConfigurationFor(
         SecondaryStructureType.SingleStrand,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "true"
     )
 
     t2.setConfigurationFor(
         SecondaryStructureType.InteractionSymbol,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
 
     t2.setConfigurationFor(
         SecondaryStructureType.PhosphodiesterBond,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "true"
     )
 
     t2.setConfigurationFor(
         SecondaryStructureType.Junction,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "true"
     )
     t2.setConfigurationFor(
         SecondaryStructureType.AShape,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
 
     t2.setConfigurationFor(
         SecondaryStructureType.UShape,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
 
     t2.setConfigurationFor(
         SecondaryStructureType.UShape,
-        DrawingConfigurationParameter.color,
+        ThemeParameter.color,
         getHTMLColorString(Color.LIGHT_GRAY)
     )
 
     t2.setConfigurationFor(
         SecondaryStructureType.GShape,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
 
 
     t2.setConfigurationFor(
         SecondaryStructureType.CShape,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
 
     t2.setConfigurationFor(
         SecondaryStructureType.XShape,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
 
     t2.setConfigurationFor(
         SecondaryStructureType.A,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
     t2.setConfigurationFor(
         SecondaryStructureType.U,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
     t2.setConfigurationFor(
         SecondaryStructureType.G,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
     t2.setConfigurationFor(
         SecondaryStructureType.C,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
     t2.setConfigurationFor(
         SecondaryStructureType.X,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
 
     t2.setConfigurationFor(
         SecondaryStructureType.TertiaryInteraction,
-        DrawingConfigurationParameter.fulldetails,
+        ThemeParameter.fulldetails,
         "false"
     )
 
@@ -447,10 +447,10 @@ fun annotatePDBfiles(pdbDir: String, outputdir: String) {
                         drawing.fitTo(frame)
                         if (!drawing.allTertiaryInteractions.isEmpty()) {
                             drawing.allTertiaryInteractions.forEach {
-                                it.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                it.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                     "false"
                                 it.residues.forEach {
-                                    it.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                    it.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                         "true"
                                 }
                             }
@@ -495,21 +495,21 @@ jonctions quadruples : ${drawing.allJunctions.filter { it.junctionType == Juncti
                                             )
                                         ) {
                                             domains.add(junctionDrawing)
-                                            interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                            interaction.residue.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                                 "true"
-                                            interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                            interaction.residue.drawingConfiguration.params[ThemeParameter.color.toString()] =
                                                 getHTMLColorString(Color.LIGHT_GRAY)
-                                            interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                            interaction.pairedResidue.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                                 "true"
-                                            interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                            interaction.pairedResidue.drawingConfiguration.params[ThemeParameter.color.toString()] =
                                                 getHTMLColorString(Color.LIGHT_GRAY)
-                                            interaction.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                            interaction.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                                 "true"
-                                            interaction.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                            interaction.drawingConfiguration.params[ThemeParameter.color.toString()] =
                                                 getHTMLColorString(Color.RED)
-                                            interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                            interaction.interactionSymbol.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                                 "true"
-                                            interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                            interaction.interactionSymbol.drawingConfiguration.params[ThemeParameter.color.toString()] =
                                                 getHTMLColorString(Color.RED)
                                             tertiariesDisplayed.add(interaction)
                                         } else if (junctionDrawing.junction.locationWithoutSecondaries.contains(
@@ -534,21 +534,21 @@ jonctions quadruples : ${drawing.allJunctions.filter { it.junctionType == Juncti
                                                     domains.add(singlestrand)
                                                 }
                                             }
-                                            interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                            interaction.residue.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                                 "true"
-                                            interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                            interaction.residue.drawingConfiguration.params[ThemeParameter.color.toString()] =
                                                 getHTMLColorString(Color.LIGHT_GRAY)
-                                            interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                            interaction.pairedResidue.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                                 "true"
-                                            interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                            interaction.pairedResidue.drawingConfiguration.params[ThemeParameter.color.toString()] =
                                                 getHTMLColorString(Color.LIGHT_GRAY)
-                                            interaction.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                            interaction.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                                 "true"
-                                            interaction.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                            interaction.drawingConfiguration.params[ThemeParameter.color.toString()] =
                                                 getHTMLColorString(Color.RED)
-                                            interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                            interaction.interactionSymbol.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                                 "true"
-                                            interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                            interaction.interactionSymbol.drawingConfiguration.params[ThemeParameter.color.toString()] =
                                                 getHTMLColorString(Color.RED)
                                             tertiariesDisplayed.add(interaction)
                                         } else if (junctionDrawing.junction.locationWithoutSecondaries.contains(
@@ -572,21 +572,21 @@ jonctions quadruples : ${drawing.allJunctions.filter { it.junctionType == Juncti
                                                     domains.add(singlestrand)
                                                 }
                                             }
-                                            interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                            interaction.residue.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                                 "true"
-                                            interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                            interaction.residue.drawingConfiguration.params[ThemeParameter.color.toString()] =
                                                 getHTMLColorString(Color.LIGHT_GRAY)
-                                            interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                            interaction.pairedResidue.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                                 "true"
-                                            interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                            interaction.pairedResidue.drawingConfiguration.params[ThemeParameter.color.toString()] =
                                                 getHTMLColorString(Color.LIGHT_GRAY)
-                                            interaction.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                            interaction.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                                 "true"
-                                            interaction.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                            interaction.drawingConfiguration.params[ThemeParameter.color.toString()] =
                                                 getHTMLColorString(Color.RED)
-                                            interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                            interaction.interactionSymbol.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                                 "true"
-                                            interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                            interaction.interactionSymbol.drawingConfiguration.params[ThemeParameter.color.toString()] =
                                                 getHTMLColorString(Color.RED)
                                             tertiariesDisplayed.add(interaction)
                                         }
@@ -602,21 +602,21 @@ jonctions quadruples : ${drawing.allJunctions.filter { it.junctionType == Juncti
                                                             _interaction.end
                                                         )
                                                     ) {
-                                                        _interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                        _interaction.residue.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                                             "true"
-                                                        _interaction.residue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                        _interaction.residue.drawingConfiguration.params[ThemeParameter.color.toString()] =
                                                             getHTMLColorString(Color.LIGHT_GRAY)
-                                                        _interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                        _interaction.pairedResidue.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                                             "true"
-                                                        _interaction.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                        _interaction.pairedResidue.drawingConfiguration.params[ThemeParameter.color.toString()] =
                                                             getHTMLColorString(Color.LIGHT_GRAY)
-                                                        _interaction.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                        _interaction.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                                             "true"
-                                                        _interaction.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                        _interaction.drawingConfiguration.params[ThemeParameter.color.toString()] =
                                                             getHTMLColorString(Color.RED)
-                                                        _interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                                        _interaction.interactionSymbol.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                                             "true"
-                                                        _interaction.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] =
+                                                        _interaction.interactionSymbol.drawingConfiguration.params[ThemeParameter.color.toString()] =
                                                             getHTMLColorString(Color.RED)
                                                         tertiariesDisplayed.add(_interaction)
                                                     }
@@ -679,13 +679,13 @@ jonctions quadruples : ${drawing.allJunctions.filter { it.junctionType == Juncti
                                         }
                                     }
                                     tertiariesDisplayed.forEach {
-                                        it.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                        it.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                             "false"
-                                        it.interactionSymbol.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                        it.interactionSymbol.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                             "false"
-                                        it.residue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                        it.residue.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                             "false"
-                                        it.pairedResidue.drawingConfiguration.params[DrawingConfigurationParameter.fulldetails.toString()] =
+                                        it.pairedResidue.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
                                             "false"
                                     }
                                 }

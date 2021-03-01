@@ -298,12 +298,13 @@ fun parseProject(project: Project): SecondaryStructureDrawing {
     val drawing  = rnartist {
         secondaryStructures.add(project.secondaryStructure)
     }.first()
+
     //LAYOUT
     val layout: Map<String, Map<String, String>> = project.layout
     val junctions = drawing.allJunctions
     for (junction in junctions) {
         val l = layout["" + junction.location.start]!!
-        junction.inId = ConnectorId.valueOf(l["in-id"]!!)
+        junction.inId = ConnectorId.valueOf(l["in-id"]!!.replace("o", "w")) //compatibility when the west direction was described with the character o
         if (l.containsKey("out-ids")) {
             junction.radius = l["radius"]!!.toDouble()
             junction.currentLayout =

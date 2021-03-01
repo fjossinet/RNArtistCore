@@ -47,7 +47,13 @@ class Test {
             layout {
 
                 junction {
-                    to ="nw ne"
+                    type = 3
+                    out_ids ="nnw nne"
+                }
+
+                junction {
+                    type = 1
+                    radius = 50.0
                 }
             }
         }
@@ -72,12 +78,6 @@ class Test {
                 }
             }
 
-            layout {
-
-                junction {
-                    to ="wnw ene"
-                }
-            }
         }
 
         rnartist {
@@ -106,12 +106,6 @@ class Test {
                 }
             }
 
-            layout {
-
-                junction {
-                    to ="w e"
-                }
-            }
         }
 
         rnartist {
@@ -124,12 +118,6 @@ class Test {
                 details_lvl = 1
             }
 
-            layout {
-
-                junction {
-                    to ="w n"
-                }
-            }
         }
 
         rnartist {
@@ -142,12 +130,6 @@ class Test {
                 details_lvl = 1
             }
 
-            layout {
-
-                junction {
-                    to ="n e"
-                }
-            }
         }
 
     }

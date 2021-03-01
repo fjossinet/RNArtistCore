@@ -115,8 +115,12 @@ enum class SecondaryStructureType {
     Numbering
 }
 
-enum class DrawingConfigurationParameter {
+enum class ThemeParameter {
     fulldetails, color, linewidth, lineshift, opacity
+}
+
+enum class LayoutParameter {
+    radius, center, in_id, out_ids
 }
 
 fun helixDrawingLength(h: Helix) = (h.length - 1).toDouble() * radiusConst * 2.0 + (h.length - 1).toDouble() * spaceBetweenResidues
@@ -214,7 +218,7 @@ class Theme(defaultConfigurations: Map<String, Map<String, String>> = mutableMap
 
     var configurations: MutableMap<String, MutableMap<String, String>> = mutableMapOf()
 
-    fun setConfigurationFor(elementType: SecondaryStructureType? = null, parameter: DrawingConfigurationParameter, parameterValue: String) {
+    fun setConfigurationFor(elementType: SecondaryStructureType? = null, parameter: ThemeParameter, parameterValue: String) {
         if (elementType == null)
             this.setConfigurationFor(SecondaryStructureType.Full2D.toString(), parameter.toString(), parameterValue)
         else
@@ -240,7 +244,22 @@ class AdvancedTheme() {
 
     var configurations: MutableMap<(DrawingElement) -> Boolean, Pair<String, String>> = mutableMapOf()
 
-    fun setConfigurationFor(selection: (DrawingElement) -> Boolean, parameter: DrawingConfigurationParameter, parameterValue: String) {
+    fun setConfigurationFor(selection: (DrawingElement) -> Boolean, parameter: ThemeParameter, parameterValue: String) {
+        this.setConfigurationFor(selection, parameter.toString(), parameterValue)
+    }
+
+    private fun setConfigurationFor(selection: (DrawingElement) -> Boolean, parameter: String, parameterValue: String) {
+        configurations[selection] = Pair<String, String>(parameter, parameterValue)
+    }
+
+    fun clear() = this.configurations.clear()
+}
+
+class Layout() {
+
+    var configurations: MutableMap<(DrawingElement) -> Boolean, Pair<String, String>> = mutableMapOf()
+
+    fun setConfigurationFor(selection: (DrawingElement) -> Boolean, parameter: LayoutParameter, parameterValue: String) {
         this.setConfigurationFor(selection, parameter.toString(), parameterValue)
     }
 
@@ -256,20 +275,20 @@ class DrawingConfiguration(defaultParams: Map<String, String> = defaultConfigura
 
     val params: MutableMap<String, String> = mutableMapOf()
 
-    var opacity: Int = defaultConfiguration[DrawingConfigurationParameter.opacity.toString()]!!.toInt()
-        get() = this.params[DrawingConfigurationParameter.opacity.toString()]!!.toInt()
+    var opacity: Int = defaultConfiguration[ThemeParameter.opacity.toString()]!!.toInt()
+        get() = this.params[ThemeParameter.opacity.toString()]!!.toInt()
 
-    var fullDetails: Boolean = defaultConfiguration[DrawingConfigurationParameter.fulldetails.toString()]!!.toBoolean()
-        get() = this.params[DrawingConfigurationParameter.fulldetails.toString()]!!.toBoolean()
+    var fullDetails: Boolean = defaultConfiguration[ThemeParameter.fulldetails.toString()]!!.toBoolean()
+        get() = this.params[ThemeParameter.fulldetails.toString()]!!.toBoolean()
 
-    var lineShift: Double = defaultConfiguration[DrawingConfigurationParameter.lineshift.toString()]!!.toDouble()
-        get() = this.params[DrawingConfigurationParameter.lineshift.toString()]!!.toDouble()
+    var lineShift: Double = defaultConfiguration[ThemeParameter.lineshift.toString()]!!.toDouble()
+        get() = this.params[ThemeParameter.lineshift.toString()]!!.toDouble()
 
-    var lineWidth: Double = defaultConfiguration[DrawingConfigurationParameter.linewidth.toString()]!!.toDouble()
-        get() = this.params[DrawingConfigurationParameter.linewidth.toString()]!!.toDouble()
+    var lineWidth: Double = defaultConfiguration[ThemeParameter.linewidth.toString()]!!.toDouble()
+        get() = this.params[ThemeParameter.linewidth.toString()]!!.toDouble()
 
-    var color: Color = getAWTColor(defaultConfiguration[DrawingConfigurationParameter.color.toString()]!!)
-        get() = getAWTColor(this.params[DrawingConfigurationParameter.color.toString()]!!)
+    var color: Color = getAWTColor(defaultConfiguration[ThemeParameter.color.toString()]!!)
+        get() = getAWTColor(this.params[ThemeParameter.color.toString()]!!)
 
     init {
         defaultParams.forEach { (k, v) ->
@@ -353,6 +372,9 @@ abstract class DrawingElement(val ssDrawing: SecondaryStructureDrawing, var pare
                 this.drawingConfiguration.params[entry.value.first] = entry.value.second
             }
         }
+    }
+
+    open fun applyLayout(layout: Layout)  {
     }
 }
 
@@ -1305,6 +1327,11 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
             r.applyAdvancedTheme(theme)
     }
 
+    fun applyLayout(layout: Layout) {
+        for (jc in this.allJunctions)
+            jc.applyLayout(layout)
+    }
+
 }
 
 abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDrawing: SecondaryStructureDrawing, absPos: Int, type:SecondaryStructureType) : DrawingElement(ssDrawing, parent, residueLetter.toString(), Location(absPos), type) {
@@ -1601,7 +1628,7 @@ class XShapeDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawin
 abstract class ResidueLetterDrawing(parent: ResidueDrawing?, ssDrawing: SecondaryStructureDrawing, type:SecondaryStructureType, absPos: Int): DrawingElement(ssDrawing, parent, type.toString(), Location(absPos), type) {
 
     init {
-        this.drawingConfiguration.params[DrawingConfigurationParameter.color.toString()] = getHTMLColorString(Color.WHITE)
+        this.drawingConfiguration.params[ThemeParameter.color.toString()] = getHTMLColorString(Color.WHITE)
     }
 
     override val selectionPoints: List<Point2D>
@@ -2450,6 +2477,28 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
             }
             //last step, we substitute the connected circles for the new ones
             this.connectedJunctions = newConnectedJunctions
+        }
+    }
+
+    override open fun applyLayout(layout: Layout)  {
+        layout.configurations.entries.forEach { entry ->
+            if (entry.key(this)) {
+                when(entry.value.first) {
+                    LayoutParameter.radius.toString() -> {
+                        radius = entry.value.second.toDouble()
+                        ssDrawing.computeResidues(this)
+                    }
+                    LayoutParameter.center.toString() -> {}
+                    LayoutParameter.in_id.toString() -> {}
+                    LayoutParameter.out_ids.toString() -> {
+                        val connectors = entry.value.second.split(" ").map {
+                            ConnectorId.valueOf(it)
+                        }
+                        currentLayout = connectors.toMutableList()
+                        ssDrawing.computeResidues(this)
+                    }
+                }
+            }
         }
     }
 
