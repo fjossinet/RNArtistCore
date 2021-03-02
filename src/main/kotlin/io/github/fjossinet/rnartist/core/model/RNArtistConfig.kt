@@ -1181,43 +1181,6 @@ object RnartistConfig {
         }
 
     @JvmStatic
-    var chimeraPath: String
-        get() {
-            var e = document!!.rootElement.getChild("external-tools")
-            if (e == null) {
-                e = Element("external-tools")
-                document!!.rootElement.addContent(e)
-            }
-            var _e = e.getChild("chimera")
-            if (_e == null) {
-                _e = Element("chimera")
-                _e.addContent(Element("path"))
-                _e.addContent(Element("host"))
-                _e.addContent(Element("port"))
-                e.addContent(_e)
-                val osName = System.getProperty("os.name")
-                when {
-                    osName.startsWith("Mac OS") -> {
-                        _e.getChild("path").text = "/Applications/Chimera.app/Contents/MacOS/chimera"
-                    }
-                    osName.startsWith("Windows") -> {
-                        _e.getChild("path").text = "C:\\Program Files\\Chimera\\bin\\chimera.exe"
-                    }
-                    else -> {
-                        _e.getChild("path").text = "/usr/local/chimera/bin/chimera"
-                    }
-                }
-                _e.getChild("host").text = "127.0.0.1"
-                _e.getChild("port").text = "50000"
-            }
-
-            return _e.getChild("path").value
-        }
-        set(path) {
-            document!!.rootElement.getChild("external-tools").getChild("chimera").getChild("path").text = path
-        }
-
-    @JvmStatic
     var chimeraHost: String
         get() {
             var e = document!!.rootElement.getChild("external-tools")
@@ -1228,22 +1191,11 @@ object RnartistConfig {
             var _e = e.getChild("chimera")
             if (_e == null) {
                 _e = Element("chimera")
-                _e.addContent(Element("path"))
+                _e.addContent(Element("isX"))
                 _e.addContent(Element("host"))
                 _e.addContent(Element("port"))
                 e.addContent(_e)
-                val osName = System.getProperty("os.name")
-                when {
-                    osName.startsWith("Mac OS") -> {
-                        _e.getChild("path").text = "/Applications/Chimera.app/Contents/MacOS/chimera"
-                    }
-                    osName.startsWith("Windows") -> {
-                        _e.getChild("path").text = "C:\\Program Files\\Chimera\\bin\\chimera.exe"
-                    }
-                    else -> {
-                        _e.getChild("path").text = "/usr/local/chimera/bin/chimera"
-                    }
-                }
+                _e.getChild("isX").text = "false"
                 _e.getChild("host").text = "127.0.0.1"
                 _e.getChild("port").text = "50000"
             }
@@ -1265,22 +1217,11 @@ object RnartistConfig {
             var _e = e.getChild("chimera")
             if (_e == null) {
                 _e = Element("chimera")
-                _e.addContent(Element("path"))
+                _e.addContent(Element("isX"))
                 _e.addContent(Element("host"))
                 _e.addContent(Element("port"))
                 e.addContent(_e)
-                val osName = System.getProperty("os.name")
-                when {
-                    osName.startsWith("Mac OS") -> {
-                        _e.getChild("path").text = "/Applications/Chimera.app/Contents/MacOS/chimera"
-                    }
-                    osName.startsWith("Windows") -> {
-                        _e.getChild("path").text = "C:\\Program Files\\Chimera\\bin\\chimera.exe"
-                    }
-                    else -> {
-                        _e.getChild("path").text = "/usr/local/chimera/bin/chimera"
-                    }
-                }
+                _e.getChild("isX").text = "false"
                 _e.getChild("host").text = "127.0.0.1"
                 _e.getChild("port").text = "50000"
             }
@@ -1289,6 +1230,37 @@ object RnartistConfig {
         }
         set(port) {
             document!!.rootElement.getChild("external-tools").getChild("chimera").getChild("port").text = port.toString()
+        }
+
+    @JvmStatic
+    var isChimeraX: Boolean
+        get() {
+            var e = document!!.rootElement.getChild("external-tools")
+            if (e == null) {
+                e = Element("external-tools")
+                document!!.rootElement.addContent(e)
+            }
+            var _e = e.getChild("chimera")
+            if (_e == null) {
+                _e = Element("chimera")
+                _e.addContent(Element("isX"))
+                _e.addContent(Element("host"))
+                _e.addContent(Element("port"))
+                e.addContent(_e)
+                _e.getChild("isX").text = "false"
+                _e.getChild("host").text = "127.0.0.1"
+                _e.getChild("port").text = "50000"
+            }
+
+            if (_e.getChild("isX") == null) { //retrocompatibility
+                _e.addContent(Element("isX"))
+                _e.getChild("isX").text = "false"
+            }
+
+            return _e.getChild("isX") != null && _e.getChild("isX").value.equals("true")
+        }
+        set(isX) {
+            document!!.rootElement.getChild("external-tools").getChild("chimera").getChild("isX").text = isX.toString()
         }
 
     @JvmStatic
@@ -1405,8 +1377,6 @@ object RnartistConfig {
             val pb  = ProcessBuilder("docker");
             val p = pb.start();
             val result = InputStreamReader(p.errorStream).buffered().use(BufferedReader::readText);
-            println(result.trim())
-            println(Regex("Usage:  docker").containsMatchIn(result.trim()))
             Regex("Usage:  docker").containsMatchIn(result.trim())
         } catch (e:Exception ) {
             false;
