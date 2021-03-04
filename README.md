@@ -39,11 +39,9 @@ Once done, in the subdirectory named "target", you will find the file rnartistco
 
 RNArtistCore exposes a domain-specific language (DSL) to write scripts more easily. You can have a look at examples in the file scripts/dsl.kts
 
-To run a script, you need to have the [kotlin command installed on you computer](https://kotlinlang.org/docs/tutorials/command-line.html).
+To run a script, you need to type the following command:
 
-To run a script, type the following command:
-
-<pre>kotlin -cp target/rnartistcore-{version}-jar-with-dependencies.jar your_script.kts</pre>
+<pre>java -jar target/rnartistcore-{version}-jar-with-dependencies.jar your_script.kts</pre>
 
 ### <a name="script"></a>How to write your scripts
 

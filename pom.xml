@@ -5,9 +5,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <properties>
-        <kotlin.code.style>official</kotlin.code.style>
-        <kotlin_version>1.4.10</kotlin_version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <java.version>15</java.version>
+
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+
+        <kotlin_version>1.4.10</kotlin_version>
+        <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
+        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+
         <main.class>io.github.fjossinet.rnartist.core.MainKt</main.class>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
     </properties>
@@ -64,6 +72,19 @@
         </dependency>
 
         <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-scripting-jsr223</artifactId>
+            <version>${kotlin_version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-script-runtime</artifactId>
+            <version>${kotlin_version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.6</version>
@@ -78,12 +99,7 @@
             <artifactId>jdom</artifactId>
             <version>2.0.2</version>
         </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-script-runtime</artifactId>
-            <version>RELEASE</version>
-            <scope>compile</scope>
-        </dependency>
+        
     </dependencies>
 
     <build>
@@ -94,14 +110,8 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M5</version>
             </plugin>
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
+
+            <!-- kotlin compiler -->
             <plugin>
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <groupId>org.jetbrains.kotlin</groupId>
@@ -110,16 +120,35 @@
                     <execution>
                         <id>compile</id>
                         <goals><goal>compile</goal></goals>
+                        <configuration>
+                            <sourceDirs>
+                                <sourceDir>${project.basedir}/src/main/kotlin/</sourceDir>
+                            </sourceDirs>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>test-compile</id>
                         <goals><goal>test-compile</goal></goals>
                         <configuration>
-                            <experimentalCoroutines>enable</experimentalCoroutines>
+                            <sourceDirs>
+                                <sourceDir>${project.basedir}/test/kotlin</sourceDir>
+                            </sourceDirs>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                 <configuration>
+                    <release>${java.version}</release>
+                    <showDeprecation>true</showDeprecation>
+                    <showWarnings>true</showWarnings>
+                    <verbose>false</verbose>
+                </configuration>
+            </plugin>
+            
 
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -144,6 +173,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>3.0.1</version>
@@ -156,6 +186,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <artifactId>maven-gpg-plugin</artifactId>
                 <version>1.6</version>
@@ -169,6 +200,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
