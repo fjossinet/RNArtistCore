@@ -108,7 +108,8 @@ class Rnaview : Computation() {
                         if (!found)
                             ss.rna.name = "?"  //should never happen
                     }
-                    secondaryStructures
+                    println(secondaryStructures.size)
+                    return secondaryStructures
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
