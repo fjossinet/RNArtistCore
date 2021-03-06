@@ -44,7 +44,7 @@ To run a script, you need to type the following command:
 
 <pre>java -jar target/rnartistcore-{version}-jar-with-dependencies.jar your_script.kts</pre>
 
-## <a name="docker"></a>Docker
+### <a name="docker"></a>Docker
 
 You can also run your scripts through Docker. Install Docker on your computer, then type:
 
