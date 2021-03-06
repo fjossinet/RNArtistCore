@@ -245,6 +245,7 @@ class RNArtistBuilder {
     fun build(): List<SecondaryStructureDrawing> {
         val drawings = mutableListOf<SecondaryStructureDrawing>()
         this.secondaryStructures.forEach { ss ->
+            println(ss)
             val drawing = SecondaryStructureDrawing(ss, WorkingSession())
             this.theme?.let { theme ->
                 drawing.applyAdvancedTheme(theme)
@@ -262,6 +263,7 @@ class RNArtistBuilder {
                 drawing.fitTo(frame)
                 val svgOutput = toSVG(drawing, frame.width, frame.height)
                 val f = File("${outputFile.split(".svg").first()}_${ss.rna.name.replace("/", "_")}.svg")
+                println(f.absolutePath)
                 f.createNewFile()
                 f.writeText(svgOutput)
             }
