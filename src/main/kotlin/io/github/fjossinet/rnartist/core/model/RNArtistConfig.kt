@@ -22,980 +22,980 @@ object RnartistConfig {
 
     @JvmField
     val colorSchemes: Map<String, Map<String, Map<String, String>>> = mapOf(
-        "Persian Carolina" to mapOf<String, Map<String, String>>(
+        "Persian Carolina" to mapOf(
             SecondaryStructureType.Helix.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#5398BE"
                     ),
             SecondaryStructureType.Junction.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#F2CD5D"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#D741A7"
                     ),
             SecondaryStructureType.A.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#3A1772"
                     ),
             SecondaryStructureType.U.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#5398BE"
                     ),
             SecondaryStructureType.G.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#F2CD5D"
                     ),
             SecondaryStructureType.C.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.XShape.toString() to
-                    mutableMapOf<String, String>(
+                    mutableMapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
-        "Snow Lavender" to mapOf<String, Map<String, String>>(
+        "Snow Lavender" to mapOf(
             SecondaryStructureType.Helix.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#4E8098"
                     ),
             SecondaryStructureType.Junction.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#A31621"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#A31621"
                     ),
             SecondaryStructureType.A.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#FCF7F8"
                     ),
             SecondaryStructureType.U.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.GShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#CED3DC"
                     ),
             SecondaryStructureType.G.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.CShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#4E8098"
                     ),
             SecondaryStructureType.C.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
-        "Fuzzy French" to mapOf<String, Map<String, String>>(
+        "Fuzzy French" to mapOf(
             SecondaryStructureType.Helix.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#48A9A6"
                     ),
             SecondaryStructureType.Junction.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#731DD8"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#731DD8"
                     ),
             SecondaryStructureType.A.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#48A9A6"
                     ),
             SecondaryStructureType.U.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#E4DFDA"
                     ),
             SecondaryStructureType.G.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.CShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#D4B483"
                     ),
             SecondaryStructureType.C.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.XShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
-        "Chestnut Navajo" to mapOf<String, Map<String, String>>(
+        "Chestnut Navajo" to mapOf(
             SecondaryStructureType.Helix.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#8A6552"
                     ),
             SecondaryStructureType.Junction.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#CA2E55"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#CA2E55"
                     ),
             SecondaryStructureType.A.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#FFE0B5"
                     ),
             SecondaryStructureType.U.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.GShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#8A6552"
                     ),
             SecondaryStructureType.G.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#462521"
                     ),
             SecondaryStructureType.C.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
-        "Irresistible Turquoise" to mapOf<String, Map<String, String>>(
+        "Irresistible Turquoise" to mapOf(
             SecondaryStructureType.Helix.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#9D44B5"
                     ),
             SecondaryStructureType.Junction.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#B5446E"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#9D44B5"
                     ),
             SecondaryStructureType.A.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#B5446E"
                     ),
             SecondaryStructureType.U.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#525252"
                     ),
             SecondaryStructureType.G.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#BADEFC"
                     ),
             SecondaryStructureType.C.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.XShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
-        "Charm Jungle" to mapOf<String, Map<String, String>>(
+        "Charm Jungle" to mapOf(
             SecondaryStructureType.Helix.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#45CB85"
                     ),
             SecondaryStructureType.Junction.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#E08DAC"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#E08DAC"
                     ),
             SecondaryStructureType.A.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#6A7FDB"
                     ),
             SecondaryStructureType.U.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#57E2E5"
                     ),
             SecondaryStructureType.G.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.CShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#45CB85"
                     ),
             SecondaryStructureType.C.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
-        "Atomic Xanadu" to mapOf<String, Map<String, String>>(
+        "Atomic Xanadu" to mapOf(
             SecondaryStructureType.Helix.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#C4A77D"
                     ),
             SecondaryStructureType.Junction.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#EF946C"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#EF946C"
                     ),
             SecondaryStructureType.A.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.UShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#C4A77D"
                     ),
             SecondaryStructureType.U.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#70877F"
                     ),
             SecondaryStructureType.G.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#454372"
                     ),
             SecondaryStructureType.C.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
-        "Pale Coral" to mapOf<String, Map<String, String>>(
+        "Pale Coral" to mapOf(
             SecondaryStructureType.Helix.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#75B9BE"
                     ),
             SecondaryStructureType.Junction.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#987284"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#987284"
                     ),
             SecondaryStructureType.A.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#75B9BE"
                     ),
             SecondaryStructureType.U.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#D0D6B5"
                     ),
             SecondaryStructureType.G.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.CShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#F9B5AC"
                     ),
             SecondaryStructureType.C.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
-        "Maximum Salmon" to mapOf<String, Map<String, String>>(
+        "Maximum Salmon" to mapOf(
             SecondaryStructureType.Helix.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#6DB1BF"
                     ),
             SecondaryStructureType.Junction.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#F39A9D"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#301A4B"
                     ),
             SecondaryStructureType.A.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#6DB1BF"
                     ),
             SecondaryStructureType.U.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#FFEAEC"
                     ),
             SecondaryStructureType.G.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.CShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#F39A9D"
                     ),
             SecondaryStructureType.C.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
         ),
-        "Pacific Dream" to mapOf<String, Map<String, String>>(
+        "Pacific Dream" to mapOf(
             SecondaryStructureType.Helix.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#46ACC2"
                     ),
             SecondaryStructureType.Junction.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#498C8A"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#42F2F7"
                     ),
             SecondaryStructureType.A.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.UShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#46ACC2"
                     ),
             SecondaryStructureType.U.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#498C8A"
                     ),
             SecondaryStructureType.G.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#4B6858"
                     ),
             SecondaryStructureType.C.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
         ),
-        "New York Camel" to mapOf<String, Map<String, String>>(
+        "New York Camel" to mapOf(
             SecondaryStructureType.Helix.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#CE796B"
                     ),
             SecondaryStructureType.Junction.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#C18C5D"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#ECC8AF"
                     ),
             SecondaryStructureType.A.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.UShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#E7AD99"
                     ),
             SecondaryStructureType.U.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#CE796B"
                     ),
             SecondaryStructureType.G.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#C18C5D"
                     ),
             SecondaryStructureType.C.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
         ),
-        "Screamin' Olive" to mapOf<String, Map<String, String>>(
+        "Screamin' Olive" to mapOf(
             SecondaryStructureType.Helix.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#7494EA"
                     ),
             SecondaryStructureType.Junction.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#494947"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#494947"
                     ),
             SecondaryStructureType.A.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#35FF69"
                     ),
             SecondaryStructureType.U.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#44CCFF"
                     ),
             SecondaryStructureType.G.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#7494EA"
                     ),
             SecondaryStructureType.C.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
-        "Baby Lilac" to mapOf<String, Map<String, String>>(
+        "Baby Lilac" to mapOf(
             SecondaryStructureType.Helix.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#A4A8D1"
                     ),
             SecondaryStructureType.Junction.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#BBA0B2"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#9D858D"
                     ),
             SecondaryStructureType.A.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.UShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#BBA0B2"
                     ),
             SecondaryStructureType.U.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#A4A8D1"
                     ),
             SecondaryStructureType.G.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#A4BFEB"
                     ),
             SecondaryStructureType.C.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.XShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
-        "Celeste Olivine" to mapOf<String, Map<String, String>>(
+        "Celeste Olivine" to mapOf(
             SecondaryStructureType.Helix.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#B0C592"
                     ),
             SecondaryStructureType.Junction.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#A97C73"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#9CFFFA"
                     ),
             SecondaryStructureType.A.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.UShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#ACF39D"
                     ),
             SecondaryStructureType.U.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.GShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#B0C592"
                     ),
             SecondaryStructureType.G.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#A97C73"
                     ),
             SecondaryStructureType.C.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
-        "Midnight Paradise" to mapOf<String, Map<String, String>>(
+        "Midnight Paradise" to mapOf(
             SecondaryStructureType.Helix.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#EF476F"
                     ),
             SecondaryStructureType.Junction.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#118AB2"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#EF476F"
                     ),
             SecondaryStructureType.A.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#FFD166"
                     ),
             SecondaryStructureType.U.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.GShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#06D6A0"
                     ),
             SecondaryStructureType.G.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#118AB2"
                     ),
             SecondaryStructureType.C.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
-        "African Lavender" to mapOf<String, Map<String, String>>(
+        "African Lavender" to mapOf(
             SecondaryStructureType.Helix.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#B18FCF"
                     ),
             SecondaryStructureType.Junction.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#978897"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.A.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#D8D8F6"
                     ),
             SecondaryStructureType.UShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#B18FCF"
                     ),
             SecondaryStructureType.U.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#978897"
                     ),
             SecondaryStructureType.G.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#494850"
                     ),
             SecondaryStructureType.C.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
-        "Charcoal Lazuli" to mapOf<String, Map<String, String>>(
+        "Charcoal Lazuli" to mapOf(
             SecondaryStructureType.Helix.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#33658A"
                     ),
             SecondaryStructureType.Junction.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#F6AE2D"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#2F4858"
                     ),
             SecondaryStructureType.A.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#33658A"
                     ),
             SecondaryStructureType.U.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#86BBD8"
                     ),
             SecondaryStructureType.G.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#F6AE2D"
                     ),
             SecondaryStructureType.C.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.XShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         ),
-        "Pumpkin Vegas" to mapOf<String, Map<String, String>>(
+        "Pumpkin Vegas" to mapOf(
             SecondaryStructureType.Helix.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#FA7921"
                     ),
             SecondaryStructureType.Junction.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#566E3D"
                     ),
             SecondaryStructureType.SingleStrand.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     ),
             SecondaryStructureType.AShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#FA7921"
                     ),
             SecondaryStructureType.A.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.UShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#FE9920"
                     ),
             SecondaryStructureType.U.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.GShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#B9A44C"
                     ),
             SecondaryStructureType.G.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.CShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to "#566E3D"
                     ),
             SecondaryStructureType.C.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.WHITE)
                     ),
             SecondaryStructureType.XShape.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.LIGHT_GRAY)
                     ),
             SecondaryStructureType.X.toString() to
-                    mapOf<String, String>(
+                    mapOf(
                         ThemeParameter.color.toString() to getHTMLColorString(Color.BLACK)
                     )
         )
 
-    );
+    )
 
     @JvmStatic
     private var document: Document? = null
@@ -1146,7 +1146,7 @@ object RnartistConfig {
             if (_e == null) {
                 val rnaGallery = Element("rna-gallery")
                 rnaGallery.addContent(Element("path"))
-                var useOnline = Element("use-online")
+                val useOnline = Element("use-online")
                 useOnline.text = "true"
                 rnaGallery.addContent(useOnline)
                 e.addContent(rnaGallery)
@@ -1169,7 +1169,7 @@ object RnartistConfig {
             if (_e == null) {
                 val rnaGallery = Element("rna-gallery")
                 rnaGallery.addContent(Element("path"))
-                var useOnline = Element("use-online")
+                val useOnline = Element("use-online")
                 useOnline.text = "true"
                 rnaGallery.addContent(useOnline)
                 e.addContent(rnaGallery)
@@ -1277,7 +1277,7 @@ object RnartistConfig {
 
     @JvmStatic
     fun exportSVGWithBrowserCompatibility(): Boolean {
-        var e = document?.rootElement?.getChild("export-SVG-with-browser-compatibility")
+        val e = document?.rootElement?.getChild("export-SVG-with-browser-compatibility")
         return e != null
     }
 
@@ -1328,38 +1328,6 @@ object RnartistConfig {
             }
             (e as Element).text = "${value}"
         }
-
-    @JvmStatic
-    fun launchChimeraAtStart(): Boolean {
-        var e = document!!.rootElement.getChild("launch-chimera")
-        if (e == null) {
-            e = Element("launch-chimera")
-            e.text = "false"
-            document!!.rootElement.addContent(e)
-        }
-        return e.text == "true"
-    }
-
-    @JvmStatic
-    fun launchChimeraAtStart(launch: Boolean) {
-        document!!.rootElement.getChild("launch-chimera").text = "" + launch
-    }
-
-    @JvmStatic
-    fun useLocalAlgorithms(): Boolean {
-        var e = document!!.rootElement.getChild("local-algorithms")
-        if (e == null) {
-            e = Element("local-algorithms")
-            e.text = "false"
-            document!!.rootElement.addContent(e)
-        }
-        return e.text == "true"
-    }
-
-    @JvmStatic
-    fun useLocalAlgorithms(use: Boolean) {
-        document!!.rootElement.getChild("local-algorithms").text = "" + use
-    }
 
     @JvmStatic
     fun getRnartistRelease(): String? {
