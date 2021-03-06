@@ -9,6 +9,8 @@ WORKDIR RNAVIEW/
 RUN make && make clean
 ENV RNAVIEW /RNAVIEW
 
+ENV PATH /RNAVIEW/bin:$PATH
+
 #rnartistcore
 RUN git clone https://github.com/fjossinet/RNArtistCore.git
 WORKDIR RNArtistCore/

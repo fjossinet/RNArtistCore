@@ -1352,12 +1352,12 @@ object RnartistConfig {
     }
 
     @JvmStatic
-    fun isAssemble2DockerImageInstalled():Boolean {
+    fun isDockerImageInstalled():Boolean {
         return try {
             val pb  = ProcessBuilder("docker", "images");
             val p = pb.start();
             val result = InputStreamReader(p.getInputStream()).buffered().use(BufferedReader::readText);
-            "fjossinet/assemble2".toRegex().containsMatchIn(result.trim())
+            "fjossinet/rnartistcore".toRegex().containsMatchIn(result.trim())
         } catch (e:Exception ) {
             false;
         }
