@@ -122,6 +122,7 @@ class PDBBuilder:FileBuilder() {
                         return arrayListOf<SecondaryStructure>(it)
                 }
             }
+            println(secondaryStructures.size)
             return secondaryStructures
         }
         return listOf<SecondaryStructure>()
