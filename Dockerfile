@@ -11,6 +11,8 @@ ENV RNAVIEW /RNAVIEW
 
 ENV PATH /RNAVIEW/bin:$PATH
 
+WORKDIR /
+
 #rnartistcore
 RUN git clone https://github.com/fjossinet/RNArtistCore.git
 WORKDIR RNArtistCore/
