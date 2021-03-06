@@ -8,8 +8,8 @@ RNArtistCore provides a DSL (Domain Specific Language) and a Kotlin library to d
 ![](media/3way_full_details_A.png)
 
 * [Installation](#installation)
-  * [Docker](#docker) 
 * [The RNArtistCore DSL](#dsl)
+  * [Run your scripts with Docker](#docker)
   * [How to write your scripts](#script)
   * [The **```rna```** element](#molecule)
   * [The **```ss```** element](#ss)
@@ -44,9 +44,9 @@ To run a script, you need to type the following command:
 
 <pre>java -jar target/rnartistcore-{version}-jar-with-dependencies.jar your_script.kts</pre>
 
-### <a name="docker"></a>Docker
+### <a name="docker"></a>Run your scripts with Docker
 
-You can also run your scripts through Docker. Install Docker on your computer, then type:
+Install Docker on your computer, then type:
 
 ```
 docker pull fjossinet/rnartistcore
