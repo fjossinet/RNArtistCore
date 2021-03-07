@@ -1,3 +1,8 @@
+/**
+ * This script has to be used with Docker. It recovers Rfam entries and produces 2D drawing based on both drawing algorithms (Booquet and the one used in the RNArtist app)
+ */
+
+
 import io.github.fjossinet.rnartist.core.booquet
 import io.github.fjossinet.rnartist.core.model.*
 import io.github.fjossinet.rnartist.core.model.io.parseStockholm
@@ -6,49 +11,44 @@ import java.awt.Color
 import java.awt.geom.Point2D
 import java.io.File
 
-listOf<Int>(11, 17, 36, 457, 1071).forEach {
+(1..100).forEach {
     val rfamID = "RF${"%05d".format(it)}"
     println(rfamID)
-    val outputFile = "/Users/fjossinet/Downloads/${rfamID}_rnartist.svg"
-    if (!File("/Users/fjossinet/Downloads/${rfamID}_rnartist_consensus.svg").exists()) {
-        try {
-            booquet {
-                file = "/Users/fjossinet/Downloads/${rfamID}_booquet.svg"
-                junction_diameter = 15.0
-                ss {
-                    rfam {
-                        id = rfamID
-                        name="consensus"
-                    }
+    try {
+        booquet {
+            file = "/docker/${rfamID}_booquet.svg"
+            junction_diameter = 15.0
+            ss {
+                rfam {
+                    id = rfamID
+                    name="consensus"
                 }
             }
-            rnartist {
-                file = outputFile
-                ss {
-                    rfam {
-                        id = rfamID
-                        name = "consensus"
-                    }
-                }
-                theme {
-                    details_lvl = 5
-
-                    color {
-                        type = "R"
-                        value = "deepskyblue"
-                    }
-
-                    color {
-                        type = "Y"
-                        value = "darkgreen"
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            println("Exception for $rfamID: ${e.message}")
         }
-    } else {
-        println("$rfamID already processed")
+        rnartist {
+            file = "/docker/${rfamID}_rnartist.svg"
+            ss {
+                rfam {
+                    id = rfamID
+                    name = "consensus"
+                }
+            }
+            theme {
+                details_lvl = 5
+
+                color {
+                    type = "R"
+                    value = "deepskyblue"
+                }
+
+                color {
+                    type = "Y"
+                    value = "darkgreen"
+                }
+            }
+        }
+    } catch (e: Exception) {
+        println("Exception for $rfamID: ${e.message}")
     }
 }
 

@@ -1,5 +1,6 @@
 /**
- * To run this script: kotlin -cp target/rnartistcore-{version}-jar-with-dependencies.jar scripts/dsl/dsl.kts
+ * To run this script:java -jar target/rnartistcore-{version}-jar-with-dependencies.jar scripts/dsl/dsl.kts
+ * You can also use Docker (see documentation https://github.com/fjossinet/RNArtistCore)
  */
 import io.github.fjossinet.rnartist.core.*
 
