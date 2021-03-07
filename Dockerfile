@@ -16,5 +16,6 @@ WORKDIR /
 #rnartistcore
 RUN git clone https://github.com/fjossinet/RNArtistCore.git
 WORKDIR RNArtistCore/
+RUN git pull
 RUN mvn clean package
 
