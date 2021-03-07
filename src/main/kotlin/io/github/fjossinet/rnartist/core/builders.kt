@@ -106,7 +106,7 @@ class PDBBuilder:FileBuilder() {
     override fun build(): List<SecondaryStructure> {
         var secondaryStructures = listOf<SecondaryStructure>()
         if (this.id != null) {
-            val pdbFile = java.io.File.createTempFile(this.id!!, ".pdb")
+            val pdbFile = File.createTempFile(this.id!!, ".pdb")
             pdbFile.writeText(PDB().getEntry(this.id!!).readText())
             this.file = pdbFile.absolutePath
         }
@@ -260,10 +260,23 @@ class RNArtistBuilder {
                 else
                     Rectangle2D.Double(0.0, 0.0, drawingFrame.width, drawingFrame.height)
                 drawing.fitTo(frame)
-                val svgOutput = toSVG(drawing, frame.width, frame.height)
-                val f = File("${outputFile.split(".svg").first()}_${ss.rna.name.replace("/", "_")}.svg")
-                f.createNewFile()
-                f.writeText(svgOutput)
+                when (outputFile.split(".").last()) {
+                    "svg" -> {
+                        val svgOutput = toSVG(drawing, frame.width, frame.height)
+                        val f = File("${outputFile.split(".svg").first()}_${ss.rna.name.replace("/", "_")}.svg")
+                        f.createNewFile()
+                        f.writeText(svgOutput)
+                    }
+                    "json" -> {
+                        val jsonOutput = toJSON(drawing)
+                        val f = File("${outputFile.split(".json").first()}_${ss.rna.name.replace("/", "_")}.json")
+                        f.createNewFile()
+                        f.writeText(jsonOutput)
+                    }
+                    "r2dt" -> {
+
+                    }
+                }
             }
             drawings.add(drawing)
         }

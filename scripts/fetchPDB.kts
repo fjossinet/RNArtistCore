@@ -1,6 +1,6 @@
 /**
- * This script has been implemented to generate the data for the project RNAGallery (https://github.com/fjossinet/RNAGallery)
- * It needs Docker and the container Assemble2Docker (https://github.com/fjossinet/Assemble2Docker) both installed on your computer
+ * This script has been implemented to generate the data for the project RNAGallery (https://github.com/fjossinet/RNAGallery).
+ * It needs Docker.
  * To run this script:
  * kotlin -cp location_of_your_rnartistcore-jar-with-dependencies.jar fetchPDB.kts your_output_dir
  */
@@ -9,124 +9,11 @@ import java.io.*
 import io.github.fjossinet.rnartist.core.model.*
 import io.github.fjossinet.rnartist.core.model.io.*
 import io.github.fjossinet.rnartist.core.rnartist
-import java.awt.Rectangle
-
-if (args.size < 1) {
-    println("To run this script, precise the output directory as argument")
-    System.exit(0)
-}
-
-val outputdir = args[0]
-
-val colorScheme = "Persian Carolina"
-
-val t = Theme()
-t.setConfigurationFor(
-    SecondaryStructureType.Helix,
-    ThemeParameter.fulldetails,
-    "true"
-)
-t.setConfigurationFor(
-    SecondaryStructureType.SecondaryInteraction,
-    ThemeParameter.fulldetails,
-    "true"
-)
-t.setConfigurationFor(
-    SecondaryStructureType.SingleStrand,
-    ThemeParameter.fulldetails,
-    "true"
-)
-t.setConfigurationFor(
-    SecondaryStructureType.PKnot,
-    ThemeParameter.fulldetails,
-    "true"
-)
-t.setConfigurationFor(
-    SecondaryStructureType.InteractionSymbol,
-    ThemeParameter.fulldetails,
-    "true"
-)
-t.setConfigurationFor(
-    SecondaryStructureType.PhosphodiesterBond,
-    ThemeParameter.fulldetails,
-    "true"
-)
-t.setConfigurationFor(
-    SecondaryStructureType.Junction,
-    ThemeParameter.fulldetails,
-    "true"
-)
-t.setConfigurationFor(
-    SecondaryStructureType.AShape,
-    ThemeParameter.fulldetails,
-    "true"
-)
-t.setConfigurationFor(
-    SecondaryStructureType.UShape,
-    ThemeParameter.fulldetails,
-    "true"
-)
-t.setConfigurationFor(
-    SecondaryStructureType.GShape,
-    ThemeParameter.fulldetails,
-    "true"
-)
-t.setConfigurationFor(
-    SecondaryStructureType.CShape,
-    ThemeParameter.fulldetails,
-    "true"
-)
-t.setConfigurationFor(
-    SecondaryStructureType.XShape,
-    ThemeParameter.fulldetails,
-    "true"
-)
-t.setConfigurationFor(
-    SecondaryStructureType.A,
-    ThemeParameter.fulldetails,
-    "true"
-)
-t.setConfigurationFor(
-    SecondaryStructureType.U,
-    ThemeParameter.fulldetails,
-    "true"
-)
-t.setConfigurationFor(
-    SecondaryStructureType.G,
-    ThemeParameter.fulldetails,
-    "true"
-)
-t.setConfigurationFor(
-    SecondaryStructureType.C,
-    ThemeParameter.fulldetails,
-    "true"
-)
-t.setConfigurationFor(
-    SecondaryStructureType.X,
-    ThemeParameter.fulldetails,
-    "true"
-)
-
-t.setConfigurationFor(
-    SecondaryStructureType.TertiaryInteraction,
-    ThemeParameter.fulldetails,
-    "true"
-)
-
-RnartistConfig.colorSchemes[colorScheme]!!.forEach { elementType, config ->
-    config.forEach {
-        t.setConfigurationFor(
-            SecondaryStructureType.valueOf(elementType),
-            ThemeParameter.valueOf(it.key),
-            it.value
-        )
-    }
-}
+import io.github.fjossinet.rnartist.core.ss
 
 val pdb = PDB()
-val rnaview = Rnaview()
 val ids = pdb.query()
-val statusFile = File("${outputdir}/status.md")
+val statusFile = File("/docker/status.md")
 val status = mutableListOf<List<String>>()
 if (statusFile.exists()) {
     statusFile.readLines().forEach { line ->
@@ -144,14 +31,19 @@ ids.forEach { pdbId ->
     try {
         if (!status.any { it.first().trim().equals("[${pdbId}](https://www.rcsb.org/structure/${pdbId})")}) {
             Thread.sleep(2000) //avoid flood
-            val pdbFile = File("${outputdir}/${pdbId}.pdb")
+            val pdbFile = File("/docker/${pdbId}.pdb")
             if (!pdbFile.exists()) {
                 println("Downloading ${pdbId} (${ids.indexOf(pdbId) + 1}/${ids.size})")
                 pdbFile.writeText(pdb.getEntry(pdbId).readText())
             }
-            println("Annotating ${pdbId} (${ids.indexOf(pdbId) + 1}/${ids.size})")
+            println("Drawing ${pdbId} (${ids.indexOf(pdbId) + 1}/${ids.size})")
+
             val tertiaryStructures = parsePDB(FileReader(pdbFile))
-            rnaview.annotate(pdbFile).forEach {
+            ss {
+                pdb {
+                    file = pdbFile.absolutePath
+                }
+            }.forEach {
                 val s = mutableListOf("[${pdbId}](https://www.rcsb.org/structure/${pdbId})")
                 s.add(it.rna.name)
                 var found = false
@@ -168,18 +60,13 @@ ids.forEach { pdbId ->
                     s.add("Y")  //should never happen
                 if (!it.helices.isEmpty()) {
                     rnartist {
+                        file = "/docker/${pdbId}.json"
+                        theme {
+                            details_lvl = 5
+                        }
                         secondaryStructures.add(it)
                     }.forEach { drawing ->
                         s.add("v1")
-                        val drawingFrame = drawing.getFrame().bounds
-                        val frame = if (drawingFrame.width < 1024 || drawingFrame.height < 768)
-                            Rectangle(0, 0, 1024, 768)
-                        else
-                            Rectangle(0, 0, drawingFrame.width, drawingFrame.height)
-                        drawing.applyTheme(t)
-                        drawing.fitTo(frame)
-
-                        File("${outputdir}/${pdbId}_${it.rna.name}.json").writeText(toJSON(drawing))
                         s.add("[View](https://raw.githubusercontent.com/fjossinet/RNAGallery/main/PDB/${pdbId}_${it.rna.name}.json)")
                         status.add(s)
                         stored++

@@ -2,14 +2,8 @@
  * This script has to be used with Docker. It recovers Rfam entries and produces 2D drawing based on both drawing algorithms (Booquet and the one used in the RNArtist app)
  */
 
-
 import io.github.fjossinet.rnartist.core.booquet
-import io.github.fjossinet.rnartist.core.model.*
-import io.github.fjossinet.rnartist.core.model.io.parseStockholm
 import io.github.fjossinet.rnartist.core.rnartist
-import java.awt.Color
-import java.awt.geom.Point2D
-import java.io.File
 
 (1..100).forEach {
     val rfamID = "RF${"%05d".format(it)}"
