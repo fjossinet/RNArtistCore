@@ -65,6 +65,7 @@ import io.github.fjossinet.rnartist.core.*
 
 rnartist {
   file = "/docker/example.svg"
+  
   ss {
     rna {
       sequence = "CAACAUCAUACGUACUGCGCCCAAGCGUAACGCGAACACCACGAGUGGUGACUGGUGCUUG"
@@ -72,44 +73,75 @@ rnartist {
     bracket_notation =
       "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
   }
+  
   theme {
     details_lvl = 5
 
     color {
-      type="A"
+      type = "A"
       value = "#A0ECF5"
     }
 
     color {
-      type="a"
+      type = "a"
       value = "black"
     }
 
     color {
-      type="U"
+      type = "U"
       value = "#9157E5"
     }
 
     color {
-      type="G"
+      type = "G"
       value = "darkgreen"
     }
 
     color {
-      type="C"
+      type = "C"
       value = "#E557E5"
     }
 
   }
+}
 
-  rnartist {
-    file = "/docker/example2.svg"
-    
-    ss {
-        pdb {
-            file = "/docker/1ehz.pdb"
-        }    
+rnartist {
+  file = "/docker/example2.svg"
+  
+  ss {
+      pdb {
+          file = "/docker/1ehz.pdb"
+      }    
+  }
+
+  theme {
+    details_lvl = 5
+
+    color {
+      type = "A"
+      value = "#A0ECF5"
     }
+
+    color {
+      type = "a"
+      value = "black"
+    }
+
+    color {
+      type = "U"
+      value = "#9157E5"
+    }
+
+    color {
+      type = "G"
+      value = "darkgreen"
+    }
+
+    color {
+      type = "C"
+      value = "#E557E5"
+    }
+
   }
 }
 ```
