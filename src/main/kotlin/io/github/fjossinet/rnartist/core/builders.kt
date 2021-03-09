@@ -7,7 +7,6 @@ import java.awt.geom.Rectangle2D
 import java.io.File
 import java.io.FileReader
 import java.lang.Exception
-import java.util.*
 
 class RNABuilder {
     var name:String = "A"
@@ -259,7 +258,7 @@ class RNArtistBuilder {
                     Rectangle2D.Double(0.0, 0.0, 1024.0, 768.0)
                 else
                     Rectangle2D.Double(0.0, 0.0, drawingFrame.width, drawingFrame.height)
-                drawing.fitTo(frame)
+                drawing.fitViewTo(frame)
                 when (outputFile.split(".").last()) {
                     "svg" -> {
                         val svgOutput = toSVG(drawing, frame.width, frame.height)

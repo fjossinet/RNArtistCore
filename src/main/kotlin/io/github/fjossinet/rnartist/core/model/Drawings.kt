@@ -919,7 +919,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
         this.workingSession.locationDrawn = Location(1, this.secondaryStructure.length)
     }
 
-    fun fitTo(frame:Rectangle2D) {
+    fun fitViewTo(frame:Rectangle2D) {
         val drawingFrame = this.getFrame()
         val widthRatio = (drawingFrame.bounds2D!!.width+25) / frame.bounds2D.width
         val heightRatio = (drawingFrame.bounds2D!!.height+25) / frame.bounds2D.height
@@ -937,7 +937,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
         this.workingSession.setFont(g, this.residues.first())
     }
 
-    fun fitTo(frame:Rectangle2D, selectionFrame:Rectangle2D) {
+    fun fitViewTo(frame:Rectangle2D, selectionFrame:Rectangle2D) {
         val widthRatio = selectionFrame.bounds2D!!.width / frame.bounds2D.width
         val heightRatio = selectionFrame.bounds2D!!.height / frame.bounds2D.height
         this.workingSession.zoomLevel =
@@ -4719,7 +4719,7 @@ fun Booquet(ss:SecondaryStructure, frameWidth:Double, frameHeight:Double, step:D
     height = maxY-minY
 
     val svgBuffer =
-        StringBuffer("""<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">""" + "\n")
+        StringBuffer("""<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">""" + "\n")
 
     ss.helices.forEach { helix ->
         booquet[helix.name]?.let { coords ->

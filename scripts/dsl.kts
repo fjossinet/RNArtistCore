@@ -777,7 +777,7 @@ booquet {
     line = 0.5
     ss {
         pdb {
-            file = "/Volumes/Data/Projets/RNArtistCore/samples/1jj2.pdb"
+            file = "/Users/fjossinet/Development/Kotlin/RNArtistCore/samples/1jj2.pdb"
             name = "0"
         }
     }
