@@ -54,7 +54,7 @@ To run a script, you need to type the following command:
 * [Jupyter](https://jupyter.org) installed on your computer
 * [Docker Desktop](https://www.docker.com/products/docker-desktop) and the container [fjossinet/rnartistcore](https://hub.docker.com/r/fjossinet/rnartistcore) installed (only necessary to use PDB files)
 
-From the subdirectory notebooks in the RNArtistCore project, type the command: jupyter notebook .
+From the subdirectory notebooks in the RNArtistCore project, type the command: ```jupyter notebook .```
 
 Your browser will open automatically. Select the notebook you want. You can start to run the cells...
 
