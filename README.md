@@ -7,6 +7,10 @@ RNArtistCore provides a DSL (Domain Specific Language) and a Kotlin library to d
 
 ![](media/3way_full_details_A.png)
 
+To give RNArtistCore a try, you can test it directly in your browser with no installation of anything needed. The `launch binder` badge below will launch a Jupyter Notebook fully configured on the cloud service offered by [MyBinder.org](https://mybinder.org/). Enjoy!
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fjossinet/RNArtistCore/HEAD?filepath=rnartistcore_demo.ipynb)
+
 * [Installation](#installation)
 * [The RNArtistCore DSL](#dsl)
   * [Run your scripts with Docker](#docker)
