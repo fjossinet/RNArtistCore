@@ -1,4 +1,0 @@
-wget
-build-essential
-default-jdk
-maven
