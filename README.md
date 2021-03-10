@@ -3,76 +3,33 @@ RNArtistCore
 
 RNArtistCore provides a DSL (Domain Specific Language) and a Kotlin library to describe and plot RNA secondary structures. As a library it is used in the projects [RNArtist](https://github.com/fjossinet/RNArtist) and [RNArtistBackend](https://github.com/fjossinet/RNArtistBackEnd).
 
-To give RNArtistCore a try, directly in your browser with no installation of anything needed, check [RNArtistCore Demo Binder](https://github.com/fjossinet/RNArtistCore-binder). You will find several examples in this demo.
-
 ![](media/booquet_from_pdb_0.png)
 
 ![](media/3way_full_details_A.png)
 
-* [Installation](#installation)
-* [The RNArtistCore DSL](#dsl)
-  * [Run your scripts from Jupyter Notebooks](#jupyter)
-  * [Run your scripts entirely with Docker](#docker)
-  * [How to write your scripts](#script)
-  * [The **```rna```** element](#molecule)
-  * [The **```ss```** element](#ss)
-  * [The drawing algorithm element](#drawing)
-    * [The **```rnartist```** element](#rnartist)
-      * [The **```data```** element](#data)
-      * [The **```theme```** element](#theme)
-        * [The **```color```** element](#color)
-        * [The **```details```** element](#details)
-        * [The **```hide```** element](#hide)
-        * [The **```line```** element](#line)
-      * [The **```layout```** element](#layout)
-    * [The **```booquet```** element](#booquet)
-  * [Embedded Kotlin code](#kotlin)
-* [The RNArtistCore Library](#library)
+The largest part of this documentation explains the [syntax to write your own scripts](#dsl). Then, to run your scripts, you have several options we will describe now.
 
-# <a name="installation"></a>Installation
+# How to run your scripts
 
-You need to have the build tool [Maven](https://maven.apache.org) and a [Java distribution](https://www.oracle.com/java/technologies/javase-downloads.html) to be installed (type the commands ```mvn``` and ```java``` from a command line to check).
+## On a cloud service
 
-Clone this repository and inside its root directory type:
+Check the project [RNArtistCore Demo Binder](https://github.com/fjossinet/RNArtistCore-binder). It will redirect you to a fully configured environment hosted by [MyBinder.org](https://mybinder.org/). You will be able to write and run your scripts inside Jupyter notebooks.
 
-<pre>mvn clean package</pre>
+## On your computer, in a fully configured Docker container
 
-Once done, in the subdirectory named "target", you will find the file rnartistcore-{version}-jar-with-dependencies.jar.
-
-# <a name="dsl"></a>The RNArtistCore DSL
-
-RNArtistCore exposes a domain-specific language (DSL) to write scripts more easily. You can have a look at examples in the file scripts/dsl.kts
-
-To run a script, you need to type the following command:
-
-<pre>java -jar target/rnartistcore-{version}-jar-with-dependencies.jar your_script.kts</pre>
-
-### <a name="jupyter"></a>Run your scripts from Jupyter Notebooks
-
-[Jupyter](https://jupyter.org) allows you to easily prototype your scripts and see the results. To use this option you need:
-* to have your RNArtistCore project compiled
-* [Jupyter](https://jupyter.org) installed on your computer
-* [Docker Desktop](https://www.docker.com/products/docker-desktop) and the container [fjossinet/rnartistcore](https://hub.docker.com/r/fjossinet/rnartistcore) installed (only necessary to use PDB files)
-
-From the subdirectory notebooks in the RNArtistCore project, type the command: ```jupyter notebook .```
-
-Your browser will open automatically. Select the notebook you want. You can start to run the cells...
-
-![](media/jupyter_rnartistcore.png)
-
-### <a name="docker"></a>Run your scripts entirely with Docker
-
-You can write and run your scripts without the need to download, compile and configure the entire RNArtistCore project. Using this option, you just need to:
+You can write and run your scripts on your own computer without the need to download, compile and configure the entire RNArtistCore project. To use this option, you just need to:
 
 * install [Docker Desktop](https://www.docker.com/products/docker-desktop) on your computer, run it and install the container [fjossinet/rnartistcore](https://hub.docker.com/r/fjossinet/rnartistcore) by typing: ```docker pull fjossinet/rnartistcore```
 * create a directory on your computer
-* inside this directory download the script [rnartistcore_docker.sh](https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore_docker.sh) and make it executable
+* inside this directory, save the script [rnartistcore_docker.sh](https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore_docker.sh) and make it executable
 * write your script and save it in this directory (for example with the name ```my_dsl_script.kts```)
 * run this command: ```./rnartistcore_docker.sh $PWD/my_dsl_script.kts```
 
-The script ```rnartistcore_docker.sh``` makes the communication with the Docker container. It injects your script inside the container to run it in an environment where RNArtistCore is fully configured. The output files are saved in the same directory. ** To make it work, the input and output filenames used/generated have to be prefixed with ```/docker/```.**
+The script ```rnartistcore_docker.sh``` makes the communication with the Docker container. It injects your script inside the container to run it in an environment where RNArtistCore is fully configured. The output files are saved in the same directory. 
 
-Example:
+**To make it work, the input and output filenames in your scripts have to be prefixed with ```/docker/``` (check [how to write your scripts](#dsl) below for more details about the syntax).**
+
+Examples:
 
 ```kotlin
 import io.github.fjossinet.rnartist.core.*
@@ -160,7 +117,50 @@ rnartist {
 }
 ```
 
-### <a name="script"></a>How to write your scripts
+### Run your scripts from Jupyter Notebooks using the fully configured Docker container
+
+[Jupyter](https://jupyter.org) allows you to easily prototype your scripts and see the results. Besides Docker Desktop and the container fjossinet/rnartistcore, you will also need to do the following steps:
+
+* install [Jupyter](https://jupyter.org) on your computer
+* inside the directory containing the script ```rnartistcore_docker.sh``` and your own DSL scripts, save the sample notebook [rnartistcore_demo.ipynb](https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore_demo.ipynb) and make it executable
+* from this directory, type the command: ```jupyter notebook .```
+
+Your browser will open automatically. Select the notebook. You can start to work.
+
+![](media/jupyter_rnartistcore.png)
+
+## On your computer without any preconfigured environment
+
+You need to have the build tool [Maven](https://maven.apache.org) and a [Java distribution](https://www.oracle.com/java/technologies/javase-downloads.html) to be installed (type the commands ```mvn``` and ```java``` from a command line to check).
+
+Clone this repository and inside its root directory type:
+
+```mvn clean package```
+
+Once done, in the subdirectory named "target", you will find the file rnartistcore-{version}-jar-with-dependencies.jar.
+
+To run a script, you need to type the following command:
+
+```java -jar target/rnartistcore-{version}-jar-with-dependencies.jar your_script.kts```
+
+# <a name="dsl"></a># How to write your scripts
+
+RNArtistCore exposes a domain-specific language (DSL) to write scripts more easily. You can have a look at examples in the file scripts/dsl.kts
+
+* [The **```rna```** element](#molecule)
+  * [The **```ss```** element](#ss)
+  * [The drawing algorithm element](#drawing)
+    * [The **```rnartist```** element](#rnartist)
+      * [The **```data```** element](#data)
+      * [The **```theme```** element](#theme)
+        * [The **```color```** element](#color)
+        * [The **```details```** element](#details)
+        * [The **```hide```** element](#hide)
+        * [The **```line```** element](#line)
+      * [The **```layout```** element](#layout)
+    * [The **```booquet```** element](#booquet)
+  * [Embedded Kotlin code](#kotlin)
+* [The RNArtistCore Library](#library)
 
 Using pseudo-code, here is the structure that your script has to fit with:
 
