@@ -27,7 +27,7 @@ You can write and run your scripts on your own computer without the need to down
 
 The script ```rnartistcore_docker.sh``` makes the communication with the Docker container. It injects your script inside the container to run it in an environment where RNArtistCore is fully configured. The output files are saved in the same directory. 
 
-**To make it work, the input and output filenames in your scripts have to be prefixed with ```/docker/``` (check [how to write your scripts](#dsl) below for more details about the syntax).**
+**To make it work, the input and output filenames in your scripts have to be prefixed with ```/docker/``` (check [how to write your scripts](#dsl) below to learn more about the syntax of DSL scripts).**
 
 Examples:
 
@@ -119,10 +119,10 @@ rnartist {
 
 ### Run your scripts from Jupyter Notebooks using the fully configured Docker container
 
-[Jupyter](https://jupyter.org) allows you to easily prototype your scripts and see the results. Besides Docker Desktop and the container fjossinet/rnartistcore, you will also need to do the following steps:
+[Jupyter](https://jupyter.org) allows you to easily prototype your scripts and see the results more easily. To do so, besides the installation of Docker Desktop and the container fjossinet/rnartistcore, you will also need to do the following steps:
 
 * install [Jupyter](https://jupyter.org) on your computer
-* inside the directory containing the script ```rnartistcore_docker.sh``` and your own DSL scripts, save the sample notebook [rnartistcore_demo.ipynb](https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore_demo.ipynb) and make it executable
+* inside the directory containing the script ```rnartistcore_docker.sh``` and your own DSL scripts, save the sample notebook [rnartistcore_demo.ipynb](https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore_demo.ipynb)
 * from this directory, type the command: ```jupyter notebook .```
 
 Your browser will open automatically. Select the notebook. You can start to work.
@@ -131,19 +131,21 @@ Your browser will open automatically. Select the notebook. You can start to work
 
 ## On your computer without any preconfigured environment
 
-You need to have the build tool [Maven](https://maven.apache.org) and a [Java distribution](https://www.oracle.com/java/technologies/javase-downloads.html) to be installed (type the commands ```mvn``` and ```java``` from a command line to check).
+You will have to compile and package the RNArtistCore library with Java tools. You will need to have the build tool [Maven](https://maven.apache.org) and a [Java distribution](https://www.oracle.com/java/technologies/javase-downloads.html) installed on your computer (type the commands ```mvn``` and ```java``` from a command line to check).
 
-Clone this repository and inside its root directory type:
+Clone this repository (```git clone```) and inside its root directory type:
 
 ```mvn clean package```
 
-Once done, in the subdirectory named "target", you will find the file rnartistcore-{version}-jar-with-dependencies.jar.
+Once done, in the subdirectory named ```target```, you will find a file named like rnartistcore-{version}-jar-with-dependencies.jar.
 
-To run a script, you need to type the following command:
+To run a script, type the following command:
 
 ```java -jar target/rnartistcore-{version}-jar-with-dependencies.jar your_script.kts```
 
-# <a name="dsl"></a># How to write your scripts
+Using this option, to be able to use PDB files, you will need to compile and configure the [RNAVIEW](http://ndbserver.rutgers.edu/ndbmodule/services/download/rnaview.html) algorithm by yourself.
+
+# <a name="dsl"></a> How to write your scripts
 
 RNArtistCore exposes a domain-specific language (DSL) to write scripts more easily. You can have a look at examples in the file scripts/dsl.kts
 
