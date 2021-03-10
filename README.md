@@ -7,7 +7,7 @@ RNArtistCore provides a DSL (Domain Specific Language) and a Kotlin library to d
 
 ![](media/3way_full_details_A.png)
 
-To give RNArtistCore a try, directly in your browser with no installation of anything needed, check [RNArtistCore Demo Binder](https://github.com/fjossinet/RNArtistCore-binder).
+To give RNArtistCore a try, directly in your browser with no installation of anything needed, check [RNArtistCore Demo Binder](https://github.com/fjossinet/RNArtistCore-binder). You will find several examples in this demo.
 
 * [Installation](#installation)
 * [The RNArtistCore DSL](#dsl)
