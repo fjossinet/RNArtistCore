@@ -9,8 +9,6 @@ RNArtistCore provides a DSL (Domain Specific Language) and a Kotlin library to d
 
 To give RNArtistCore a try, directly in your browser with no installation of anything needed, check [RNArtistCore Demo Binder](https://github.com/fjossinet/RNArtistCore-binder).
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fjossinet/RNArtistCore/HEAD?filepath=rnartistcore_demo.ipynb)
-
 * [Installation](#installation)
 * [The RNArtistCore DSL](#dsl)
   * [Run your scripts with Docker](#docker)
