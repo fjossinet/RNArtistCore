@@ -11,7 +11,8 @@ To give RNArtistCore a try, directly in your browser with no installation of any
 
 * [Installation](#installation)
 * [The RNArtistCore DSL](#dsl)
-  * [Run your scripts with Docker](#docker)
+  * [Run your scripts from Jupyter Notebooks](#jupyter)
+  * [Run your scripts entirely with Docker](#docker)
   * [How to write your scripts](#script)
   * [The **```rna```** element](#molecule)
   * [The **```ss```** element](#ss)
@@ -46,19 +47,30 @@ To run a script, you need to type the following command:
 
 <pre>java -jar target/rnartistcore-{version}-jar-with-dependencies.jar your_script.kts</pre>
 
-### <a name="docker"></a>Run your scripts with Docker
+### <a name="jupyter"></a>Run your scripts from Jupyter Notebooks
 
-Install Docker on your computer, then type:
+[Jupyter](https://jupyter.org) allows you to easily prototype your scripts and see the results. To use this option you need:
+* to have your RNArtistCore project compiled
+* [Jupyter](https://jupyter.org) installed on your computer
+* [Docker Desktop](https://www.docker.com/products/docker-desktop) and the container [fjossinet/rnartistcore](https://hub.docker.com/r/fjossinet/rnartistcore) installed (only necessary to use PDB files)
 
-```
-docker pull fjossinet/rnartistcore
-```
+From the subdirectory notebooks in the RNArtistCore project, type the command: jupyter notebook .
 
-Once the container installed, you can use the file ```rnartistcore_docker.sh``` to run your DSL scripts.
+Your browser will open automatically. Select the notebook you want. You can start to run the cells...
 
-```./rnartistcore_docker.sh $PWD/my_dsl_script.kts```
+![](media/jupyter_rnartistcore.png)
 
-**Important:** in your scripts, the input and output filenames used/generated have to be prefixed with ```/docker/```. They need to be/will be located in the same directory as your DSL script.
+### <a name="docker"></a>Run your scripts entirely with Docker
+
+You can write and run your scripts without the need to download, compile and configure the entire RNArtistCore project. Using this option, you just need to:
+
+* install [Docker Desktop](https://www.docker.com/products/docker-desktop) on your computer, run it and install the container [fjossinet/rnartistcore](https://hub.docker.com/r/fjossinet/rnartistcore) by typing: ```docker pull fjossinet/rnartistcore```
+* create a directory on your computer
+* inside this directory download the script [rnartistcore_docker.sh](https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore_docker.sh) and make it executable
+* write your script and save it in this directory (for example with the name ```my_dsl_script.kts```)
+* run this command: ```./rnartistcore_docker.sh $PWD/my_dsl_script.kts```
+
+The script ```rnartistcore_docker.sh``` makes the communication with the Docker container. It injects your script inside the container to run it in an environment where RNArtistCore is fully configured. The output files are saved in the same directory. ** To make it work, the input and output filenames used/generated have to be prefixed with ```/docker/```.**
 
 Example:
 
