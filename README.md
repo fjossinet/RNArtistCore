@@ -11,11 +11,11 @@ The largest part of this documentation explains the [syntax to write your own sc
 
 # How to run your scripts
 
-## On a cloud service
+## Use RNArtistCore on a cloud service
 
 Check the project [RNArtistCore Demo Binder](https://github.com/fjossinet/RNArtistCore-binder). It will redirect you to a fully configured environment hosted by [MyBinder.org](https://mybinder.org/). You will be able to write and run your scripts inside Jupyter notebooks.
 
-## On your computer, in a fully configured Docker container
+## Use RNArtistCore on your computer, in a fully configured Docker container
 
 You can write and run your scripts on your own computer without the need to download, compile and configure the entire RNArtistCore project. To use this option, you just need to:
 
@@ -29,12 +29,12 @@ You can write and run your scripts on your own computer without the need to down
 
 Once the installation done, you will see several files in your project directory:
 
-* ```rnartistcore_docker.sh```: a script shell to make the communicaiton with the fully configured Docker container ```fjossinet/rnartistcore```
-* ```rnartist_demo.ipynb```: a Jupyter notebook sample
-* ```example.kts```: a sample DSL script to produce an SVG file from an RNA 2D described from scratch and another one derived from a 3D structure (PDBID 1GID)
-* ```1gid.pdb```: a sample PDB file
+* [rnartistcore_docker.sh](rnartistcore_docker.sh): a script shell to make the communication with the fully configured Docker container ```fjossinet/rnartistcore```
+* [rnartist_demo.ipynb](rnartistcore_demo.ipynb): a Jupyter notebook sample
+* [example.kts](scripts/example.kts): a sample DSL script to produce an SVG file from an RNA 2D described from scratch and another one derived from a 3D structure (PDBID 1GID)
+* 1gid.pdb: a sample PDB file
 
-The script named ```rnartistcore_docker.sh``` makes the communication with the Docker container. It injects your script inside the container to run it in an environment where RNArtistCore is fully configured. The output files are saved in the project directory. 
+The script named ```rnartistcore_docker.sh``` makes the communication with the Docker container. It injects your DSL script inside the container to run it in an environment where RNArtistCore is fully configured. The output files are saved in the project directory. 
 
 **To make it work, the input and output filenames in your DSL scripts have to be prefixed with ```/docker/``` (check [how to write your scripts](#dsl) below to learn more about the syntax of DSL scripts).**
 
@@ -126,7 +126,7 @@ rnartist {
 }
 ```
 
-## On your computer without any preconfigured environment
+## Use RNArtistCore on your computer without any preconfigured environment
 
 You will have to compile and package the RNArtistCore library with Java tools. You will need to have the build tool [Maven](https://maven.apache.org) and a [Java distribution](https://www.oracle.com/java/technologies/javase-downloads.html) installed on your computer (type the commands ```mvn``` and ```java``` from a command line to check).
 
@@ -144,7 +144,7 @@ Using this option, to be able to use PDB files, you will need to compile and con
 
 # <a name="dsl"></a> How to write your scripts
 
-RNArtistCore exposes a domain-specific language (DSL) to write scripts more easily. You can have a look at examples in the file scripts/dsl.kts
+RNArtistCore exposes a domain-specific language (DSL) to write scripts more easily. You can have a look at examples in the file [scripts/dsl.kts](scripts/dsl.kts)
 
 * [The **```rna```** element](#molecule)
   * [The **```ss```** element](#ss)
