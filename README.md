@@ -1,8 +1,6 @@
 RNArtistCore
 ============
 
-<link rel="stylesheet" type="text/css" media="all" href="readme.css" />
-
 RNArtistCore provides a DSL (Domain Specific Language) and a Kotlin library to describe and plot RNA secondary structures. As a library it is used in the projects [RNArtist](https://github.com/fjossinet/RNArtist) and [RNArtistBackend](https://github.com/fjossinet/RNArtistBackEnd).
 
 ![](media/booquet_from_pdb_0.png)
@@ -18,10 +16,6 @@ The largest part of this documentation explains the [syntax to write your own sc
 Check the project [RNArtistCore Demo Binder](https://github.com/fjossinet/RNArtistCore-binder). It will redirect you to a fully configured environment hosted by [MyBinder.org](https://mybinder.org/). You will be able to write and run your scripts inside Jupyter notebooks.
 
 ## Use RNArtistCore on your computer, in a fully configured Docker container
-
-<div class="terminal">
-  sh -c "$(curl -fsSL https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/quickstart.sh)"
-</div>
 
 You can write and run your scripts on your own computer without the need to download, compile and configure the entire RNArtistCore project. To use this option, you just need to:
 
