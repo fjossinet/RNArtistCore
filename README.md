@@ -20,14 +20,21 @@ Check the project [RNArtistCore Demo Binder](https://github.com/fjossinet/RNArti
 You can write and run your scripts on your own computer without the need to download, compile and configure the entire RNArtistCore project. To use this option, you just need to:
 
 * install [Docker Desktop](https://www.docker.com/products/docker-desktop) on your computer, run it and install the container [fjossinet/rnartistcore](https://hub.docker.com/r/fjossinet/rnartistcore) by typing: ```docker pull fjossinet/rnartistcore```
-* create a directory on your computer
-* inside this directory, save the script [rnartistcore_docker.sh](https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore_docker.sh) and make it executable
-* write your script and save it in this directory (for example with the name ```my_dsl_script.kts```)
-* run this command: ```./rnartistcore_docker.sh $PWD/my_dsl_script.kts```
+* type this command to quickstart a fully configured project directory: ```sh -c "$(curl -fsSL https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/quickstart.sh)"```
+* follow the installation steps
 
-The script ```rnartistcore_docker.sh``` makes the communication with the Docker container. It injects your script inside the container to run it in an environment where RNArtistCore is fully configured. The output files are saved in the same directory. 
+![](media/quickstart_script.png)
 
-**To make it work, the input and output filenames in your scripts have to be prefixed with ```/docker/``` (check [how to write your scripts](#dsl) below to learn more about the syntax of DSL scripts).**
+Once the installation done, you will see several files in your project directory:
+
+* ```rnartistcore_docker.sh```: a script shell to make the communicaiton with the fully configured Docker container ```fjossinet/rnartistcore```
+* ```rnartist_demo.ipynb```: a Jupyter notebook sample
+* ```example.kts```: a sample DSL script to produce an SVG file from an RNA 2D described from scratch and another one derived from a 3D structure (PDBID 1GID)
+* ```1gid.pdb```: a sample PDB file
+
+The script named ```rnartistcore_docker.sh``` makes the communication with the Docker container. It injects your script inside the container to run it in an environment where RNArtistCore is fully configured. The output files are saved in the project directory. 
+
+**To make it work, the input and output filenames in your DSL scripts have to be prefixed with ```/docker/``` (check [how to write your scripts](#dsl) below to learn more about the syntax of DSL scripts).**
 
 Examples:
 
@@ -116,18 +123,6 @@ rnartist {
   }
 }
 ```
-
-### Run your scripts from Jupyter Notebooks using the fully configured Docker container
-
-[Jupyter](https://jupyter.org) allows you to easily prototype your scripts and see the results more easily. To do so, besides the installation of Docker Desktop and the container fjossinet/rnartistcore, you will also need to do the following steps:
-
-* install [Jupyter](https://jupyter.org) on your computer
-* inside the directory containing the script ```rnartistcore_docker.sh``` and your own DSL scripts, save the sample notebook [rnartistcore_demo.ipynb](https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore_demo.ipynb)
-* from this directory, type the command: ```jupyter notebook .```
-
-Your browser will open automatically. Select the notebook. You can start to work.
-
-![](media/jupyter_rnartistcore.png)
 
 ## On your computer without any preconfigured environment
 
