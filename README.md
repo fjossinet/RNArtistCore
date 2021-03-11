@@ -1548,8 +1548,7 @@ rnartist {
 
 # <a name="library"></a>The RNArtistCore library
 
-You need to have the build tool [Maven](https://maven.apache.org) installed.
-No stable release for now, only snapshots. To use RNArtistCore in a Java application, just add the below dependency in your file pom.xml:
+RNArtistCore can be added as a dependency into your own projects. No stable release for now, only snapshots. To use RNArtistCore in a Java application, just add the below dependency in your file pom.xml:
 
 ```xml
     <repositories>
