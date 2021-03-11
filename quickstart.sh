@@ -51,6 +51,8 @@ check_docker() {
     docker pull fjossinet/rnartistcore
     result=$(docker images -q fjossinet/rnartistcore)
     if [[ -n "$result" ]]; then
+       message "Container fjossinet/rnartistcore installed."
+    else
       error "It seems that i was not able to install the container fjossinet/rnartistcore."
       exit 1
     fi
