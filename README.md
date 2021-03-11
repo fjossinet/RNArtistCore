@@ -20,7 +20,9 @@ Check the project [RNArtistCore Demo Binder](https://github.com/fjossinet/RNArti
 You can write and run your scripts on your own computer without the need to download, compile and configure the entire RNArtistCore project. To use this option, you just need to:
 
 * install [Docker Desktop](https://www.docker.com/products/docker-desktop) on your computer and run it
-* type this command to quickstart a fully configured project directory: ```sh -c "$(curl -fsSL https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/quickstart.sh)"```
+* type this command to quickstart a fully configured project directory: 
+  * using curl: ```sh -c "$(curl -fsSL https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/quickstart.sh)"```
+  * using wget: ```sh -c "$(wget https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/quickstart.sh -O -)"```
 * follow the installation steps
 
 ![](media/quickstart_script.png)
