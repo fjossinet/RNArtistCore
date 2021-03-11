@@ -1,0 +1,12 @@
+.terminal {
+    background-color: #273238;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0px 6px 5px 0px rgba(0,0,0,0.2);
+    text-align: left;
+    color: #c5d928;
+    font-family: "courier-prime",monospace;
+    padding: 40px 20px;
+    word-break: break-all;
+    line-height: 22px;
+    font-size: 16px;
+}
