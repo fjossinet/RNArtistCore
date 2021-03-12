@@ -1385,9 +1385,8 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
             if ((absPos % 5 == 0 || absPos == 1 || absPos == ssDrawing.length) && g.font.size-4 > 4 && this.getOpacity() > 0)
                 this.drawNumbering(g, at)
         }
-        if (g.font.size > 8 && this.getOpacity() > 0) { //the conditions to draw a letter
+        if (this.getOpacity() > 0) //the conditions to draw a letter
             this.residueLetter.draw(g, at, drawingArea)
-        }
     }
 
     fun asSVG(at: AffineTransform): String {
@@ -2183,7 +2182,6 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
         //we compute the initial radius according to the junction length and type
         val circumference = (this.junction.length.toFloat() - this.junction.junctionType.value * 2).toFloat() * (radiusConst * 2).toFloat() + this.junction.junctionType.value * helixDrawingWidth()
         this.radius = circumference / (2F * Math.PI).toDouble()
-        circlesFromBranchSoFar.add(this) //this array allows to get easily the shapes already drawn for the branch in order to avoid overlaps with the shapes for this junction
 
         var helixRank = 0
 
@@ -2223,7 +2221,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
                     getConnectorId(newRawValue)
                 }
 
-                var orientationsToTest = mutableListOf<ConnectorId>(outId) //we test outId first before to check the remaining orientations in order to avoid any overlap (if possible)
+                var orientationsToTest = mutableListOf(outId) //we test outId first before to check the remaining orientations in order to avoid any overlap (if possible)
 
                 var afterOrientations = mutableListOf<ConnectorId>()
                 if (to != outId) {
@@ -2368,6 +2366,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
                 )
                 this.outHelices.add(h)
 
+                circlesFromBranchSoFar.add(this)
                 linesFromBranchSoFar.add(h)
 
                 this.connectedJunctions[outId] = JunctionDrawing(h,
