@@ -1191,41 +1191,17 @@ class LineBuilder(data:MutableMap<String, Double>):ThemeConfigurationBuilder(dat
 class HideBuilder(data:MutableMap<String, Double>):ThemeConfigurationBuilder(data) {
 }
 
-fun rna(setup:RNABuilder.() -> Unit): RNA? {
-    val rnaBuilder = RNABuilder()
-    rnaBuilder.setup()
-    return rnaBuilder.build()
-}
+fun rna(setup:RNABuilder.() -> Unit) = RNABuilder().apply { setup() }.build()
 
-fun ss(setup:SecondaryStructureBuilder.() -> Unit): List<SecondaryStructure> {
-    val ssBuilder = SecondaryStructureBuilder()
-    ssBuilder.setup()
-    return ssBuilder.build()
-}
+fun ss(setup:SecondaryStructureBuilder.() -> Unit) = SecondaryStructureBuilder().apply { setup() }.build()
 
-fun booquet(setup:BooquetBuilder.() -> Unit) {
-    val booquetBuilder = BooquetBuilder()
-    booquetBuilder.setup()
-    booquetBuilder.build()
-}
+fun booquet(setup:BooquetBuilder.() -> Unit) = BooquetBuilder().apply { setup() }.build()
 
-fun rnartist(setup:RNArtistBuilder.() -> Unit): List<SecondaryStructureDrawing> {
-    val rnartistBuilder = RNArtistBuilder()
-    rnartistBuilder.setup()
-    return rnartistBuilder.build()
-}
+fun rnartist(setup:RNArtistBuilder.() -> Unit) = RNArtistBuilder().apply { setup() }.build()
 
-fun theme(setup:ThemeBuilder.() -> Unit): AdvancedTheme {
-    val themeBuilder = ThemeBuilder()
-    themeBuilder.setup()
-    return themeBuilder.build()
-}
+fun theme(setup:ThemeBuilder.() -> Unit) = ThemeBuilder().apply { setup() }.build()
 
-fun layout(setup:LayoutBuilder.() -> Unit): Layout {
-    val layoutBuilder = LayoutBuilder()
-    layoutBuilder.setup()
-    return layoutBuilder.build()
-}
+fun layout(setup:LayoutBuilder.() -> Unit) = LayoutBuilder().apply { setup() }.build()
 
 private fun getColorCode(name:String):String {
     return when (name) {
