@@ -254,8 +254,8 @@ class RNArtistBuilder {
             this.file?.let { outputFile ->
                 //the frame will have the size of the drawing
                 val drawingFrame = drawing.getFrame().bounds2D
-                val frame = if (drawingFrame.width < 1024 || drawingFrame.height < 768)
-                    Rectangle2D.Double(0.0, 0.0, 1024.0, 768.0)
+                val frame = if (drawingFrame.width < 1024 || drawingFrame.height < 1024)
+                    Rectangle2D.Double(0.0, 0.0, 1024.0, 1024.0)
                 else
                     Rectangle2D.Double(0.0, 0.0, drawingFrame.width, drawingFrame.height)
                 drawing.fitViewTo(frame)
@@ -998,8 +998,8 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                         val fromColor = getAWTColor(from)
                         colorBuilder.to?.let { to ->
                             val toColor = getAWTColor(to)
-                            val min = colorBuilder.data.values.min()
-                            val max = colorBuilder.data.values.max()
+                            val min = colorBuilder.data.values.minOrNull()
+                            val max = colorBuilder.data.values.maxOrNull()
                             val p = (value - min!!) / (max!! - min!!)
                             val r = (fromColor.red * (1 - p) + toColor.red * p).toInt()
                             val g = (fromColor.green * (1 - p) + toColor.green * p).toInt()

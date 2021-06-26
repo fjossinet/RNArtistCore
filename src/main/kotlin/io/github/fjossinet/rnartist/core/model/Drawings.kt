@@ -635,7 +635,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
                             allTransX.add(cATTheSameLevel.circle.bounds.maxX-newJunction.circle.bounds.minX+6.0* radiusConst)
                 }
 
-                var transX = allTransX.max()!!
+                var transX = allTransX.maxOrNull()!!
 
                 if (this.fitToResiduesBetweenBranches) {
                     val minimalTransX = (nextHelix.first - currentPos + 2) * radiusConst * 2
@@ -969,10 +969,10 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
         allStructuralDomains.addAll(this.allJunctions)
         allStructuralDomains.addAll(this.allHelices)
         allStructuralDomains.addAll(this.singleStrands)
-        val minX = allStructuralDomains.flatMap { it.selectionPoints }.minBy { it.x }!!.x
-        val minY = allStructuralDomains.flatMap { it.selectionPoints }.minBy { it.y }!!.y
-        val maxX = allStructuralDomains.flatMap { it.selectionPoints }.maxBy { it.x }!!.x
-        val maxY = allStructuralDomains.flatMap { it.selectionPoints }.maxBy { it.y }!!.y
+        val minX = allStructuralDomains.flatMap { it.selectionPoints }.minByOrNull { it.x }!!.x
+        val minY = allStructuralDomains.flatMap { it.selectionPoints }.minByOrNull { it.y }!!.y
+        val maxX = allStructuralDomains.flatMap { it.selectionPoints }.maxByOrNull { it.x }!!.x
+        val maxY = allStructuralDomains.flatMap { it.selectionPoints }.maxByOrNull { it.y }!!.y
         return listOf(  Point2D.Double(minX, minY), Point2D.Double(maxX, minY),
             Point2D.Double(maxX, minY), Point2D.Double(maxX, maxY))
     }
@@ -2001,10 +2001,10 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
     override val selectionPoints:List<Point2D>
         get() {
             return if (this.isFullDetails()) {
-                val minX = this.residues.flatMap { it.selectionPoints }.minBy { it.x }!!.x
-                val minY = this.residues.flatMap { it.selectionPoints }.minBy { it.y }!!.y
-                val maxX = this.residues.flatMap { it.selectionPoints }.maxBy { it.x }!!.x
-                val maxY = this.residues.flatMap { it.selectionPoints }.maxBy { it.y }!!.y
+                val minX = this.residues.flatMap { it.selectionPoints }.minByOrNull { it.x }!!.x
+                val minY = this.residues.flatMap { it.selectionPoints }.minByOrNull { it.y }!!.y
+                val maxX = this.residues.flatMap { it.selectionPoints }.maxByOrNull { it.x }!!.x
+                val maxY = this.residues.flatMap { it.selectionPoints }.maxByOrNull { it.y }!!.y
                 return listOf(  Point2D.Double(minX, minY), Point2D.Double(maxX, minY),
                     Point2D.Double(maxX, maxY), Point2D.Double(minX, maxY))
             } else {
@@ -2129,22 +2129,22 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
 
     val minX: Double
         get() {
-            return this.junctionsFromBranch().minBy { it.circle.bounds.minX }!!.circle.bounds.minX
+            return this.junctionsFromBranch().minByOrNull { it.circle.bounds.minX }!!.circle.bounds.minX
         }
 
     val minY: Double
         get() {
-            return this.junctionsFromBranch().minBy { it.circle.bounds.minY }!!.circle.bounds.minY
+            return this.junctionsFromBranch().minByOrNull { it.circle.bounds.minY }!!.circle.bounds.minY
         }
 
     val maxX: Double
         get() {
-            return this.junctionsFromBranch().maxBy { it.circle.bounds.maxX }!!.circle.bounds.maxX
+            return this.junctionsFromBranch().maxByOrNull { it.circle.bounds.maxX }!!.circle.bounds.maxX
         }
 
     val maxY: Double
         get() {
-            return this.junctionsFromBranch().maxBy { it.circle.bounds.maxY }!!.circle.bounds.maxY
+            return this.junctionsFromBranch().maxByOrNull { it.circle.bounds.maxY }!!.circle.bounds.maxY
         }
 
     val junctionType = this.junction.junctionType
@@ -2154,10 +2154,10 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
     override val selectionPoints: List<Point2D>
         get() {
             return if (this.isFullDetails()) {
-                val minX = this.residuesWithClosingBasePairs.flatMap { it.selectionPoints }.minBy { it.x }!!.x
-                val minY = this.residuesWithClosingBasePairs.flatMap { it.selectionPoints }.minBy { it.y }!!.y
-                val maxX = this.residuesWithClosingBasePairs.flatMap { it.selectionPoints }.maxBy { it.x }!!.x
-                val maxY = this.residuesWithClosingBasePairs.flatMap { it.selectionPoints }.maxBy { it.y }!!.y
+                val minX = this.residuesWithClosingBasePairs.flatMap { it.selectionPoints }.minByOrNull { it.x }!!.x
+                val minY = this.residuesWithClosingBasePairs.flatMap { it.selectionPoints }.minByOrNull { it.y }!!.y
+                val maxX = this.residuesWithClosingBasePairs.flatMap { it.selectionPoints }.maxByOrNull { it.x }!!.x
+                val maxY = this.residuesWithClosingBasePairs.flatMap { it.selectionPoints }.maxByOrNull { it.y }!!.y
                 listOf(  Point2D.Double(minX, minY), Point2D.Double(maxX, minY),
                     Point2D.Double(maxX, maxY), Point2D.Double(minX, maxY))
             } else {
@@ -4697,17 +4697,17 @@ fun Booquet(ss:SecondaryStructure, frameWidth:Double, frameHeight:Double, step:D
         }
     }
 
-    var minX = booquet.values.minBy<DoubleArray, Double> { it[0] }!!.get(0) - junction_diameter.toDouble() - lineWidth
+    var minX = booquet.values.minByOrNull { it[0] }!!.get(0) - junction_diameter.toDouble() - lineWidth
     var minY =
-        booquet.values.minBy { it[1] }!!.get(1) - junction_diameter.toDouble() - lineWidth
+        booquet.values.minByOrNull { it[1] }!!.get(1) - junction_diameter.toDouble() - lineWidth
 
-    var maxX = booquet.values.maxBy<DoubleArray, Double> { it[0] }!!.get(0) + junction_diameter.toDouble() + lineWidth
-    var maxY = booquet.values.maxBy { it[1] }!!.get(1).toDouble() + lineWidth
+    var maxX = booquet.values.maxByOrNull<DoubleArray, Double> { it[0] }!!.get(0) + junction_diameter.toDouble() + lineWidth
+    var maxY = booquet.values.maxByOrNull { it[1] }!!.get(1).toDouble() + lineWidth
 
     var width = maxX-minX
     var height = maxY-minY
 
-    val ratio = listOf(frameWidth/width, frameHeight/height).min()!!
+    val ratio = listOf(frameWidth/width, frameHeight/height).minOrNull()!!
 
     minX *= ratio
     maxX *= ratio

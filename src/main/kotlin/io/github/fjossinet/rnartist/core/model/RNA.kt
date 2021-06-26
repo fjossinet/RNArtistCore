@@ -719,7 +719,7 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
                             pknots.add(h)
                         }
                     }
-                    val longest = pknots.maxBy { it -> it.length }
+                    val longest = pknots.maxByOrNull { it -> it.length }
                     for (h in pknots) {
                         if (h != longest)
                             this.helices.remove(h)

@@ -444,7 +444,7 @@ fun annotatePDBfiles(pdbDir: String, outputdir: String) {
                         }.first()
                         val frame = Rectangle(0, 0, 600, 600)
                         drawing.applyTheme(t)
-                        drawing.fitTo(frame)
+                        drawing.fitViewTo(frame)
                         if (!drawing.allTertiaryInteractions.isEmpty()) {
                             drawing.allTertiaryInteractions.forEach {
                                 it.drawingConfiguration.params[ThemeParameter.fulldetails.toString()] =
@@ -643,7 +643,7 @@ jonctions quadruples : ${drawing.allJunctions.filter { it.junctionType == Juncti
                                         }
 
                                         bounds?.let {
-                                            drawing.fitTo(frame, it)
+                                            drawing.fitViewTo(frame, it)
 
                                             File(
                                                 "${outputdir}/${
