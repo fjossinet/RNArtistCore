@@ -151,7 +151,7 @@ EOF
       step_to_do "Downloading notebook rnartistcore_demo.ipynb"
       download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/scripts/rnartistcore_demo.ipynb" > $DIR/rnartistcore_demo.ipynb
       step_to_do "Downloading sample script"
-      download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/scripts/example.kts" > $DIR/readme.kts
+      download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/scripts/example.kts" > $DIR/example.kts
       step_to_do "Downloading data"
       download_file "https://files.rcsb.org/download/1GID.pdb" > $DIR/1gid.pdb
    fi
