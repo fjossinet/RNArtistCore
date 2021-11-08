@@ -21,17 +21,17 @@ You can write and run your scripts on your own computer without the need to down
 
 * install [Docker Desktop](https://www.docker.com/products/docker-desktop) on your computer and run it
 * type this command to quickstart a fully configured project directory: 
-  * using curl: ```sh -c "$(curl -fsSL https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/quickstart.sh)"```
-  * using wget: ```sh -c "$(wget https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/quickstart.sh -O -)"```
+  * using curl: ```sh -c "$(curl -fsSL https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore.sh)"```
+  * using wget: ```sh -c "$(wget https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore.sh -O -)"```
 * follow the installation steps
 
 ![](media/quickstart_script.png)
 
 Once the installation done, you will see several files in your project directory:
 
-* [rnartistcore_docker.sh](rnartistcore_docker.sh): a script shell to make the communication with the fully configured Docker container ```fjossinet/rnartistcore```
-* [rnartist_demo.ipynb](rnartistcore_demo.ipynb): a Jupyter notebook sample
-* [example.kts](scripts/example.kts): a sample DSL script to produce an SVG file from an RNA 2D described from scratch and another one derived from a 3D structure (PDBID 1GID)
+* [rnartistcore_docker.sh](scripts/rnartistcore_docker.sh): a script shell to make the communication with the fully configured Docker container ```fjossinet/rnartistcore```
+* [rnartist_demo.ipynb](scripts/rnartistcore_demo.ipynb): a Jupyter notebook sample
+* [example.kts](scripts/readme.kts): a sample DSL script to produce an SVG file from an RNA 2D described from scratch and another one derived from a 3D structure (PDBID 1GID)
 * 1gid.pdb: a sample PDB file
 
 The script named ```rnartistcore_docker.sh``` makes the communication with the Docker container. It injects your DSL script inside the container to run it in an environment where RNArtistCore is fully configured. The output files are saved in the project directory. 
@@ -144,7 +144,7 @@ Using this option, to be able to use PDB files, you will need to compile and con
 
 # <a name="dsl"></a> How to write your scripts
 
-RNArtistCore exposes a domain-specific language (DSL) to write scripts more easily. You can have a look at examples in the file [scripts/dsl.kts](scripts/dsl.kts)
+RNArtistCore exposes a domain-specific language (DSL) to write scripts more easily. All the examples described in this README are stored in the file [scripts/readme.kts](scripts/readme.kts)
 
 * [The **```rna```** element](#molecule)
   * [The **```ss```** element](#ss)
@@ -496,8 +496,7 @@ Using a **```theme```**, you can define your drawing options for any 2D objects,
 
 To quickly change the details level of your entire 2D, you can use the parameter named **```details_lvl```**. This parameter is a shortcut to define the details level for the entire 2D objects. Five details levels are available.
 
-Level 1
-\--------
+_____Level 1_____
 
 All 2D objects set to **```none```**
 
@@ -516,8 +515,7 @@ rnartist {
 
 ![](media/details_lvl1_A.png)
 
-Level 2
-\---------
+_____Level 2_____
 
 The following 2D objets are set to **```full```**: helix, secondary_interaction, junction, single-strand, phosphodiester_bond
 
@@ -536,8 +534,7 @@ rnartist {
 
 ![](media/details_lvl2_A.png)
 
-Level 3
-\---------
+_____Level 3_____
 
 In addition to those listed in the level 2, this level set the following 2D objects to **```full```** : N (all the residue circles)
 
@@ -556,8 +553,7 @@ rnartist {
 
 ![](media/details_lvl3_A.png)
 
-Level 4
-\---------
+_____Level 4_____
 
 In addition to those listed in the level 3, this level set the following 2D objects to **```full```** : n (all the residue characters)
 
@@ -576,8 +572,7 @@ rnartist {
 
 ![](media/details_lvl4_A.png)
 
-Level 5
-\---------
+_____Level 5_____
 
 In addition to those listed in the level 4, this level set the following 2D objects to **```full```** : interaction_symbol
 

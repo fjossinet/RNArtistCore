@@ -146,12 +146,12 @@ EOF
    if [ -d $DIR ]
    then
       step_to_do "Downloading script rnartistcore_docker.sh"
-      download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore_docker.sh" > $DIR/rnartistcore_docker.sh
+      download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/scripts/rnartistcore_docker.sh" > $DIR/rnartistcore_docker.sh
       chmod u+x $DIR/rnartistcore_docker.sh
       step_to_do "Downloading notebook rnartistcore_demo.ipynb"
-      download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore_demo.ipynb" > $DIR/rnartistcore_demo.ipynb
+      download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/scripts/rnartistcore_demo.ipynb" > $DIR/rnartistcore_demo.ipynb
       step_to_do "Downloading sample script"
-      download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/scripts/example.kts" > $DIR/example.kts
+      download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/scripts/example.kts" > $DIR/readme.kts
       step_to_do "Downloading data"
       download_file "https://files.rcsb.org/download/1GID.pdb" > $DIR/1gid.pdb
    fi
@@ -166,7 +166,7 @@ Your first steps:
 -----------------
 
 - go into your project directory
-- type: ./rnartistcore_docker.sh $PWD/example.kts
+- type: ./rnartistcore_docker.sh example.kts
 - This will produce two SVG files. One from an RNA 2D described from scratch in the sample script (bracket_notation_A.svg) and one from the 3D structure 1GID (1gid_B.svg)
 - to use the sample notebook, install Jupyter and from your project directory type: jupyter notebook .
 

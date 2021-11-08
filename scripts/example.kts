@@ -1,5 +1,5 @@
 /**
- * This is an example used to set up a project directory with the script quickstart.sh
+ * This file is used by the script rnartistcore.sh to setyp a new project directory.
  */
 
 import io.github.fjossinet.rnartist.core.*

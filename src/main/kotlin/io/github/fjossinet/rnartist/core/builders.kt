@@ -111,7 +111,7 @@ class PDBBuilder:FileBuilder() {
         }
         if (this.file != null) {
             try {
-                secondaryStructures = Rnaview().annotate(File(file))
+                secondaryStructures = Rnaview().annotate(File(file)).map { pair -> pair.second }
             } catch (e:Exception) {
                 println(e.message)
             }
@@ -197,6 +197,67 @@ class RfamBuilder:PublicDatabaseBuilder() {
             return secondaryStructures
         }
         return listOf<SecondaryStructure>()
+    }
+}
+
+class OpenScadBuilder {
+    var output:String? = null
+    var annotatedStructures = mutableListOf<Pair<TertiaryStructure,SecondaryStructure>>()
+
+    fun build() {
+        this.output?.let { outputFile ->
+            val f = File("${outputFile}")
+            f.createNewFile()
+            this.annotatedStructures.forEach { annotatedStructure ->
+                var i = 0
+                annotatedStructure.second.helices.forEach { helix ->
+                    i++
+                    val firstbp = helix.secondaryInteractions.first()
+                    val lastbp = helix.secondaryInteractions.last()
+                    f.appendText("""
+translate([${i*40},0,0])
+    cylinder(h = ${helix.length*10}, r1 = 20, r2 = 20, center = true);
+""")
+                }
+            }
+        }
+    }
+
+    fun input(setup:OpenscadInputBuilder.() -> Unit) {
+        val openscadInputBuilder = OpenscadInputBuilder()
+        openscadInputBuilder.setup()
+        annotatedStructures.addAll(openscadInputBuilder.build())
+    }
+
+}
+
+class OpenscadInputBuilder {
+    var name:String? = null
+    var id:String? = null
+    var file:String? = null
+
+    fun build(): List<Pair<TertiaryStructure,SecondaryStructure>> {
+        var annotatedStructures = mutableListOf<Pair<TertiaryStructure,SecondaryStructure>>()
+        if (this.id != null) {
+            val pdbFile = File.createTempFile(this.id!!, ".pdb")
+            pdbFile.writeText(PDB().getEntry(this.id!!).readText())
+            this.file = pdbFile.absolutePath
+        }
+        if (this.file != null) {
+            try {
+                annotatedStructures.addAll(Rnaview().annotate(File(file)))
+            } catch (e:Exception) {
+                println(e.message)
+            }
+            if (this.name != null) {
+                annotatedStructures.forEach {
+                    if (it.first.rna.name.equals(this.name))
+                        return arrayListOf(it)
+                }
+            }
+            return annotatedStructures
+        }
+        return listOf()
     }
 }
 
@@ -1198,6 +1259,8 @@ fun ss(setup:SecondaryStructureBuilder.() -> Unit) = SecondaryStructureBuilder()
 fun booquet(setup:BooquetBuilder.() -> Unit) = BooquetBuilder().apply { setup() }.build()
 
 fun rnartist(setup:RNArtistBuilder.() -> Unit) = RNArtistBuilder().apply { setup() }.build()
+
+fun openscad(setup:OpenScadBuilder.() -> Unit) = OpenScadBuilder().apply { setup() }.build()
 
 fun theme(setup:ThemeBuilder.() -> Unit) = ThemeBuilder().apply { setup() }.build()
 
