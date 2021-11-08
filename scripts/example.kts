@@ -1,5 +1,5 @@
 /**
- * This file is used by the script rnartistcore.sh to setyp a new project directory.
+ * This file is used by the script rnartistcore.sh to setup a new project directory.
  */
 
 import io.github.fjossinet.rnartist.core.*
