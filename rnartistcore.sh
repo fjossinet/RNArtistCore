@@ -146,8 +146,8 @@ EOF
    if [ -d $DIR ]
    then
       step_to_do "Downloading script rnartistcore_docker.sh"
-      download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/scripts/plot_rna.sh" > $DIR/plot_rna.sh
-      chmod u+x $DIR/plot_rna.sh
+      download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/scripts/plot_2ds.sh" > $DIR/plot_2ds.sh
+      chmod u+x $DIR/plot_2ds.sh
       step_to_do "Downloading notebook rnartistcore_demo.ipynb"
       download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/scripts/rnartistcore_demo.ipynb" > $DIR/rnartistcore_demo.ipynb
       step_to_do "Downloading sample script"
@@ -166,7 +166,7 @@ Your first steps:
 -----------------
 
 - go into your project directory
-- type: ./plot_rna.sh sample_plots.kts
+- type: ./plot_2ds.sh sample_plots.kts
 - This will produce two SVG files. One from an RNA 2D described from scratch in the sample script (bracket_notation_A.svg) and one from the 3D structure 1GID (1gid_B.svg)
 - to use the sample notebook, install Jupyter and from your project directory type: jupyter notebook .
 

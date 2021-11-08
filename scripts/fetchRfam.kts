@@ -1,5 +1,8 @@
 /**
- * This script has to be used with Docker. It recovers Rfam entries and produces 2D drawing based on both drawing algorithms (Booquet and the one used in the RNArtist app)
+ * This script recovers Rfam entries and produces 2D drawing based on both drawing algorithms (Booquet and the one used in the RNArtist app)
+ * Create an rnartistcore project with the script rnartistcore.sh (see README for details). Copy this script in the project directory and run it like:
+ * ./plot_2ds.sh fetchRfam.kts
+ * All the output files will be stored in the project directory.
  */
 
 import io.github.fjossinet.rnartist.core.booquet

@@ -29,7 +29,7 @@ You can write and run your scripts on your own computer without the need to down
 
 Once the installation done, you will see several files in your project directory:
 
-* [plot_rna.sh](scripts/plot_rna.sh): this script parse and execute the instructions described in your DSL file.
+* [plot_2ds.sh](scripts/plot_2ds.sh): this script parse and execute the instructions described in your DSL file.
 * [rnartist_demo.ipynb](scripts/rnartistcore_demo.ipynb): a Jupyter notebook sample
 * [sample_plots.kts](scripts/sample_plots.kts): a sample DSL file to produce an SVG file from an RNA 2D described from scratch and another one derived from a 3D structure (PDBID 1GID)
 * 1gid.pdb: a sample PDB file
