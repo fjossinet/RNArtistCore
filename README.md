@@ -29,9 +29,9 @@ You can write and run your scripts on your own computer without the need to down
 
 Once the installation done, you will see several files in your project directory:
 
-* [rnartistcore_docker.sh](scripts/rnartistcore_docker.sh): a script shell to make the communication with the fully configured Docker container ```fjossinet/rnartistcore```
+* [plot_rna.sh](scripts/plot_rna.sh): this script parse and execute the instructions described in your DSL file.
 * [rnartist_demo.ipynb](scripts/rnartistcore_demo.ipynb): a Jupyter notebook sample
-* [example.kts](scripts/readme.kts): a sample DSL script to produce an SVG file from an RNA 2D described from scratch and another one derived from a 3D structure (PDBID 1GID)
+* [sample_plots.kts](scripts/sample_plots.kts): a sample DSL file to produce an SVG file from an RNA 2D described from scratch and another one derived from a 3D structure (PDBID 1GID)
 * 1gid.pdb: a sample PDB file
 
 The script named ```rnartistcore_docker.sh``` makes the communication with the Docker container. It injects your DSL script inside the container to run it in an environment where RNArtistCore is fully configured. The output files are saved in the project directory. 
@@ -125,26 +125,9 @@ rnartist {
   }
 }
 ```
-
-## Use RNArtistCore on your computer without any preconfigured environment
-
-You will have to compile and package the RNArtistCore library with Java tools. You will need to have the build tool [Maven](https://maven.apache.org) and a [Java distribution](https://www.oracle.com/java/technologies/javase-downloads.html) installed on your computer (type the commands ```mvn``` and ```java``` from a command line to check).
-
-Clone this repository (```git clone```) and inside its root directory type:
-
-```mvn clean package```
-
-Once done, in the subdirectory named ```target```, you will find a file named like rnartistcore-{version}-jar-with-dependencies.jar.
-
-To run a script, type the following command:
-
-```java -jar target/rnartistcore-{version}-jar-with-dependencies.jar your_script.kts```
-
-Using this option, to be able to use PDB files, you will need to compile and configure the [RNAVIEW](http://ndbserver.rutgers.edu/ndbmodule/services/download/rnaview.html) algorithm by yourself.
-
 # <a name="dsl"></a> How to write your scripts
 
-RNArtistCore exposes a domain-specific language (DSL) to write scripts more easily. All the examples described in this README are stored in the file [scripts/readme.kts](scripts/readme.kts)
+RNArtistCore exposes a domain-specific language (DSL) to write scripts more easily. All the examples described in this README are stored in the file [scripts/readme_plots.kts](scripts/readme_plots.kts)
 
 * [The **```rna```** element](#molecule)
   * [The **```ss```** element](#ss)

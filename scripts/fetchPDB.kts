@@ -1,7 +1,7 @@
 /**
  * This script has been implemented to generate the data for the project RNAGallery (https://github.com/fjossinet/RNAGallery).
  * Create an rnartistcore project with the script rnartistcore.sh (see README for details). Copy this script in the project directory and run it like:
- * ./rnartistcore_docker.sh fetchPDB.kts
+ * ./plot_rna.sh fetchPDB.kts
  * All the output files will be stored in the project directory.
  */
 
