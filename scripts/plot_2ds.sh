@@ -73,7 +73,7 @@ This script parses and executes plotting instructions for one or several RNA sec
 
 Usage: plot_2ds.sh [options] plotting_instructions_file.kts
   Options:
-    -u  update rnartistcore
+    -u  update your local copy of RNArtistCore
 
 EOF
       exit 1
