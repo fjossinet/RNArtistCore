@@ -69,6 +69,8 @@ main() {
       printf '\033[32m'
 
       cat <<'EOF'
+This script parses and executes plotting instructions for one or several RNA secondary structures. These instructions have to be stored in a kts file. This script can also update your local copy of the plotting engine RNArtistCore.
+
 Usage: plot_2ds.sh [options] plotting_instructions_file.kts
   Options:
     -u  update rnartistcore
