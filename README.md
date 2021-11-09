@@ -36,8 +36,9 @@ Once the project directory created, you will see several files:
 
 * [plot_2ds.sh](scripts/plot_2ds.sh): this script parses and executes your plotting instructions
 * [sample_plots.kts](scripts/sample_plots.kts): a sample file containing plotting instructions for two SVG file: one from an RNA 2D described from scratch and another one derived from a 3D structure (PDBID 1GID)
-* 1gid.pdb: a sample PDB file used for some plotting instructions described in the file [sample_plots.kts](scripts/sample_plots.kts)
+* 1gid.pdb and RF02001.stockholm: sample data files used for some plotting instructions described in [sample_plots.kts](scripts/sample_plots.kts)
 * [rnartist_demo.ipynb](scripts/rnartistcore_demo.ipynb): a sample file to use rnartistcore through Jupyter.
+* outputs folder: this is where the sample file sample_plots.kts save its SVG files
 
 # <a name="dsl"></a> How to write your plotting instructions
 

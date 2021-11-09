@@ -145,15 +145,18 @@ EOF
 
    if [ -d $DIR ]
    then
+      step_to_do "Creating outputs folder"
+      mkdir $DIR/outputs
       step_to_do "Downloading script plot_2ds.sh"
       download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/scripts/plot_2ds.sh" > $DIR/plot_2ds.sh
       chmod u+x $DIR/plot_2ds.sh
       step_to_do "Downloading notebook rnartistcore_demo.ipynb"
       download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/scripts/rnartistcore_demo.ipynb" > $DIR/rnartistcore_demo.ipynb
-      step_to_do "Downloading sample script"
+      step_to_do "Downloading plotting instructions"
       download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/scripts/sample_plots.kts" > $DIR/sample_plots.kts
-      step_to_do "Downloading data"
+      step_to_do "Downloading some sample data"
       download_file "https://files.rcsb.org/download/1GID.pdb" > $DIR/1gid.pdb
+      download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/samples/RF02001.stockholm" > $DIR/RF02001.stockholm
    fi
 
    printf '\033[32m'
