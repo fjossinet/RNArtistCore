@@ -22,23 +22,30 @@ Check the project [RNArtistCore Demo Binder](https://github.com/fjossinet/RNArti
 
 ## Use RNArtistCore on your own computer
 
-To use this option, you just need to:
+This option installs a local copy of RNArtistCore and creates a project directory both fully configured. To use this option, you just need to:
 
 * install [Docker Desktop](https://www.docker.com/products/docker-desktop) on your computer and run it
 * type this command to create a fully configured project directory: 
   * using curl: ```sh -c "$(curl -fsSL https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore.sh)"```
   * using wget: ```sh -c "$(wget https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore.sh -O -)"```
-* you will be asked to define the full path for your project directory. If the command is launched for the first time on your computer, several cheks will be made and several dependencies will be installed.
+* you will be asked to define the full path for your project directory. If the command is launched for the first time on your computer, a local copy of RNArtistCore fully configured will be installed.
 
 ![](media/quickstart_script.png)
 
-Once the project directory created, you will see several files:
+Once the project directory created and everything installed and configured, you will see several files:
 
 * [plot_2ds.sh](scripts/plot_2ds.sh): this script parses and executes your plotting instructions
 * [sample_plots.kts](scripts/sample_plots.kts): a sample file containing plotting instructions for two SVG file: one from an RNA 2D described from scratch and another one derived from a 3D structure (PDBID 1GID)
 * 1gid.pdb and RF02001.stockholm: sample data files used for some plotting instructions described in [sample_plots.kts](scripts/sample_plots.kts)
 * [rnartist_demo.ipynb](scripts/rnartistcore_demo.ipynb): a sample file to use rnartistcore through Jupyter.
 * outputs folder: this is where the sample file sample_plots.kts save its SVG files
+
+To create new project directories you can:
+* either relaunch the command ```sh -c "$(....)"```
+* or make a copy of any project directory already installed.
+
+RNArtistCore is frequently updated to fix bugs and to add new features. To update your local copy, you need to type this command from any project directory:
+```./plot_2ds.sh -u```
 
 # <a name="dsl"></a> How to write your plotting instructions
 

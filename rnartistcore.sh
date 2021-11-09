@@ -86,28 +86,6 @@ main() {
 
 EOF
 
-   case $1 in
-      update)
-
-        step_to_do "Before to update your Docker image, some cleaning..."
-
-        for CONTAINER_ID in $(docker ps -a  | grep "fjossinet/rnartistcore" | awk '{printf("%s\n", $1)}')
-        do
-          step_to_do "stop & remove docker container $CONTAINER_ID"
-          docker stop $CONTAINER_ID
-          docker rm $CONTAINER_ID
-        done
-
-        for IMAGE_ID in $(docker images | grep "fjossinet/rnartistcore" | awk '{printf("%s\n", $3)}')
-        do
-          step_to_do "remove docker image $IMAGE_ID"
-          docker rmi $IMAGE_ID ;
-        done
-
-        docker pull fjossinet/rnartistcore ;
-        exit 0;;
-   esac
-
    check_docker
 
    if command_exists curl; then
