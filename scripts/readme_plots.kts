@@ -1,15 +1,16 @@
 /**
  * This file is used to produce the pictures for the README file. If you want to produce them yourself:
- *- create an rnartistcore project with the script rnartistcore.sh (see README for details)
+ * - create an rnartistcore project with the script rnartistcore.sh (see README for details)
  * - copy this script in the project directory
- * - create a subfolder named media
+ * - create an empty folder named media
+ * - copy the folder samples from https://github.com/fjossinet/RNArtistCore/tree/master/samples
  * - type the command: ./plot_2ds.sh readme_plots.kts
- * All the output files will be stored in the project directory.
+ * All the output files will be stored in the media subfolder.
  */
 import io.github.fjossinet.rnartist.core.*
 
 rnartist {
-    file = "media/real_example.svg"
+    file = "/project/media/real_example.svg"
     ss {
         rna {
             sequence = "CAACAUCAUACGUACUGCGCCCAAGCGUAACGCGAACACCACGAGUGGUGACUGGUGCUUG"
@@ -49,7 +50,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/dataset.svg"
+    file = "/project/media/dataset.svg"
     ss {
         rna {
             sequence = "GCGAAAAAUCGC"
@@ -99,7 +100,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/details_lvl1.svg"
+    file = "/project/media/details_lvl1.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -110,7 +111,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/details_lvl2.svg"
+    file = "/project/media/details_lvl2.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -122,7 +123,7 @@ rnartist {
 
 
 rnartist {
-    file = "media/details_lvl3.svg"
+    file = "/project/media/details_lvl3.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -133,7 +134,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/details_lvl4.svg"
+    file = "/project/media/details_lvl4.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -144,7 +145,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/details_lvl5.svg"
+    file = "/project/media/details_lvl5.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -155,7 +156,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/details_lvl5_colored.svg"
+    file = "/project/media/details_lvl5_colored.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -183,7 +184,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/hide_purines.svg"
+    file = "/project/media/hide_purines.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -211,7 +212,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/hide_pyrimidines.svg"
+    file = "/project/media/hide_pyrimidines.svg"
     ss {
         rna {
             sequence = "GCGAAAAAUCGC"
@@ -265,7 +266,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/all_red.svg"
+    file = "/project/media/all_red.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -292,7 +293,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/partially_detailed.svg"
+    file = "/project/media/partially_detailed.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -320,7 +321,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/helix_details1.svg"
+    file = "/project/media/helix_details1.svg"
     ss {
         bracket_notation =
             "..((..((((....))))..))"
@@ -331,7 +332,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/helix_details2.svg"
+    file = "/project/media/helix_details2.svg"
     ss {
         bracket_notation =
             "..((..((((....))))..))"
@@ -348,7 +349,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/helix_details3.svg"
+    file = "/project/media/helix_details3.svg"
     ss {
         bracket_notation =
             "..((..((((....))))..))"
@@ -365,7 +366,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/helix_details4.svg"
+    file = "/project/media/helix_details4.svg"
     ss {
         bracket_notation =
             "..((..((((....))))..))"
@@ -382,7 +383,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/helix_details5.svg"
+    file = "/project/media/helix_details5.svg"
     ss {
         bracket_notation =
             "..((..((((....))))..))"
@@ -399,7 +400,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/helix_details6.svg"
+    file = "/project/media/helix_details6.svg"
     ss {
         bracket_notation =
             "..((..((((....))))..))"
@@ -416,7 +417,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/helix_combination_details.svg"
+    file = "/project/media/helix_combination_details.svg"
     ss {
         bracket_notation =
             "..((..((((....))))..))"
@@ -457,7 +458,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/lines.svg"
+    file = "/project/media/lines.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -490,7 +491,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/kotlin_powered.svg"
+    file = "/project/media/kotlin_powered.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -523,7 +524,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/dataset.svg"
+    file = "/project/media/dataset.svg"
     ss {
         rna {
             sequence = "GCGAAAAAUCGC"
@@ -573,7 +574,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/several_types.svg"
+    file = "/project/media/several_types.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -595,7 +596,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/dataset_hide.svg"
+    file = "/project/media/dataset_hide.svg"
     ss {
         bracket_notation =
             "((((....))))"
@@ -642,7 +643,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/3way_1.svg"
+    file = "/project/media/3way_1.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
@@ -662,7 +663,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/3way_2.svg"
+    file = "/project/media/3way_2.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
@@ -681,7 +682,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/3way_3.svg"
+    file = "/project/media/3way_3.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
@@ -700,7 +701,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/3way_4.svg"
+    file = "/project/media/3way_4.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
@@ -719,7 +720,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/3way_5.svg"
+    file = "/project/media/3way_5.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
@@ -738,7 +739,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/3way_6.svg"
+    file = "/project/media/3way_6.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
@@ -757,7 +758,7 @@ rnartist {
 }
 
 rnartist {
-    file = "media/3way_full_details.svg"
+    file = "/project/media/3way_full_details.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
@@ -787,7 +788,7 @@ rnartist {
 }
 
 booquet {
-    file = "media/booquet_from_rfam.svg"
+    file = "/project/media/booquet_from_rfam.svg"
     junction_diameter = 15.0
     color = "midnightblue"
     line = 1.0
@@ -800,30 +801,30 @@ booquet {
 }
 
 booquet {
-    file = "media/booquet_from_vienna.svg"
+    file = "/project/media/booquet_from_vienna.svg"
     junction_diameter = 15.0
     color = "olive"
     line = 3.0
     ss {
         vienna {
-            file = "samples/rna.vienna"
+            file = "/project/samples/rna.vienna"
         }
     }
 }
 
 booquet {
-    file = "media/booquet_from_ct.svg"
+    file = "/project/media/booquet_from_ct.svg"
     junction_diameter = 15.0
     color = "darkorchid"
     ss {
         ct {
-            file = "samples/ASE_00010_from_RNA_STRAND_database.ct"
+            file = "/project/samples/ASE_00010_from_RNA_STRAND_database.ct"
         }
     }
 }
 
 booquet {
-    file = "media/booquet_from_pdb.svg"
+    file = "/project/media/booquet_from_pdb.svg"
     junction_diameter = 15.0
     color = "darkmagenta"
     width = 1200.0
@@ -831,7 +832,7 @@ booquet {
     line = 0.5
     ss {
         pdb {
-            file = "/Users/fjossinet/Development/Kotlin/RNArtistCore/samples/1jj2.pdb"
+            file = "/project/samples/1jj2.pdb"
             name = "0"
         }
     }

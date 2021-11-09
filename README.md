@@ -1,133 +1,47 @@
 RNArtistCore
 ============
 
-RNArtistCore provides a DSL (Domain Specific Language) and a Kotlin library to describe and plot RNA secondary structures. As a library it is used in the projects [RNArtist](https://github.com/fjossinet/RNArtist) and [RNArtistBackend](https://github.com/fjossinet/RNArtistBackEnd).
 
 ![](media/booquet_from_pdb_0.png)
 
 ![](media/3way_full_details_A.png)
 
-The largest part of this documentation explains the [syntax to write your own scripts](#dsl). Then, to run your scripts, you have several options we will describe now.
+RNArtistCore provides:
+* a language to describe your plotting instructions for RNA secondary structures
+* a fully configured environment to run your instructions and store your plots in SVG files. 
 
-# How to run your scripts
+It is also a component of the graphical tool named [RNArtist](https://github.com/fjossinet/RNArtist).
+
+While [RNArtist](https://github.com/fjossinet/RNArtist) is an interactive tool for RNA drawing and coloring, RNArtistCore can be used from the commandline to automate the drawing and highlight of specific regions for hundreds of RNA structures.
+
+The largest part of this documentation explains the [syntax to write your own plotting instructions](#dsl). But first, how to run your instructions? 
 
 ## Use RNArtistCore on a cloud service
 
-Check the project [RNArtistCore Demo Binder](https://github.com/fjossinet/RNArtistCore-binder). It will redirect you to a fully configured environment hosted by [MyBinder.org](https://mybinder.org/). You will be able to write and run your scripts inside Jupyter notebooks.
+Check the project [RNArtistCore Demo Binder](https://github.com/fjossinet/RNArtistCore-binder). It will redirect you to a fully configured environment hosted by [MyBinder.org](https://mybinder.org/). You will be able to write and run your plotting instructions inside Jupyter notebooks.
 
-## Use RNArtistCore on your computer, in a fully configured Docker container
+## Use RNArtistCore on your own computer
 
-You can write and run your scripts on your own computer without the need to download, compile and configure the entire RNArtistCore project. To use this option, you just need to:
+To use this option, you just need to:
 
 * install [Docker Desktop](https://www.docker.com/products/docker-desktop) on your computer and run it
-* type this command to quickstart a fully configured project directory: 
+* type this command to create a fully configured project directory: 
   * using curl: ```sh -c "$(curl -fsSL https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore.sh)"```
   * using wget: ```sh -c "$(wget https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore.sh -O -)"```
-* follow the installation steps
+* you will be asked to define the full path for your project directory. If the command is launched for the first time on your computer, several cheks will be made and several dependencies will be installed.
 
 ![](media/quickstart_script.png)
 
-Once the installation done, you will see several files in your project directory:
+Once the project directory created, you will see several files:
 
-* [plot_2ds.sh](scripts/plot_2ds.sh): this script parse and execute the instructions described in your DSL file.
-* [rnartist_demo.ipynb](scripts/rnartistcore_demo.ipynb): a Jupyter notebook sample
-* [sample_plots.kts](scripts/sample_plots.kts): a sample DSL file to produce an SVG file from an RNA 2D described from scratch and another one derived from a 3D structure (PDBID 1GID)
-* 1gid.pdb: a sample PDB file
+* [plot_2ds.sh](scripts/plot_2ds.sh): this script parses and executes your plotting instructions
+* [sample_plots.kts](scripts/sample_plots.kts): a sample file containing plotting instructions for two SVG file: one from an RNA 2D described from scratch and another one derived from a 3D structure (PDBID 1GID)
+* 1gid.pdb: a sample PDB file used for some plotting instructions described in the file [sample_plots.kts](scripts/sample_plots.kts)
+* [rnartist_demo.ipynb](scripts/rnartistcore_demo.ipynb): a sample file to use rnartistcore through Jupyter.
 
-The script named ```rnartistcore_docker.sh``` makes the communication with the Docker container. It injects your DSL script inside the container to run it in an environment where RNArtistCore is fully configured. The output files are saved in the project directory. 
+# <a name="dsl"></a> How to write your plotting instructions
 
-**To make it work, the input and output filenames in your DSL scripts have to be prefixed with ```/docker/``` (check [how to write your scripts](#dsl) below to learn more about the syntax of DSL scripts).**
-
-Examples:
-
-```kotlin
-import io.github.fjossinet.rnartist.core.*
-
-rnartist {
-  file = "/docker/example.svg"
-  
-  ss {
-    rna {
-      sequence = "CAACAUCAUACGUACUGCGCCCAAGCGUAACGCGAACACCACGAGUGGUGACUGGUGCUUG"
-    }
-    bracket_notation =
-      "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
-  }
-  
-  theme {
-    details_lvl = 5
-
-    color {
-      type = "A"
-      value = "#A0ECF5"
-    }
-
-    color {
-      type = "a"
-      value = "black"
-    }
-
-    color {
-      type = "U"
-      value = "#9157E5"
-    }
-
-    color {
-      type = "G"
-      value = "darkgreen"
-    }
-
-    color {
-      type = "C"
-      value = "#E557E5"
-    }
-
-  }
-}
-
-rnartist {
-  file = "/docker/example2.svg"
-  
-  ss {
-      pdb {
-          file = "/docker/1ehz.pdb"
-      }    
-  }
-
-  theme {
-    details_lvl = 5
-
-    color {
-      type = "A"
-      value = "#A0ECF5"
-    }
-
-    color {
-      type = "a"
-      value = "black"
-    }
-
-    color {
-      type = "U"
-      value = "#9157E5"
-    }
-
-    color {
-      type = "G"
-      value = "darkgreen"
-    }
-
-    color {
-      type = "C"
-      value = "#E557E5"
-    }
-
-  }
-}
-```
-# <a name="dsl"></a> How to write your scripts
-
-RNArtistCore exposes a domain-specific language (DSL) to write scripts more easily. All the examples described in this README are stored in the file [scripts/readme_plots.kts](scripts/readme_plots.kts)
+RNArtistCore exposes a language to write your plotting instructions more easily. All the examples described in this README are stored in the file [scripts/readme_plots.kts](scripts/readme_plots.kts)
 
 * [The **```rna```** element](#molecule)
   * [The **```ss```** element](#ss)
@@ -144,7 +58,7 @@ RNArtistCore exposes a domain-specific language (DSL) to write scripts more easi
   * [Embedded Kotlin code](#kotlin)
 * [The RNArtistCore Library](#library)
 
-Using pseudo-code, here is the structure that your script has to fit with:
+Using pseudo-code, here is the structure that your instructions have to fit with:
 
 ```kotlin
 drawing_algorithm {
@@ -181,7 +95,7 @@ Here is a real example:
 
 ```kotlin
 rnartist {
-  file = "media/real_example.svg"
+  file = "/project/media/real_example.svg"
   ss {
     rna {
       sequence = "CAACAUCAUACGUACUGCGCCCAAGCGUAACGCGAACACCACGAGUGGUGACUGGUGCUUG"
@@ -298,14 +212,14 @@ You don't need to provide any **```rna```** element, it will be constructed auto
 To be able to use the PDB format, you need to have the RNAVIEW algorithm installed with the [Docker container assemble2](https://hub.docker.com/r/fjossinet/assemble2/). RNArtistCore will delegate to RNAVIEW the annotation of the 3D structure into a 2D.
 
 The parameters available are:
-* **file**: the absolute path and the name of your file
+* **file**: the absolute path and the name of your file. It has to start with **"/project"** which is the root of your project.
 * **name**: if the file contains several molecular chains, this parameter allows to precise the one needed. If no name is provided, all the molecular chains will be processed.
 
 Examples:
 ```kotlin
 ss {
   bpseq {
-    file = "/home/bwayne/myrna.bpseq"
+    file = "/project/myrna.bpseq"
   }
 }
 ```
@@ -313,7 +227,7 @@ ss {
 ```kotlin
 ss {
   ct {
-    file = "/home/bwayne/myrna.ct"
+    file = "/project/my_files/myrna.ct"
   }
 }
 ```
@@ -321,7 +235,7 @@ ss {
 ```kotlin
 ss {
   vienna {
-    file = "/home/bwayne/myrna.vienna"
+    file = "/project/inputs/myrna.vienna"
   }
 }
 ```
@@ -329,7 +243,7 @@ ss {
 ```kotlin
 ss {
   pdb {
-    file = "/home/bwayne/myrna.pdb"
+    file = "/project/myrna.pdb"
     name = "A"
   }
 }
@@ -339,7 +253,7 @@ ss {
 ```kotlin
 ss {
   stockholm {
-    file = "/home/bwayne/RF00072.stk"
+    file = "/project/RF00072.stk"
     name = "consensus"
   }
 }
@@ -348,7 +262,7 @@ ss {
 ```kotlin
 ss {
   stockholm {
-    file = "/home/bwayne/RF00072.stk"
+    file = "/project/RF00072.stk"
     name = "AJ009730.1/1-133"
   }
 }
@@ -357,7 +271,7 @@ ss {
 ```kotlin
 ss {
   stockholm {
-    file = "/home/bwayne/RF00072.stk"
+    file = "/project/RF00072.stk"
   }
 }
 ```
@@ -447,7 +361,7 @@ Datasets can be linked to an RNA secondary structure. You can either fill the da
 
 ```kotlin
 rnartist {
-    file = "example1.svg"
+    file = "/project/example1.svg"
     ss {
         bracket_notation = "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
     }
@@ -461,12 +375,12 @@ rnartist {
 
 ```kotlin
 rnartist {
-    file = "example1.svg"
+    file = "/project/example1.svg"
     ss {
         bracket_notation = "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
     }
     data {
-        file = "QuSHAPE_01_shape_mode_reactivities.txt"
+        file = "/project/QuSHAPE_01_shape_mode_reactivities.txt"
     }
 }
 ```
@@ -485,7 +399,7 @@ All 2D objects set to **```none```**
 
 ```kotlin
 rnartist {
-    file = "media/details_lvl1.svg"
+    file = "/project/media/details_lvl1.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -496,7 +410,7 @@ rnartist {
 }
 ```
 
-![](media/details_lvl1_A.png)
+![](/project/media/details_lvl1_A.png)
 
 _____Level 2_____
 
@@ -504,7 +418,7 @@ The following 2D objets are set to **```full```**: helix, secondary_interaction,
 
 ```kotlin
 rnartist {
-    file = "media/details_lvl2.svg"
+    file = "/project/media/details_lvl2.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -523,7 +437,7 @@ In addition to those listed in the level 2, this level set the following 2D obje
 
 ```kotlin
 rnartist {
-    file = "media/details_lvl3.svg"
+    file = "/project/media/details_lvl3.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -542,7 +456,7 @@ In addition to those listed in the level 3, this level set the following 2D obje
 
 ```kotlin
 rnartist {
-    file = "media/details_lvl4.svg"
+    file = "/project/media/details_lvl4.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -561,7 +475,7 @@ In addition to those listed in the level 4, this level set the following 2D obje
 
 ```kotlin
 rnartist {
-    file = "media/details_lvl5.svg"
+    file = "/project/media/details_lvl5.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -614,13 +528,13 @@ You can define several types in the same string using a space as separator: **``
 
 The parameter **```location```** needs to have the following format: **```start_position_1:length, start_position_2:length, ...```**. A 2D object is targeted if its own location is inside the one defined with this parameter.
 
-You can define a color with its HTML color code or its name ([list of color names](https://en.wikipedia.org/wiki/Web_colors#/media/File:SVG_Recognized_color_keyword_names.svg)).
+You can define a color with its HTML color code or its name ([list of color names](https://en.wikipedia.org/wiki/Web_colors#//project/media/File:SVG_Recognized_color_keyword_names.svg)).
 
 Examples:
 
 ```kotlin
 rnartist {
-    file = "media/all_red.svg"
+    file = "/project/media/all_red.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -651,7 +565,7 @@ rnartist {
 
 ```kotlin
 rnartist {
-    file = "media/details_lvl5_colored.svg"
+    file = "/project/media/details_lvl5_colored.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -684,7 +598,7 @@ If a dataset is linked to the RNA secondary structure, a colored gradient can be
 
 ```kotlin
 rnartist {
-    file = "media/dataset.svg"
+    file = "/project/media/dataset.svg"
     ss {
         rna {
             sequence = "GCGAAAAAUCGC"
@@ -757,7 +671,7 @@ In the following examples, we will start with the details level 1 (the details f
 
 ```kotlin
 rnartist {
-    file = "media/helix_details1.svg"
+    file = "/project/media/helix_details1.svg"
     ss {
         bracket_notation =
             "..((..((((....))))..))"
@@ -771,7 +685,7 @@ rnartist {
 
 ```kotlin
 rnartist {
-    file = "media/helix_details2.svg"
+    file = "/project/media/helix_details2.svg"
     ss {
         bracket_notation =
             "..((..((((....))))..))"
@@ -795,7 +709,7 @@ Now we display the phosphodiester bonds.
 
 ```kotlin
 rnartist {
-    file = "media/helix_details3.svg"
+    file = "/project/media/helix_details3.svg"
     ss {
         bracket_notation =
             "..((..((((....))))..))"
@@ -817,7 +731,7 @@ Now we display the secondary interactions.
 
 ```kotlin
 rnartist {
-    file = "media/helix_details4.svg"
+    file = "/project/media/helix_details4.svg"
     ss {
         bracket_notation =
             "..((..((((....))))..))"
@@ -839,7 +753,7 @@ Now we display the residue circles.
 
 ```kotlin
 rnartist {
-    file = "media/helix_details5.svg"
+    file = "/project/media/helix_details5.svg"
     ss {
         bracket_notation =
             "..((..((((....))))..))"
@@ -861,7 +775,7 @@ Now we display the residue characters.
 
 ```kotlin
 rnartist {
-    file = "media/helix_details6.svg"
+    file = "/project/media/helix_details6.svg"
     ss {
         bracket_notation =
             "..((..((((....))))..))"
@@ -883,7 +797,7 @@ You can then combine different details levels to have a rendering that fit your 
 
 ```kotlin
 rnartist {
-    file = "media/helix_combination_details.svg"
+    file = "/project/media/helix_combination_details.svg"
     ss {
         bracket_notation =
             "..((..((((....))))..))"
@@ -953,7 +867,7 @@ Examples:
 
 ```kotlin
 rnartist {
-    file = "media/partially_detailed.svg"
+    file = "/project/media/partially_detailed.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -985,7 +899,7 @@ rnartist {
 
 ```kotlin
 rnartist {
-    file = "media/hide_purines.svg"
+    file = "/project/media/hide_purines.svg"
     ss {
         bracket_notation =
             ".(((.(((..........(((((((..(((....)))......(((....)))...)))))))...))).)))"
@@ -1019,7 +933,7 @@ If a dataset is linked to the RNA secondary structure, the values can be used as
 
 ```kotlin
 rnartist {
-    file = "media/dataset_hide.svg"
+    file = "/project/media/dataset_hide.svg"
     ss {
         bracket_notation =
             "((((....))))"
@@ -1081,7 +995,7 @@ If a dataset is linked to the RNA secondary structure, the values can be used as
 
 ```kotlin
 rnartist {
-  file = "media/hide_pyrimidines.svg"
+  file = "/project/media/hide_pyrimidines.svg"
   ss {
     rna {
       sequence = "GCGAAAAAUCGC"
@@ -1169,7 +1083,7 @@ Examples:
 
 ```kotlin
 rnartist {
-  file = "media/lines.svg"
+  file = "/project/media/lines.svg"
   ss {
     bracket_notation =
       "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
@@ -1221,7 +1135,7 @@ In the following examples, you can see the different results when we modify the 
 
 ```kotlin
 rnartist {
-    file = "media/3way_1.svg"
+    file = "/project/media/3way_1.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
@@ -1245,7 +1159,7 @@ rnartist {
 
 ```kotlin
 rnartist {
-    file = "media/3way_2.svg"
+    file = "/project/media/3way_2.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
@@ -1269,7 +1183,7 @@ rnartist {
 
 ```kotlin
 rnartist {
-    file = "media/3way_3.svg"
+    file = "/project/media/3way_3.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
@@ -1293,7 +1207,7 @@ rnartist {
 
 ```kotlin
 rnartist {
-    file = "media/3way_4.svg"
+    file = "/project/media/3way_4.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
@@ -1317,7 +1231,7 @@ rnartist {
 
 ```kotlin
 rnartist {
-    file = "media/3way_5.svg"
+    file = "/project/media/3way_5.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
@@ -1341,7 +1255,7 @@ rnartist {
 
 ```kotlin
 rnartist {
-    file = "media/3way_6.svg"
+    file = "/project/media/3way_6.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
@@ -1367,7 +1281,7 @@ And now with full details:
 
 ```kotlin
 rnartist {
-    file = "media/3way_full_details.svg"
+    file = "/project/media/3way_full_details.svg"
     ss {
         bracket_notation =
             "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
@@ -1415,7 +1329,7 @@ The drawing will be automatically zoomed to fit the view.
 
 ```kotlin
 booquet {
-  file = "media/booquet_from_rfam.svg"
+  file = "/project/media/booquet_from_rfam.svg"
   junction_diameter = 15.0
   color = "midnightblue"
   line = 1.0
@@ -1432,7 +1346,7 @@ booquet {
 
 ```kotlin
 booquet {
-  file = "media/booquet_from_vienna.svg"
+  file = "/project/media/booquet_from_vienna.svg"
   junction_diameter = 15.0
   color = "olive"
   line = 3.0
@@ -1448,7 +1362,7 @@ booquet {
 
 ```kotlin
 booquet {
-  file = "media/booquet_from_ct.svg"
+  file = "/project/media/booquet_from_ct.svg"
   junction_diameter = 15.0
   color = "darkorchid"
   ss {
@@ -1463,7 +1377,7 @@ booquet {
 
 ```kotlin
 booquet {
-  file = "media/booquet_from_pdb.svg"
+  file = "/project/media/booquet_from_pdb.svg"
   junction_diameter = 15.0
   color = "darkmagenta"
   width = 1200.0
@@ -1486,7 +1400,7 @@ If you know Kotlin, you can embed Kotlin instructions to power your script.
 
 ```kotlin
 rnartist {
-  file = "media/kotlin_powered.svg"
+  file = "/project/media/kotlin_powered.svg"
   ss {
     bracket_notation =
       "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"

@@ -13,7 +13,7 @@ import io.github.fjossinet.rnartist.core.ss
 
 val pdb = PDB()
 val ids = pdb.query()
-val statusFile = File("/docker/status.md")
+val statusFile = File("/project/status.md")
 val status = mutableListOf<List<String>>()
 if (statusFile.exists()) {
     statusFile.readLines().forEach { line ->
@@ -31,7 +31,7 @@ ids.forEach { pdbId ->
     try {
         if (!status.any { it.first().trim().equals("[${pdbId}](https://www.rcsb.org/structure/${pdbId})")}) {
             Thread.sleep(2000) //avoid flood
-            val pdbFile = File("/docker/${pdbId}.pdb")
+            val pdbFile = File("/project/${pdbId}.pdb")
             if (!pdbFile.exists()) {
                 println("Downloading ${pdbId} (${ids.indexOf(pdbId) + 1}/${ids.size})")
                 pdbFile.writeText(pdb.getEntry(pdbId).readText())
@@ -60,7 +60,7 @@ ids.forEach { pdbId ->
                     s.add("Y")  //should never happen
                 if (!it.helices.isEmpty()) {
                     rnartist {
-                        file = "/docker/${pdbId}.json"
+                        file = "/project/${pdbId}.json"
                         theme {
                             details_lvl = 5
                         }

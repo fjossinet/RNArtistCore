@@ -13,7 +13,7 @@ import io.github.fjossinet.rnartist.core.rnartist
     println(rfamID)
     try {
         booquet {
-            file = "/docker/${rfamID}_booquet.svg"
+            file = "/project/${rfamID}_booquet.svg"
             junction_diameter = 15.0
             ss {
                 rfam {
@@ -23,7 +23,7 @@ import io.github.fjossinet.rnartist.core.rnartist
             }
         }
         rnartist {
-            file = "/docker/${rfamID}_rnartist.svg"
+            file = "/project/${rfamID}_rnartist.svg"
             ss {
                 rfam {
                     id = rfamID

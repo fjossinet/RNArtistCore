@@ -5,7 +5,7 @@
 import io.github.fjossinet.rnartist.core.*
 
 rnartist {
-    file = "/docker/bracket_notation.svg"
+    file = "/project/bracket_notation.svg"
     ss {
         rna {
             sequence = "CAACAUCAUACGUACUGCGCCCAAGCGUAACGCGAACACCACGAGUGGUGACUGGUGCUUG"
@@ -46,11 +46,11 @@ rnartist {
 }
 
 rnartist {
-    file = "/docker/1gid.svg"
+    file = "/project/1gid.svg"
     ss {
         pdb {
             name = "B"
-            file = "/docker/1gid.pdb"
+            file = "/project/1gid.pdb"
         }
     }
     theme {

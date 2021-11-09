@@ -145,7 +145,7 @@ EOF
 
    if [ -d $DIR ]
    then
-      step_to_do "Downloading script rnartistcore_docker.sh"
+      step_to_do "Downloading script plot_2ds.sh"
       download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/scripts/plot_2ds.sh" > $DIR/plot_2ds.sh
       chmod u+x $DIR/plot_2ds.sh
       step_to_do "Downloading notebook rnartistcore_demo.ipynb"
