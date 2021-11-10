@@ -123,7 +123,8 @@ EOF
 
    if [ -d $DIR ]
    then
-      step_to_do "Creating outputs folder"
+      step_to_do "Creating inputs & outputs folders"
+      mkdir $DIR/inputs
       mkdir $DIR/outputs
       step_to_do "Downloading script plot_2ds.sh"
       download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/scripts/plot_2ds.sh" > $DIR/plot_2ds.sh
@@ -133,8 +134,8 @@ EOF
       step_to_do "Downloading plotting instructions"
       download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/scripts/sample_plots.kts" > $DIR/sample_plots.kts
       step_to_do "Downloading some sample data"
-      download_file "https://files.rcsb.org/download/1GID.pdb" > $DIR/1gid.pdb
-      download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/samples/RF02001.stockholm" > $DIR/RF02001.stockholm
+      download_file "https://files.rcsb.org/download/1GID.pdb" > $DIR/inputs/1gid.pdb
+      download_file "https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/samples/RF02001.stockholm" > $DIR/inputs/RF02001.stockholm
    fi
 
    printf '\033[32m'

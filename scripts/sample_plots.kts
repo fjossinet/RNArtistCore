@@ -50,7 +50,7 @@ rnartist {
     ss {
         pdb {
             name = "B"
-            file = "/project/1gid.pdb"
+            file = "/project/inputs/1gid.pdb"
         }
     }
     theme {
@@ -88,7 +88,7 @@ rnartist {
     file = "/project/outputs/RF02001.svg"
     ss {
         stockholm {
-            file = "/project/RF02001.stockholm"
+            file = "/project/inputs/RF02001.stockholm"
         }
     }
 

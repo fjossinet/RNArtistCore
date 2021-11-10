@@ -79,8 +79,6 @@ EOF
       exit 1
   fi
 
-  check_docker
-
   case $1 in
         -u)
           printf "${YELLOW}Ready to update your local copy of RNArtistCore? [Y/n]${RESET}  "
@@ -88,6 +86,8 @@ EOF
              case $opt in
                 n*|N*)  error "Aborted!"; exit 1;;
              esac
+
+          check_docker
 
           step_to_do "Before to update, some cleaning..."
 
@@ -108,7 +108,7 @@ EOF
           exit 0;;
      esac
 
-  docker run -v "$PWD:/project" fjossinet/rnartistcore java -jar target/rnartistcore-0.2.8-SNAPSHOT-jar-with-dependencies.jar /project/$1
+  docker run -v "$PWD:/project" fjossinet/rnartistcore java -jar target/rnartistcore_with-dependencies.jar /project/$1
 }
 
 main "$@"

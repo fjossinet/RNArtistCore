@@ -36,9 +36,9 @@ Once the project directory created and everything installed and configured, you 
 
 * [plot_2ds.sh](scripts/plot_2ds.sh): this script parses and executes your plotting instructions
 * [sample_plots.kts](scripts/sample_plots.kts): a sample file containing plotting instructions for two SVG file: one from an RNA 2D described from scratch and another one derived from a 3D structure (PDBID 1GID)
-* 1gid.pdb and RF02001.stockholm: sample data files used for some plotting instructions described in [sample_plots.kts](scripts/sample_plots.kts)
-* [rnartist_demo.ipynb](scripts/rnartistcore_demo.ipynb): a sample file to use rnartistcore through Jupyter.
+* inputs folder: folder containing input files used for some plotting instructions described in [sample_plots.kts](scripts/sample_plots.kts)
 * outputs folder: this is where the sample file sample_plots.kts save its SVG files
+* [rnartist_demo.ipynb](scripts/rnartistcore_demo.ipynb): a sample file to use rnartistcore through Jupyter.
 
 To create new project directories you can:
 * either relaunch the command ```sh -c "$(....)"```
