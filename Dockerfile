@@ -17,5 +17,6 @@ WORKDIR /
 RUN git clone https://github.com/fjossinet/RNArtistCore.git
 WORKDIR RNArtistCore/
 RUN mvn clean package
+#to be version agnostic in the jar name
 RUN ln -s $(ls /RNArtistCore/target/rnartistcore*with-dependencies.jar) /RNArtistCore/target/rnartistcore_with-dependencies.jar
 
