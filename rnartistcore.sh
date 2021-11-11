@@ -149,7 +149,7 @@ Your first steps:
 
 - go into your project directory
 - type: ./plot_2ds.sh sample_plots.kts
-- This will produce two SVG files. One from an RNA 2D described from scratch in the sample script (bracket_notation_A.svg) and one from the 3D structure 1GID (1gid_B.svg)
+- This will produce several SVG files in the outputs folder
 - to use the sample notebook, install Jupyter and from your project directory type: jupyter notebook .
 
 To stay in touch ---> https://twitter.com/rnartist_app
