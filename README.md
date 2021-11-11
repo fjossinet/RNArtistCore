@@ -62,7 +62,7 @@ RNArtistCore exposes a language to write your plotting instructions more easily.
   * [The **```details```** element](#details)
   * [The **```hide```** element](#hide)
   * [The **```line```** element](#line)
-  * [The **```layout```** element](#layout)
+* [The **```layout```** element](#layout)
 
 
 
@@ -71,15 +71,15 @@ Using pseudo-code, here is the structure that your instructions have to fit with
 
 ```kotlin
 drawing_algorithm {
-
-  parameter_1 = "value"
-  parameter_2 = value
+  
+  output_file =""
 
   secondary_structure {
-
-    parameter_3 = "value"
-    parameter_4 = value
     
+  }
+  
+  data {
+      
   }
 
   theme {
@@ -93,7 +93,7 @@ drawing_algorithm {
 }
 ```
 
-As you can see, you need to describe a secondary structure used by an algorithm to produce a drawing. This drawing can be customized with a theme and a layout to suit your needs. You need at least a drawing_algorithm element, its output file and an ss element to have a working file. 
+As you can see, you drawing algorithm will use a secondary structure to output its drawing in a file. Data can be linked to the secondary structure (to map colors to experimental values). The drawing can be customized with a theme and a layout to suit your needs. 
 
 Here is a real example:
 
@@ -161,77 +161,6 @@ The parameters available are:
 * **```layout```**: to change the default layouts for the junctions
 
 The size of the picture will fit the size of the drawing (with a minimum size of 1024x768 to distinguish the residue characters).
-
-<a name="data"></a> ____The **```data```** element____
-
-Datasets can be linked to an RNA secondary structure. You can either fill the dataset within the script, or load it from a file.
-
-```kotlin
-rnartist {
-    file = "/project/example1.svg"
-    ss {
-        bracket_notation = "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
-    }
-    data {
-        "1" to 200.7
-        "2" to 192.3
-        "3" to 143.6
-    }
-}
-```
-
-```kotlin
-rnartist {
-    file = "/project/example1.svg"
-    ss {
-        bracket_notation = "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
-    }
-    data {
-        file = "/project/QuSHAPE_01_shape_mode_reactivities.txt"
-    }
-}
-```
-
-The values linked to each residue can be used as a selection criteria to define the colors, line width and details level.
-
-If you know Kotlin, you can embed Kotlin instructions to power your script.
-
-```kotlin
-rnartist {
-  file = "/project/media/kotlin_powered.svg"
-  ss {
-    bracket_notation =
-      "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
-  }
-  data {
-    (1..secondaryStructures[0].length).forEach {
-      "${it}" to Math.random()
-    }
-  }
-  theme {
-    details_lvl = 5
-
-    color {
-      type = "R"
-      value = "lightyellow"
-      to = "firebrick"
-    }
-
-    color {
-      type = "r"
-      value = "black"
-      to = "white"
-    }
-
-    hide {
-      type = "Y"
-    }
-
-  }
-}
-```
-
-![](media/kotlin_powered_A.png)
 
 <a name="booquet"></a> ***The **```booquet```** element***
 
@@ -480,7 +409,7 @@ ss {
 }
 ```
 
-### <a name="molecule"></a>The ```rna``` element
+<a name="molecule"></a>The ```rna``` element
 
 Using the element ```rna```, you can create an RNA molecule from scratch. The parameters are:
 
@@ -510,8 +439,78 @@ rna {
 }
 ```
 
+### <a name="data"></a> ____The **```data```** element____
 
-<a name="theme"></a> ____The **```theme```** element____
+Datasets can be linked to an RNA secondary structure. You can either fill the dataset within the script, or load it from a file.
+
+```kotlin
+rnartist {
+    file = "/project/example1.svg"
+    ss {
+        bracket_notation = "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+    }
+    data {
+        "1" to 200.7
+        "2" to 192.3
+        "3" to 143.6
+    }
+}
+```
+
+```kotlin
+rnartist {
+    file = "/project/example1.svg"
+    ss {
+        bracket_notation = "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+    }
+    data {
+        file = "/project/QuSHAPE_01_shape_mode_reactivities.txt"
+    }
+}
+```
+
+The values linked to each residue can be used as a selection criteria to define the colors, line width and details level.
+
+If you know Kotlin, you can embed Kotlin instructions to power your script.
+
+```kotlin
+rnartist {
+  file = "/project/media/kotlin_powered.svg"
+  ss {
+    bracket_notation =
+      "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+  }
+  data {
+    (1..secondaryStructures[0].length).forEach {
+      "${it}" to Math.random()
+    }
+  }
+  theme {
+    details_lvl = 5
+
+    color {
+      type = "R"
+      value = "lightyellow"
+      to = "firebrick"
+    }
+
+    color {
+      type = "r"
+      value = "black"
+      to = "white"
+    }
+
+    hide {
+      type = "Y"
+    }
+
+  }
+}
+```
+
+![](media/kotlin_powered_A.png)
+
+###<a name="theme"></a> ____The **```theme```** element____
 
 Using a **```theme```**, you can define your drawing options for any 2D objects, from single residues to entire structural domains like helices or junctions.
 
@@ -1175,7 +1174,6 @@ rnartist {
 
 ![](media/hide_pyrimidines_A.png)
 
-
 <a name="line"></a> ____The **```line```** element____
 
 Parameters:
@@ -1242,7 +1240,7 @@ rnartist {
 
 ![](media/lines_A.png)
 
-<a name="layout"></a> ____The **```layout```** element____
+### <a name="layout"></a> ____The **```layout```** element____
 
 The rnartist drawing algorithm computes the layout to avoid overlapping of 2D objects. One of the parameter used is the default orientation of the helices linked to each type of junction (inner loops, 3-way junctions,...). Each junction is linked to an entering helix (the red arrow in the diagram below) and to helices leaving it (black arrows). The layout for the leaving helices are defined according to the directions of a compass, the entering helix making the south direction.
 
