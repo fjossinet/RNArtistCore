@@ -26,8 +26,8 @@ This option installs a local copy of RNArtistCore and creates a project director
 
 * install [Docker](https://www.docker.com/get-started) on your computer and run it. If you're using Windows or MacOSX, you should install [Docker Desktop](https://www.docker.com/products/docker-desktop) 
 * type this command to create a fully configured project directory: 
-  * using curl: ```sh -c "$(curl -fsSL https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore.sh)"```
-  * using wget: ```sh -c "$(wget https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore.sh -O -)"```
+  * using curl: ```bash -c "$(curl -fsSL https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore.sh)"```
+  * using wget: ```bash -c "$(wget https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore.sh -O -)"```
 * you will be asked to define the full path for your project directory. If the command is launched for the first time on your computer, a local copy of RNArtistCore fully configured will be installed.
 
 ![](media/quickstart_script.png)
@@ -35,7 +35,7 @@ This option installs a local copy of RNArtistCore and creates a project director
 Once the project directory created and everything installed and configured, you will see several files:
 
 * [plot_2ds.sh](scripts/plot_2ds.sh): this script parses and executes your plotting instructions
-* [sample_plots.kts](scripts/sample_plots.kts): a sample file containing plotting instructions for two SVG files: (i) an RNA 2D described from scratch and (ii) an RNA 2D derived from a [3D structure](https://www.rcsb.org/structure/1GID)
+* [sample_plots.kts](scripts/sample_plots.kts): a sample file containing plotting instructions
 * inputs folder: contains input files used in [sample_plots.kts](scripts/sample_plots.kts)
 * outputs folder: will contain the SVG outputs generated from [sample_plots.kts](scripts/sample_plots.kts)
 * [rnartist_demo.ipynb](scripts/rnartistcore_demo.ipynb): a sample file to use RNArtistCore through Jupyter.
@@ -52,8 +52,8 @@ RNArtistCore is frequently updated to fix bugs and to add new features. To updat
 RNArtistCore exposes a language to write your plotting instructions more easily. All the examples described in this README are stored in the file [scripts/readme_plots.kts](scripts/readme_plots.kts)
 
 * [The drawing algorithm element](#drawing)
-  * [The **```rnartist```** element](#rnartist)
   * [The **```booquet```** element](#booquet)
+  * [The **```rnartist```** element](#rnartist)
 * [The **```ss```** element](#ss)
   * [The **```rna```** element](#molecule)
 * [The **```data```** element](#data)
@@ -63,9 +63,6 @@ RNArtistCore exposes a language to write your plotting instructions more easily.
   * [The **```hide```** element](#hide)
   * [The **```line```** element](#line)
 * [The **```layout```** element](#layout)
-
-
-
 
 Using pseudo-code, here is the structure that your instructions have to fit with:
 
@@ -149,17 +146,6 @@ Two algorithms are available:
 
 Both algorithms need a secondary structure element and a file name to save their results. Each molecular chain will be exported in its own SVG file. Each algorithm has its own parameters to configure the drawing process and the final result.
 
-<a name="rnartist"></a> ***The **```rnartist```** element***
-
-The parameters available for this algorithm are:
-* **```file```** (mandatory): the absolute path and the name of the SVG output file. The name of the molecular chain will be merged to the file name. The path needs to start with ```/project/```, corresponding to the root of your project.
-* **```ss```** (mandatory): a secondary structure element
-* **```data```**: a dataset to map values to residues
-* **```theme```**: to change the colors, details, line width,... for any element in the 2D
-* **```layout```**: to change the default layouts for the junctions
-
-The size of the picture will fit the size of the drawing (with a minimum size of 1024x768 to distinguish the residue characters).
-
 <a name="booquet"></a> ***The **```booquet```** element***
 
 This algorithm has less options than the rnartist one. The parameters available are:
@@ -198,7 +184,7 @@ booquet {
   line = 3.0
   ss {
     vienna {
-      file = "samples/rna.vienna"
+      file = "/project/samples/rna.vienna"
     }
   }
 }
@@ -213,7 +199,7 @@ booquet {
   color = "darkorchid"
   ss {
     ct {
-      file = "samples/ASE_00010_from_RNA_STRAND_database.ct"
+      file = "/project/samples/ASE_00010_from_RNA_STRAND_database.ct"
     }
   }
 }
@@ -231,7 +217,7 @@ booquet {
   line = 0.5
   ss {
     pdb {
-      file = "/Volumes/Data/Projets/RNArtistCore/samples/1jj2.pdb"
+      file = "/project/samples/1jj2.pdb"
       name = "0"
     }
   }
@@ -239,6 +225,18 @@ booquet {
 ```
 
 ![](media/booquet_from_pdb_0.png)
+
+<a name="rnartist"></a> ***The **```rnartist```** element***
+
+The parameters available for this algorithm are:
+* **```file```** (mandatory): the absolute path and the name of the SVG output file. The name of the molecular chain will be merged to the file name. The path needs to start with ```/project/```, corresponding to the root of your project.
+* **```ss```** (mandatory): a secondary structure element
+* **```data```**: a dataset to map values to residues
+* **```theme```**: to change the colors, details, line width,... for any element in the 2D
+* **```layout```**: to change the default layouts for the junctions
+
+The size of the picture will fit the size of the drawing (with a minimum size of 1024x768 to distinguish the residue characters).
+
 
 ### <a name="ss"></a>The ```ss``` element
 
@@ -439,7 +437,7 @@ rna {
 }
 ```
 
-### <a name="data"></a> ____The **```data```** element____
+### <a name="data"></a> The **```data```** element
 
 Datasets can be linked to an RNA secondary structure. You can either fill the dataset within the script, or load it from a file.
 
@@ -510,7 +508,7 @@ rnartist {
 
 ![](media/kotlin_powered_A.png)
 
-###<a name="theme"></a> ____The **```theme```** element____
+### <a name="theme"></a>The **```theme```** element
 
 Using a **```theme```**, you can define your drawing options for any 2D objects, from single residues to entire structural domains like helices or junctions.
 
@@ -1240,7 +1238,7 @@ rnartist {
 
 ![](media/lines_A.png)
 
-### <a name="layout"></a> ____The **```layout```** element____
+### <a name="layout"></a> The **```layout```** element
 
 The rnartist drawing algorithm computes the layout to avoid overlapping of 2D objects. One of the parameter used is the default orientation of the helices linked to each type of junction (inner loops, 3-way junctions,...). Each junction is linked to an entering helix (the red arrow in the diagram below) and to helices leaving it (black arrows). The layout for the leaving helices are defined according to the directions of a compass, the entering helix making the south direction.
 
@@ -1461,3 +1459,16 @@ RNArtistCore can be added as a dependency into your own projects. No stable rele
 </dependency>
 </dependencies>
 ```
+
+# Notes
+
+On a Raspberry Pi, if you get this message when running the script plot_2ds.sh:
+
+```OpenJDK Server VM warning: No monotonic clock was available - timed services may be adversely affected if the time-of-day clock changes```
+
+RNArtistcore will hang on. This is not related to RNArtistCore, but you need to update the library libseccomp2 for your RPi. To do so, you can :
+* get this file http://ftp.debian.org/debian/pool/main/libs/libseccomp/libseccomp2_2.5.1-1_armhf.deb
+* type: ```sudo dpkg -i libseccomp2_2.5.1-1_armhf.deb```
+* and it should work...
+
+![](media/rnartistcore_rpi.png)

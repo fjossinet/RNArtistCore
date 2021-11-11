@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 setup_color() {
   RED=$(printf '\033[31m\xe2\x9d\x8c')
@@ -45,15 +45,15 @@ check_docker() {
   result=$(docker images -q fjossinet/rnartistcore)
 
   if [[ -n "$result" ]]; then
-     message "Container fjossinet/rnartistcore installed."
+     message "RNArtistCore installed."
   else
-    step_to_do "Container fjossinet/rnartistcore not found. Installation launched..."
+    step_to_do "RNArtistCore not found. Installation launched..."
     docker pull fjossinet/rnartistcore
     result=$(docker images -q fjossinet/rnartistcore)
     if [[ -n "$result" ]]; then
-       message "Container fjossinet/rnartistcore installed."
+       message "RNArtistCore installed."
     else
-      error "It seems that i was not able to install the container fjossinet/rnartistcore."
+      error "It seems that i was not able to install RNArtistCore."
       exit 1
     fi
   fi
