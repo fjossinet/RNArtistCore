@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/sh
 
 setup_color() {
   RED=$(printf '\033[31m\xe2\x9d\x8c')
