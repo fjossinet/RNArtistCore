@@ -72,7 +72,7 @@ Using pseudo-code, here is the structure that your instructions have to fit with
 ```kotlin
 drawing_algorithm {
   
-  output_file =""
+  output_file = ""
 
   secondary_structure {
     
@@ -93,7 +93,7 @@ drawing_algorithm {
 }
 ```
 
-As you can see, you drawing algorithm will use a secondary structure to output its drawing in a file. Data can be linked to the secondary structure (to map colors to experimental values). The drawing can be customized with a theme and a layout to suit your needs. 
+As you can see, a drawing algorithm will use a secondary structure to output its drawing in a file. Data can be linked to the secondary structure (to map colors to experimental values). The drawing can be customized with a theme and a layout to suit your needs. 
 
 Here is a real example:
 
@@ -141,8 +141,6 @@ rnartist {
 
 ![](media/real_example_A.png)
 
-In the next paragraphs, we will detail the elements available to describe an RNA molecule, a secondary structure and a drawing algorithm.
-
 ### <a name="drawing"></a>The drawing algorithm element
 
 Two algorithms are available:
@@ -153,8 +151,8 @@ Both algorithms need a secondary structure element and a file name to save their
 
 <a name="rnartist"></a> ***The **```rnartist```** element***
 
-The parameters available are:
-* **```file```** (mandatory): the absolute path and the name of the SVG output file. The name of the molecular chain will be merged to the file name. The path has always to start with ```/project/```, corresponding to the root of your project.
+The parameters available for this algorithm are:
+* **```file```** (mandatory): the absolute path and the name of the SVG output file. The name of the molecular chain will be merged to the file name. The path needs to start with ```/project/```, corresponding to the root of your project.
 * **```ss```** (mandatory): a secondary structure element
 * **```data```**: a dataset to map values to residues
 * **```theme```**: to change the colors, details, line width,... for any element in the 2D
@@ -165,7 +163,7 @@ The size of the picture will fit the size of the drawing (with a minimum size of
 <a name="booquet"></a> ***The **```booquet```** element***
 
 This algorithm has less options than the rnartist one. The parameters available are:
-* **```file```** (mandatory): the absolute path and the name of the SVG output file. The path has always to start with ```/project/```, corresponding to the root of your project.
+* **```file```** (mandatory): the absolute path and the name of the SVG output file. The path needs to start with ```/project/```, corresponding to the root of your project.
 * **```ss```** (mandatory): a secondary structure element
 * **```width```**: the width of the view containing the drawing (default: 600)
 * **```height```**: the height of the view containing the drawingg (default: 600)
@@ -251,9 +249,9 @@ You have three different ways to define a seconday structure:
 
 ***From scratch***
 
-The parameters are:
+The parameters available are:
 * **bracket_notation** (mandatory): the secondary structure described with the dot-bracket notation
-* **rna**: an rna molecule described with the **```rna```** element. If you don't provide any **```rna```** element, it will be computed for you with the default name and a random sequence fitting the base-pairing constraints.
+* **rna**: an RNA molecule described with the **```rna```** element. If you don't provide any **```rna```** element, it will be computed for you with the default name and a random sequence fitting the base-pairing constraints.
 
 Examples:
 
@@ -285,7 +283,7 @@ The secondary structure will be constructed from the data stored in the file.
 To be able to use the PDB format, RNArtistCore will use the algorithm RNAVIEW installed with the [Docker container rnartistcore](https://hub.docker.com/r/fjossinet/rnartistcore). RNArtistCore will delegate to RNAVIEW the annotation of the 3D structure into a 2D.
 
 The parameters are:
-* **file** (mandatory): the absolute path and the name of your file. It has to start with **"/project"** which is the root of your project.
+* **file** (mandatory): the absolute path and the name of your file. It needs to start with **"/project"** which is the root of your project.
 * **name**: if the file contains several molecular chains, this parameter allows to precise the one needed. If no name is provided, all the molecular chains will be processed.
 
 Examples:
@@ -411,11 +409,13 @@ ss {
 
 <a name="molecule"></a>The ```rna``` element
 
-Using the element ```rna```, you can create an RNA molecule from scratch. The parameters are:
+This element is used to define the RNA sequence for a secondary structure created from scratch (coupled with the mandatory parameter ```bracket_notation```). 
+
+The parameters available are:
 
 * **name**: the name of the molecule (default value: **```A```**)
-* **sequence** (mandatory if no length): the sequence of your molecule. If the parameter length is not provided, the sequence is mandatory
-* **length** (mandatory if no sequence): the length of your sequence. If this parameter is provided, a random sequence will be computed. If the parameter sequence is not provided, the length is mandatory
+* **sequence** (mandatory if no length): the sequence of your molecule.
+* **length** (mandatory if no sequence): the length of your sequence. If this parameter is provided, a random sequence will be computed. 
 
 Examples:
 
