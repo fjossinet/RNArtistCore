@@ -122,6 +122,7 @@ class RNA(var name:String="A", seq:String, var source:String="NA"):Serializable 
             return this._seq.toString()
         }
 
+    var numbering_system:Map<Int,Int>? = null
 
     fun addResidue(residue:String) {
         val unModifiedNucleotide = modifiedNucleotides[residue];

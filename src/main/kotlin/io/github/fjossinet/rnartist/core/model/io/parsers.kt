@@ -100,7 +100,7 @@ fun parseVienna(reader: Reader): SecondaryStructure {
     while (`in`.readLine().also { line = it } != null) {
         when {
             line!!.startsWith(">") -> name.append(line!!.substring(1))
-            line!!.matches(Regex("^[A-Z]+$")) -> {
+            line!!.matches(Regex("^[a-zA-Z]+$")) -> {
                 sequence.append(line)
             }
             line!!.matches(Regex("^[\\.\\(\\)\\{\\}\\[\\]A-Za-z]+$")) -> {
@@ -450,9 +450,6 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
     for ((key, value) in alignedMolecules) {
         var rna = RNA(key, value.toString())
         var _bn = bn.toString()
-        //println(rna.name)
-        //println(rna.seq)
-        //println(_bn.toString())
 
         for (bp in consensusSS.secondaryInteractions) {
             if (rna.seq[bp.start-1] == '-')
@@ -492,10 +489,25 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
         }
         rna = RNA(key, value.toString().replace("-", ""))
 
+        val numbering_system: MutableMap<Int,Int> = mutableMapOf()
+
+        var gapCounts = 0
+        var currentPos = 0
+        value.toString().forEach { residueSymbol ->
+            if (residueSymbol == '-')
+                gapCounts++
+            else {
+                currentPos++
+                numbering_system[currentPos] = currentPos + gapCounts
+                //println("${key} ${currentPos} ${numbering_system[currentPos]}")
+            }
+        }
+        
+        rna.numbering_system = numbering_system
+
         gapPositions.reverse()
         gapPositions.forEach { _bn = _bn.replaceRange(it,it+1,"") }
-        //println(rna.seq)
-        //println(_bn.toString())
+        
         secondaryStructures.add(SecondaryStructure(rna, _bn))
     }
     return secondaryStructures

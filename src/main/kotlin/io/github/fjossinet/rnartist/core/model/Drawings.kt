@@ -491,10 +491,10 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
         this.secondaryStructure.rna.seq.forEachIndexed { index, char ->
             this.residues.add(
                     when (char) {
-                        'A' -> AShapeDrawing(null, this, index + 1)
-                        'U' -> UShapeDrawing(null, this, index + 1)
-                        'G' -> GShapeDrawing(null, this, index + 1)
-                        'C' -> CShapeDrawing(null, this, index + 1)
+                        'A', 'a' -> AShapeDrawing(null, this, index + 1)
+                        'U', 'u' -> UShapeDrawing(null, this, index + 1)
+                        'G', 'g' -> GShapeDrawing(null, this, index + 1)
+                        'C', 'c' -> CShapeDrawing(null, this, index + 1)
                         else -> XShapeDrawing(null, this, index + 1)
                     }
             )
@@ -1399,7 +1399,7 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
             )
             buffer.append("""<circle cx="${_c.bounds.centerX}" cy="${_c.bounds.centerY}" r="${_c.bounds.width/2}" stroke="${getHTMLColorString(strokeColor)}" stroke-width="${this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()}" fill="${getHTMLColorString(this.getColor())}"/>""")
         }
-        if (ssDrawing.workingSession.fontSize > 8 && this.getOpacity() > 0) { //the conditions to draw a letter
+        if (this.getOpacity() > 0) { //the conditions to draw a letter
             buffer.append(this.residueLetter.asSVG(at))
         }
         buffer.append("</g>")
@@ -4918,4 +4918,14 @@ private fun drawBooquetBranch(booquet:MutableMap<String, DoubleArray>, ss:Second
     next_junction?.let {
         booquet[it.name] = doubleArrayOf(m, current_y-helix.length*residue_occupancy-1.5*junction_diameter/2.0)
     }
+}
+
+fun SpiralTree(secondaryStructures:List<SecondaryStructure>, selection:Location, width:Double, height:Double, lineWidth:Double, theme:AdvancedTheme?=null, layout:Layout?=null):String {
+    
+    val svgBuffer =
+        StringBuffer("""<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">""" + "\n")
+    
+    svgBuffer.append("</svg>")
+
+    return svgBuffer.toString()
 }
