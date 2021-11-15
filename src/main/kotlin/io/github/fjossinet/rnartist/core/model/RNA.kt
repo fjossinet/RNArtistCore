@@ -3,22 +3,66 @@ package io.github.fjossinet.rnartist.core.model
 import java.io.Serializable
 import java.util.*
 
+/**
+ * Represents a set of contiguous positions, from start to end.
+ *
+ * @param start the first position
+ * @param end the last position
+*/
 class Block(start:Int,end:Int):Serializable {
 
+    /**
+     * Returns the first position for the block
+     */
     val start = if (start < end) start else end
+
+    /**
+     * Returns the last position for the block
+     */
     val end = if (start > end) start else end
+
+    /**
+     * Returns the length of the Location
+     */
     val length = end-start+1
+
+    /**
+     * Returns the single positions making the block
+     */
     val positions = (start..end).toList()
 
+    /**
+     * Test if a [position] is inside the block
+     *
+     * @param [position] the single position to test
+     *
+     * @return true if the position is inside the block
+     */
     fun contains(position:Int) = position in start..end
 
+    /**
+     * Returns the description of the block complying the pattern "start:length"
+     */
     override fun toString() =  if (length == 1) "$start" else "$start:$length"
 }
 
+/**
+ * Represents a set of positions, all contiguous or not.
+ *
+ * A location is made with a list of [Block]. Each [Block] is a set of contiguous positions for the location.
+ *
+ */
 class Location:Serializable {
 
+    /**
+     * The [Block] making the location
+     */
     var blocks = mutableListOf<Block>()
+
     val positions: List<Int>
+        /**
+         * Returns the single positions making the location
+         */
         get() {
             val positions = arrayListOf<Int>()
             this.blocks.forEach {
@@ -26,15 +70,27 @@ class Location:Serializable {
             }
             return positions.sorted()
         }
+
     val start:Int
+        /**
+         * Returns the first position for the location
+         */
         get() {
             return this.blocks.first().start
         }
+
     val end:Int
+        /**
+         * Returns the last position for the location
+         */
         get() {
             return this.blocks.last().end
         }
+
     val ends:List<Int>
+        /**
+         * Returns the start and end positions for each [Block] in the location
+         */
         get() {
             val positions = arrayListOf<Int>()
             this.blocks.forEach {
@@ -43,25 +99,53 @@ class Location:Serializable {
             }
             return positions.sorted()
         }
+
     val length:Int
+        /**
+         * Returns the length of the Location
+         */
         get() {
             return this.blocks.sumBy { it.length }
         }
+
     val description:String
+        /**
+         * Returns the description of the Location complying the pattern "start:length,start:length,start:length"
+         */
         get() {
             return this.blocks.joinToString(separator = ",") { it.toString() }
         }
 
+    /**
+     * Creates an empty Location
+     *
+     */
     constructor() {
     }
 
+    /**
+     * Creates a Location containing a single [Block], defined by its start and end positions.
+     *
+     * @param [start] the start position
+     * @param [end] the end position
+     */
     constructor(start:Int,end:Int):this() {
         this.blocks.add(Block(start, end))
     }
 
+    /**
+     * Creates a Location made with a single position.
+     *
+     * @param [pos] the single position making the location
+     */
     constructor(pos:Int):this(pos, pos) {
     }
 
+    /**
+     * Creates a Location defined by a String.
+     *
+     * @param [description] must comply the following pattern "start:length,start:length,start:length"
+     */
     constructor(description:String):this() {
         for (s in description.split(",")) {
             if (s.contains(':')) {
@@ -79,13 +163,31 @@ class Location:Serializable {
         this.blocks.sortBy { it.start }
     }
 
+    /**
+     * Creates a Location defined by a list of single positions
+     *
+     * @param [positions] the single positions contained in the location.
+     */
     constructor(positions:IntArray):this() {
         this.blocks.addAll(toBlocks(positions))
     }
 
+    /**
+     * Creates a Location merging two Location objects
+     *
+     * @param [l1] first location to merge
+     * @param [l2] second location to merge
+     */
     constructor(l1: Location, l2: Location):this((l1.positions + l2.positions).distinct().sorted().toIntArray()) {
     }
 
+    /**
+     * Extends this location with a new one
+     *
+     * @param [l] the Location to merge to this one
+     *
+     * @return a new Location
+     */
     fun addLocation(l:Location):Location {
         val mutableSet = mutableSetOf<Int>()
         for (pos in l.positions)
@@ -95,19 +197,53 @@ class Location:Serializable {
         return Location(mutableSet.toIntArray())
     }
 
+    /**
+     * Shrinks this location with a new one
+     *
+     * @param [l] the Location to substract to this one
+     *
+     * @return a new Location
+     */
     fun differenceOf(l: Location) = Location((this.positions - l.positions).toIntArray())
 
+    /**
+     * Tests if a single position is inside in this location
+     *
+     * @param [position] the single position to test
+     *
+     * @return true is the position is inside this location
+     */
     fun contains(position:Int) = this.blocks.any { it.contains(position) }
 
+    /**
+     * Tests if a location is inside this one
+     *
+     * @param [location] the location to test
+     * @return true is all the single positions of the location to test are inside this location
+     */
     fun contains(location:Location) = location.positions.all{this.contains(it)}
 
+    /**
+     * Returns the description of the Location complying the pattern "start:length,start:length,start:length"
+     */
     override fun toString() = this.description
 
 }
 
+/**
+ * Represents an RNA molecule.
+ *
+ * @param [seq] the sequence of the RNA molecule
+ * @property [name] the name of the RNA molecule
+ * @param [source] where the RNA molecule comes from
+ *
+ */
 class RNA(var name:String="A", seq:String, var source:String="NA"):Serializable {
 
     val length:Int
+        /**
+         * Returns the length of the RNA
+         */
         get() {
             return this.seq.length
         }
@@ -115,15 +251,26 @@ class RNA(var name:String="A", seq:String, var source:String="NA"):Serializable 
     private var _seq = java.lang.StringBuilder(seq)
 
     var seq:String
+        /**
+         * Sets the sequence of the RNA
+         */
         set(value) {
             this._seq = java.lang.StringBuilder(value)
         }
+        /**
+         * Returns the sequence of the RNA
+         */
         get() {
             return this._seq.toString()
         }
 
     var numbering_system:Map<Int,Int>? = null
 
+    /**
+     * Adds a single residue to the end of the RNA sequence
+     *
+     * @param [residue] the name of the residue
+     */
     fun addResidue(residue:String) {
         val unModifiedNucleotide = modifiedNucleotides[residue];
         if (unModifiedNucleotide != null)
@@ -148,23 +295,54 @@ class RNA(var name:String="A", seq:String, var source:String="NA"):Serializable 
         }
     }
 
+    /**
+     * Returns a residue for a given position
+     *
+     * @param [pos] the absolute position for the residue to get
+     *
+     * @return the name of the residue
+     *
+     * @throws [RuntimeException] if the [pos] is outside the ends of the RNA molecule
+     *
+     */
     fun getResidue(pos:Int) = if (pos <= 0 || pos > this.length)
-            throw RuntimeException("The position asked for is outside the molecule's boundaries")
+            throw RuntimeException("The position asked for is outside the ends of your RNA")
         else
             this._seq[pos-1]
 
+    /**
+     * Returns the subsequence for a given [Location]
+     *
+     * @param [l] the [Location] corresponding to the subsequence
+     *
+     * @return the subsequence as a String
+     */
     fun subSequence(l: Location) = this._seq.substring(l.start-1,l.end).toString()
 
     override fun toString() = "RNA \"${this.name}\" (from ${this.source})"
 }
 
+/**
+ * Describes a basepair in an RNA secondary structure
+ *
+ * @property [location] the absolute positions for the two interacting residues
+ * @property [edge5] the edge for the first residue (first meaning according to the 5'->3' orientation)
+ * @property [edge3] the edge for the second residue (first meaning according to the 5'->3' orientation)
+ * @property [orientation] the orientation for this base-pair
+ * */
 class BasePair(val location: Location, val edge5: Edge = Edge.WC, val edge3: Edge = Edge.WC, val orientation: Orientation = Orientation.cis):Serializable{
 
+    /**
+     * Returns the absolute position of the first residue (first meaning according to the 5'->3' orientation)
+     */
     val start:Int
         get() {
             return this.location.start
         }
 
+    /**
+     * Returns the absolute position of the second residue (first meaning according to the 5'->3' orientation)
+     */
     val end:Int
         get() {
             return this.location.end

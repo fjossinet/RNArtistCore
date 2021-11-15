@@ -179,7 +179,6 @@ open abstract class PublicDatabaseBuilder {
     abstract fun build():List<SecondaryStructure>
 }
 
-
 class RfamBuilder:PublicDatabaseBuilder() {
     override fun build(): List<SecondaryStructure> {
         this.id?.let { id ->
@@ -261,6 +260,96 @@ class OpenscadInputBuilder {
     }
 }
 
+class SpiralTreeBuilder {
+    var file:String? = null
+    var selection:String? = null
+    var secondaryStructures = mutableListOf<SecondaryStructure>()
+    var line = 2.0
+    var theme:AdvancedTheme? = null
+    var layout:Layout? = null
+    var data:MutableMap<String, Double> = mutableMapOf()
+
+    fun build() {
+        this.file?.let { outputFile ->
+            this.secondaryStructures.forEach { ss ->
+                val drawing = SecondaryStructureDrawing(ss, WorkingSession())
+                this.theme?.let { theme ->
+                    drawing.applyAdvancedTheme(theme)
+                }
+                this.layout?.let { layout ->
+                    drawing.applyLayout(layout)
+                }
+                
+                val drawingFrame = Rectangle2D.Double(0.0, 0.0, 1024.0, 1024.0)
+
+                var selectionFrame:Rectangle2D? = null
+
+                this.selection?.let { selection ->
+                    val selectedLocation = Location(selection)
+
+                    val residuePositions = mutableListOf<Int>()
+
+                    ss.rna.numbering_system?.forEach { (real_pos, alignment_pos) ->
+                        //println("${real_pos} -> ${alignment_pos}")
+                        if (selectedLocation.contains(alignment_pos)) {
+                            residuePositions.add(real_pos)
+                            //println("${alignment_pos} inside ${location}")
+                        }
+                    }
+
+                    val theme = AdvancedTheme()
+                    residuePositions.forEach {
+                        val selection =
+                                { e: DrawingElement -> e.inside(Location(it)) }
+                        theme.setConfigurationFor(selection, ThemeParameter.color, "#444444")
+                        theme.setConfigurationFor(selection, ThemeParameter.fulldetails, "true")
+                    }
+
+                    drawing.applyAdvancedTheme(theme)
+
+                    for (selectedResidue in drawing.getResiduesFromAbsPositions(*residuePositions.toIntArray())) {
+                        selectionFrame = if (selectionFrame == null) {
+                            selectedResidue.selectionFrame?.bounds
+                        } else
+                            selectionFrame!!.createUnion(selectedResidue.selectionFrame?.bounds)
+                    }
+                }
+
+                if (selectionFrame != null) {
+                    drawing.fitViewTo(drawingFrame, selectionFrame as Rectangle2D)
+                    val svgOutput = toSVG(drawing, drawingFrame.width, drawingFrame.height)
+                    val f = File("${outputFile.split(".svg").first()}_${ss.rna.name.replace("/", "_")}.svg")
+                    f.createNewFile()
+                    f.writeText(svgOutput)
+                }
+            }
+        }
+    }
+
+    fun ss(setup:SecondaryStructureBuilder.() -> Unit) {
+        val secondaryStructureBuilder = SecondaryStructureBuilder()
+        secondaryStructureBuilder.setup()
+        secondaryStructures.addAll(secondaryStructureBuilder.build())
+    }
+
+    fun theme(setup:ThemeBuilder.() -> Unit) {
+        val themeBuilder = ThemeBuilder(data)
+        themeBuilder.setup()
+        this.theme = themeBuilder.build()
+    }
+
+    fun layout(setup:LayoutBuilder.() -> Unit) {
+        val layoutBuilder = LayoutBuilder()
+        layoutBuilder.setup()
+        this.layout = layoutBuilder.build()
+    }
+
+    fun data(setup:DataBuilder.() -> Unit) {
+        val dataBuilder = DataBuilder()
+        dataBuilder.setup()
+        data = dataBuilder.data
+    }
+}
 
 class BooquetBuilder {
     var file:String? = null
@@ -1255,6 +1344,8 @@ class HideBuilder(data:MutableMap<String, Double>):ThemeConfigurationBuilder(dat
 fun rna(setup:RNABuilder.() -> Unit) = RNABuilder().apply { setup() }.build()
 
 fun ss(setup:SecondaryStructureBuilder.() -> Unit) = SecondaryStructureBuilder().apply { setup() }.build()
+
+fun spiraltree(setup:SpiralTreeBuilder.() -> Unit) = SpiralTreeBuilder().apply { setup() }.build()
 
 fun booquet(setup:BooquetBuilder.() -> Unit) = BooquetBuilder().apply { setup() }.build()
 
