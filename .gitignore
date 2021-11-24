@@ -1,0 +1,6 @@
+.idea/
+.ipynb_checkpoints/
+target/
+rnartistcore.iml
+media/*.svg
+.DS_Store
