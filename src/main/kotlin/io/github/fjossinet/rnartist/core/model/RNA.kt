@@ -413,6 +413,11 @@ interface StructuralDomain {
     val end:Int
     val length:Int
     var maxBranchLength:Int
+
+    /**
+     * The standard deviation for the length of this structural domain
+     */
+    var lengthStd:Double
 }
 
 abstract class AbstractStructuralDomain: StructuralDomain {
@@ -421,6 +426,7 @@ abstract class AbstractStructuralDomain: StructuralDomain {
             if (value > field)
                 field = value
         }
+    override var lengthStd = 0.0
 }
 
 class Helix(val name:String="MyHelix"): AbstractStructuralDomain() {

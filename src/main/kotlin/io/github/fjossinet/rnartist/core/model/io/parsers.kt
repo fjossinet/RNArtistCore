@@ -11,6 +11,8 @@ import java.io.*
 import java.text.NumberFormat
 import java.util.*
 import java.util.stream.Collectors
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 @Throws(java.lang.Exception::class)
 fun parseRnaml(f: File?): List<SecondaryStructure> {
@@ -444,8 +446,46 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
     )
     var consensusSS = SecondaryStructure(rna, bn.toString())
 
-    if (withConsensus2D)
+    if (withConsensus2D) {
         secondaryStructures.add(consensusSS)
+        //we store in the structural domains of the consensus2D their standard deviation derived from the alignment
+
+        consensusSS.helices.forEach { h ->
+            val domainLengths = mutableListOf<Int>()
+
+            alignedMolecules.forEach { alignedMolecule ->
+                var totalLength = 0
+                h.location.blocks.forEach { block ->
+                    totalLength += alignedMolecule.value.substring(block.start-1, block.end).replace("-", "").length
+                }
+                domainLengths.add(totalLength)
+            }
+
+            val mean = domainLengths.average()
+            h.lengthStd = domainLengths
+                .fold(0.0) { accumulator, next -> accumulator + (next - mean).pow(2.0) }
+                .let { sqrt(it / domainLengths.size )
+                }
+        }
+
+        consensusSS.junctions.forEach { j ->
+            val domainLengths = mutableListOf<Int>()
+
+            alignedMolecules.forEach { alignedMolecule ->
+                var totalLength = 0
+                j.location.blocks.forEach { block ->
+                    totalLength += alignedMolecule.value.substring(block.start-1, block.end).replace("-", "").length
+                }
+                domainLengths.add(totalLength)
+            }
+
+            val mean = domainLengths.average()
+            j.lengthStd = domainLengths
+                .fold(0.0) { accumulator, next -> accumulator + (next - mean).pow(2.0) }
+                .let { sqrt(it / domainLengths.size )
+                }
+        }
+    }
 
     for ((key, value) in alignedMolecules) {
         var rna = RNA(key, value.toString())

@@ -7,6 +7,7 @@ import java.awt.geom.Rectangle2D
 import java.io.File
 import java.io.FileReader
 import java.lang.Exception
+import kotlin.random.Random
 
 class RNABuilder {
     var name:String = "A"
@@ -260,9 +261,9 @@ class OpenscadInputBuilder {
     }
 }
 
-class SpiralTreeBuilder {
+class MalaBuilder {
     var file:String? = null
-    var selection:String? = null
+    var location:String? = null
     var secondaryStructures = mutableListOf<SecondaryStructure>()
     var line = 2.0
     var theme:AdvancedTheme? = null
@@ -271,38 +272,35 @@ class SpiralTreeBuilder {
 
     fun build() {
         this.file?.let { outputFile ->
-            this.secondaryStructures.forEach { ss ->
-                val drawing = SecondaryStructureDrawing(ss, WorkingSession())
-                this.theme?.let { theme ->
-                    drawing.applyAdvancedTheme(theme)
-                }
-                this.layout?.let { layout ->
-                    drawing.applyLayout(layout)
-                }
-                
-                val drawingFrame = Rectangle2D.Double(0.0, 0.0, 1024.0, 1024.0)
+            //if a location is defined, we zoom on it
+            this.location?.let { location ->
+                this.secondaryStructures.forEach { ss ->
+                    val drawing = SecondaryStructureDrawing(ss, WorkingSession())
+                    this.theme?.let { theme ->
+                        drawing.applyAdvancedTheme(theme)
+                    }
+                    this.layout?.let { layout ->
+                        drawing.applyLayout(layout)
+                    }
 
-                var selectionFrame:Rectangle2D? = null
+                    val drawingFrame = Rectangle2D.Double(0.0, 0.0, 1024.0, 1024.0)
 
-                this.selection?.let { selection ->
-                    val selectedLocation = Location(selection)
+                    var selectionFrame: Rectangle2D? = null
+
+                    val selectedLocation = Location(location)
 
                     val residuePositions = mutableListOf<Int>()
 
                     ss.rna.numbering_system?.forEach { (real_pos, alignment_pos) ->
-                        //println("${real_pos} -> ${alignment_pos}")
                         if (selectedLocation.contains(alignment_pos)) {
                             residuePositions.add(real_pos)
-                            //println("${alignment_pos} inside ${location}")
                         }
                     }
 
                     val theme = AdvancedTheme()
                     residuePositions.forEach {
-                        val selection =
-                                { e: DrawingElement -> e.inside(Location(it)) }
-                        theme.setConfigurationFor(selection, ThemeParameter.color, "#444444")
-                        theme.setConfigurationFor(selection, ThemeParameter.fulldetails, "true")
+                        theme.setConfigurationFor({ e: DrawingElement -> e.inside(Location(it)) }, ThemeParameter.color, "#fa0702")
+                        theme.setConfigurationFor({ e: DrawingElement -> e.inside(Location(it)) }, ThemeParameter.fulldetails, "true")
                     }
 
                     drawing.applyAdvancedTheme(theme)
@@ -313,10 +311,58 @@ class SpiralTreeBuilder {
                         } else
                             selectionFrame!!.createUnion(selectedResidue.selectionFrame?.bounds)
                     }
+
+                    if (selectionFrame != null) {
+                        drawing.fitViewTo(drawingFrame, selectionFrame as Rectangle2D)
+                        val svgOutput = toSVG(drawing, drawingFrame.width, drawingFrame.height)
+                        val f = File("${outputFile.split(".svg").first()}_${ss.rna.name.replace("/", "_")}.svg")
+                        f.createNewFile()
+                        f.writeText(svgOutput)
+                    }
+                }
+            } ?: run { //if no location defined, we draw and zoom on each full 2D with different colors for each junction
+                val consensus2D = this.secondaryStructures.first()
+                //we choose the color for each junction defined in the consensus2D
+                val junctionColors = mutableListOf<String>()
+                var i=0
+                while (i < consensus2D.junctions.size) {
+                    val rand_num: Int = Random.nextInt(0xffffff + 1)
+                    junctionColors.add(String.format("#%06x", rand_num))
+                    i++
                 }
 
-                if (selectionFrame != null) {
-                    drawing.fitViewTo(drawingFrame, selectionFrame as Rectangle2D)
+                this.secondaryStructures.forEach { ss ->
+                    val drawing = SecondaryStructureDrawing(ss, WorkingSession())
+                    this.theme?.let { theme ->
+                        drawing.applyAdvancedTheme(theme)
+                    }
+                    this.layout?.let { layout ->
+                        drawing.applyLayout(layout)
+                    }
+
+                    val theme = AdvancedTheme()
+                    i = 0
+                    consensus2D.junctions.forEach { junction ->
+                        val residuePositions = mutableListOf<Int>()
+
+                        if (ss == consensus2D)
+                            residuePositions.addAll(junction.location.positions)
+                        else
+                            ss.rna.numbering_system?.forEach { (real_pos, alignment_pos) ->
+                                if (junction.location.contains(alignment_pos))
+                                    residuePositions.add(real_pos)
+                            }
+
+                        residuePositions.forEach {
+                            theme.setConfigurationFor({ e: DrawingElement -> e.inside(Location(it)) }, ThemeParameter.color, junctionColors[i])
+                            theme.setConfigurationFor({ e: DrawingElement -> e.inside(Location(it)) }, ThemeParameter.fulldetails, "true")
+                        }
+                        i++
+                    }
+
+                    drawing.applyAdvancedTheme(theme)
+                    val drawingFrame = Rectangle2D.Double(0.0, 0.0, 1024.0, 1024.0)
+                    drawing.fitViewTo(drawingFrame)
                     val svgOutput = toSVG(drawing, drawingFrame.width, drawingFrame.height)
                     val f = File("${outputFile.split(".svg").first()}_${ss.rna.name.replace("/", "_")}.svg")
                     f.createNewFile()

@@ -249,7 +249,7 @@ class AdvancedTheme() {
     }
 
     private fun setConfigurationFor(selection: (DrawingElement) -> Boolean, parameter: String, parameterValue: String) {
-        configurations[selection] = Pair<String, String>(parameter, parameterValue)
+        configurations[selection] = Pair(parameter, parameterValue)
     }
 
     fun clear() = this.configurations.clear()
@@ -264,7 +264,7 @@ class Layout() {
     }
 
     private fun setConfigurationFor(selection: (DrawingElement) -> Boolean, parameter: String, parameterValue: String) {
-        configurations[selection] = Pair<String, String>(parameter, parameterValue)
+        configurations[selection] = Pair(parameter, parameterValue)
     }
 
     fun clear() = this.configurations.clear()
