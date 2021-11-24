@@ -1391,7 +1391,7 @@ fun rna(setup:RNABuilder.() -> Unit) = RNABuilder().apply { setup() }.build()
 
 fun ss(setup:SecondaryStructureBuilder.() -> Unit) = SecondaryStructureBuilder().apply { setup() }.build()
 
-fun spiraltree(setup:SpiralTreeBuilder.() -> Unit) = SpiralTreeBuilder().apply { setup() }.build()
+fun mala(setup:MalaBuilder.() -> Unit) = MalaBuilder().apply { setup() }.build()
 
 fun booquet(setup:BooquetBuilder.() -> Unit) = BooquetBuilder().apply { setup() }.build()
 
