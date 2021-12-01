@@ -1332,7 +1332,7 @@ object RnartistConfig {
     @JvmStatic
     fun getRnartistRelease(): String? {
         return try {
-            val format = SimpleDateFormat("MMM dd, yyyy")
+            val format = SimpleDateFormat("MMM dd, yyyy", Locale("EN","en"))
             "RNArtist Development Release (" + format.format(Calendar.getInstance().time) + ")"
         } catch (e: java.lang.Exception) {
             null

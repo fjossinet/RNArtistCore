@@ -39,7 +39,7 @@ fun parseRnaml(f: File?): List<SecondaryStructure> {
                 val seqdata = sequence.getChild("seq-data")
                 if (seqdata != null) moleculeSequence = seqdata.value.trim { it <= ' ' }.replace("\\s+".toRegex(), "")
             }
-            m = RNA(moleculeName, moleculeSequence.toUpperCase())
+            m = RNA(moleculeName, moleculeSequence.uppercase())
             val bps: MutableList<BasePair> = ArrayList()
             val structure = child.getChild("structure")
             if (structure != null) {
@@ -63,7 +63,7 @@ fun parseRnaml(f: File?): List<SecondaryStructure> {
                         else -> Edge.Unknown
                     }
                     var orientation:Orientation
-                    orientation = when (bp.getChild("bond-orientation").text.toUpperCase().toCharArray()[0]) {
+                    orientation = when (bp.getChild("bond-orientation").text.uppercase().toCharArray()[0]) {
                         'C' -> Orientation.cis
                         'T' -> Orientation.trans
                         else -> Orientation.Unknown
@@ -170,7 +170,7 @@ fun toSVG(drawing:SecondaryStructureDrawing, width:Double, height:Double): Strin
 
 fun toJSON(drawing:SecondaryStructureDrawing): String {
     val gson = GsonBuilder().setPrettyPrinting().create()
-    var json = mapOf(
+    val json = mapOf(
         "rna" to dumpRNA(drawing),
         "structure" to dumpSecondaryStructure(drawing),
         "layout" to dumpLayout(drawing),
@@ -186,7 +186,7 @@ fun toJSON(drawing:SecondaryStructureDrawing): String {
  */
 fun parseJSON(reader: Reader): SecondaryStructureDrawing {
     val gson = Gson()
-    var map: Map<String, Any> = HashMap()
+    val map: Map<String, Any> = HashMap()
     val doc = gson.fromJson(reader, map.javaClass)
 
     val rna = doc["rna"] as Map<String,String>
@@ -309,10 +309,17 @@ fun parseProject(project: Project): SecondaryStructureDrawing {
         junction.inId = ConnectorId.valueOf(l["in-id"]!!.replace("o", "w")) //compatibility when the west direction was described with the character o
         if (l.containsKey("out-ids")) {
             junction.radius = l["radius"]!!.toDouble()
-            junction.currentLayout =
-                Arrays.stream(l["out-ids"]!!.split(" ").toTypedArray()).map { c: String? ->
-                    ConnectorId.valueOf(c!!.replace("o", "w")) //compatibility when the west direction was described with the character o
-                }.collect(Collectors.toList())
+            if (!l["out-ids"]!!.strip().isEmpty()) {
+                junction.currentLayout =
+                    Arrays.stream(l["out-ids"]!!.split(" ").toTypedArray()).map { c: String? ->
+                        ConnectorId.valueOf(
+                            c!!.replace(
+                                "o",
+                                "w"
+                            )
+                        ) //compatibility when the west direction was described with the character o
+                    }.collect(Collectors.toList())
+            }
             drawing.computeResidues(junction)
         }
 
