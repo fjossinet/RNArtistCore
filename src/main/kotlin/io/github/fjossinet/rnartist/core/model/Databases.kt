@@ -29,14 +29,17 @@ class RNACentral {
         var data = Gson().fromJson(text, HashMap<String, String>().javaClass)
         val sequence = data["sequence"]
         sequence?.let {
-            val rna = RNA(id, seq = sequence, source="db:rnacentral:${id}")
             text = URL("${baseURL}/${id}/2d/1/?format=json").readText()
             data = Gson().fromJson(text, HashMap<String, String>().javaClass)
             val bn = (data["data"] as Map<String, String>)["secondary_structure"]
             bn?.let {
                ss {
-                    this.rna = rna
-                    bracket_notation = bn
+                    bn {
+                        value = bn
+                        seq = sequence
+                        name = id
+                    }
+
                 }.forEach {
                    it.source = "db:rnacentral:${id}"
                    return it

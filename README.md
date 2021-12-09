@@ -98,11 +98,11 @@ Here is a real example:
 rnartist {
   file = "/project/media/real_example.svg"
   ss {
-    rna {
-      sequence = "CAACAUCAUACGUACUGCGCCCAAGCGUAACGCGAACACCACGAGUGGUGACUGGUGCUUG"
+    bn {
+      seq = "CAACAUCAUACGUACUGCGCCCAAGCGUAACGCGAACACCACGAGUGGUGACUGGUGCUUG"
+      value =
+        "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
     }
-    bracket_notation =
-      "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
   }
   theme {
     details_lvl = 5
@@ -241,36 +241,33 @@ The size of the picture will fit the size of the drawing (with a minimum size of
 ### <a name="ss"></a>The ```ss``` element
 
 You have three different ways to define a seconday structure:
-* from scratch using the mandatory parameter **bracket_notation** and the optional element **rna**
+* from scratch using the element **bn** (meaning bracket notation)
 * from a file using the elements **vienna**, **bpseq**, **ct**, or **stockholm**
 * from a public database using the elements **rfam**, **rnacentral**, or **pdb**
 
 ***From scratch***
 
 The parameters available are:
-* **bracket_notation** (mandatory): the secondary structure described with the dot-bracket notation
-* **rna**: an RNA molecule described with the **```rna```** element. If you don't provide any **```rna```** element, it will be computed for you with the default name and a random sequence fitting the base-pairing constraints.
+* **value** (mandatory): the secondary structure described with the dot-bracket notation
+* **name**: the name of the molecule (default value: **```A```**)
+* **seq**: the sequence of your molecule. If this parameter is not provided, a random sequence is computed.
 
 Examples:
 
 ```kotlin
 ss {
-
-  bracket_notation = "((((....))))"
-
+  bn {
+    value = "((((....))))"
+  }
 }
 ```
 
 ```kotlin
 ss {
-
-  rna {
+  bn {
+    value = "((((....))))"
     name = "My Fav RNA"
-    length = 12
   }
-
-  bracket_notation = "((((....))))"
-
 }
 ```
 
@@ -402,38 +399,6 @@ ss {
   pdb {
     id = "1JJ2"
   }
-}
-```
-
-<a name="molecule"></a>The ```rna``` element
-
-This element is used to define the RNA sequence for a secondary structure created from scratch (coupled with the mandatory parameter ```bracket_notation```). 
-
-The parameters available are:
-
-* **name**: the name of the molecule (default value: **```A```**)
-* **sequence** (mandatory if no length): the sequence of your molecule.
-* **length** (mandatory if no sequence): the length of your sequence. If this parameter is provided, a random sequence will be computed. 
-
-Examples:
-
-```kotlin
-rna {
-  name = "My Fav RNA"
-  sequence = "GGGACCGCCCGGGAAACGGGCGAAAAACGAGGUGCGGGCACCUCGUGACGACGGGAGUUCGACCGUGA"
-}
-```
-
-```kotlin
-rna {
-  name = "My Fav RNA 2"
-  length = 50
-}
-```
-
-```kotlin
-rna {
-  length = 200
 }
 ```
 
@@ -721,11 +686,11 @@ If a dataset is linked to the RNA secondary structure, a colored gradient can be
 rnartist {
     file = "/project/media/dataset.svg"
     ss {
-        rna {
-            sequence = "GCGAAAAAUCGC"
-        }
-        bracket_notation =
-            "((((....))))"
+      bn {
+        seq = "GCGAAAAAUCGC"
+        value =
+          "((((....))))"
+      }
     }
     data {
         "1" to 200.7
@@ -1118,11 +1083,11 @@ If a dataset is linked to the RNA secondary structure, the values can be used as
 rnartist {
   file = "/project/media/hide_pyrimidines.svg"
   ss {
-    rna {
-      sequence = "GCGAAAAAUCGC"
+    bn {
+      seq = "GCGAAAAAUCGC"
+      value =
+        "((((....))))"
     }
-    bracket_notation =
-      "((((....))))"
   }
   data {
     "1" to 200.7

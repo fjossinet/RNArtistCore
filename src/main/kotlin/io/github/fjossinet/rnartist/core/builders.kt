@@ -27,31 +27,37 @@ class RNABuilder {
     }
 }
 
+class BracketNotationBuilder {
+    var value:String = "(((...)))"
+    var name:String = "A"
+    var seq:String? = null
+
+    fun build():SecondaryStructure? {
+        this.seq?.let {
+            return SecondaryStructure(RNA(name, it), bracketNotation = value.trim())
+        }
+        val sequence = StringBuffer()
+        sequence.append((1..value.trim().length).map { listOf("A", "U", "G", "C").random()}.joinToString(separator = ""))
+        val ss = SecondaryStructure(RNA(seq = sequence.toString()), bracketNotation = value.trim())
+        ss.randomizeSeq()
+        return ss
+    }
+}
+
 class SecondaryStructureBuilder {
-    var rna:RNA? = null
-    var bracket_notation:String? = null
+
     private var secondaryStructures = mutableListOf<SecondaryStructure>()
 
     fun build():List<SecondaryStructure> {
-        this.bracket_notation?.let { bn ->
-            this.rna?.let { rna ->
-                secondaryStructures.add(SecondaryStructure(rna, bracketNotation = bn))
-                return secondaryStructures
-            }
-            val sequence = StringBuffer()
-            sequence.append((1..bn.length).map { listOf("A", "U", "G", "C").random()}.joinToString(separator = ""))
-            val ss = SecondaryStructure(RNA(seq = sequence.toString()), bracketNotation = bn)
-            ss.randomizeSeq()
-            secondaryStructures.add(ss)
-            return secondaryStructures
-        }
         return secondaryStructures
     }
 
-    fun rna(setup:RNABuilder.() -> Unit) {
-        val rnaBuilder = RNABuilder()
-        rnaBuilder.setup()
-        rna = rnaBuilder.build()
+    fun bn(setup:BracketNotationBuilder.() -> Unit) {
+        val bnBuilder = BracketNotationBuilder()
+        bnBuilder.setup()
+        bnBuilder.build()?.let {
+            secondaryStructures.add(it)
+        }
     }
 
     fun rfam(setup:RfamBuilder.() -> Unit) {
@@ -1390,6 +1396,8 @@ class HideBuilder(data:MutableMap<String, Double>):ThemeConfigurationBuilder(dat
 fun rna(setup:RNABuilder.() -> Unit) = RNABuilder().apply { setup() }.build()
 
 fun ss(setup:SecondaryStructureBuilder.() -> Unit) = SecondaryStructureBuilder().apply { setup() }.build()
+
+fun bn(setup:BracketNotationBuilder.() -> Unit) = BracketNotationBuilder().apply { setup() }.build()
 
 fun mala(setup:MalaBuilder.() -> Unit) = MalaBuilder().apply { setup() }.build()
 

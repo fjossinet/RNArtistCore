@@ -7,11 +7,11 @@ import io.github.fjossinet.rnartist.core.*
 rnartist {
     file = "/project/outputs/bracket_notation.svg"
     ss {
-        rna {
-            sequence = "CAACAUCAUACGUACUGCGCCCAAGCGUAACGCGAACACCACGAGUGGUGACUGGUGCUUG"
+        bn {
+            seq = "CAACAUCAUACGUACUGCGCCCAAGCGUAACGCGAACACCACGAGUGGUGACUGGUGCUUG"
+            value =  "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
         }
-        bracket_notation =
-            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+
     }
 
     theme {
