@@ -1290,6 +1290,166 @@ object RnartistConfig {
     }
 
     @JvmStatic
+    var editorFontSize:Int
+        get() {
+            var e: Element? = document!!.rootElement.getChild("editor-fontsize")
+            if (e == null) {
+                e = Element("editor-fontsize")
+                e.text = "20"
+                document!!.rootElement.addContent(e)
+            }
+            return e.value.toInt()
+        }
+        set(value) {
+            var e: Element? = document!!.rootElement.getChild("editor-fontsize")
+            if (e == null) {
+                e = Element("editor-fontsize")
+                document!!.rootElement.addContent(e)
+            }
+            (e as Element).text = value.toString()
+        }
+
+    @JvmStatic
+    var editorFontName:String
+        get() {
+            var e: Element? = document!!.rootElement.getChild("editor-fontname")
+            if (e == null) {
+                e = Element("editor-fontname")
+                e.text = "Arial"
+                document!!.rootElement.addContent(e)
+            }
+            return e.value
+        }
+        set(value) {
+            var e: Element? = document!!.rootElement.getChild("editor-fontname")
+            if (e == null) {
+                e = Element("editor-fontname")
+                document!!.rootElement.addContent(e)
+            }
+            (e as Element).text = value
+        }
+
+    @JvmStatic
+    var backgroundEditorColor:Color
+        get() {
+            var e: Element? = document!!.rootElement.getChild("bg-editor-color")
+            if (e == null) {
+                e = Element("bg-editor-color")
+                e.text = getHTMLColorString(Color.BLACK)
+                document!!.rootElement.addContent(e)
+            }
+            return getAWTColor(e.value)
+        }
+        set(value) {
+            var e: Element? = document!!.rootElement.getChild("bg-editor-color")
+            if (e == null) {
+                e = Element("bg-editor-color")
+                document!!.rootElement.addContent(e)
+            }
+            (e as Element).text = getHTMLColorString(value)
+        }
+
+    @JvmStatic
+    var keywordEditorColor:Color
+        get() {
+            var e: Element? = document!!.rootElement.getChild("kw-editor-color")
+            if (e == null) {
+                e = Element("kw-editor-color")
+                e.text = "#8099ff"
+                document!!.rootElement.addContent(e)
+            }
+            return getAWTColor(e.value)
+        }
+        set(value) {
+            var e: Element? = document!!.rootElement.getChild("kw-editor-color")
+            if (e == null) {
+                e = Element("bg-editor-color")
+                document!!.rootElement.addContent(e)
+            }
+            (e as Element).text = getHTMLColorString(value)
+        }
+
+    @JvmStatic
+    var bracesEditorColor:Color
+        get() {
+            var e: Element? = document!!.rootElement.getChild("braces-editor-color")
+            if (e == null) {
+                e = Element("braces-editor-color")
+                e.text = getHTMLColorString(Color.WHITE)
+                document!!.rootElement.addContent(e)
+            }
+            return getAWTColor(e.value)
+        }
+        set(value) {
+            var e: Element? = document!!.rootElement.getChild("braces-editor-color")
+            if (e == null) {
+                e = Element("braces-editor-color")
+                document!!.rootElement.addContent(e)
+            }
+            (e as Element).text = getHTMLColorString(value)
+        }
+
+    @JvmStatic
+    var keyParamEditorColor:Color
+        get() {
+            var e: Element? = document!!.rootElement.getChild("keyParam-editor-color")
+            if (e == null) {
+                e = Element("keyParam-editor-color")
+                e.text = "#ff9966"
+                document!!.rootElement.addContent(e)
+            }
+            return getAWTColor(e.value)
+        }
+        set(value) {
+            var e: Element? = document!!.rootElement.getChild("keyParam-editor-color")
+            if (e == null) {
+                e = Element("keyParam-editor-color")
+                document!!.rootElement.addContent(e)
+            }
+            (e as Element).text = getHTMLColorString(value)
+        }
+
+    @JvmStatic
+    var operatorParamEditorColor:Color
+        get() {
+            var e: Element? = document!!.rootElement.getChild("operatorParam-editor-color")
+            if (e == null) {
+                e = Element("operatorParam-editor-color")
+                e.text = getHTMLColorString(Color.WHITE)
+                document!!.rootElement.addContent(e)
+            }
+            return getAWTColor(e.value)
+        }
+        set(value) {
+            var e: Element? = document!!.rootElement.getChild("operatorParam-editor-color")
+            if (e == null) {
+                e = Element("operatorParam-editor-color")
+                document!!.rootElement.addContent(e)
+            }
+            (e as Element).text = getHTMLColorString(value)
+        }
+
+    @JvmStatic
+    var valueParamEditorColor:Color
+        get() {
+            var e: Element? = document!!.rootElement.getChild("valueParam-editor-color")
+            if (e == null) {
+                e = Element("valueParam-editor-color")
+                e.text = "#669999"
+                document!!.rootElement.addContent(e)
+            }
+            return getAWTColor(e.value)
+        }
+        set(value) {
+            var e: Element? = document!!.rootElement.getChild("valueParam-editor-color")
+            if (e == null) {
+                e = Element("valueParam-editor-color")
+                document!!.rootElement.addContent(e)
+            }
+            (e as Element).text = getHTMLColorString(value)
+        }
+
+    @JvmStatic
     var selectionColor: Color
         get() {
             var e: Element? = document!!.rootElement.getChild("selection-color")

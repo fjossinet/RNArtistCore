@@ -269,7 +269,7 @@ class OpenscadInputBuilder {
 
 class MalaBuilder {
     var file:String? = null
-    var location:String? = null
+    var location = mutableMapOf<Int,Int>()
     var secondaryStructures = mutableListOf<SecondaryStructure>()
     var line = 2.0
     var theme:AdvancedTheme? = null
@@ -279,54 +279,65 @@ class MalaBuilder {
     fun build() {
         this.file?.let { outputFile ->
             //if a location is defined, we zoom on it
-            this.location?.let { location ->
-                this.secondaryStructures.forEach { ss ->
-                    val drawing = SecondaryStructureDrawing(ss, WorkingSession())
-                    this.theme?.let { theme ->
+            if (!this.location.isEmpty()) {
+                this.location.let { ranges ->
+                    this.secondaryStructures.forEach { ss ->
+                        val drawing = SecondaryStructureDrawing(ss, WorkingSession())
+                        this.theme?.let { theme ->
+                            drawing.applyAdvancedTheme(theme)
+                        }
+                        this.layout?.let { layout ->
+                            drawing.applyLayout(layout)
+                        }
+
+                        val drawingFrame = Rectangle2D.Double(0.0, 0.0, 1024.0, 1024.0)
+
+                        var selectionFrame: Rectangle2D? = null
+
+                        val selectedLocation =
+                            Location(ranges.map { "${it.key}:${it.value - it.key + 1}" }.joinToString(","))
+
+                        val residuePositions = mutableListOf<Int>()
+
+                        ss.rna.numbering_system?.forEach { (real_pos, alignment_pos) ->
+                            if (selectedLocation.contains(alignment_pos)) {
+                                residuePositions.add(real_pos)
+                            }
+                        }
+
+                        val theme = AdvancedTheme()
+                        residuePositions.forEach {
+                            theme.setConfigurationFor(
+                                { e: DrawingElement -> e.inside(Location(it)) },
+                                ThemeParameter.color,
+                                "#fa0702"
+                            )
+                            theme.setConfigurationFor(
+                                { e: DrawingElement -> e.inside(Location(it)) },
+                                ThemeParameter.fulldetails,
+                                "true"
+                            )
+                        }
+
                         drawing.applyAdvancedTheme(theme)
-                    }
-                    this.layout?.let { layout ->
-                        drawing.applyLayout(layout)
-                    }
 
-                    val drawingFrame = Rectangle2D.Double(0.0, 0.0, 1024.0, 1024.0)
+                        for (selectedResidue in drawing.getResiduesFromAbsPositions(*residuePositions.toIntArray())) {
+                            selectionFrame = if (selectionFrame == null) {
+                                selectedResidue.selectionFrame?.bounds
+                            } else
+                                selectionFrame!!.createUnion(selectedResidue.selectionFrame?.bounds)
+                        }
 
-                    var selectionFrame: Rectangle2D? = null
-
-                    val selectedLocation = Location(location)
-
-                    val residuePositions = mutableListOf<Int>()
-
-                    ss.rna.numbering_system?.forEach { (real_pos, alignment_pos) ->
-                        if (selectedLocation.contains(alignment_pos)) {
-                            residuePositions.add(real_pos)
+                        if (selectionFrame != null) {
+                            drawing.fitViewTo(drawingFrame, selectionFrame as Rectangle2D)
+                            val svgOutput = toSVG(drawing, drawingFrame.width, drawingFrame.height)
+                            val f = File("${outputFile.split(".svg").first()}_${ss.rna.name.replace("/", "_")}.svg")
+                            f.createNewFile()
+                            f.writeText(svgOutput)
                         }
                     }
-
-                    val theme = AdvancedTheme()
-                    residuePositions.forEach {
-                        theme.setConfigurationFor({ e: DrawingElement -> e.inside(Location(it)) }, ThemeParameter.color, "#fa0702")
-                        theme.setConfigurationFor({ e: DrawingElement -> e.inside(Location(it)) }, ThemeParameter.fulldetails, "true")
-                    }
-
-                    drawing.applyAdvancedTheme(theme)
-
-                    for (selectedResidue in drawing.getResiduesFromAbsPositions(*residuePositions.toIntArray())) {
-                        selectionFrame = if (selectionFrame == null) {
-                            selectedResidue.selectionFrame?.bounds
-                        } else
-                            selectionFrame!!.createUnion(selectedResidue.selectionFrame?.bounds)
-                    }
-
-                    if (selectionFrame != null) {
-                        drawing.fitViewTo(drawingFrame, selectionFrame as Rectangle2D)
-                        val svgOutput = toSVG(drawing, drawingFrame.width, drawingFrame.height)
-                        val f = File("${outputFile.split(".svg").first()}_${ss.rna.name.replace("/", "_")}.svg")
-                        f.createNewFile()
-                        f.writeText(svgOutput)
-                    }
                 }
-            } ?: run { //if no location defined, we draw and zoom on each full 2D with different colors for each junction
+            } else { //if no location defined, we draw and zoom on each full 2D with different colors for each junction
                 val consensus2D = this.secondaryStructures.first()
                 //we choose the color for each junction defined in the consensus2D
                 val junctionColors = mutableListOf<String>()
@@ -587,7 +598,6 @@ class LayoutBuilder {
 
 class JunctionLayoutBuilder() {
     var name:String? = null
-    var location:String? = null
     var type:Int? = null
     var in_id:String? = null
     var out_ids:String? = null
@@ -597,15 +607,15 @@ class JunctionLayoutBuilder() {
 class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
     var details_lvl:Int? = null
     private val colors = mutableListOf<ColorBuilder>()
-    private val details = mutableListOf<DetailsBuilder>()
+    private val shows = mutableListOf<ShowBuilder>()
     private val lines = mutableListOf<LineBuilder>()
     private val hides = mutableListOf<HideBuilder>()
     private val data = data.toMutableMap()
 
-    fun details(setup:DetailsBuilder.() -> Unit) {
-        val detailsBuilder = DetailsBuilder(this.data)
-        detailsBuilder.setup()
-        this.details.add(detailsBuilder)
+    fun show(setup:ShowBuilder.() -> Unit) {
+        val showBuilder = ShowBuilder(this.data)
+        showBuilder.setup()
+        this.shows.add(showBuilder)
     }
 
     fun color(setup:ColorBuilder.() -> Unit) {
@@ -837,361 +847,6 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                 }
             }
         }
-        this.hides.forEach { hideBuilder ->
-            if (hideBuilder.data.size != data.size) { //meaning that they have been filtered
-                hideBuilder.data.forEach { position, value ->
-                    when (hideBuilder.type) {
-                        "A" , "a" -> {
-                            var types = getSecondaryStructureType("A")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                            types = getSecondaryStructureType("a")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                        }
-                        "U" , "u" -> {
-                            var types = getSecondaryStructureType("U")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                            types = getSecondaryStructureType("u")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                        }
-                        "G" , "g" -> {
-                            var types = getSecondaryStructureType("G")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                            types = getSecondaryStructureType("g")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                        }
-                        "C" , "c" -> {
-                            var types = getSecondaryStructureType("C")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                            types = getSecondaryStructureType("c")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                        }
-                        "X" , "x" -> {
-                            var types = getSecondaryStructureType("X")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                            types = getSecondaryStructureType("x")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                        }
-                        "R" , "r" -> {
-                            var types = getSecondaryStructureType("R")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                            types = getSecondaryStructureType("r")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                        }
-                        "Y" , "y" -> {
-                            var types = getSecondaryStructureType("Y")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                            types = getSecondaryStructureType("y")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && e.location.start == position.toInt()}
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                        }
-                        else -> {
-                            var types = getSecondaryStructureType("N")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                            types = getSecondaryStructureType("n")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                        }
-                    }
-                }
-            }
-            else if (hideBuilder.location != null) {
-                hideBuilder.location?.let {
-                    val location = Location(it)
-                    when (hideBuilder.type) {
-                        "A" , "a" -> {
-                            var types = getSecondaryStructureType("A")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                            types = getSecondaryStructureType("a")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                        }
-                        "U" , "u" -> {
-                            var types = getSecondaryStructureType("U")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                            types = getSecondaryStructureType("u")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                        }
-                        "G" , "g" -> {
-                            var types = getSecondaryStructureType("G")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                            types = getSecondaryStructureType("g")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                        }
-                        "C" , "c" -> {
-                            var types = getSecondaryStructureType("C")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                            types = getSecondaryStructureType("c")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                        }
-                        "X" , "x" -> {
-                            var types = getSecondaryStructureType("X")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                            types = getSecondaryStructureType("x")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                        }
-                        "R" , "r" -> {
-                            var types = getSecondaryStructureType("R")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                            types = getSecondaryStructureType("r")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                        }
-                        "Y" , "y" -> {
-                            var types = getSecondaryStructureType("Y")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                            types = getSecondaryStructureType("y")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                        }
-                        else -> {
-                            var types = getSecondaryStructureType("N")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                            types = getSecondaryStructureType("n")
-                            types.forEach { type ->
-                                val selection =
-                                    { e: DrawingElement -> e.type == type && location.contains(e.location.start) }
-                                t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                            }
-                        }
-                    }
-
-                }
-            } else {
-                when (hideBuilder.type) {
-                    "A" , "a" -> {
-                        var types = getSecondaryStructureType("A")
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                        }
-                        types = getSecondaryStructureType("a")
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                        }
-                    }
-                    "U" , "u" -> {
-                        var types = getSecondaryStructureType("U")
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                        }
-                        types = getSecondaryStructureType("u")
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                        }
-                    }
-                    "G" , "g" -> {
-                        var types = getSecondaryStructureType("G")
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                        }
-                        types = getSecondaryStructureType("g")
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                        }
-                    }
-                    "C" , "c" -> {
-                        var types = getSecondaryStructureType("C")
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                        }
-                        types = getSecondaryStructureType("c")
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                        }
-                    }
-                    "X" , "x" -> {
-                        var types = getSecondaryStructureType("X")
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                        }
-                        types = getSecondaryStructureType("x")
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                        }
-                    }
-                    "R" , "r" -> {
-                        var types = getSecondaryStructureType("R")
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                        }
-                        types = getSecondaryStructureType("r")
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                        }
-                    }
-                    "Y" , "y" -> {
-                        var types = getSecondaryStructureType("Y")
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                        }
-                        types = getSecondaryStructureType("y")
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                        }
-                    }
-                    else -> {
-                        var types = getSecondaryStructureType("N")
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                        }
-                        types = getSecondaryStructureType("n")
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                        }
-                    }
-                }
-            }
-        }
         this.colors.forEach { colorBuilder ->
             if (colorBuilder.data.size != data.size || colorBuilder.to != null) { //meaning that they have been filtered or that we want a gradient (even with non filtered data)
                 colorBuilder.data.forEach { position, value ->
@@ -1216,27 +871,33 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             t.setConfigurationFor(selection, ThemeParameter.color, colorCode)
                         }
                     } ?: run {
-                        t.setConfigurationFor({ e: DrawingElement -> e.location.start == position.toInt() }, ThemeParameter.color, colorCode)
+                        val selection =
+                            { e: DrawingElement ->  e.location.start == position.toInt()}
+                        t.setConfigurationFor(selection,
+                            ThemeParameter.color,
+                            colorBuilder.value.toString())
                     }
                 }
             }
-            else if (colorBuilder.location != null) {
-                colorBuilder.location?.let {
-                    val location = Location(it)
-                    colorBuilder.getSecondaryStructureTypes()?.let { types ->
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type && e.inside(location)}
-                            t.setConfigurationFor(selection,
-                                ThemeParameter.color,
-                                colorBuilder.value.toString())
-                        }
-                    } ?: run {
-                        t.setConfigurationFor({ e: DrawingElement -> e.inside(location) }, ThemeParameter.color, colorBuilder.value.toString())
+            else if (!colorBuilder.locationBuilder.blocks.isEmpty()) {
+                val location =  Location(colorBuilder.locationBuilder.blocks.map{"${it.key}:${it.value-it.key+1}"}.joinToString(","))
+                colorBuilder.getSecondaryStructureTypes()?.let { types ->
+                    types.forEach { type ->
+                        val selection =
+                            { e: DrawingElement -> e.type == type && e.inside(location)}
+                        t.setConfigurationFor(selection,
+                            ThemeParameter.color,
+                            colorBuilder.value.toString())
                     }
+                } ?: run {
+                    val selection =
+                        { e: DrawingElement -> e.inside(location)}
+                    t.setConfigurationFor(selection,
+                        ThemeParameter.color,
+                        colorBuilder.value.toString())
                 }
             }
-            else if (colorBuilder.type != null) {
+            else {
                 colorBuilder.getSecondaryStructureTypes()?.let { types ->
                     types.forEach { type ->
                         val selection = { e: DrawingElement -> e.type == type }
@@ -1245,50 +906,94 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             colorBuilder.value.toString())
                     }
                 }
-            } else
-                t.setConfigurationFor({ e: DrawingElement -> true }, ThemeParameter.color, colorBuilder.value.toString())
+            }
         }
-        this.details.forEach { detailsBuilder ->
-            if (detailsBuilder.data.isNotEmpty()) {
-                detailsBuilder.data.forEach { position, value ->
-                    detailsBuilder.getSecondaryStructureTypes()?.let { types ->
+        this.shows.forEach { showBuilder ->
+            if (showBuilder.data.size != data.size) { //meaning that they have been filtered
+                showBuilder.data.forEach { position, value ->
+                    showBuilder.getSecondaryStructureTypes()?.let { types ->
                         types.forEach { type ->
                             val selection =
                                 { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, detailsBuilder.value.equals("full").toString())
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails,"true")
                         }
                     } ?: run {
-                        t.setConfigurationFor({ e: DrawingElement -> e.location.start == position.toInt() }, ThemeParameter.fulldetails, detailsBuilder.value.equals("full").toString())
-                    }
-                }
-            }
-            else if (detailsBuilder.location != null) {
-                detailsBuilder.location?.let {
-                    val location = Location(it)
-                    detailsBuilder.getSecondaryStructureTypes()?.let { types ->
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type && e.inside(location) }
-                            t.setConfigurationFor(selection,
-                                ThemeParameter.fulldetails,
-                                detailsBuilder.value.equals("full").toString())
-                        }
-                    } ?: run {
-                        t.setConfigurationFor({ e: DrawingElement -> e.inside(location) }, ThemeParameter.fulldetails, detailsBuilder.value.equals("full").toString())
-                    }
-                }
-            }
-            else if (detailsBuilder.type != null) {
-                detailsBuilder.getSecondaryStructureTypes()?.let { types ->
-                    types.forEach { type ->
-                        val selection = { e: DrawingElement -> e.type == type }
+                        val selection =
+                            { e: DrawingElement -> e.location.start == position.toInt() }
                         t.setConfigurationFor(selection,
                             ThemeParameter.fulldetails,
-                            detailsBuilder.value.equals("full").toString())
+                            "true")
                     }
                 }
-            } else
-                t.setConfigurationFor({ e: DrawingElement -> true }, ThemeParameter.fulldetails,  detailsBuilder.value.equals("full").toString())
+            }
+            else if (!showBuilder.locationBuilder.blocks.isEmpty()) {
+                val location =  Location(showBuilder.locationBuilder.blocks.map{"${it.key}:${it.value-it.key+1}"}.joinToString(","))
+                showBuilder.getSecondaryStructureTypes()?.let { types ->
+                    types.forEach { type ->
+                        val selection =
+                            { e: DrawingElement -> e.type == type && e.inside(location) }
+                        t.setConfigurationFor(selection,
+                            ThemeParameter.fulldetails,
+                            "true")
+                    }
+                } ?: run {
+                    val selection =
+                        { e: DrawingElement -> e.inside(location) }
+                    t.setConfigurationFor(selection,
+                        ThemeParameter.fulldetails,
+                        "true")
+                }
+            } else {
+                showBuilder.getSecondaryStructureTypes()?.let { types ->
+                    types.forEach { type ->
+                        val selection = { e: DrawingElement -> e.type == type }
+                        t.setConfigurationFor(
+                            selection,
+                            ThemeParameter.fulldetails,
+                            "true"
+                        )
+                    }
+                }
+            }
+        }
+        this.hides.forEach { hideBuilder ->
+            if (hideBuilder.data.size != data.size) { //meaning that they have been filtered
+                hideBuilder.data.forEach { position, value ->
+                    hideBuilder.getSecondaryStructureTypes()?.let { types ->
+                        types.forEach { type ->
+                            val selection =
+                                { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
+                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
+                        }
+                    } ?: run {
+                        val selection =
+                            { e: DrawingElement -> e.location.start == position.toInt() }
+                        t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
+                    }
+                }
+            }
+            else if (!hideBuilder.locationBuilder.blocks.isEmpty()) {
+                val location = Location(hideBuilder.locationBuilder.blocks.map{"${it.key}:${it.value-it.key+1}"}.joinToString(","))
+                hideBuilder.getSecondaryStructureTypes()?.let { types ->
+                    types.forEach { type ->
+                        val selection =
+                            { e: DrawingElement -> e.type == type && e.inside(location) }
+                        t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
+                    }
+                } ?: run {
+                    val selection =
+                        { e: DrawingElement -> e.inside(location) }
+                    t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
+                }
+            } else {
+                hideBuilder.getSecondaryStructureTypes()?.let { types ->
+                    types.forEach { type ->
+                        val selection =
+                            { e: DrawingElement -> e.type == type }
+                        t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
+                    }
+                }
+            }
         }
         this.lines.forEach { lineBuilder ->
             if (lineBuilder.data.size != data.size) { //meaning that they have been filtered
@@ -1300,27 +1005,33 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             t.setConfigurationFor(selection, ThemeParameter.linewidth, lineBuilder.value.toString())
                         }
                     } ?: run {
-                        t.setConfigurationFor({ e: DrawingElement -> e.location.start == position.toInt() }, ThemeParameter.linewidth, lineBuilder.value.toString())
+                        val selection =
+                            { e: DrawingElement -> e.location.start == position.toInt() }
+                        t.setConfigurationFor(selection,
+                            ThemeParameter.linewidth,
+                            lineBuilder.value.toString())
                     }
                 }
             }
-            else if (lineBuilder.location != null) {
-                lineBuilder.location?.let {
-                    val location = Location(it)
-                    lineBuilder.getSecondaryStructureTypes()?.let { types ->
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type && e.inside(location) }
-                            t.setConfigurationFor(selection,
-                                ThemeParameter.linewidth,
-                                lineBuilder.value.toString())
-                        }
-                    } ?: run {
-                        t.setConfigurationFor({ e: DrawingElement -> e.inside(location) }, ThemeParameter.linewidth, lineBuilder.value.toString())
+            else if (!lineBuilder.locationBuilder.blocks.isEmpty()) {
+                val location =  Location(lineBuilder.locationBuilder.blocks.map{"${it.key}:${it.value-it.key+1}"}.joinToString(","))
+                lineBuilder.getSecondaryStructureTypes()?.let { types ->
+                    types.forEach { type ->
+                        val selection =
+                            { e: DrawingElement -> e.type == type && e.inside(location) }
+                        t.setConfigurationFor(selection,
+                            ThemeParameter.linewidth,
+                            lineBuilder.value.toString())
                     }
+                } ?: run {
+                    val selection =
+                        { e: DrawingElement -> e.inside(location) }
+                    t.setConfigurationFor(selection,
+                        ThemeParameter.linewidth,
+                        lineBuilder.value.toString())
                 }
             }
-            else if (lineBuilder.type != null) {
+            else {
                 lineBuilder.getSecondaryStructureTypes()?.let { types ->
                     types.forEach { type ->
                         val selection = { e: DrawingElement -> e.type == type }
@@ -1329,8 +1040,7 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                             lineBuilder.value.toString())
                     }
                 }
-            } else
-                t.setConfigurationFor({ e: DrawingElement -> true }, ThemeParameter.linewidth, lineBuilder.value.toString())
+            }
         }
         return t
     }
@@ -1338,7 +1048,7 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
 }
 
 open class ThemeConfigurationBuilder(data:MutableMap<String, Double>) {
-    var location:String? = null
+    val locationBuilder = LocationBuilder()
     var type:String? = null
     val data = data.toMutableMap()
 
@@ -1364,11 +1074,14 @@ open class ThemeConfigurationBuilder(data:MutableMap<String, Double>) {
     }
 
     fun getSecondaryStructureTypes() = this.type?.split(" ")?.flatMap { getSecondaryStructureType(it) }
+
+    fun location(setup:LocationBuilder.() -> Unit) {
+        this.locationBuilder.setup()
+    }
+
 }
 
-class DetailsBuilder(data:MutableMap<String, Double>): ThemeConfigurationBuilder(data) {
-    var value = "full"
-}
+class ShowBuilder(data:MutableMap<String, Double>): ThemeConfigurationBuilder(data)
 
 class ColorBuilder(data:MutableMap<String, Double>): ThemeConfigurationBuilder(data) {
     var value:String? = null
@@ -1390,7 +1103,16 @@ class LineBuilder(data:MutableMap<String, Double>):ThemeConfigurationBuilder(dat
     var value = 2.0
 }
 
-class HideBuilder(data:MutableMap<String, Double>):ThemeConfigurationBuilder(data) {
+class HideBuilder(data:MutableMap<String, Double>):ThemeConfigurationBuilder(data)
+
+class LocationBuilder {
+
+    val blocks = mutableMapOf<Int,Int>()
+
+    infix fun Int.to(i:Int) {
+        blocks[this] = i
+    }
+
 }
 
 fun rna(setup:RNABuilder.() -> Unit) = RNABuilder().apply { setup() }.build()
