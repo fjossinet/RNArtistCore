@@ -4,9 +4,10 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.annotations.SerializedName
-import io.github.fjossinet.rnartist.core.model.io.parsePDB
-import io.github.fjossinet.rnartist.core.model.io.Rnaview
-import io.github.fjossinet.rnartist.core.model.io.getUserDir
+import io.github.fjossinet.rnartist.core.RnartistConfig
+import io.github.fjossinet.rnartist.core.io.parsePDB
+import io.github.fjossinet.rnartist.core.io.Rnaview
+import io.github.fjossinet.rnartist.core.io.getUserDir
 import io.github.fjossinet.rnartist.core.ss
 import java.io.*
 import java.net.HttpURLConnection

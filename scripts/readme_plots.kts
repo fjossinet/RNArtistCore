@@ -10,12 +10,15 @@
 import io.github.fjossinet.rnartist.core.*
 
 rnartist {
-    file = "/project/media/real_example.svg"
+    png {
+        path = "media/"
+    }
     ss {
         bn {
             seq = "CAACAUCAUACGUACUGCGCCCAAGCGUAACGCGAACACCACGAGUGGUGACUGGUGCUUG"
             value =
                 "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+            name = "concrete_example"
         }
     }
     theme {
@@ -50,12 +53,15 @@ rnartist {
 }
 
 rnartist {
-    file = "/project/media/dataset.svg"
+    png {
+        path = "media/"
+    }
     ss {
         bn {
             seq = "GCGAAAAAUCGC"
             value =
                 "((((....))))"
+            name = "dataset"
         }
     }
     data {
@@ -100,10 +106,15 @@ rnartist {
 }
 
 rnartist {
-    file = "/project/media/details_lvl1.svg"
-    bn {
-        value =
-            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+    png {
+        path = "media/"
+    }
+    ss {
+        bn {
+            value =
+                "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+            name = "details_lvl1"
+        }
     }
     theme {
         details_lvl = 1
@@ -111,22 +122,31 @@ rnartist {
 }
 
 rnartist {
-    file = "/project/media/details_lvl2.svg"
-    bn {
-        value =
-            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+    png {
+        path = "media/"
+    }
+    ss {
+        bn {
+            value =
+                "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+            name = "details_lvl2"
+        }
     }
     theme {
         details_lvl = 2
     }
 }
 
-
 rnartist {
-    file = "/project/media/details_lvl3.svg"
-    bn {
-        value =
-            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+    png {
+        path = "media/"
+    }
+    ss {
+        bn {
+            value =
+                "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+            name = "details_lvl3"
+        }
     }
     theme {
         details_lvl = 3
@@ -134,10 +154,15 @@ rnartist {
 }
 
 rnartist {
-    file = "/project/media/details_lvl4.svg"
-    bn {
-        value =
-            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+    png {
+        path = "media/"
+    }
+    ss {
+        bn {
+            value =
+                "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+            name = "details_lvl4"
+        }
     }
     theme {
         details_lvl = 4
@@ -145,10 +170,15 @@ rnartist {
 }
 
 rnartist {
-    file = "/project/media/details_lvl5.svg"
-    bn {
-        value =
-            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+    png {
+        path = "media/"
+    }
+    ss {
+        bn {
+            value =
+                "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+            name = "details_lvl5"
+        }
     }
     theme {
         details_lvl = 5
@@ -156,10 +186,16 @@ rnartist {
 }
 
 rnartist {
-    file = "/project/media/details_lvl5_colored.svg"
-    bn {
-        value =
-            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+    png {
+        path = "media/"
+    }
+    ss {
+        bn {
+            seq = "CAGAUAAGAAGGUUCCCCGAUAUGUUGGGCAACCAAAGAAUUCAUGUUCUUCCUUUGUUUG"
+            value =
+                "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+            name = "nice_colors"
+        }
     }
     theme {
         details_lvl = 5
@@ -176,14 +212,462 @@ rnartist {
 
         color {
             type = "R"
-            value = "green"
+            value = "red"
         }
 
-    }
+        color {
+            type = "r"
+            value = "white"
+        }
 
+        color {
+            type = "G g"
+            value = "#ed781f"
+            location {
+                5 to 20
+            }
+        }
+    }
 }
 
 rnartist {
+    png {
+        path = "media/"
+    }
+
+    ss {
+        bn {
+            seq = "CUUACUCGAGUGACCUUGCUUG"
+            value = "..((..((((....))))..))"
+            name = "helix_lvl0"
+        }
+    }
+
+    theme {
+        details_lvl = 1
+    }
+}
+
+rnartist {
+    png {
+        path = "media/"
+    }
+
+    ss {
+        bn {
+            seq = "CUUACUCGAGUGACCUUGCUUG"
+            value = "..((..((((....))))..))"
+            name = "helix_lvl1"
+        }
+    }
+
+    theme {
+        details_lvl = 1
+
+        show {
+            type = "helix"
+            location {
+                7 to 10
+                15 to 18
+            }
+        }
+    }
+}
+
+rnartist {
+    png {
+        path = "media/"
+    }
+
+    ss {
+        bn {
+            seq = "CUUACUCGAGUGACCUUGCUUG"
+            value = "..((..((((....))))..))"
+            name = "helix_lvl2"
+        }
+    }
+
+    theme {
+        details_lvl = 1
+
+        show {
+            type = "helix secondary_interaction phosphodiester_bond"
+            location {
+                7 to 10
+                15 to 18
+            }
+        }
+    }
+}
+
+rnartist {
+    png {
+        path = "media/"
+    }
+
+    ss {
+        bn {
+            seq = "CUUACUCGAGUGACCUUGCUUG"
+            value = "..((..((((....))))..))"
+            name = "helix_lvl3"
+        }
+    }
+
+    theme {
+        details_lvl = 1
+
+        show {
+            type = "helix secondary_interaction  phosphodiester_bond N"
+            location {
+                7 to 10
+                15 to 18
+            }
+        }
+    }
+}
+
+rnartist {
+    png {
+        path = "media/"
+    }
+
+    ss {
+        bn {
+            seq = "CUUACUCGAGUGACCUUGCUUG"
+            value = "..((..((((....))))..))"
+            name = "helix_lvl4"
+        }
+    }
+
+    theme {
+        details_lvl = 1
+
+        show {
+            type = "helix secondary_interaction phosphodiester_bond N n"
+            location {
+                7 to 10
+                15 to 18
+            }
+        }
+    }
+}
+
+rnartist {
+    png {
+        path = "media/"
+    }
+
+    ss {
+        bn {
+            seq = "CUUACUCGAGUGACCUUGCUUG"
+            value = "..((..((((....))))..))"
+            name = "helix_lvl5"
+        }
+    }
+
+    theme {
+        details_lvl = 1
+
+        show {
+            type = "helix secondary_interaction phosphodiester_bond N n interaction_symbol"
+            location {
+                7 to 10
+                15 to 18
+            }
+        }
+    }
+}
+
+rnartist {
+    png {
+        path = "media/"
+    }
+
+    ss {
+        bn {
+            seq = "CUUACUCGAGUGACCUUGCUUG"
+            value = "..((..((((....))))..))"
+            name = "helix_mixed_lvl"
+        }
+    }
+
+    theme {
+        details_lvl = 1
+
+        show {
+            type = "helix secondary_interaction phosphodiester_bond"
+            location {
+                7 to 10
+                15 to 18
+            }
+        }
+
+        show {
+            type = "N n"
+            location {
+                7 to 8
+                17 to 18
+            }
+        }
+
+        show {
+            type = "interaction_symbol"
+            location {
+                8 to 8
+                17 to 17
+            }
+        }
+    }
+}
+
+rnartist {
+    png {
+        path = "media/"
+    }
+
+    ss {
+        bn {
+            seq = "CUUACUCGAGUGACCUUGCUUG"
+            value = "..((..((((....))))..))"
+            name = "helix_hidden_parts"
+        }
+    }
+
+    theme {
+        details_lvl = 5
+
+        hide {
+            type = "n"
+            location {
+                9 to 9
+            }
+        }
+
+        hide {
+            type = "secondary_interaction"
+            location {
+                7 to 8
+                10 to 10
+                15 to 15
+                17 to 18
+            }
+        }
+    }
+}
+
+rnartist {
+    png {
+        path = "media/"
+    }
+    ss {
+        bn {
+            value = "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
+            name = "3way_0"
+        }
+    }
+    theme {
+        details_lvl = 1
+    }
+}
+
+rnartist {
+    png {
+        path = "media/"
+    }
+    ss {
+        bn {
+            value = "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
+            name = "3way_1"
+        }
+    }
+    theme {
+        details_lvl = 1
+    }
+
+    layout {
+
+        junction {
+            type = 3
+            out_ids ="nnw nne"
+        }
+
+    }
+}
+
+rnartist {
+    png {
+        path = "media/"
+    }
+    ss {
+        bn {
+            value = "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
+            name = "3way_2"
+        }
+    }
+    theme {
+        details_lvl = 1
+    }
+
+    layout {
+
+        junction {
+            type = 3
+            out_ids ="nw ne"
+        }
+
+    }
+}
+
+rnartist {
+    png {
+        path = "media/"
+    }
+    ss {
+        bn {
+            value = "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
+            name = "3way_3"
+        }
+    }
+    theme {
+        details_lvl = 1
+    }
+
+    layout {
+
+        junction {
+            type = 3
+            out_ids ="wnw ene"
+        }
+
+    }
+}
+
+rnartist {
+    png {
+        path = "media/"
+    }
+    ss {
+        bn {
+            value = "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
+            name = "3way_4"
+        }
+    }
+    theme {
+        details_lvl = 1
+    }
+
+    layout {
+
+        junction {
+            type = 3
+            out_ids ="w e"
+        }
+
+    }
+}
+
+rnartist {
+    png {
+        path = "media/"
+    }
+    ss {
+        bn {
+            value = "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
+            name = "3way_5"
+        }
+    }
+    theme {
+        details_lvl = 1
+    }
+
+    layout {
+
+        junction {
+            type = 3
+            out_ids ="w n"
+        }
+
+    }
+}
+
+rnartist {
+    png {
+        path = "media/"
+    }
+    ss {
+        bn {
+            value = "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
+            name = "3way_6"
+        }
+    }
+    theme {
+        details_lvl = 1
+    }
+
+    layout {
+
+        junction {
+            type = 3
+            out_ids ="n e"
+        }
+
+    }
+}
+
+rnartist {
+    png {
+        path = "media/"
+    }
+    ss {
+        bn {
+            value = "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
+            name = "3way_full_details"
+        }
+    }
+    theme {
+        details_lvl = 5
+    }
+
+    layout {
+
+        junction {
+            type = 3
+            out_ids ="wnw n"
+        }
+
+    }
+}
+
+rnartist {
+    png {
+        path = "media/"
+    }
+    ss {
+        bn {
+            value = "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
+            name = "3way_full_details_fixed"
+        }
+    }
+    theme {
+        details_lvl = 5
+    }
+    layout {
+        junction {
+            type = 3
+            out_ids = "wnw n"
+        }
+        junction {
+            location {
+                206 to 209
+                232 to 235
+                248 to 251
+            }
+            out_ids = "n e"
+        }
+    }
+}
+
+/*rnartist {
     file = "/project/media/hide_purines.svg"
     bn {
         value =
@@ -192,10 +676,12 @@ rnartist {
     theme {
         details_lvl = 5
 
-        details {
+        show {
             type = "r R"
-            location="12:20"
-            value = "none"
+
+            location {
+                12 to 32
+            }
         }
 
         color {
@@ -238,7 +724,9 @@ rnartist {
         details_lvl = 5
 
         hide {
-            location="5:4"
+            location {
+                5 to 9
+            }
         }
 
         hide {
@@ -273,24 +761,24 @@ rnartist {
                 "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
         }
     }
-        theme {
-            details_lvl = 4
+    theme {
+        details_lvl = 4
 
-            color {
-                value = "red"
+        color {
+            value = "red"
+        }
+
+        color {
+            type = "a c"
+            value = "white"
+        }
+
+        color {
+            type = "g u"
+            value = "black"
+            location {
+                10 to 20
             }
-
-            color {
-                type = "a c"
-                value = "white"
-            }
-
-            color {
-                type = "g u"
-                value = "black"
-                location = "10:10"
-            }
-
         }
     }
 }
@@ -306,20 +794,12 @@ rnartist {
     theme {
         details_lvl = 1
 
-        details {
-            location = "6:3,53:3"
-            value = "full"
-        }
-
-        details {
+        show {
             type ="helix secondary_interaction phosphodiester_bond"
-            location = "16:6,24:6"
-            value = "full"
-        }
-
-        details {
-            location = "21:4"
-            value = "full"
+            location {
+                16 to 21
+                24 to 29
+            }
         }
 
     }
@@ -349,10 +829,12 @@ rnartist {
     theme {
         details_lvl = 1
 
-        details {
+        show {
             type = "helix"
-            value = "full"
-            location="7:4,15:4"
+            location {
+                7 to 10
+                15 to 18
+            }
         }
     }
 }
@@ -366,10 +848,12 @@ rnartist {
     theme {
         details_lvl = 1
 
-        details {
+        show {
             type = "helix phosphodiester_bond"
-            value = "full"
-            location="7:4,15:4"
+            location {
+                7 to 10
+                15 to 18
+            }
         }
     }
 }
@@ -384,10 +868,12 @@ rnartist {
     theme {
         details_lvl = 1
 
-        details {
+        show {
             type = "helix phosphodiester_bond secondary_interaction"
-            value = "full"
-            location="7:4,15:4"
+            location {
+                7 to 10
+                15 to 18
+            }
         }
     }
 }
@@ -402,10 +888,12 @@ rnartist {
     theme {
         details_lvl = 1
 
-        details {
+        show {
             type = "helix phosphodiester_bond secondary_interaction N"
-            value = "full"
-            location="7:4,15:4"
+            location {
+                7 to 10
+                15 to 18
+            }
         }
     }
 }
@@ -420,10 +908,12 @@ rnartist {
     theme {
         details_lvl = 1
 
-        details {
+        show {
             type = "helix phosphodiester_bond secondary_interaction N n"
-            value = "full"
-            location="7:4,15:4"
+            location {
+                7 to 10
+                15 to 18
+            }
         }
     }
 }
@@ -438,34 +928,34 @@ rnartist {
     theme {
         details_lvl = 1
 
-        details {
+        show {
             type = "helix phosphodiester_bond"
-            value = "full"
-            location="7:4,15:4"
+            location {
+                7 to 10
+                15 to 18
+            }
         }
 
-        details {
+        show {
             type = "secondary_interaction"
-            value = "full"
-            location="8,17"
+            location {
+                8 to 8
+                17 to 17
+            }
         }
 
-        details {
+        show {
             type = "N"
-            value = "full"
-            location="8"
+            location {
+                8 to 8
+            }
         }
 
-        details {
-            type = "secondary_interaction N"
-            value = "full"
-            location="9,16"
-        }
-
-        details {
+        show {
             type = "n"
-            value = "full"
-            location="16"
+            location {
+                16 to 16
+            }
         }
     }
 }
@@ -498,7 +988,9 @@ rnartist {
         line {
             type = "phosphodiester_bond N"
             value = 5.0
-            location = "8:6"
+            location {
+                8 to 13
+            }
         }
 
     }
@@ -542,7 +1034,7 @@ rnartist {
     file = "/project/media/dataset.svg"
     ss {
         bn {
-            sequence = "GCGAAAAAUCGC"
+            seq = "GCGAAAAAUCGC"
             value = "((((....))))"
         }
 
@@ -591,8 +1083,9 @@ rnartist {
 rnartist {
     file = "/project/media/several_types.svg"
     ss {
-        bracket_notation =
-            "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+        bn {
+            value = "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+        }
     }
     theme {
         details_lvl = 5
@@ -605,7 +1098,9 @@ rnartist {
         line {
             type = "phosphodiester_bond N"
             value = 5.0
-            location = "8:6"
+            location {
+                8 to 13
+            }
         }
     }
 }
@@ -634,15 +1129,13 @@ rnartist {
     theme {
         details_lvl = 4
 
-        details {
+        hide {
             type = "N"
-            value = "none"
             data between 10.0..350.0
         }
 
-        details {
+        hide {
             type = "n"
-            value = "none"
             data between 10.0..350.0
         }
 
@@ -859,5 +1352,5 @@ booquet {
             name = "0"
         }
     }
-}
+}*/
 

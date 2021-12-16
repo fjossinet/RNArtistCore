@@ -1,7 +1,7 @@
 package io.github.fjossinet.rnartist.core
 
+import io.github.fjossinet.rnartist.core.io.*
 import io.github.fjossinet.rnartist.core.model.*
-import io.github.fjossinet.rnartist.core.model.io.*
 import java.awt.Color
 import java.awt.geom.Rectangle2D
 import java.io.File
@@ -38,7 +38,7 @@ class BracketNotationBuilder {
         }
         val sequence = StringBuffer()
         sequence.append((1..value.trim().length).map { listOf("A", "U", "G", "C").random()}.joinToString(separator = ""))
-        val ss = SecondaryStructure(RNA(seq = sequence.toString()), bracketNotation = value.trim())
+        val ss = SecondaryStructure(RNA(name = name, seq = sequence.toString()), bracketNotation = value.trim())
         ss.randomizeSeq()
         return ss
     }
@@ -98,13 +98,73 @@ class SecondaryStructureBuilder {
 
 }
 
-open abstract class FileBuilder {
+open abstract class OutputFileBuilder {
+    var path:String? = null
+
+    var width:Double = 600.0
+    var height:Double = 400.0
+    var locationBuilder:LocationBuilder = LocationBuilder()
+
+    abstract fun build(drawing:SecondaryStructureDrawing)
+
+    fun location(setup:LocationBuilder.() -> Unit) {
+        this.locationBuilder.setup()
+    }
+}
+
+class PNGBuilder : OutputFileBuilder() {
+
+    override fun build(drawing:SecondaryStructureDrawing) {
+        path?.let { path ->
+            if (!locationBuilder.isEmpty()) {
+                drawing.getFrame(locationBuilder.build())?.let { selectionFrame ->
+                    drawing.asPNG(
+                        frame = Rectangle2D.Double(0.0, 0.0, width, height),
+                        selectionFrame = selectionFrame,
+                        outputFile = File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.png")
+                    )
+                }
+            } else {
+                drawing.asPNG(
+                    frame = Rectangle2D.Double(0.0, 0.0, width, height),
+                    outputFile = File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.png")
+                )
+            }
+        }
+    }
+
+}
+
+class SVGBuilder : OutputFileBuilder() {
+
+    override fun build(drawing:SecondaryStructureDrawing) {
+        path?.let { path ->
+            if (!locationBuilder.isEmpty()) {
+                drawing.getFrame(locationBuilder.build())?.let { selectionFrame ->
+                    drawing.asSVG(
+                        frame = Rectangle2D.Double(0.0, 0.0, width, height),
+                        selectionFrame = selectionFrame,
+                        outputFile = File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.svg")
+                    )
+                }
+            } else {
+                drawing.asSVG(
+                    frame = Rectangle2D.Double(0.0, 0.0, width, height),
+                    outputFile = File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.svg")
+                )
+            }
+        }
+    }
+
+}
+
+open abstract class InputFileBuilder {
     var file:String? = null
 
     abstract fun build():List<SecondaryStructure>
 }
 
-class PDBBuilder:FileBuilder() {
+class PDBBuilder:InputFileBuilder() {
 
     var name:String? = null
     var id:String? = null
@@ -134,7 +194,7 @@ class PDBBuilder:FileBuilder() {
     }
 }
 
-class ViennaBuilder:FileBuilder() {
+class ViennaBuilder:InputFileBuilder() {
     override fun build(): List<SecondaryStructure> {
         this.file?.let {
             return arrayListOf<SecondaryStructure>(parseVienna(FileReader(this.file)))
@@ -143,7 +203,7 @@ class ViennaBuilder:FileBuilder() {
     }
 }
 
-class BPSeqBuilder:FileBuilder() {
+class BPSeqBuilder:InputFileBuilder() {
     override fun build(): List<SecondaryStructure> {
         this.file?.let {
             return arrayListOf<SecondaryStructure>(parseBPSeq(FileReader(this.file)))
@@ -152,7 +212,7 @@ class BPSeqBuilder:FileBuilder() {
     }
 }
 
-class CTBuilder:FileBuilder() {
+class CTBuilder:InputFileBuilder() {
     override fun build(): List<SecondaryStructure> {
         this.file?.let {
             return arrayListOf<SecondaryStructure>(parseCT(FileReader(this.file)))
@@ -161,7 +221,7 @@ class CTBuilder:FileBuilder() {
     }
 }
 
-class StockholmBuilder:FileBuilder() {
+class StockholmBuilder:InputFileBuilder() {
     var name:String? = null
 
     override fun build(): List<SecondaryStructure> {
@@ -175,7 +235,7 @@ class StockholmBuilder:FileBuilder() {
             } else
                 return secondaryStructures
         }
-        return listOf<SecondaryStructure>()
+        return listOf()
     }
 }
 
@@ -329,11 +389,7 @@ class MalaBuilder {
                         }
 
                         if (selectionFrame != null) {
-                            drawing.fitViewTo(drawingFrame, selectionFrame as Rectangle2D)
-                            val svgOutput = toSVG(drawing, drawingFrame.width, drawingFrame.height)
-                            val f = File("${outputFile.split(".svg").first()}_${ss.rna.name.replace("/", "_")}.svg")
-                            f.createNewFile()
-                            f.writeText(svgOutput)
+                            drawing.asSVG(drawingFrame, selectionFrame, File("${outputFile.split(".svg").first()}_${ss.rna.name.replace("/", "_")}.svg"))
                         }
                     }
                 }
@@ -378,12 +434,7 @@ class MalaBuilder {
                     }
 
                     drawing.applyAdvancedTheme(theme)
-                    val drawingFrame = Rectangle2D.Double(0.0, 0.0, 1024.0, 1024.0)
-                    drawing.fitViewTo(drawingFrame)
-                    val svgOutput = toSVG(drawing, drawingFrame.width, drawingFrame.height)
-                    val f = File("${outputFile.split(".svg").first()}_${ss.rna.name.replace("/", "_")}.svg")
-                    f.createNewFile()
-                    f.writeText(svgOutput)
+                    drawing.asSVG(frame = Rectangle2D.Double(0.0, 0.0, 1024.0, 1024.0), outputFile = File("${outputFile.split(".svg").first()}_${ss.rna.name.replace("/", "_")}.svg"))
                 }
             }
         }
@@ -448,7 +499,7 @@ class BooquetBuilder {
 }
 
 class RNArtistBuilder {
-    var file:String? = null
+    private var outputFileBuilder:OutputFileBuilder? = null
     var secondaryStructures = mutableListOf<SecondaryStructure>()
     var theme:AdvancedTheme? = null
     var data:MutableMap<String, Double> = mutableMapOf()
@@ -464,32 +515,8 @@ class RNArtistBuilder {
             this.layout?.let { layout ->
                 drawing.applyLayout(layout)
             }
-            this.file?.let { outputFile ->
-                //the frame will have the size of the drawing
-                val drawingFrame = drawing.getFrame().bounds2D
-                val frame = if (drawingFrame.width < 1024 || drawingFrame.height < 1024)
-                    Rectangle2D.Double(0.0, 0.0, 1024.0, 1024.0)
-                else
-                    Rectangle2D.Double(0.0, 0.0, drawingFrame.width, drawingFrame.height)
-                drawing.fitViewTo(frame)
-                when (outputFile.split(".").last()) {
-                    "svg" -> {
-                        val svgOutput = toSVG(drawing, frame.width, frame.height)
-                        val f = File("${outputFile.split(".svg").first()}_${ss.rna.name.replace("/", "_")}.svg")
-                        f.createNewFile()
-                        f.writeText(svgOutput)
-                    }
-                    "json" -> {
-                        val jsonOutput = toJSON(drawing)
-                        val f = File("${outputFile.split(".json").first()}_${ss.rna.name.replace("/", "_")}.json")
-                        f.createNewFile()
-                        f.writeText(jsonOutput)
-                    }
-                    "r2dt" -> {
+            this.outputFileBuilder?.build(drawing)
 
-                    }
-                }
-            }
             drawings.add(drawing)
         }
         return drawings
@@ -517,6 +544,16 @@ class RNArtistBuilder {
         val dataBuilder = DataBuilder()
         dataBuilder.setup()
         data = dataBuilder.data
+    }
+
+    fun svg(setup:SVGBuilder.() -> Unit) {
+        this.outputFileBuilder = SVGBuilder()
+        (outputFileBuilder as SVGBuilder).setup()
+    }
+
+    fun png(setup:PNGBuilder.() -> Unit) {
+        this.outputFileBuilder = PNGBuilder()
+        (outputFileBuilder as PNGBuilder).setup()
     }
 
 }
@@ -547,61 +584,83 @@ class LayoutBuilder {
         this.junctionLayoutBuilders.add(junctionLayoutBuilder)
     }
 
-    fun build(): Layout {
+    fun build(): Layout? {
         val layout = Layout()
         junctionLayoutBuilders.forEach { junctionLayoutBuilder ->
-            junctionLayoutBuilder.name?.let { name ->
+            if (!junctionLayoutBuilder.locationBuilder.isEmpty()) {
                 val selection =
-                    { e: DrawingElement -> e is JunctionDrawing && e.name.equals(name)}
+                    { e: DrawingElement -> e is JunctionDrawing && e.inside(junctionLayoutBuilder.locationBuilder.build()) }
                 junctionLayoutBuilder.radius?.let { radius ->
                     layout.setConfigurationFor(selection, LayoutParameter.radius, radius.toString())
                 }
                 junctionLayoutBuilder.out_ids?.let { out_ids ->
                     layout.setConfigurationFor(selection, LayoutParameter.out_ids, out_ids)
                 }
+                return layout
             }
-            junctionLayoutBuilder.type?.let { type ->
-                val junctionType = when (type) {
-                    1 -> JunctionType.ApicalLoop
-                    2 -> JunctionType.InnerLoop
-                    3 -> JunctionType.ThreeWay
-                    4 -> JunctionType.FourWay
-                    5 -> JunctionType.FiveWay
-                    6 -> JunctionType.SixWay
-                    7 -> JunctionType.SevenWay
-                    8 -> JunctionType.EightWay
-                    9 -> JunctionType.NineWay
-                    10 -> JunctionType.TenWay
-                    11 -> JunctionType.ElevenWay
-                    12 -> JunctionType.TwelveWay
-                    13 -> JunctionType.ThirteenWay
-                    14 -> JunctionType.FourteenWay
-                    15 -> JunctionType.FifthteenWay
-                    16 -> JunctionType.SixteenWay
-                    else -> JunctionType.Flower
-                }
-                val selection =
-                    { e: DrawingElement -> e is JunctionDrawing && e.junctionType.equals(junctionType)}
-                junctionLayoutBuilder.radius?.let { radius ->
-                    layout.setConfigurationFor(selection, LayoutParameter.radius, radius.toString())
-                }
-                junctionLayoutBuilder.out_ids?.let { out_ids ->
-                    val tokens = out_ids.split(" ")
-                    if (junctionType != JunctionType.ApicalLoop /*we cannot change the apical loop layout*/ && tokens.size == type-1 /*this needs to be coherent*/)
+            else {
+                junctionLayoutBuilder.name?.let { name ->
+                    val selection =
+                        { e: DrawingElement -> e is JunctionDrawing && e.name.equals(name) }
+                    junctionLayoutBuilder.radius?.let { radius ->
+                        layout.setConfigurationFor(selection, LayoutParameter.radius, radius.toString())
+                    }
+                    junctionLayoutBuilder.out_ids?.let { out_ids ->
                         layout.setConfigurationFor(selection, LayoutParameter.out_ids, out_ids)
+                    }
+                    return layout
+                } ?: run {
+                    //if the type has been defined, we change the default behavior for all junctions in this type before to plot 2D
+                    junctionLayoutBuilder.type?.let { type ->
+                        val junctionType = when (type) {
+                            1 -> JunctionType.ApicalLoop
+                            2 -> JunctionType.InnerLoop
+                            3 -> JunctionType.ThreeWay
+                            4 -> JunctionType.FourWay
+                            5 -> JunctionType.FiveWay
+                            6 -> JunctionType.SixWay
+                            7 -> JunctionType.SevenWay
+                            8 -> JunctionType.EightWay
+                            9 -> JunctionType.NineWay
+                            10 -> JunctionType.TenWay
+                            11 -> JunctionType.ElevenWay
+                            12 -> JunctionType.TwelveWay
+                            13 -> JunctionType.ThirteenWay
+                            14 -> JunctionType.FourteenWay
+                            15 -> JunctionType.FifthteenWay
+                            16 -> JunctionType.SixteenWay
+                            else -> JunctionType.Flower
+                        }
+                        junctionsBehaviors[junctionType] = { junctionDrawing: JunctionDrawing, helixRank: Int ->
+                            val newLayout = junctionLayoutBuilder.out_ids!!.split(" ")?.map {
+                                ConnectorId.valueOf(it)
+                            }?.toList()
+
+                            ConnectorId.values()
+                                .first { it.value == (junctionDrawing.inId.value + newLayout[helixRank - 1].value) % ConnectorId.values().size }
+                            //newLayout[helixRank - 1]
+                        }
+
+                    }
+
                 }
             }
         }
-        return layout
+        return null
     }
+
 }
 
 class JunctionLayoutBuilder() {
     var name:String? = null
+    val locationBuilder = LocationBuilder()
     var type:Int? = null
-    var in_id:String? = null
     var out_ids:String? = null
     var radius:Double? = null
+
+    fun location(setup:LocationBuilder.() -> Unit) {
+        this.locationBuilder.setup()
+    }
 }
 
 class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
@@ -879,8 +938,8 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                     }
                 }
             }
-            else if (!colorBuilder.locationBuilder.blocks.isEmpty()) {
-                val location =  Location(colorBuilder.locationBuilder.blocks.map{"${it.key}:${it.value-it.key+1}"}.joinToString(","))
+            else if (!colorBuilder.locationBuilder.isEmpty()) {
+                val location =  colorBuilder.locationBuilder.build()
                 colorBuilder.getSecondaryStructureTypes()?.let { types ->
                     types.forEach { type ->
                         val selection =
@@ -926,8 +985,8 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                     }
                 }
             }
-            else if (!showBuilder.locationBuilder.blocks.isEmpty()) {
-                val location =  Location(showBuilder.locationBuilder.blocks.map{"${it.key}:${it.value-it.key+1}"}.joinToString(","))
+            else if (!showBuilder.locationBuilder.isEmpty()) {
+                val location = showBuilder.locationBuilder.build()
                 showBuilder.getSecondaryStructureTypes()?.let { types ->
                     types.forEach { type ->
                         val selection =
@@ -972,8 +1031,8 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                     }
                 }
             }
-            else if (!hideBuilder.locationBuilder.blocks.isEmpty()) {
-                val location = Location(hideBuilder.locationBuilder.blocks.map{"${it.key}:${it.value-it.key+1}"}.joinToString(","))
+            else if (!hideBuilder.locationBuilder.isEmpty()) {
+                val location = hideBuilder.locationBuilder.build()
                 hideBuilder.getSecondaryStructureTypes()?.let { types ->
                     types.forEach { type ->
                         val selection =
@@ -1013,8 +1072,8 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
                     }
                 }
             }
-            else if (!lineBuilder.locationBuilder.blocks.isEmpty()) {
-                val location =  Location(lineBuilder.locationBuilder.blocks.map{"${it.key}:${it.value-it.key+1}"}.joinToString(","))
+            else if (!lineBuilder.locationBuilder.isEmpty()) {
+                val location =  lineBuilder.locationBuilder.build()
                 lineBuilder.getSecondaryStructureTypes()?.let { types ->
                     types.forEach { type ->
                         val selection =
@@ -1111,6 +1170,14 @@ class LocationBuilder {
 
     infix fun Int.to(i:Int) {
         blocks[this] = i
+    }
+
+    fun build():Location {
+        return Location(this.blocks.map{"${it.key}:${it.value-it.key+1}"}.joinToString(","))
+    }
+
+    fun isEmpty():Boolean  {
+        return this.blocks.isEmpty()
     }
 
 }

@@ -794,7 +794,7 @@ class Atom(val name:String):Serializable {
 
 }
 
-class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null, var source:String = "NA"):Serializable {
+class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null, var source:String = "NA"):Serializable {
 
     var name:String = "2D for ${this.rna.name}"
     val tertiaryInteractions = mutableSetOf<BasePair>()
@@ -831,8 +831,18 @@ class SecondaryStructure(val rna: RNA, bracketNotation:String? = null, basePairs
                 toBasePairs(bracketNotation)
             }
             else -> {
-                arrayListOf<BasePair>()
+                arrayListOf()
             }
+        }
+
+        //do we have an aligned RNA sequence containing gaps??
+        if (rna.seq.contains('-')) {
+            var bps2Remove = arrayListOf<BasePair>()
+            bps.forEach {
+                if (rna.getResidue(it.start) == '-' || rna.getResidue(it.end) == '-') //pairing with a gap
+                    bps2Remove.add(it)
+            }
+            bps.removeAll(bps2Remove)
         }
 
         if (bracketNotation != null || basePairs != null) { // to be sure to create a uniq single-strand only if no base-pairs in the bracket or basepairs list. If the seconday structure is created only with an RNA molecule, nothing is done at the structural level

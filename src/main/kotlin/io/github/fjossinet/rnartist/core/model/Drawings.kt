@@ -1,10 +1,14 @@
 package io.github.fjossinet.rnartist.core.model
 
-import io.github.fjossinet.rnartist.core.model.RnartistConfig.defaultConfiguration
+import io.github.fjossinet.rnartist.core.RnartistConfig
+import io.github.fjossinet.rnartist.core.RnartistConfig.defaultConfiguration
 import java.awt.*
 import java.awt.Color
 import java.awt.geom.*
 import java.awt.image.BufferedImage
+import java.io.File
+import java.io.PrintWriter
+import javax.imageio.ImageIO
 import kotlin.math.hypot
 
 //parameters that can be modified
@@ -255,7 +259,7 @@ class AdvancedTheme() {
     fun clear() = this.configurations.clear()
 }
 
-class Layout() {
+class Layout {
 
     var configurations: MutableMap<(DrawingElement) -> Boolean, Pair<String, String>> = mutableMapOf()
 
@@ -955,7 +959,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
     }
 
     fun getResiduesFromAbsPositions(vararg positions: Int): List<ResidueDrawing> {
-        val _residues: MutableList<ResidueDrawing> = mutableListOf<ResidueDrawing>()
+        val _residues: MutableList<ResidueDrawing> = mutableListOf()
         for (r: ResidueDrawing in residues) {
             if (r.absPos in positions) {
                 _residues.add(r)
@@ -1332,6 +1336,101 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
             jc.applyLayout(layout)
     }
 
+    fun asPNG(frame:Rectangle2D, selectionFrame:Rectangle2D? = null, outputFile: File) {
+        selectionFrame?.let {
+            this.fitViewTo(frame, selectionFrame)
+        } ?: run {
+            this.fitViewTo(frame)
+        }
+        val at = AffineTransform()
+        at.translate(this.workingSession.viewX, this.workingSession.viewY)
+        at.scale(this.workingSession.zoomLevel, this.workingSession.zoomLevel)
+
+        var bufferedImage: BufferedImage?
+        bufferedImage = BufferedImage(
+            frame.width.toInt(),
+            frame.height.toInt(),
+            BufferedImage.TYPE_INT_ARGB
+        )
+        val g2 = bufferedImage.createGraphics()
+        g2.color = Color.WHITE
+        g2.fill(
+            Rectangle2D.Double(
+                0.0, 0.0, frame.width,
+                frame.height
+            )
+        )
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+        g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON)
+        g2.background = Color.white
+
+        this.draw(g2, at, Rectangle2D.Double(0.0, 0.0, frame.width, frame.height));
+        g2.dispose()
+        ImageIO.write(bufferedImage, "PNG", outputFile)
+    }
+
+    fun asSVG(frame:Rectangle2D, selectionFrame:Rectangle2D? = null, outputFile: File) {
+        selectionFrame?.let {
+            this.fitViewTo(frame, selectionFrame)
+        } ?: run {
+            this.fitViewTo(frame)
+        }
+        val at = AffineTransform()
+        at.translate(this.workingSession.viewX, this.workingSession.viewY)
+        at.scale(this.workingSession.zoomLevel, this.workingSession.zoomLevel)
+
+        val svgBuffer = StringBuffer("""<svg width="${frame.width}" height="${frame.height}" viewBox="0 0 ${frame.width} ${frame.height}"  xmlns="http://www.w3.org/2000/svg">""" + "\n")
+
+        workingSession.junctionsDrawn.forEach { junction ->
+            svgBuffer.append(junction.asSVG(at, frame))
+        }
+
+        workingSession.helicesDrawn.forEach { helix ->
+            svgBuffer.append(helix.asSVG(at, frame))
+        }
+
+        workingSession.singleStrandsDrawn.forEach { ss ->
+            svgBuffer.append(ss.asSVG(at, frame))
+        }
+
+        workingSession.phosphoBondsLinkingBranchesDrawn.forEach { phospho ->
+            svgBuffer.append(phospho.asSVG(at, frame))
+        }
+
+        pknots.forEach { pknot ->
+            pknot.tertiaryInteractions.forEach { tertiary ->
+                svgBuffer.append(tertiary.asSVG(at, frame))
+            }
+        }
+
+        tertiaryInteractions.forEach { tertiary ->
+            svgBuffer.append(tertiary.asSVG(at, frame))
+        }
+
+        svgBuffer.append("</svg>")
+
+        val writer = PrintWriter(outputFile)
+        writer.println(svgBuffer.toString())
+        writer.close()
+
+    }
+
+    fun getFrame(location:Location): Rectangle2D? {
+        val allSelectionPoints = this.getResiduesFromAbsPositions(*location.positions.toIntArray()).flatMap { it.selectionPoints }
+        allSelectionPoints.minByOrNull { it.x }?.x?.let { minX ->
+            allSelectionPoints.minByOrNull { it.y }?.y?.let { minY ->
+                allSelectionPoints.maxByOrNull { it.x }?.x?.let { maxX ->
+                    allSelectionPoints.maxByOrNull { it.y }?.y?.let { maxY ->
+                        return Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY)
+                    }
+                }
+            }
+        }
+        return null
+    }
+
+
 }
 
 abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDrawing: SecondaryStructureDrawing, absPos: Int, type:SecondaryStructureType) : DrawingElement(ssDrawing, parent, residueLetter.toString(), Location(absPos), type) {
@@ -1389,17 +1488,18 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
             this.residueLetter.draw(g, at, drawingArea)
     }
 
-    fun asSVG(at: AffineTransform): String {
+    fun asSVG(at: AffineTransform, frame:Rectangle2D): String {
         val buffer = StringBuffer("<g>")
+        val _c = at.createTransformedShape(this.circle)
         if (this.isFullDetails()) {
-            val _c = at.createTransformedShape(this.circle)
             val strokeColor = Color(
                 this.getColor().darker().red, this.getColor().darker().green, this.getColor().darker().blue,
                 this.getOpacity()
             )
-            buffer.append("""<circle cx="${_c.bounds.centerX}" cy="${_c.bounds.centerY}" r="${_c.bounds.width/2}" stroke="${getHTMLColorString(strokeColor)}" stroke-width="${this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()}" fill="${getHTMLColorString(this.getColor())}"/>""")
+            if (frame.contains(_c.bounds2D))
+                buffer.append("""<circle cx="${_c.bounds.centerX}" cy="${_c.bounds.centerY}" r="${_c.bounds.width/2}" stroke="${getHTMLColorString(strokeColor)}" stroke-width="${this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()}" fill="${getHTMLColorString(this.getColor())}"/>""")
         }
-        if (this.getOpacity() > 0) { //the conditions to draw a letter
+        if (this.getOpacity() > 0 && frame.contains(_c.bounds2D)) { //the conditions to draw a letter
             buffer.append(this.residueLetter.asSVG(at))
         }
         buffer.append("</g>")
@@ -1958,21 +2058,22 @@ class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructure
         g.stroke = previousStroke
     }
 
-    fun asSVG(at: AffineTransform): String {
+    fun asSVG(at: AffineTransform, frame:Rectangle2D): String {
         val svgBuffer = StringBuffer()
         val p1 = Point2D.Double()
         val p2 = Point2D.Double()
         at.transform(this.line.p1, p1)
         at.transform(this.line.p2, p2)
         if (!this.isFullDetails() && this.getLineWidth() > 0) {
-            svgBuffer.append("""<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()}"/>""")
+            if (frame.contains(p1) && frame.contains(p2))
+                svgBuffer.append("""<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()}"/>""")
         } else {
             this.phosphoBonds.forEach {
-                svgBuffer.append(it.asSVG(at))
+                svgBuffer.append(it.asSVG(at, frame))
             }
             distanceBetweenPairedResidues = distance(this.secondaryInteractions.first().residue.center, this.secondaryInteractions.first().pairedResidue.center)
             this.secondaryInteractions.forEach {
-                svgBuffer.append(it.asSVG(at))
+                svgBuffer.append(it.asSVG(at, frame))
             }
         }
         return svgBuffer.toString()
@@ -2060,21 +2161,21 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
         g.stroke = previousStroke
     }
 
-    fun asSVG(at: AffineTransform): String {
+    fun asSVG(at: AffineTransform, frame:Rectangle2D): String {
         val buffer = StringBuffer()
         val p1 = Point2D.Double()
         val p2 = Point2D.Double()
         at.transform(this.line.p1, p1)
         at.transform(this.line.p2, p2)
-        if (!this.isFullDetails()) {
+        if (!this.isFullDetails() && frame.contains(p1) && frame.contains(p2)) {
             buffer.append("""<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()}"/>""")
         } else {
             this.phosphoBonds.forEach {
-                buffer.append(it.asSVG(at))
+                buffer.append(it.asSVG(at, frame))
             }
 
             this.residues.forEach {
-                buffer.append(it.asSVG(at))
+                buffer.append(it.asSVG(at, frame))
             }
         }
         return buffer.toString()
@@ -2099,8 +2200,8 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
 
 open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing, circlesFromBranchSoFar: MutableList<JunctionDrawing>, linesFromBranchSoFar: MutableList<HelixDrawing>, previousJunction: JunctionDrawing? = null, var inId: ConnectorId, inPoint: Point2D, val inHelix: Helix, val junction: Junction) : StructuralDomainDrawing(ssDrawing, parent, junction.name, junction.location, SecondaryStructureType.Junction) {
 
-    private val noOverlapWithLines = true
-    private val noOverlapWithCircles = true
+    private var noOverlapWithLines = true
+    private var noOverlapWithCircles = true
     var outHelices = mutableListOf<HelixDrawing>()
     var connectedJunctions = mutableMapOf<ConnectorId, JunctionDrawing>()
     val phosphoBonds = mutableListOf<PhosphodiesterBondDrawing>()
@@ -2108,7 +2209,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
     private val residuesWithClosingBasePairs: List<ResidueDrawing> = this.ssDrawing.getResiduesFromAbsPositions(*this.junction.location.positions.toIntArray())
 
     /**
-     * The absolute layout defined by the used or computed after the init. Each connector id is recomputed according to the position of the inId dor this junction.
+     * The absolute layout defined by the user or computed after the init. Each connector id is recomputed according to the position of the inId for this junction.
      */
     var currentLayout = mutableListOf<ConnectorId>()
         set(value) {
@@ -2177,6 +2278,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
         get() = this.junction.maxBranchLength
 
     init {
+
         this.residues = this.ssDrawing.getResiduesFromAbsPositions(*this.junction.locationWithoutSecondaries.positions.toIntArray())
         this.connectors[this.inId.value] = inPoint
         //we compute the initial radius according to the junction length and type
@@ -2188,9 +2290,9 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
         for (k in 1..this.junction.helicesLinked.size + 1) {
             val helix = this.junction.helicesLinked[(this.junction.helicesLinked.indexOf(inHelix) + k) % this.junction.helicesLinked.size]
             if (helix == (this.parent as HelixDrawing).helix) {
+                circlesFromBranchSoFar.add(this)
                 break
             }
-
             helixRank += 1
             var inPoint: Point2D
 
@@ -2349,6 +2451,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
                     ).second
                 }
 
+
                 this.currentLayout.add(
                     if (outId!!.value < this.inId.value)
                         ConnectorId.values()
@@ -2384,7 +2487,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
     }
 
     /**
-     * Update the junction if the radius, the currentLayout (outIds) or the entry point (inId) has been modified
+     * Update the junction if the radius, the currentLayout (outIds) or the entry point (inId) have been modified
      */
     fun update() {
         this.center = centerFrom(
@@ -2548,18 +2651,18 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
 
     }
 
-    fun asSVG(at: AffineTransform): String {
+    fun asSVG(at: AffineTransform, frame:Rectangle2D): String {
         val buffer = StringBuffer()
         val _c = at.createTransformedShape(this.circle)
-        if (!this.isFullDetails() && this.getLineWidth() > 0) {
+        if (!this.isFullDetails() && this.getLineWidth() > 0 && frame.contains(_c.bounds2D)) {
             buffer.append("""<circle cx="${_c.bounds.centerX}" cy="${_c.bounds.centerY}" r="${_c.bounds.width/2}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()}" fill="none"/>""")
         } else {
             this.phosphoBonds.forEach {
-                buffer.append(it.asSVG(at))
+                buffer.append(it.asSVG(at, frame))
             }
 
             this.residues.forEach {
-                buffer.append(it.asSVG(at))
+                buffer.append(it.asSVG(at, frame))
             }
         }
         return buffer.toString()
@@ -2614,7 +2717,7 @@ abstract class LWSymbolDrawing(parent: DrawingElement?, ssDrawing: SecondaryStru
             return points
         }
 
-    abstract fun asSVG(at:AffineTransform, strokeWidth:Float, color: Color):String
+    abstract fun asSVG(at:AffineTransform, frame: Rectangle2D, strokeWidth:Float, color: Color):String
 
 }
 
@@ -2654,9 +2757,11 @@ class CisWC(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, locat
             g.fill(at.createTransformedShape(this.shape))
         }
 
-    override fun asSVG(at:AffineTransform, strokeWidth:Float, color: Color):String {
+    override fun asSVG(at:AffineTransform, frame: Rectangle2D, strokeWidth:Float, color: Color):String {
         val circle = at.createTransformedShape(this.shape)
-        return """<circle cx="${circle.bounds2D.centerX}" cy="${circle.bounds2D.centerY}" r="${circle.bounds2D.width/2.0}" stroke="${getHTMLColorString(color)}" stroke-width="${strokeWidth}" fill="${getHTMLColorString(color)}"/>"""
+        if (frame.contains(circle.bounds2D))
+            return """<circle cx="${circle.bounds2D.centerX}" cy="${circle.bounds2D.centerY}" r="${circle.bounds2D.width/2.0}" stroke="${getHTMLColorString(color)}" stroke-width="${strokeWidth}" fill="${getHTMLColorString(color)}"/>"""
+        return ""
     }
 }
 
@@ -2666,9 +2771,11 @@ class TransWC(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, loc
             g.draw(at.createTransformedShape(this.shape))
         }
 
-    override fun asSVG(at:AffineTransform, strokeWidth:Float, color: Color):String {
+    override fun asSVG(at:AffineTransform, frame: Rectangle2D, strokeWidth:Float, color: Color):String {
         val circle = at.createTransformedShape(this.shape)
-        return """<circle cx="${circle.bounds2D.centerX}" cy="${circle.bounds2D.centerY}" r="${circle.bounds2D.width/2.0}" stroke="${getHTMLColorString(color)}" stroke-width="${strokeWidth}" fill="none"/>"""
+        if (frame.contains(circle.bounds2D))
+            return """<circle cx="${circle.bounds2D.centerX}" cy="${circle.bounds2D.centerY}" r="${circle.bounds2D.width/2.0}" stroke="${getHTMLColorString(color)}" stroke-width="${strokeWidth}" fill="none"/>"""
+        return ""
     }
 
 }
@@ -2730,14 +2837,16 @@ class CisRightSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawin
         }
     }
 
-    override fun asSVG(at:AffineTransform, strokeWidth:Float, color: Color):String {
+    override fun asSVG(at:AffineTransform, frame: Rectangle2D, strokeWidth:Float, color: Color):String {
         val _p1 = Point2D.Double()
         at.transform(p1, _p1)
         val _p2 = Point2D.Double()
         at.transform(p2, _p2)
         val _p3 = Point2D.Double()
         at.transform(p3, _p3)
-        return """<polygon points="${_p1.x} ${_p1.y}, ${_p2.x} ${_p2.y}, ${_p3.x} ${_p3.y}" stroke="${getHTMLColorString(color)}" stroke-width="${strokeWidth}" fill="${getHTMLColorString(color)}"/>"""
+        if (frame.contains(_p1) && frame.contains(_p2) && frame.contains(_p3))
+            return """<polygon points="${_p1.x} ${_p1.y}, ${_p2.x} ${_p2.y}, ${_p3.x} ${_p3.y}" stroke="${getHTMLColorString(color)}" stroke-width="${strokeWidth}" fill="${getHTMLColorString(color)}"/>"""
+        return ""
     }
 
 }
@@ -2748,14 +2857,16 @@ class CisLeftSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing
             g.fill(at.createTransformedShape(this.shape))
         }
 
-    override fun asSVG(at:AffineTransform, strokeWidth:Float, color: Color):String {
+    override fun asSVG(at:AffineTransform, frame: Rectangle2D, strokeWidth:Float, color: Color):String {
         val _p1 = Point2D.Double()
         at.transform(p1, _p1)
         val _p2 = Point2D.Double()
         at.transform(p2, _p2)
         val _p3 = Point2D.Double()
         at.transform(p3, _p3)
-        return """<polygon points="${_p1.x} ${_p1.y}, ${_p2.x} ${_p2.y}, ${_p3.x} ${_p3.y}" stroke="${getHTMLColorString(color)}" stroke-width="${strokeWidth}" fill="${getHTMLColorString(color)}"/>"""
+        if (frame.contains(_p1) && frame.contains(_p2) && frame.contains(_p3))
+            return """<polygon points="${_p1.x} ${_p1.y}, ${_p2.x} ${_p2.y}, ${_p3.x} ${_p3.y}" stroke="${getHTMLColorString(color)}" stroke-width="${strokeWidth}" fill="${getHTMLColorString(color)}"/>"""
+        return ""
     }
 
 }
@@ -2766,14 +2877,16 @@ class TransRightSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDraw
             g.draw(at.createTransformedShape(this.shape))
         }
 
-    override fun asSVG(at:AffineTransform, strokeWidth:Float, color: Color):String {
+    override fun asSVG(at:AffineTransform, frame: Rectangle2D, strokeWidth:Float, color: Color):String {
         val _p1 = Point2D.Double()
         at.transform(p1, _p1)
         val _p2 = Point2D.Double()
         at.transform(p2, _p2)
         val _p3 = Point2D.Double()
         at.transform(p3, _p3)
-        return """<polygon points="${_p1.x} ${_p1.y}, ${_p2.x} ${_p2.y}, ${_p3.x} ${_p3.y}" stroke="${getHTMLColorString(color)}" stroke-width="${strokeWidth}" fill="none"/>"""
+        if (frame.contains(_p1) && frame.contains(_p2) && frame.contains(_p3))
+            return """<polygon points="${_p1.x} ${_p1.y}, ${_p2.x} ${_p2.y}, ${_p3.x} ${_p3.y}" stroke="${getHTMLColorString(color)}" stroke-width="${strokeWidth}" fill="none"/>"""
+        return ""
     }
 
 }
@@ -2784,14 +2897,16 @@ class TransLeftSugar(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawi
             g.draw(at.createTransformedShape(this.shape))
         }
 
-    override fun asSVG(at:AffineTransform, strokeWidth:Float, color: Color):String {
+    override fun asSVG(at:AffineTransform, frame: Rectangle2D, strokeWidth:Float, color: Color):String {
         val _p1 = Point2D.Double()
         at.transform(p1,_p1)
         val _p2 = Point2D.Double()
         at.transform(p2,_p2)
         val _p3 = Point2D.Double()
         at.transform(p3,_p3)
-        return """<polygon points="${_p1.x} ${_p1.y}, ${_p2.x} ${_p2.y}, ${_p3.x} ${_p3.y}" stroke="${getHTMLColorString(color)}" stroke-width="${strokeWidth}" fill="none"/>"""
+        if (frame.contains(_p1) && frame.contains(_p2) && frame.contains(_p3))
+            return """<polygon points="${_p1.x} ${_p1.y}, ${_p2.x} ${_p2.y}, ${_p3.x} ${_p3.y}" stroke="${getHTMLColorString(color)}" stroke-width="${strokeWidth}" fill="none"/>"""
+        return ""
     }
 
 }
@@ -2831,7 +2946,7 @@ class CisHoogsteen(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing
             g.fill(at.createTransformedShape(this.shape))
         }
 
-    override fun asSVG(at:AffineTransform, strokeWidth:Float, color: Color):String {
+    override fun asSVG(at:AffineTransform, frame: Rectangle2D, strokeWidth:Float, color: Color):String {
         val _p1 = Point2D.Double()
         at.transform(p1,_p1)
         val _p2 = Point2D.Double()
@@ -2840,8 +2955,9 @@ class CisHoogsteen(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing
         at.transform(p3,_p3)
         val _p4 = Point2D.Double()
         at.transform(p4,_p4)
-
-        return """<polygon points="${_p1.x} ${_p1.y}, ${_p2.x} ${_p2.y}, ${_p3.x} ${_p3.y}, ${_p4.x} ${_p4.y}" stroke="${getHTMLColorString(color)}" stroke-width="${strokeWidth}" fill="${getHTMLColorString(color)}"/>"""
+        if (frame.contains(_p1) && frame.contains(_p2) && frame.contains(_p3) && frame.contains(_p4))
+            return """<polygon points="${_p1.x} ${_p1.y}, ${_p2.x} ${_p2.y}, ${_p3.x} ${_p3.y}, ${_p4.x} ${_p4.y}" stroke="${getHTMLColorString(color)}" stroke-width="${strokeWidth}" fill="${getHTMLColorString(color)}"/>"""
+        return ""
     }
 
 }
@@ -2852,7 +2968,7 @@ class TransHoogsteen(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawi
             g.draw(at.createTransformedShape(this.shape))
         }
 
-    override fun asSVG(at:AffineTransform, strokeWidth:Float, color: Color):String {
+    override fun asSVG(at:AffineTransform, frame: Rectangle2D, strokeWidth:Float, color: Color):String {
         val _p1 = Point2D.Double()
         at.transform(p1,_p1)
         val _p2 = Point2D.Double()
@@ -2861,8 +2977,9 @@ class TransHoogsteen(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawi
         at.transform(p3,_p3)
         val _p4 = Point2D.Double()
         at.transform(p4,_p4)
-
-        return """<polygon points="${_p1.x} ${_p1.y}, ${_p2.x} ${_p2.y}, ${_p3.x} ${_p3.y}, ${_p4.x} ${_p4.y}" stroke="${getHTMLColorString(color)}" stroke-width="${strokeWidth}" fill="none"/>"""
+        if (frame.contains(_p1) && frame.contains(_p2) && frame.contains(_p3) && frame.contains(_p4))
+            return """<polygon points="${_p1.x} ${_p1.y}, ${_p2.x} ${_p2.y}, ${_p3.x} ${_p3.y}, ${_p4.x} ${_p4.y}" stroke="${getHTMLColorString(color)}" stroke-width="${strokeWidth}" fill="none"/>"""
+        return ""
     }
 
 
@@ -2897,12 +3014,14 @@ class LWLine(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, loca
             g.draw(at.createTransformedShape(this.shape))
         }
 
-    override fun asSVG(at:AffineTransform, strokeWidth:Float, color: Color):String {
+    override fun asSVG(at:AffineTransform, frame: Rectangle2D, strokeWidth:Float, color: Color):String {
         val p1 = Point2D.Double()
         val p2 = Point2D.Double()
         at.transform((this.shape as Line2D).p1, p1)
         at.transform((this.shape as Line2D).p2, p2)
-        return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(color)}" stroke-width="${strokeWidth}"/>"""
+        if (frame.contains(p1) && frame.contains(p2))
+            return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(color)}" stroke-width="${strokeWidth}"/>"""
+        return ""
     }
 
     override fun toString() = "Line"
@@ -3089,7 +3208,7 @@ class SecondaryInteractionDrawing(parent: DrawingElement?, interaction: BasePair
         }
     }
 
-    fun asSVG(at: AffineTransform): String {
+    fun asSVG(at: AffineTransform, frame:Rectangle2D): String {
         if (residue.updated) {//the paired residue is de facto updated too
             val center1 = this.residue.center
             val center2 = this.pairedResidue.center
@@ -3210,9 +3329,9 @@ class SecondaryInteractionDrawing(parent: DrawingElement?, interaction: BasePair
         }
         val buffer = StringBuffer()
         if (this.isFullDetails()) {
-            buffer.append(this.interactionSymbol.asSVG(at))
+            buffer.append(this.interactionSymbol.asSVG(at, frame))
             this.residues.forEach {
-                buffer.append(it.asSVG(at))
+                buffer.append(it.asSVG(at, frame))
             }
         }
         return buffer.toString()
@@ -3264,17 +3383,17 @@ class InteractionSymbolDrawing(parent: DrawingElement?, val interaction: BasePai
         }
     }
 
-    fun asSVG(at: AffineTransform): String {
+    fun asSVG(at: AffineTransform, frame:Rectangle2D): String {
         val buffer = StringBuffer()
         if (this.getLineWidth() > 0) {
             if (this.isFullDetails()) {
                 this.lwSymbols.forEach { lwSymbol ->
-                    buffer.append(lwSymbol.asSVG(at, this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), this.getColor()))
+                    buffer.append(lwSymbol.asSVG(at, frame,this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), this.getColor()))
                 }
             }
             else {
                 this.defaultSymbol?.let {
-                    buffer.append(it.asSVG(at, this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), this.getColor()))
+                        buffer.append(it.asSVG(at, frame, this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), this.getColor()))
                 }
             }
         }
@@ -3394,7 +3513,7 @@ class TertiaryInteractionDrawing(parent: PKnotDrawing? = null, interaction: Base
 
     }
 
-    fun asSVG(at: AffineTransform): String {
+    fun asSVG(at: AffineTransform, frame:Rectangle2D): String {
         if (this.residue.absPos in ssDrawing.residuesUpdated || this.pairedResidue.absPos in ssDrawing.residuesUpdated) {
             val center1 = this.residue.center
             val center2 = this.pairedResidue.center
@@ -3462,7 +3581,7 @@ class TertiaryInteractionDrawing(parent: PKnotDrawing? = null, interaction: Base
             }
         }
         if (this.isFullDetails() && (this.ssDrawing.workingSession.locationDrawn.contains(this.residue.absPos) && this.ssDrawing.workingSession.locationDrawn.contains(this.pairedResidue.absPos))) {
-            return this.interactionSymbol.asSVG(at)
+            return this.interactionSymbol.asSVG(at, frame)
         }
         return ""
     }
@@ -3520,7 +3639,7 @@ open class PhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing: Seconda
         }
     }
 
-    open fun asSVG(at: AffineTransform): String {
+    open fun asSVG(at: AffineTransform, frame:Rectangle2D): String {
         if (this.isFullDetails()) {
             val center1 = this.residue.center
             val center2 = this.nextResidue.center
@@ -3530,7 +3649,7 @@ open class PhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing: Seconda
                 val p2 = Point2D.Double()
                 at.transform(center1, p1)
                 at.transform(center2, p2)
-                return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
+                if (frame.contains(p1) && frame.contains(p2)) return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
                     this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             } else {
@@ -3546,7 +3665,7 @@ open class PhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing: Seconda
                     if (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails()) p2 else center2,
                     _p2
                 )
-                return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
+                if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
                     this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             }
@@ -3589,7 +3708,7 @@ class HelicalPhosphodiesterBondDrawing(parent: HelixDrawing, ssDrawing: Secondar
         }
     }
 
-    override fun asSVG(at: AffineTransform): String {
+    override fun asSVG(at: AffineTransform, frame:Rectangle2D): String {
         if (this.isFullDetails()) {
             val center1 = this.residue.center
             val center2 = this.nextResidue.center
@@ -3599,7 +3718,7 @@ class HelicalPhosphodiesterBondDrawing(parent: HelixDrawing, ssDrawing: Secondar
                 val p2 = Point2D.Double()
                 at.transform(center1, p1)
                 at.transform(center2, p2)
-                return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
+                if (frame.contains(p1) && frame.contains(p2)) return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
                     this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             } else {
@@ -3615,7 +3734,7 @@ class HelicalPhosphodiesterBondDrawing(parent: HelixDrawing, ssDrawing: Secondar
                     if (nextResidue.parent!!.isFullDetails() && (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails())) p2 else center2,
                     _p2
                 )
-                return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
+                if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
                     this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             }
@@ -3653,7 +3772,7 @@ class InHelixClosingPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDrawing
         }
     }
 
-    override fun asSVG(at: AffineTransform): String {
+    override fun asSVG(at: AffineTransform, frame:Rectangle2D): String {
         if (this.isFullDetails()) {
             val center1 = if (this.posInhelix == this.residue.absPos && !this.residue.parent!!.parent!!.isFullDetails()) (this.residue.parent?.parent as HelixDrawing).line.p2 else this.residue.center
             val center2 = if (this.posInhelix == this.nextResidue.absPos && !this.nextResidue.parent!!.parent!!.isFullDetails()) (this.nextResidue.parent?.parent as HelixDrawing).line.p2 else this.nextResidue.center
@@ -3663,7 +3782,7 @@ class InHelixClosingPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDrawing
                 val p2 = Point2D.Double()
                 at.transform(center1, p1)
                 at.transform(center2, p2)
-                return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
+                if (frame.contains(p1) && frame.contains(p2)) return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
                     this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             } else {
@@ -3679,7 +3798,7 @@ class InHelixClosingPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDrawing
                     if (this.nextResidue.absPos != this.posInhelix && nextResidue.isFullDetails() || this.nextResidue.absPos != this.posInhelix && nextResidue.residueLetter.isFullDetails()) p2 else center2,
                     _p2
                 )
-                return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
+                if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
                     this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             }
@@ -3718,7 +3837,7 @@ class OutHelixClosingPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDrawin
         }
     }
 
-    override fun asSVG(at: AffineTransform): String {
+    override fun asSVG(at: AffineTransform, frame:Rectangle2D): String {
         if (this.isFullDetails()) {
             val center1 = if (this.posInhelix == this.residue.absPos && !this.residue.parent!!.parent!!.isFullDetails()) (this.residue.parent?.parent as HelixDrawing).line.p1 else this.residue.center
             val center2 = if (this.posInhelix == this.nextResidue.absPos && !this.nextResidue.parent!!.parent!!.isFullDetails()) (this.nextResidue.parent?.parent as HelixDrawing).line.p1 else this.nextResidue.center
@@ -3728,7 +3847,7 @@ class OutHelixClosingPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDrawin
                 val p2 = Point2D.Double()
                 at.transform(center1, p1)
                 at.transform(center2, p2)
-                return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
+                if (frame.contains(p1) && frame.contains(p2)) return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
                     this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             } else {
@@ -3744,7 +3863,7 @@ class OutHelixClosingPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDrawin
                     if (this.nextResidue.absPos != this.posInhelix && nextResidue.isFullDetails() || this.nextResidue.absPos != this.posInhelix && nextResidue.residueLetter.isFullDetails()) p2 else center2,
                     _p2
                 )
-                return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
+                if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
                     this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             }
@@ -3798,7 +3917,7 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(parent: SingleStrandDra
         g.stroke = previousStroke
     }
 
-    override fun asSVG(at: AffineTransform): String {
+    override fun asSVG(at: AffineTransform, frame:Rectangle2D): String {
         if (this.isFullDetails()) {
             val center1 =
                 when {
@@ -3815,7 +3934,7 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(parent: SingleStrandDra
                 val p2 = Point2D.Double()
                 at.transform(center1, p1)
                 at.transform(center2, p2)
-                return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
+                if (frame.contains(p1) && frame.contains(p2)) return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
                     this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             } else {
@@ -3831,7 +3950,7 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(parent: SingleStrandDra
                     if (this.nextResidue.isFullDetails() || this.nextResidue.residueLetter.isFullDetails()) p2 else center2,
                     _p2
                 )
-                return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
+                if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
                     this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             }
@@ -3879,7 +3998,7 @@ class BranchesLinkingPhosphodiesterBondDrawing(ssDrawing: SecondaryStructureDraw
             g.stroke = previousStroke
     }
 
-    override fun asSVG(at: AffineTransform): String {
+    override fun asSVG(at: AffineTransform, frame:Rectangle2D): String {
         val center1 =
             if (this.residue.parent!!.parent!!.isFullDetails()) this.residue.center else (this.residue.parent!!.parent as HelixDrawing).line.p1
         val center2 =
@@ -3890,7 +4009,7 @@ class BranchesLinkingPhosphodiesterBondDrawing(ssDrawing: SecondaryStructureDraw
             val p2 = Point2D.Double()
             at.transform(center1, p1)
             at.transform(center2, p2)
-            return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()}"/>"""
+            if (frame.contains(p1) && frame.contains(p2)) return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()}"/>"""
         } else {
             val _p1 = Point2D.Double()
             val _p2 = Point2D.Double()
@@ -3902,8 +4021,9 @@ class BranchesLinkingPhosphodiesterBondDrawing(ssDrawing: SecondaryStructureDraw
             )
             at.transform(if (residue.parent!!.isFullDetails() && (residue.isFullDetails() || residue.residueLetter.isFullDetails())) p1 else center1, _p1)
             at.transform(if (nextResidue.parent!!.isFullDetails() && (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails())) p2 else center2, _p2)
-            return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()}"/>"""
+            if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()}"/>"""
         }
+        return ""
     }
 }
 
@@ -3937,7 +4057,7 @@ class HelicesDirectLinkPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDraw
         }
     }
 
-    override fun asSVG(at: AffineTransform): String {
+    override fun asSVG(at: AffineTransform, frame:Rectangle2D): String {
         if (this.isFullDetails()) {
             val center1 = if (!this.residue.parent!!.parent!!.isFullDetails()) (if (this.posForP2 == this.residue.absPos) (this.residue.parent?.parent as HelixDrawing).line.p2 else (this.residue.parent?.parent as HelixDrawing).line.p1) else this.residue.center
             val center2 = if (!this.nextResidue.parent!!.parent!!.isFullDetails()) (if (this.posForP2 == this.nextResidue.absPos) (this.nextResidue.parent?.parent as HelixDrawing).line.p2 else (this.nextResidue.parent?.parent as HelixDrawing).line.p1) else this.nextResidue.center
@@ -3947,7 +4067,7 @@ class HelicesDirectLinkPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDraw
                 val p2 = Point2D.Double()
                 at.transform(center1, p1)
                 at.transform(center2, p2)
-                return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
+                if (frame.contains(p1) && frame.contains(p2)) return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
                     this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             } else {
@@ -3963,7 +4083,7 @@ class HelicesDirectLinkPhosphodiesterBondDrawing(parent: JunctionDrawing, ssDraw
                     if (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails()) p2 else center2,
                     _p2
                 )
-                return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
+                if (frame.contains(_p1) && frame.contains(_p2))  return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${getHTMLColorString(this.getColor())}" stroke-width="${
                     this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             }
@@ -4000,7 +4120,7 @@ fun previousConnectorId(c: ConnectorId) = if (c.value - 1 < 0) ConnectorId.value
 fun oppositeConnectorId(c: ConnectorId) = ConnectorId.values().first { it.value == (c.value + ConnectorId.values().size / 2) % ConnectorId.values().size }
 
 //the different behaviors to compute the outId of an helix according to its rank for a given junction type
-val junctionsBehaviors = mutableMapOf<JunctionType, (junctionDrawing: JunctionDrawing, helixRank: Int) -> ConnectorId?>(
+val junctionsBehaviors = mutableMapOf(
     Pair(JunctionType.ApicalLoop, { junctionDrawing: JunctionDrawing, helixRank: Int -> null }),
     Pair(JunctionType.InnerLoop, { junctionDrawing: JunctionDrawing, helixRank: Int ->
         /*if (junctionDrawing.junction.location.blocks[0].length < 5 || junctionDrawing.junction.location.blocks[1].length < 5) {

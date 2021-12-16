@@ -1,6 +1,6 @@
 import java.io.*
 import io.github.fjossinet.rnartist.core.model.*
-import io.github.fjossinet.rnartist.core.model.io.*
+import io.github.fjossinet.rnartist.core.io.*
 import io.github.fjossinet.rnartist.core.rnartist
 import java.awt.Color
 import java.awt.Rectangle
