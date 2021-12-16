@@ -1,10 +1,10 @@
 RNArtistCore
 ============
 
+![](media/rnartist_preview.png)
 
 ![](media/booquet_from_pdb_0.png)
 
-![](media/3way_full_details.png)
 
 RNArtistCore provides a language to automate the plotting for RNA secondary structures. It is also a component of the graphical tool named [RNArtist](https://github.com/fjossinet/RNArtist).
 

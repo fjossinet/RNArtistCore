@@ -667,6 +667,115 @@ rnartist {
     }
 }
 
+
+rnartist {
+
+    png {
+        path = "media/"
+    }
+
+    ss {
+        bn {
+            seq = "UCUUUCGUUUAUCAGGUCCGUCGCUGGGCUUUCCGUAAGAUUCUCACGUCGAAUGGUGUUCGGAGACUGAACUUUUUUAGCUUUAUGAGGGGGGUUACAGACUUCCGUCUGCUACGUGCGGGGGAACCGUACCACUGUCGGAUGUGGUCCCUUGCGCUCAAGGUGCUGCGACGCGCAGGUGCGUGAUCCAGAUAGGCAACACCCAUAUCAAUGCUAUCUGGAGGUAGUAUUGAUAGCCGUGGCUGGCUAUGUGUUUUGUGCUGAUAACCAUCAGACGGUGCCGGU"
+            value = "(((..(((..(((..(((((....))))).(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).)))..(((((....)))))..)))...)))...(((..(((.(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))...(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))).(((((....)))))..)))...)))"
+            name = "rnartist_preview"
+        }
+    }
+    theme {
+        details_lvl = 5
+        color {
+            value = "#800080"
+            type = "R"
+        }
+        color {
+            value = "#ffcc80"
+            type = "Y"
+        }
+        color {
+            value = "#000000"
+            type = "y"
+        }
+        color {
+            value = "#99cc99"
+            location {
+                145 to 168
+            }
+        }
+        color {
+            value = "#b31a1a"
+            location {
+                199 to 235
+                248 to 259
+            }
+        }
+        hide {
+            location {
+                38 to 83
+            }
+            type = "N n"
+        }
+        hide {
+            location {
+                98 to 111
+            }
+            type = "R r"
+        }
+        hide {
+            location {
+                235 to 239
+                244 to 248
+            }
+            type = "N n"
+        }
+        hide {
+            location {
+                145 to 168
+            }
+            type = "helix junction"
+        }
+        hide {
+            location {
+                199 to 235
+                248 to 259
+            }
+            type = "N n interaction_symbol"
+        }
+        line {
+            type = "phosphodiester_bond"
+            value = 2.2
+        }
+        line {
+            location {
+                145 to 168
+            }
+            value = 5.0
+        }
+        line {
+            location {
+                199 to 235
+                248 to 259
+            }
+            type = "secondary_interaction phosphodiester_bond interaction_symbol"
+            value = 5.0
+        }
+    }
+    layout {
+        junction {
+            type = 3
+            out_ids = "wnw n"
+        }
+        junction {
+            location {
+                206 to 209
+                232 to 235
+                248 to 251
+            }
+            out_ids = "n e"
+        }
+    }
+}
+
+
 /*rnartist {
     file = "/project/media/hide_purines.svg"
     bn {
