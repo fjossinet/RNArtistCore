@@ -1136,52 +1136,6 @@ object RnartistConfig {
     }
 
     @JvmStatic
-    var rnaGalleryPath: String?
-        get() {
-            var e = document!!.rootElement.getChild("external-tools")
-            if (e == null) {
-                e = Element("external-tools")
-                document!!.rootElement.addContent(e)
-            }
-            val _e = e.getChild("rna-gallery")
-            if (_e == null) {
-                val rnaGallery = Element("rna-gallery")
-                rnaGallery.addContent(Element("path"))
-                val useOnline = Element("use-online")
-                useOnline.text = "true"
-                rnaGallery.addContent(useOnline)
-                e.addContent(rnaGallery)
-            }
-            return document!!.rootElement.getChild("external-tools").getChild("rna-gallery").getChild("path").value
-        }
-        set(path) {
-            document!!.rootElement.getChild("external-tools").getChild("rna-gallery").getChild("path").text = path
-        }
-
-    @JvmStatic
-    var useOnlineRNAGallery: Boolean
-        get() {
-            var e = document!!.rootElement.getChild("external-tools")
-            if (e == null) {
-                e = Element("external-tools")
-                document!!.rootElement.addContent(e)
-            }
-            val _e = e.getChild("rna-gallery")
-            if (_e == null) {
-                val rnaGallery = Element("rna-gallery")
-                rnaGallery.addContent(Element("path"))
-                val useOnline = Element("use-online")
-                useOnline.text = "true"
-                rnaGallery.addContent(useOnline)
-                e.addContent(rnaGallery)
-            }
-            return "true".equals(document!!.rootElement.getChild("external-tools").getChild("rna-gallery").getChild("use-online").value)
-        }
-        set(useOnline) {
-            document!!.rootElement.getChild("external-tools").getChild("rna-gallery").getChild("use-online").text = useOnline.toString()
-        }
-
-    @JvmStatic
     var chimeraHost: String
         get() {
             var e = document!!.rootElement.getChild("external-tools")
