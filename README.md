@@ -432,8 +432,8 @@ ss {
 Using this element, you choose the rendering level for any object in the 2D drawing, from single residues to entire structural domains.
 Each object can be lowly or highly rendered. In general, an object 2D produces a simple shape when it is lowly rendered and it doesn't allow its children to be rendered.
 
-Object 2D | type<br/>(to be used with the elements ```show```/```hide```, see below) |                parent                |                   children                    | lowly rendered | highly rendered 
-:--- :|:------------------------------------------------------------------------:|:------------------------------------:|:---------------------------------------------:|:--------------:|: ---------------:
+Object 2D | type<br/>(to be used with the elements ```show```/```hide```, see below) |                parent                |                   children                    | lowly rendered | highly rendered
+--- |-----------------------------------------------------------------------|------------------------------------|---------------------------------------------|--------------|---------------
 Helix |                                  helix                                   |                  2D                  | Secondary Interaction<br/>Phosphodiester Bond |  single line   | children rendering
 Junction |                                 junction                                 |                  2D                  |     Residue Shape<br/>Phosphodiester Bond     |     circle     | children rendering
 Single Strand |                              single_strand                               |                  2D                  |     Residue Shape<br/>Phosphodiester Bond     |  single line   | children rendering
