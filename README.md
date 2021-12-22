@@ -96,6 +96,11 @@ Here is a concrete example:
 
 ```kotlin
 rnartist {
+  
+  svg {
+    path = "rnartist_outputs/"
+  }
+  
   ss {
     bn {
       seq = "CAACAUCAUACGUACUGCGCCCAAGCGUAACGCGAACACCACGAGUGGUGACUGGUGCUUG"

@@ -2,23 +2,12 @@ package io.github.fjossinet.rnartist.core.model
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonElement
-import com.google.gson.annotations.SerializedName
-import io.github.fjossinet.rnartist.core.RnartistConfig
-import io.github.fjossinet.rnartist.core.io.parsePDB
-import io.github.fjossinet.rnartist.core.io.Rnaview
-import io.github.fjossinet.rnartist.core.io.getUserDir
 import io.github.fjossinet.rnartist.core.ss
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
-import java.util.*
 import kotlin.collections.HashMap
-
-class RNAGallery {
-    fun getEntry(pdbID: String, chain:String) = StringReader((if (RnartistConfig.useOnlineRNAGallery) URL("https://raw.githubusercontent.com/fjossinet/RNAGallery/main/PDB/${pdbID}_${chain}.json") else File("${RnartistConfig.rnaGalleryPath}/PDB/${pdbID}_${chain}.json").toURI().toURL()).readText())
-}
 
 class RNACentral {
 
