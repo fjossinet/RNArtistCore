@@ -45,7 +45,7 @@ RNArtistCore is frequently updated to fix bugs and to add new features. To updat
 
 # <a name="dsl"></a> How to write your plotting instructions
 
-RNArtistCore exposes a language to write your plotting instructions more easily. All the examples described in this README are available in the file [scripts/readme_plots.kts](scripts/readme_plots.kts)
+RNArtistCore exposes a language to write your plotting instructions more easily. All the examples described in this README are available in the file [scripts/readme_plots.kts](scripts/readme_plots.kts). Please note that this is still a work under development and that all instructions are not stable. 
 
 * [The **```booquet```** element](#booquet)
 * [The **```rnartist```** element](#rnartist)
@@ -149,7 +149,7 @@ Two algorithms are available:
 
 Both algorithms need a secondary structure element. A drawing can be saved in an SVG or PNG file. The name of the RNA molecule will be used for the filename. Each algorithm has its own parameters to configure the drawing process and the final result.
 
-##<a name="booquet"></a> ***The **```booquet```** element***
+## <a name="booquet"></a> ***The **```booquet```** element***
 
 This algorithm has less options than the rnartist one. The parameters available are:
 * **```file```** (mandatory): the absolute path and the name of the SVG output file. The path needs to start with ```/project/```, corresponding to the root of your project.
@@ -229,7 +229,7 @@ booquet {
 
 ![](media/booquet_from_pdb_0.png)
 
-##<a name="rnartist"></a> ***The **```rnartist```** element***
+## <a name="rnartist"></a> ***The **```rnartist```** element***
 
 The parameters available for this algorithm are:
 * **```svg``` or ```png```** (mandatory): the element to define how to save the drawing in an SVG or PNG file
@@ -258,14 +258,14 @@ rnartist {
 }
 ```
 
-## <a name="ss"></a>The ```ss``` element
+### <a name="ss"></a>The ```ss``` element
 
 You have three different ways to define a secondary structure:
 * from scratch using the element **```bn```** (meaning bracket notation)
 * from a file using the elements **```vienna```**, **```bpseq```**, **```ct```**, or **```stockholm```**
 * from a public database using the elements **```rfam```**, **```rnacentral```**, or **```pdb```**
 
-### <a name="bn"></a>The ```bn``` element
+#### <a name="bn"></a>The ```bn``` element
 
 The parameters available are:
 * **value** (mandatory): the secondary structure described with the dot-bracket notation
@@ -317,7 +317,7 @@ rnartist {
 }
 ```
 
-### <a name="file"></a>The ```bpseq```, ```ct```, ```vienna```, ```pdb``` and ```stockholm``` elements
+#### <a name="file"></a>The ```bpseq```, ```ct```, ```vienna```, ```pdb``` and ```stockholm``` elements
 
 The secondary structure will be constructed from the data stored in the file.
 
@@ -886,7 +886,7 @@ rnartist {
 
 ![](media/helix_mixed_lvl.png)
 
-###<a name="hide"></a> The **```hide```** element
+### <a name="hide"></a> The **```hide```** element
 
 The ```hide``` element does the opposite of the ```show``` element.
 
@@ -946,7 +946,7 @@ rnartist {
 
 ![](media/helix_hidden_parts.png)
 
-###<a name="line"></a> The **```line```** element
+### <a name="line"></a> The **```line```** element
 
 Parameters:
 * **```value```**: the line width
@@ -965,7 +965,7 @@ location {
 ```
 In this example, the location is made with absolute positions from 1 to 10 and 30 to 40 (inclusive). A 2D object is targeted if its own location is inside the one defined with this parameter.
 
-### <a name="layout"></a> The **```layout```** element
+## <a name="layout"></a> The **```layout```** element
 
 The rnartist drawing algorithm computes the layout to avoid overlapping of objects 2D. One of the parameter used is the default orientation of the helices linked to each type of junction (inner loops, 3-way junctions,...). Each junction is linked to an "in" helix (the red arrow in the diagram below) and to "out" helices (black arrows). The orientation for each "out" helix is defined according to the directions of a compass, the "in" helix making the south direction.
 
@@ -1232,7 +1232,7 @@ rnartist {
 ```
 ![](media/3way_full_details_fixed.png)
 
-### <a name="data"></a> The **```data```** element
+## <a name="data"></a> The **```data```** element
 
 Datasets can be linked to an RNA secondary structure. You can either fill the dataset within the script, or load it from a file.
 
