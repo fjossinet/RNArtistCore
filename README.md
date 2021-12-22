@@ -45,7 +45,9 @@ RNArtistCore is frequently updated to fix bugs and to add new features. To updat
 
 # <a name="dsl"></a> How to write your plotting instructions
 
-RNArtistCore exposes a language to write your plotting instructions more easily. All the examples described in this README are available in the file [scripts/readme_plots.kts](scripts/readme_plots.kts). Please note that this is still a work under development and that all instructions are not stable. 
+RNArtistCore exposes a language to write your plotting instructions more easily. All the examples described in this README are available in the file [scripts/readme_plots.kts](scripts/readme_plots.kts). 
+
+Please note that this is still a work under development and that all instructions are not stable. You can take a look at the [changelog](Changelog.md) for details concerning the modifications. 
 
 * [The **```booquet```** element](#booquet)
 * [The **```rnartist```** element](#rnartist)
