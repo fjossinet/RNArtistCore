@@ -3,6 +3,7 @@ package io.github.fjossinet.rnartist.core.io
 import io.github.fjossinet.rnartist.core.RnartistConfig
 import io.github.fjossinet.rnartist.core.model.SecondaryStructure
 import io.github.fjossinet.rnartist.core.model.TertiaryStructure
+import io.github.fjossinet.rnartist.core.model.ToolSource
 import org.apache.commons.io.FileUtils
 import java.io.File
 import java.io.FileReader
@@ -28,7 +29,7 @@ class Rnaview : Computation() {
             p.waitFor()
             val secondaryStructures = parseRnaml(File(pdb.parent, pdb.name + ".xml"))
             secondaryStructures.forEach {
-                it.source = "tool:rnaview"
+                it.source = RnaviewSource()
             }
             File(pdb.parent, pdb.name + ".ps").delete()
             File(pdb.parent, pdb.name + ".out").delete()
@@ -56,7 +57,7 @@ class Rnaview : Computation() {
             p.waitFor()
             val secondaryStructures = parseRnaml(File(pdb.parent, pdb.name + ".xml"))
             secondaryStructures.forEach {
-                it.source = "tool:rnaview"
+                it.source = RnaviewSource()
             }
             File(pdb.parent, pdb.name + ".ps").delete()
             File(pdb.parent, pdb.name + ".out").delete()
@@ -89,7 +90,7 @@ class Rnaview : Computation() {
                 p.waitFor()
                 val secondaryStructures = parseRnaml(File(pdb.parent, pdb.name + ".xml"))
                 secondaryStructures.forEach {
-                    it.source = "tool:rnaview"
+                    it.source = RnaviewSource()
                 }
                 File(pdb.parent, pdb.name + ".ps").delete()
                 File(pdb.parent, pdb.name + ".out").delete()
@@ -130,5 +131,11 @@ class Rnaview : Computation() {
                 e.printStackTrace()
             }
         }
+    }
+}
+
+class RnaviewSource:ToolSource("no version available") {
+    override fun toString(): String {
+        return "computed with Rnaview"
     }
 }

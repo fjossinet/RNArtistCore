@@ -238,7 +238,7 @@ class Location:Serializable {
  * @param [source] where the RNA molecule comes from
  *
  */
-class RNA(var name:String="A", seq:String, var source:String="NA"):Serializable {
+class RNA(var name:String="A", seq:String, var source:DataSource? = null):Serializable {
 
     val length:Int
         /**
@@ -794,7 +794,7 @@ class Atom(val name:String):Serializable {
 
 }
 
-class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null, var source:String = "NA"):Serializable {
+class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null, var source:DataSource? = null):Serializable {
 
     var name:String = "2D for ${this.rna.name}"
     val tertiaryInteractions = mutableSetOf<BasePair>()
@@ -802,9 +802,6 @@ class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs
     val singleStrands = mutableListOf<SingleStrand>()
     val pknots = mutableListOf<Pknot>()
     val junctions = mutableListOf<Junction>()
-    var title:String? = null
-    var authors:String? = null
-    var pubDate:String="To be published"
 
     val secondaryInteractions:List<BasePair>
         get() {
@@ -1328,6 +1325,64 @@ fun randomRNA(size:Int): RNA {
             .map(residues::get)
             .joinToString("")
     return RNA("random rna", seq)
+}
+
+interface DataSource {
+    fun getId():String?
+}
+
+class BracketNotation:DataSource {
+    override fun getId():String? {
+        return null
+    }
+
+    override fun toString(): String {
+        return "from bracket notation"
+    }
+}
+
+abstract class DatabaseSource: DataSource {
+
+}
+
+class PDBSource(val pdbId:String):DatabaseSource() {
+    override fun getId():String {
+        return this.pdbId
+    }
+
+    override fun toString(): String {
+        return "from PDB entry ${this.pdbId}"
+    }
+}
+
+class RfamSource(val rfamId:String):DatabaseSource() {
+    override fun getId():String {
+        return this.rfamId
+    }
+
+    override fun toString(): String {
+        return "from Rfam entry ${this.rfamId}"
+    }
+}
+
+class FileSource(val fileName:String): DataSource {
+
+    override fun getId():String {
+        return this.fileName
+    }
+
+    override fun toString(): String {
+        return "from file ${this.fileName}"
+    }
+
+}
+
+abstract class ToolSource(val toolVersion:String): DataSource {
+
+    override fun getId():String {
+        return this.toolVersion
+    }
+
 }
 
 enum class Edge {

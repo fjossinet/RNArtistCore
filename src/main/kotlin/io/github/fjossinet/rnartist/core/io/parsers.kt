@@ -240,8 +240,6 @@ fun parseJSON(reader: Reader): SecondaryStructureDrawing {
         secondaryStructure.tertiaryInteractions.removeAll(pk.tertiaryInteractions)
     }
 
-    secondaryStructure.source = "Project ${doc["name"]}"
-
     val layout = doc["layout"] as Map<String, Map<String, String>>
     val theme = doc["theme"] as Map<String, Map<String, Map<String, String>>>
     val workingSession = doc["session"] as Map<String, String>

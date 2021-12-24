@@ -31,7 +31,7 @@ class RNACentral {
                     }
 
                 }.forEach {
-                   it.source = "db:rnacentral:${id}"
+                   it.source = RfamSource(id)
                    return it
                }
             }

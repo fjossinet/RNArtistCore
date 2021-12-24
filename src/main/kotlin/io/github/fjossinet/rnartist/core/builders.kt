@@ -34,11 +34,11 @@ class BracketNotationBuilder {
 
     fun build():SecondaryStructure? {
         this.seq?.let {
-            return SecondaryStructure(RNA(name, it), bracketNotation = value.trim())
+            return SecondaryStructure(RNA(name, it), bracketNotation = value.trim(), source = BracketNotation())
         }
         val sequence = StringBuffer()
         sequence.append((1..value.trim().length).map { listOf("A", "U", "G", "C").random()}.joinToString(separator = ""))
-        val ss = SecondaryStructure(RNA(name = name, seq = sequence.toString()), bracketNotation = value.trim())
+        val ss = SecondaryStructure(RNA(name = name, seq = sequence.toString()), bracketNotation = value.trim(), source = BracketNotation())
         ss.randomizeSeq()
         return ss
     }
@@ -179,34 +179,41 @@ class PDBBuilder:InputFileBuilder() {
         if (this.file != null) {
             try {
                 secondaryStructures = Rnaview().annotate(File(file)).map { pair -> pair.second }
+                secondaryStructures.forEach {
+                    it.source = if (this.id !=null) PDBSource(this.id!!) else FileSource(this.file!!)
+                }
             } catch (e:Exception) {
                 println(e.message)
             }
             if (this.name != null) {
                 secondaryStructures.forEach {
                     if (it.rna.name.equals(this.name))
-                        return arrayListOf<SecondaryStructure>(it)
+                        return arrayListOf(it)
                 }
             }
             return secondaryStructures
         }
-        return listOf<SecondaryStructure>()
+        return listOf()
     }
 }
 
 class ViennaBuilder:InputFileBuilder() {
     override fun build(): List<SecondaryStructure> {
         this.file?.let {
-            return arrayListOf<SecondaryStructure>(parseVienna(FileReader(this.file)))
+            val ss = parseVienna(FileReader(it))
+            ss.source = FileSource(it)
+            return arrayListOf(ss)
         }
-        return listOf<SecondaryStructure>()
+        return listOf()
     }
 }
 
 class BPSeqBuilder:InputFileBuilder() {
     override fun build(): List<SecondaryStructure> {
         this.file?.let {
-            return arrayListOf<SecondaryStructure>(parseBPSeq(FileReader(this.file)))
+            val ss = parseBPSeq(FileReader(it))
+            ss.source = FileSource(it)
+            return arrayListOf(ss)
         }
         return listOf<SecondaryStructure>()
     }
@@ -215,9 +222,12 @@ class BPSeqBuilder:InputFileBuilder() {
 class CTBuilder:InputFileBuilder() {
     override fun build(): List<SecondaryStructure> {
         this.file?.let {
-            return arrayListOf<SecondaryStructure>(parseCT(FileReader(this.file)))
+            val ss = parseCT(FileReader(it))
+            ss.source = FileSource(it)
+            return arrayListOf(ss)
+
         }
-        return listOf<SecondaryStructure>()
+        return listOf()
     }
 }
 
@@ -225,12 +235,15 @@ class StockholmBuilder:InputFileBuilder() {
     var name:String? = null
 
     override fun build(): List<SecondaryStructure> {
-        this.file?.let {
+        this.file?.let { file ->
             var secondaryStructures = parseStockholm(FileReader(this.file), withConsensus2D = true)
+            secondaryStructures.forEach {
+                it.source = FileSource(file)
+            }
             if (this.name != null) {
                 secondaryStructures.forEach {
                     if (it.rna.name.equals(this.name))
-                        arrayListOf<SecondaryStructure>(it)
+                        arrayListOf(it)
                 }
             } else
                 return secondaryStructures
@@ -239,7 +252,7 @@ class StockholmBuilder:InputFileBuilder() {
     }
 }
 
-open abstract class PublicDatabaseBuilder {
+abstract class PublicDatabaseBuilder {
     var id:String? = null
     var name:String? = null
 
@@ -250,9 +263,12 @@ class RfamBuilder:PublicDatabaseBuilder() {
     override fun build(): List<SecondaryStructure> {
         this.id?.let { id ->
             val secondaryStructures = parseStockholm(Rfam().getEntry(id), withConsensus2D = true)
+            secondaryStructures.forEach {
+                it.source = RfamSource(id)
+            }
             this.name?.let {
                 if ("consensus".equals(name))
-                    return arrayListOf<SecondaryStructure>(secondaryStructures.first())
+                    return arrayListOf(secondaryStructures.first())
                 else {
                     secondaryStructures.forEach {
                         if (name.equals(it.rna.name))
@@ -262,7 +278,7 @@ class RfamBuilder:PublicDatabaseBuilder() {
             }
             return secondaryStructures
         }
-        return listOf<SecondaryStructure>()
+        return listOf()
     }
 }
 
@@ -907,198 +923,132 @@ class ThemeBuilder(data:MutableMap<String, Double> = mutableMapOf()) {
             }
         }
         this.colors.forEach { colorBuilder ->
-            if (colorBuilder.data.size != data.size || colorBuilder.to != null) { //meaning that they have been filtered or that we want a gradient (even with non filtered data)
-                colorBuilder.data.forEach { position, value ->
-                    var colorCode: String = getHTMLColorString(Color.BLACK)
-                    colorBuilder.value?.let { from ->
-                        val fromColor = getAWTColor(from)
+            colorBuilder.value?.let {
+                var color2Apply = colorBuilder.value.toString()
+                var location:Location? = null
+                val typesSelected = mutableListOf<SecondaryStructureType>()
+                if (!colorBuilder.locationBuilder.isEmpty()) {
+                    location = colorBuilder.locationBuilder.build()
+                }
+                colorBuilder.getSecondaryStructureTypes()?.let { types ->
+                    types.forEach { type ->
+                        typesSelected.add(type)
+                    }
+                }
+
+                if (data.isNotEmpty() && colorBuilder.filtered) { //if we have some data and the user filtered them
+                    colorBuilder.data.forEach { position, value ->
+                        val fromColor = getAWTColor(colorBuilder.value.toString())
+                        val min = colorBuilder.data.values.minOrNull()
+                        val max = colorBuilder.data.values.maxOrNull()
                         colorBuilder.to?.let { to ->
                             val toColor = getAWTColor(to)
-                            val min = colorBuilder.data.values.minOrNull()
-                            val max = colorBuilder.data.values.maxOrNull()
-                            val p = (value - min!!) / (max!! - min!!)
-                            val r = (fromColor.red * (1 - p) + toColor.red * p).toInt()
-                            val g = (fromColor.green * (1 - p) + toColor.green * p).toInt()
-                            val b = (fromColor.blue * (1 - p) + toColor.blue * p).toInt()
-                            colorCode = getHTMLColorString(Color(r, g, b))
+                            if (min != max) {
+                                val p = (value - min!!) / (max!! - min!!)
+                                val r = fromColor.red * (1 - p) + toColor.red * p
+                                val g = fromColor.green * (1 - p) + toColor.green * p
+                                val b = fromColor.blue * (1.toFloat() - p) + toColor.blue * p
+                                color2Apply = getHTMLColorString(Color(r.toInt(), g.toInt(), b.toInt()))
+                            }
                         }
-                    }
-                    colorBuilder.getSecondaryStructureTypes()?.let { types ->
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
-                            t.setConfigurationFor(selection, ThemeParameter.color, colorCode)
-                        }
-                    } ?: run {
                         val selection =
-                            { e: DrawingElement ->  e.location.start == position.toInt()}
+                            { e: DrawingElement -> (if (typesSelected.isEmpty()) true else typesSelected.contains(e.type)) && ((if (location == null) true else e.inside(location as Location)) &&  (e.location.start == position.toInt() && e.location.end == position.toInt()))}
                         t.setConfigurationFor(selection,
                             ThemeParameter.color,
-                            colorBuilder.value.toString())
+                            color2Apply)
                     }
-                }
-            }
-            else if (!colorBuilder.locationBuilder.isEmpty()) {
-                val location =  colorBuilder.locationBuilder.build()
-                colorBuilder.getSecondaryStructureTypes()?.let { types ->
-                    types.forEach { type ->
-                        val selection =
-                            { e: DrawingElement -> e.type == type && e.inside(location)}
-                        t.setConfigurationFor(selection,
-                            ThemeParameter.color,
-                            colorBuilder.value.toString())
-                    }
-                } ?: run {
+                } else {
                     val selection =
-                        { e: DrawingElement -> e.inside(location)}
+                        { e: DrawingElement -> (if (typesSelected.isEmpty()) true else typesSelected.contains(e.type)) && (if (location == null) true else e.inside(location as Location))}
                     t.setConfigurationFor(selection,
                         ThemeParameter.color,
-                        colorBuilder.value.toString())
-                }
-            }
-            else {
-                colorBuilder.getSecondaryStructureTypes()?.let { types ->
-                    types.forEach { type ->
-                        val selection = { e: DrawingElement -> e.type == type }
-                        t.setConfigurationFor(selection,
-                            ThemeParameter.color,
-                            colorBuilder.value.toString())
-                    }
+                        color2Apply)
                 }
             }
         }
         this.shows.forEach { showBuilder ->
-            if (showBuilder.data.size != data.size) { //meaning that they have been filtered
-                showBuilder.data.forEach { position, value ->
-                    showBuilder.getSecondaryStructureTypes()?.let { types ->
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails,"true")
-                        }
-                    } ?: run {
-                        val selection =
-                            { e: DrawingElement -> e.location.start == position.toInt() }
-                        t.setConfigurationFor(selection,
-                            ThemeParameter.fulldetails,
-                            "true")
-                    }
+            var location:Location? = null
+            val typesSelected = mutableListOf<SecondaryStructureType>()
+            if (!showBuilder.locationBuilder.isEmpty()) {
+                location = showBuilder.locationBuilder.build()
+            }
+            showBuilder.getSecondaryStructureTypes()?.let { types ->
+                types.forEach { type ->
+                    typesSelected.add(type)
                 }
             }
-            else if (!showBuilder.locationBuilder.isEmpty()) {
-                val location = showBuilder.locationBuilder.build()
-                showBuilder.getSecondaryStructureTypes()?.let { types ->
-                    types.forEach { type ->
-                        val selection =
-                            { e: DrawingElement -> e.type == type && e.inside(location) }
-                        t.setConfigurationFor(selection,
-                            ThemeParameter.fulldetails,
-                            "true")
-                    }
-                } ?: run {
+
+            if (data.isNotEmpty() && showBuilder.filtered) { //if we have some data and the user filtered them
+                showBuilder.data.forEach { position, value ->
                     val selection =
-                        { e: DrawingElement -> e.inside(location) }
+                        { e: DrawingElement -> (if (typesSelected.isEmpty()) true else typesSelected.contains(e.type)) && ((if (location == null) true else e.inside(location as Location)) &&  (e.location.start == position.toInt() && e.location.end == position.toInt()))}
                     t.setConfigurationFor(selection,
                         ThemeParameter.fulldetails,
                         "true")
                 }
-            } else {
-                showBuilder.getSecondaryStructureTypes()?.let { types ->
-                    types.forEach { type ->
-                        val selection = { e: DrawingElement -> e.type == type }
-                        t.setConfigurationFor(
-                            selection,
-                            ThemeParameter.fulldetails,
-                            "true"
-                        )
-                    }
-                }
+            } else if (typesSelected.isNotEmpty() || location != null) {
+                val selection =
+                    { e: DrawingElement -> (if (typesSelected.isEmpty()) true else typesSelected.contains(e.type)) && (if (location == null) true else e.inside(location as Location))}
+                t.setConfigurationFor(selection,
+                    ThemeParameter.fulldetails,
+                    "true")
             }
         }
         this.hides.forEach { hideBuilder ->
-            if (hideBuilder.data.size != data.size) { //meaning that they have been filtered
-                hideBuilder.data.forEach { position, value ->
-                    hideBuilder.getSecondaryStructureTypes()?.let { types ->
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
-                            t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                        }
-                    } ?: run {
-                        val selection =
-                            { e: DrawingElement -> e.location.start == position.toInt() }
-                        t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                    }
+            var location:Location? = null
+            val typesSelected = mutableListOf<SecondaryStructureType>()
+            if (!hideBuilder.locationBuilder.isEmpty()) {
+                location = hideBuilder.locationBuilder.build()
+            }
+            hideBuilder.getSecondaryStructureTypes()?.let { types ->
+                types.forEach { type ->
+                    typesSelected.add(type)
                 }
             }
-            else if (!hideBuilder.locationBuilder.isEmpty()) {
-                val location = hideBuilder.locationBuilder.build()
-                hideBuilder.getSecondaryStructureTypes()?.let { types ->
-                    types.forEach { type ->
-                        val selection =
-                            { e: DrawingElement -> e.type == type && e.inside(location) }
-                        t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                    }
-                } ?: run {
+
+            if (data.isNotEmpty() && hideBuilder.filtered) { //if we have some data and the user filtered them
+                hideBuilder.data.forEach { position, value ->
+                    println("$position -> $value")
                     val selection =
-                        { e: DrawingElement -> e.inside(location) }
-                    t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
+                        { e: DrawingElement -> (if (typesSelected.isEmpty()) true else typesSelected.contains(e.type)) && ((if (location == null) true else e.inside(location as Location)) && (e.location.start == position.toInt() && e.location.end == position.toInt()))}
+                    t.setConfigurationFor(selection,
+                        ThemeParameter.fulldetails,
+                        "none")
                 }
             } else {
-                hideBuilder.getSecondaryStructureTypes()?.let { types ->
-                    types.forEach { type ->
-                        val selection =
-                            { e: DrawingElement -> e.type == type }
-                        t.setConfigurationFor(selection, ThemeParameter.fulldetails, "none")
-                    }
-                }
+                val selection =
+                    { e: DrawingElement -> (if (typesSelected.isEmpty()) true else typesSelected.contains(e.type)) && (if (location == null) true else e.inside(location as Location))}
+                t.setConfigurationFor(selection,
+                    ThemeParameter.fulldetails,
+                    "none")
             }
         }
         this.lines.forEach { lineBuilder ->
-            if (lineBuilder.data.size != data.size) { //meaning that they have been filtered
-                lineBuilder.data.forEach { position, value ->
-                    lineBuilder.getSecondaryStructureTypes()?.let { types ->
-                        types.forEach { type ->
-                            val selection =
-                                { e: DrawingElement -> e.type == type && e.location.start == position.toInt() }
-                            t.setConfigurationFor(selection, ThemeParameter.linewidth, lineBuilder.value.toString())
-                        }
-                    } ?: run {
-                        val selection =
-                            { e: DrawingElement -> e.location.start == position.toInt() }
-                        t.setConfigurationFor(selection,
-                            ThemeParameter.linewidth,
-                            lineBuilder.value.toString())
-                    }
+            var location:Location? = null
+            val typesSelected = mutableListOf<SecondaryStructureType>()
+            if (!lineBuilder.locationBuilder.isEmpty()) {
+                location = lineBuilder.locationBuilder.build()
+            }
+            lineBuilder.getSecondaryStructureTypes()?.let { types ->
+                types.forEach { type ->
+                    typesSelected.add(type)
                 }
             }
-            else if (!lineBuilder.locationBuilder.isEmpty()) {
-                val location =  lineBuilder.locationBuilder.build()
-                lineBuilder.getSecondaryStructureTypes()?.let { types ->
-                    types.forEach { type ->
-                        val selection =
-                            { e: DrawingElement -> e.type == type && e.inside(location) }
-                        t.setConfigurationFor(selection,
-                            ThemeParameter.linewidth,
-                            lineBuilder.value.toString())
-                    }
-                } ?: run {
+
+            if (data.isNotEmpty() && lineBuilder.filtered) { //if we have some data and the user filtered them
+                lineBuilder.data.forEach { position, value ->
                     val selection =
-                        { e: DrawingElement -> e.inside(location) }
+                        { e: DrawingElement -> (if (typesSelected.isEmpty()) true else typesSelected.contains(e.type)) && ((if (location == null) true else e.inside(location as Location)) && e.location.start == position.toInt())}
                     t.setConfigurationFor(selection,
                         ThemeParameter.linewidth,
                         lineBuilder.value.toString())
                 }
-            }
-            else {
-                lineBuilder.getSecondaryStructureTypes()?.let { types ->
-                    types.forEach { type ->
-                        val selection = { e: DrawingElement -> e.type == type }
-                        t.setConfigurationFor(selection,
-                            ThemeParameter.linewidth,
-                            lineBuilder.value.toString())
-                    }
-                }
+            } else {
+                val selection =
+                    { e: DrawingElement -> (if (typesSelected.isEmpty()) true else typesSelected.contains(e.type)) && (if (location == null) true else e.inside(location as Location))}
+                t.setConfigurationFor(selection,
+                    ThemeParameter.linewidth,
+                    lineBuilder.value.toString())
             }
         }
         return t
@@ -1110,12 +1060,14 @@ open class ThemeConfigurationBuilder(data:MutableMap<String, Double>) {
     val locationBuilder = LocationBuilder()
     var type:String? = null
     val data = data.toMutableMap()
+    var filtered = false
 
     infix fun MutableMap<String,Double>.gt(min:Double) {
         val excluded = this.filter { it.value <= min }
         excluded.forEach {
             remove(it.key)
         }
+        filtered = true
     }
 
     infix fun MutableMap<String,Double>.lt(max:Double) {
@@ -1123,6 +1075,15 @@ open class ThemeConfigurationBuilder(data:MutableMap<String, Double>) {
         excluded.forEach {
             remove(it.key)
         }
+        filtered = true
+    }
+
+    infix fun MutableMap<String,Double>.eq(value:Double) {
+        val excluded = this.filter { it.value != value }
+        excluded.forEach {
+            remove(it.key)
+        }
+        filtered = true
     }
 
     infix fun MutableMap<String,Double>.between(range:ClosedFloatingPointRange<Double>) {
@@ -1130,6 +1091,7 @@ open class ThemeConfigurationBuilder(data:MutableMap<String, Double>) {
         excluded.forEach {
             remove(it.key)
         }
+        filtered = true
     }
 
     fun getSecondaryStructureTypes() = this.type?.split(" ")?.flatMap { getSecondaryStructureType(it) }
