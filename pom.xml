@@ -20,6 +20,7 @@
     <artifactId>rnartistcore</artifactId>
     <version>0.2.17-SNAPSHOT</version>
 
+
     <name>RNArtist Core</name>
     <description>A Kotlin library to create and plot RNA 2D structures</description>
     <url>https://github.com/fjossinet/RNArtistCore</url>
