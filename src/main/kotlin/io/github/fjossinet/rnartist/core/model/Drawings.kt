@@ -1370,7 +1370,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
         ImageIO.write(bufferedImage, "PNG", outputFile)
     }
 
-    fun asSVG(frame:Rectangle2D, selectionFrame:Rectangle2D? = null, outputFile: File) {
+    fun asSVG(frame:Rectangle2D, selectionFrame:Rectangle2D? = null, outputFile: File? = null):String {
         selectionFrame?.let {
             this.fitViewTo(frame, selectionFrame)
         } ?: run {
@@ -1380,7 +1380,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
         at.translate(this.workingSession.viewX, this.workingSession.viewY)
         at.scale(this.workingSession.zoomLevel, this.workingSession.zoomLevel)
 
-        val svgBuffer = StringBuffer("""<svg width="${frame.width}" height="${frame.height}" viewBox="0 0 ${frame.width} ${frame.height}"  xmlns="http://www.w3.org/2000/svg">""" + "\n")
+        val svgBuffer = StringBuffer("""<svg width="${frame.width}" height="${frame.height}" viewBox="0 0 ${frame.width} ${frame.height}"  xmlns="http://www.w3.org/2000/svg">""")
 
         workingSession.junctionsDrawn.forEach { junction ->
             svgBuffer.append(junction.asSVG(at, frame))
@@ -1410,9 +1410,13 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
 
         svgBuffer.append("</svg>")
 
-        val writer = PrintWriter(outputFile)
-        writer.println(svgBuffer.toString())
-        writer.close()
+        outputFile?.let {
+            val writer = PrintWriter(outputFile)
+            writer.println(svgBuffer.toString())
+            writer.close()
+        }
+
+        return svgBuffer.toString()
 
     }
 
