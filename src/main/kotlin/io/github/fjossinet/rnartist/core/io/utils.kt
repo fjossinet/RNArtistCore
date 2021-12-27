@@ -1,17 +1,8 @@
 package io.github.fjossinet.rnartist.core.io
 
-import io.github.fjossinet.rnartist.core.model.SecondaryStructureDrawing
-import java.awt.Color
-import java.awt.RenderingHints
-import java.awt.geom.AffineTransform
-import java.awt.geom.Rectangle2D
-import java.awt.image.BufferedImage
 import java.io.*
-
 import java.io.InputStream
 import java.io.OutputStream
-import java.net.URLEncoder
-import javax.imageio.ImageIO
 
 fun getTmpDirectory(): File {
     return File(getUserDir(), "tmp")

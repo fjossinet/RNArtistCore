@@ -11,7 +11,9 @@ mala {
     }
 
     theme {
-        details_lvl = 2
+        details {
+            value = 2
+        }
     }
 
 }

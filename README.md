@@ -77,15 +77,15 @@ drawing_algorithm {
     
   }
 
+  data {
+
+  }
+
   theme {
 
   }
 
   layout {
-
-  }
-
-  data {
 
   }
 
@@ -112,31 +112,34 @@ rnartist {
     }
   }
   theme {
-    details_lvl = 5
+      details {
+        value = 5
+      }
 
-    color {
-      type="A"
-      value = "#A0ECF5"
-    }
+      color {
+        type="A"
+        value = "#A0ECF5"
+      }
 
-    color {
-      type="a"
-      value = "black"
-    }
+      color {
+        type="a"
+        value = "black"
+      }
 
-    color {
-      type="U"
-      value = "#9157E5"
-    }
+      color {
+        type="U"
+        value = "#9157E5"
+      }
 
-    color {
-      type="G"
-      value = "darkgreen"
-    }
+      color {
+        type="G"
+        value = "darkgreen"
+      }
 
-    color {
-      type="C"
-      value = "#E557E5"
+      color {
+        type="C"
+        value = "#E557E5"
+      }
     }
 
   }
@@ -451,7 +454,7 @@ Residue Shape |                         N, X, A, U, G, C, R or Y                
 Residue Character |                         n, x, a, u, g, c, r or y                         | Residue Shape|                                               |                |  character
 Interaction Symbol |                            interaction_symbol                            | Secondary Interaction<br/>Tertiary Interaction |                                               |  single line   | symbol (triangle, circle, square, double lines,...)
 
-To quickly change the details level of an entire 2D, you can use the parameter named **```details_lvl```**. Five details levels are available:
+To quickly change the details level of an entire 2D, you can use the element named **```details```**. Five details levels are available:
 
 _____Level 1_____
 
@@ -470,7 +473,9 @@ rnartist {
     }
   }
   theme {
-    details_lvl = 1
+    details {
+      value = 1
+    }
   }
 }
 ```
@@ -494,7 +499,9 @@ rnartist {
     }
   }
   theme {
-    details_lvl = 2
+    details {
+      value = 2
+    }
   }
 }
 ```
@@ -518,7 +525,9 @@ rnartist {
     }
   }
   theme {
-    details_lvl = 3
+    details {
+      value = 3
+    }
   }
 }
 ```
@@ -542,7 +551,9 @@ rnartist {
     }
   }
   theme {
-    details_lvl = 4
+    details {
+      value = 4
+    }
   }
 }
 ```
@@ -566,12 +577,142 @@ rnartist {
     }
   }
   theme {
-    details_lvl = 5
+    details {
+      value = 5
+    }
   }
 }
 ```
 
 ![](media/details_lvl5.png)
+
+You can have several times the element ```details``` in a theme. Using its attribute ```location```, you can link different levels of details to different parts of the 2D. Without this attribute, the level of details is applied to the full 2D.
+
+```kotlin
+rnartist {
+  png {
+    path = "media/"
+  }
+  
+  ss {
+    bn {
+      value = "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))"
+      name = "several_details_lvl"
+    }
+  }
+  theme {
+    
+    details {
+      value = 1
+    }
+    
+    details {
+      value = 3
+      location {
+        8 to 37
+        50 to 53
+      }
+    }
+    
+    details {
+      value = 2
+      location {
+        37 to 50
+      }
+    }
+    
+    details {
+      value = 2
+      location {
+        16 to 20
+        25 to 29
+      }
+    }
+    
+  }
+}
+```
+
+![](media/several_details_lvl.png)
+
+The details levels are applied one after other. If we take the previous example with the details level 1 at the end, since it is applied on the full 2D, this will erase the previous details element linked to specific elements.
+
+```kotlin
+rnartist {
+  png {
+    path = "media/"
+  }
+  ss {
+    bn {
+      value = "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))"
+      name = "details_lvl_erased"
+    }
+  }
+  theme {
+    
+    details {
+      value = 3
+      location {
+        8 to 37
+        50 to 53
+      }
+    }
+    
+    details {
+      value = 2
+      location {
+        37 to 50
+      }
+    }
+    
+    details {
+      value = 2
+      location {
+        16 to 20
+        25 to 29
+      }
+    }
+
+    details {
+      value = 1
+    }
+    
+  }
+}
+```
+
+![](media/details_lvl_erased.png)
+
+Using the attribute ```type```, you can quickly apply details levels to all the helices, junctions and/or single-strands. If the attribute  ```type``` is used,  ```location``` is ignored (if any).
+
+```kotlin
+rnartist {
+  png {
+    path = "media/"
+  }
+  ss {
+    bn {
+      value = "(((..(((....))).)))...(((..(((....))).)))...((((((..(((....))).)))..(((....))).)))(((..(((....))).)))"
+      name = "details_lvl_helices_junctions"
+    }
+  }
+  theme {
+    details {
+      value = 1
+    }
+    details {
+      value = 3
+      type = "helix"
+    }
+    details {
+      value = 2
+      type = "junction"
+    }
+  }
+}
+```
+
+![](media/details_lvl_helices_junctions.png)
 
 Inside a **```theme```**, you can also add several times the following elements:
 * **```color```**: defines the color for objects 2D
@@ -614,7 +755,9 @@ rnartist {
     }
   }
   theme {
-    details_lvl = 5
+    details {
+      value = 5
+    }
 
     color {
       type = "Y"
@@ -658,6 +801,8 @@ Parameters:
 * **```location```**: the location of 2D objects targeted
 * **```data```**: selection based on the values linked to the residues (see explanation for this element below)
 
+An empty ```show``` element will do nothing.
+
 If the parameter **```type```** is not defined, all types are targeted. You can define several types in the same string using a space as separator: **```"single_strand R C interaction_symbol"```**
 
 The parameter **```location```** needs to have the following format:
@@ -687,7 +832,9 @@ rnartist {
   }
 
   theme {
-    details_lvl = 1
+    details {
+      value = 1
+    }
   }
 }
 ```
@@ -708,7 +855,9 @@ rnartist {
   }
 
   theme {
-    details_lvl = 1
+    details {
+      value = 1
+    }
 
     show {
       type = "helix"
@@ -739,7 +888,9 @@ rnartist {
   }
 
   theme {
-    details_lvl = 1
+    details {
+      value = 1
+    }
 
     show {
       type = "helix secondary_interaction phosphodiester_bond"
@@ -768,7 +919,9 @@ rnartist {
   }
 
   theme {
-    details_lvl = 1
+    details {
+      value = 1
+    }
 
     show {
       type = "helix secondary_interaction phosphodiester_bond N"
@@ -797,7 +950,9 @@ rnartist {
   }
 
   theme {
-    details_lvl = 1
+    details {
+      value = 1
+    }
 
     show {
       type = "helix secondary_interaction phosphodiester_bond N n"
@@ -826,7 +981,9 @@ rnartist {
   }
 
   theme {
-    details_lvl = 1
+    details {
+      value = 1
+    }
 
     show {
       type = "helix secondary_interaction phosphodiester_bond N n interaction_symbol"
@@ -857,7 +1014,9 @@ rnartist {
     }
 
     theme {
-        details_lvl = 1
+        details {
+          value = 1
+        }
 
         show {
             type = "helix secondary_interaction phosphodiester_bond"
@@ -897,6 +1056,8 @@ Parameters:
 * **```location```**: the location of objects 2D targeted
 * **```data```**: selection based on the values linked to the residues (see explanation for this element below)
 
+An empty ```hide``` element will do nothing.
+
 If the parameter **```type```** is not defined, all types are targeted. You can define several types in the same string using a space as separator: **```"single_strand R C interaction_symbol"```**
 
 The parameter **```location```** needs to have the following format:
@@ -924,7 +1085,9 @@ rnartist {
   }
 
   theme {
-    details_lvl = 5
+    details {
+      value = 5
+    }
 
     hide {
       type = "n"
@@ -995,7 +1158,9 @@ rnartist {
     }
   }
   theme {
-    details_lvl = 1
+    details {
+      value = 1
+    }
   }
 }
 ```
@@ -1014,7 +1179,9 @@ rnartist {
     }
   }
   theme {
-    details_lvl = 1
+    details {
+      value = 1
+    }
   }
 
   layout {
@@ -1042,7 +1209,9 @@ rnartist {
     }
   }
   theme {
-    details_lvl = 1
+    details {
+      value = 1
+    }
   }
 
   layout {
@@ -1070,7 +1239,9 @@ rnartist {
     }
   }
   theme {
-    details_lvl = 1
+    details {
+      value = 1
+    }
   }
 
   layout {
@@ -1098,7 +1269,9 @@ rnartist {
     }
   }
   theme {
-    details_lvl = 1
+    details {
+      value = 1
+    }
   }
 
   layout {
@@ -1126,7 +1299,9 @@ rnartist {
     }
   }
   theme {
-    details_lvl = 1
+    details {
+      value = 1
+    }
   }
 
   layout {
@@ -1154,7 +1329,9 @@ rnartist {
     }
   }
   theme {
-    details_lvl = 1
+    details {
+      value = 1
+    }
   }
 
   layout {
@@ -1184,7 +1361,9 @@ rnartist {
     }
   }
   theme {
-    details_lvl = 5
+    details {
+      value = 5
+    }
   }
 
   layout {
@@ -1214,7 +1393,9 @@ rnartist {
     }
   }
   theme {
-    details_lvl = 5
+    details {
+      value = 5
+    }
   }
   layout {
     junction {
@@ -1237,6 +1418,7 @@ rnartist {
 ## <a name="data"></a> The **```data```** element
 
 Datasets can be linked to an RNA secondary structure. You can either fill the dataset within the script, or load it from a file.
+The ```data``` element has to be defined **before** the elements theme and layout.
 
 ```kotlin
 rnartist {
@@ -1292,22 +1474,25 @@ rnartist {
     }
   }
   theme {
-    details_lvl = 5
+      details {
+        value = 5
+      }
 
-    color {
-      type = "R"
-      value = "lightyellow"
-      to = "firebrick"
-    }
+      color {
+        type = "R"
+        value = "lightyellow"
+        to = "firebrick"
+      }
 
-    color {
-      type = "r"
-      value = "black"
-      to = "white"
-    }
+      color {
+        type = "r"
+        value = "black"
+        to = "white"
+      }
 
-    hide {
-      type = "Y"
+      hide {
+        type = "Y"
+      }
     }
 
   }
@@ -1343,7 +1528,9 @@ rnartist {
     "12" to 345.8
   }
   theme {
-    details_lvl = 4
+    details {
+      value = 4
+    }
     color {
       type = "N"
       value = "lightyellow"

@@ -173,6 +173,15 @@ class Location:Serializable {
     }
 
     /**
+     * Creates a Location defined by a list of blocks
+     *
+     * @param [blocks] the list of [Block}.
+     */
+    constructor(blocks:List<Block>):this() {
+        this.blocks.addAll(blocks)
+    }
+
+    /**
      * Creates a Location merging two Location objects
      *
      * @param [l1] first location to merge

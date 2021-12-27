@@ -16,7 +16,10 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 5
+        details {
+            value = 5
+        }
+
         color {
             value = "red"
             type = "N"
@@ -44,7 +47,9 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 5
+        details {
+            value = 5
+        }
 
         color {
             value = "green"
@@ -72,7 +77,9 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 5
+        details {
+            value = 5
+        }
 
         color {
             value = "green"

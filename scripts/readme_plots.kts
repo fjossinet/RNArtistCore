@@ -22,7 +22,9 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 5
+        details {
+            value = 5
+        }
 
         color {
             type="A"
@@ -79,7 +81,9 @@ rnartist {
         "12" to 345.8
     }
     theme {
-        details_lvl = 4
+        details {
+            value = 4
+        }
         color {
             type = "N"
             value = "lightyellow"
@@ -117,7 +121,9 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 1
+        details {
+            value = 1
+        }
     }
 }
 
@@ -133,7 +139,9 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 2
+        details {
+            value = 2
+        }
     }
 }
 
@@ -149,7 +157,9 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 3
+        details {
+            value = 3
+        }
     }
 }
 
@@ -165,7 +175,9 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 4
+        details {
+            value = 4
+        }
     }
 }
 
@@ -181,7 +193,120 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 5
+        details {
+            value = 5
+        }
+    }
+}
+
+rnartist {
+
+    png {
+        path = "media/"
+    }
+
+    ss {
+        bn {
+            value = "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))"
+            name = "several_details_lvl"
+        }
+    }
+    theme {
+
+        details {
+            value = 1
+        }
+
+        details {
+            value = 3
+            location {
+                8 to 37
+                50 to 53
+            }
+        }
+
+        details {
+            value = 2
+            location {
+                37 to 50
+            }
+        }
+
+        details {
+            value = 2
+            location {
+                16 to 20
+                25 to 29
+            }
+        }
+
+    }
+}
+
+rnartist {
+    png {
+        path = "media/"
+    }
+    ss {
+        bn {
+            value = "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))"
+            name = "details_lvl_erased"
+        }
+    }
+    theme {
+
+        details {
+            value = 3
+            location {
+                8 to 37
+                50 to 53
+            }
+        }
+
+        details {
+            value = 2
+            location {
+                37 to 50
+            }
+        }
+
+        details {
+            value = 2
+            location {
+                16 to 20
+                25 to 29
+            }
+        }
+
+        details {
+            value = 1
+        }
+
+    }
+}
+
+rnartist {
+    png {
+        path = "media/"
+    }
+    ss {
+        bn {
+            value = "(((..(((....))).)))...(((..(((....))).)))...((((((..(((....))).)))..(((....))).)))(((..(((....))).)))"
+            name = "details_lvl_helices_junctions"
+        }
+    }
+    theme {
+        details {
+            value = 1
+        }
+        details {
+            value = 3
+            type = "helix"
+        }
+        details {
+            value = 2
+            type = "junction"
+        }
     }
 }
 
@@ -198,7 +323,9 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 5
+        details {
+            value = 5
+        }
 
         color {
             type = "Y"
@@ -244,7 +371,9 @@ rnartist {
     }
 
     theme {
-        details_lvl = 1
+        details {
+            value = 1
+        }
     }
 }
 
@@ -262,7 +391,9 @@ rnartist {
     }
 
     theme {
-        details_lvl = 1
+        details {
+            value = 1
+        }
 
         show {
             type = "helix"
@@ -288,7 +419,9 @@ rnartist {
     }
 
     theme {
-        details_lvl = 1
+        details {
+            value = 1
+        }
 
         show {
             type = "helix secondary_interaction phosphodiester_bond"
@@ -314,7 +447,9 @@ rnartist {
     }
 
     theme {
-        details_lvl = 1
+        details {
+            value = 1
+        }
 
         show {
             type = "helix secondary_interaction  phosphodiester_bond N"
@@ -340,7 +475,9 @@ rnartist {
     }
 
     theme {
-        details_lvl = 1
+        details {
+            value = 1
+        }
 
         show {
             type = "helix secondary_interaction phosphodiester_bond N n"
@@ -366,7 +503,9 @@ rnartist {
     }
 
     theme {
-        details_lvl = 1
+        details {
+            value = 1
+        }
 
         show {
             type = "helix secondary_interaction phosphodiester_bond N n interaction_symbol"
@@ -392,7 +531,9 @@ rnartist {
     }
 
     theme {
-        details_lvl = 1
+        details {
+            value = 1
+        }
 
         show {
             type = "helix secondary_interaction phosphodiester_bond"
@@ -434,7 +575,9 @@ rnartist {
     }
 
     theme {
-        details_lvl = 5
+        details {
+            value = 5
+        }
 
         hide {
             type = "n"
@@ -466,7 +609,9 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 1
+        details {
+            value = 1
+        }
     }
 }
 
@@ -481,7 +626,9 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 1
+        details {
+            value = 1
+        }
     }
 
     layout {
@@ -505,7 +652,9 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 1
+        details {
+            value = 1
+        }
     }
 
     layout {
@@ -529,7 +678,9 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 1
+        details {
+            value = 1
+        }
     }
 
     layout {
@@ -553,7 +704,9 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 1
+        details {
+            value = 1
+        }
     }
 
     layout {
@@ -577,7 +730,9 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 1
+        details {
+            value = 1
+        }
     }
 
     layout {
@@ -601,7 +756,9 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 1
+        details {
+            value = 1
+        }
     }
 
     layout {
@@ -625,7 +782,9 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 5
+        details {
+            value = 5
+        }
     }
 
     layout {
@@ -649,7 +808,9 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 5
+        details {
+            value = 5
+        }
     }
     layout {
         junction {
@@ -682,7 +843,9 @@ rnartist {
         }
     }
     theme {
-        details_lvl = 5
+        details {
+            value = 5
+        }
         color {
             value = "#800080"
             type = "R"

@@ -62,7 +62,9 @@ ids.forEach { pdbId ->
                     rnartist {
                         file = "/project/${pdbId}.json"
                         theme {
-                            details_lvl = 5
+                            details {
+                                value = 5
+                            }
                         }
                         secondaryStructures.add(it)
                     }.forEach { drawing ->
@@ -111,9 +113,9 @@ ${ids.size} PDB entries processed (X-ray structures containing at least one RNA 
 
 """.trimIndent())
 
-statusFile.appendText("| PDB ID | Chain identifier  | Chain modified | Status |JSON |\n")
-statusFile.appendText("| :------: | :------: | :------: | :----: | :----: |\n")
+statusFile.appendText("| PDB ID | Chain identifier  | Chain modified | Status |JSON |${System.getProperty("line.separator")}")
+statusFile.appendText("| :------: | :------: | :------: | :----: | :----: |${System.getProperty("line.separator")}")
 status.sortBy { it.first() }
 status.forEach {
-    statusFile.appendText("|${it[0]}|${it[1]}|${it[2]}|${it[3]}|${it[4]}|\n")
+    statusFile.appendText("|${it[0]}|${it[1]}|${it[2]}|${it[3]}|${it[4]}|${System.getProperty("line.separator")}")
 }

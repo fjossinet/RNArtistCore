@@ -23,7 +23,9 @@ import io.github.fjossinet.rnartist.core.rnartist
             }
         }
         rnartist {
-            file = "/project/${rfamID}_rnartist.svg"
+            svg {
+                path = "./"
+            }
             ss {
                 rfam {
                     id = rfamID
@@ -31,7 +33,9 @@ import io.github.fjossinet.rnartist.core.rnartist
                 }
             }
             theme {
-                details_lvl = 5
+                details {
+                    value = 5
+                }
 
                 color {
                     type = "R"
