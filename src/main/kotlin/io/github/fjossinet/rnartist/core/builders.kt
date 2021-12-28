@@ -668,7 +668,7 @@ class LayoutBuilder {
                             16 -> JunctionType.SixteenWay
                             else -> JunctionType.Flower
                         }
-                        junctionsBehaviors[junctionType] = { junctionDrawing: JunctionDrawing, helixRank: Int ->
+                        currentJunctionBehaviors[junctionType] = { junctionDrawing: JunctionDrawing, helixRank: Int ->
                             val newLayout = junctionLayoutBuilder.out_ids!!.split(" ")?.map {
                                 ConnectorId.valueOf(it)
                             }?.toList()

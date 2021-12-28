@@ -44,6 +44,10 @@ class Block(start:Int,end:Int):Serializable {
      * Returns the description of the block complying the pattern "start:length"
      */
     override fun toString() =  if (length == 1) "$start" else "$start:$length"
+
+    override fun equals(other: Any?): Boolean {
+        return other is Block && other.start == this.start && other.end == this.end
+    }
 }
 
 /**
@@ -237,6 +241,9 @@ class Location:Serializable {
      */
     override fun toString() = this.description
 
+    override fun equals(other: Any?): Boolean {
+        return other is Location && other.blocks.equals(this.blocks)
+    }
 }
 
 /**

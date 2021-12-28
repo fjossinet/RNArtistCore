@@ -2300,7 +2300,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
             helixRank += 1
             var inPoint: Point2D
 
-            var outId = junctionsBehaviors[this.junctionType]?.let { it(this, helixRank) }
+            var outId = currentJunctionBehaviors[this.junctionType]?.let { it(this, helixRank) }
 
             var nextJunction: Junction? = null
             if (helix.junctionsLinked.first != null && helix.junctionsLinked.first != this.junction) {
@@ -2316,14 +2316,14 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
                 from = if (helixRank == 1) {
                     getConnectorId((inId.value + 1) % ConnectorId.values().size)
                 } else {
-                    getConnectorId((junctionsBehaviors[this.junctionType]!!(this, helixRank - 1)!!.value + 1) % ConnectorId.values().size)
+                    getConnectorId((currentJunctionBehaviors[this.junctionType]!!(this, helixRank - 1)!!.value + 1) % ConnectorId.values().size)
                 }
 
                 to = if (helixRank == this.junction.helicesLinked.size - 1) {
                     val newRawValue = if (inId.value - 1 < 0) ConnectorId.values().size - 1 else inId.value - 1
                     getConnectorId(newRawValue)
                 } else {
-                    val newRawValue = if (junctionsBehaviors[this.junctionType]!!(this, helixRank + 1)!!.value - 1 < 0) ConnectorId.values().size - 1 else junctionsBehaviors[this.junctionType]!!(this, helixRank + 1)!!.value - 1
+                    val newRawValue = if (currentJunctionBehaviors[this.junctionType]!!(this, helixRank + 1)!!.value - 1 < 0) ConnectorId.values().size - 1 else currentJunctionBehaviors[this.junctionType]!!(this, helixRank + 1)!!.value - 1
                     getConnectorId(newRawValue)
                 }
 
@@ -4124,7 +4124,7 @@ fun previousConnectorId(c: ConnectorId) = if (c.value - 1 < 0) ConnectorId.value
 fun oppositeConnectorId(c: ConnectorId) = ConnectorId.values().first { it.value == (c.value + ConnectorId.values().size / 2) % ConnectorId.values().size }
 
 //the different behaviors to compute the outId of an helix according to its rank for a given junction type
-val junctionsBehaviors = mutableMapOf(
+val defaultJunctionBehaviors = mapOf(
     Pair(JunctionType.ApicalLoop, { junctionDrawing: JunctionDrawing, helixRank: Int -> null }),
     Pair(JunctionType.InnerLoop, { junctionDrawing: JunctionDrawing, helixRank: Int ->
         /*if (junctionDrawing.junction.location.blocks[0].length < 5 || junctionDrawing.junction.location.blocks[1].length < 5) {
@@ -4484,6 +4484,8 @@ val junctionsBehaviors = mutableMapOf(
         }),
     Pair(JunctionType.Flower, { junctionDrawing: JunctionDrawing, helixRank: Int -> null })
 )
+
+val currentJunctionBehaviors = mutableMapOf<JunctionType, (JunctionDrawing, Int) -> ConnectorId?>()
 
 /**
 Compute the center of a circle according to the entry point
