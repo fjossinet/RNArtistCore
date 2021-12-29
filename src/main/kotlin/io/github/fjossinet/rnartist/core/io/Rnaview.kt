@@ -19,11 +19,11 @@ class Rnaview : Computation() {
                 "docker",
                 "run",
                 "-v",
-                pdb.parent + ":/data",
+                pdb.parent + ":/project",
                 "fjossinet/rnartistcore",
                 "rnaview",
                 "-p",
-                "/data/" + pdb.name
+                "/project/" + pdb.name
             )
             val p = pb.start()
             p.waitFor()
