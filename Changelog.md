@@ -4,6 +4,24 @@ java -jar rnartist_core.jar -c dsl_script_file
 
 The option ```-c``` check the syntax of the script before to run it. It prints the issues found.
 
+### 0.2.18-SNAPSHOT
+
+- the element ```rfam``` can contain an attribute named ```use alignment numbering```. If this attribute is set, the locations described in the script will be understood as locations in the original alignment. Check this [video](https://www.youtube.com/watch?v=cEFlneO_muE) for details
+
+```kotlin
+rnartist {
+    ss {
+        rfam {
+            id = "RF02500"
+            name = "AAUW01000008.1/93016-93126"
+            use alignment numbering
+        }
+    }
+}
+
+```
+
+
 ### 0.2.17-SNAPSHOT
 
 - **details_lvl in theme**: not anymore an attribute of ```theme```. It is now an element named ```details```

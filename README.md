@@ -437,6 +437,8 @@ ss {
 }
 ```
 
+The element ```rfam``` can contain an attribute named ```use alignment numbering```. If this attribute is set, the locations described in the script will be understood as locations in the original alignment. Check this [video](https://www.youtube.com/watch?v=cEFlneO_muE) for details.
+
 ## <a name="theme"></a>The **```theme```** element
 
 Using this element, you choose the rendering level for any object in the 2D drawing, from single residues to entire structural domains.

@@ -335,6 +335,13 @@ abstract class DrawingElement(val ssDrawing: SecondaryStructureDrawing, var pare
             }
         }
 
+    /**
+     * Tests if the drawing element is inside the [location]. If the parameter useNumberingSystem is true for the [RNA] molecule, the location of the drawing element is computed according to the numbering system (if any) linked to the RNA moelcule.
+     *
+     * @param [location] the location that should contains the drawing element
+     *
+     * @return true if the drawing element is inside the [location]
+     */
     abstract fun inside(location:Location):Boolean
 
     var residues: List<ResidueDrawing> = this.ssDrawing.getResiduesFromAbsPositions(*this.location.positions.toIntArray())
@@ -1448,7 +1455,12 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
     val absPos: Int
         get() = this.location.start
 
-    override fun inside(location:Location) = location.contains(this.location.start)
+    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useNumberingSystem) {
+        location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.location.start))
+    }
+    else {
+        location.contains(this.location.start)
+    }
 
     lateinit var circle: Ellipse2D
 
@@ -1739,7 +1751,10 @@ abstract class ResidueLetterDrawing(parent: ResidueDrawing?, ssDrawing: Secondar
 
     abstract fun asSVG(at:AffineTransform): String
 
-    override fun inside(location:Location) = location.contains(this.location.start)
+    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useNumberingSystem)
+        location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.location.start))
+    else
+        location.contains(this.location.start)
 }
 
 class A(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: Int) : ResidueLetterDrawing(parent, ssDrawing, SecondaryStructureType.A, absPos) {
@@ -1987,7 +2002,10 @@ class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructure
     val maxBranchLength:Int
         get() = this.helix.maxBranchLength
 
-    override fun inside(location:Location) = ends.all { location.contains(it) }
+    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useNumberingSystem)
+        ends.all { location.contains(ssDrawing.secondaryStructure.rna.mapPosition(it)) }
+    else
+        ends.all { location.contains(it)}
 
     override val selectionPoints:List<Point2D>
         get() {
@@ -2101,7 +2119,10 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
     var previousBranch:JunctionDrawing? = null
     var nextBranch:JunctionDrawing? = null
 
-    override fun inside(location: Location) = location.contains(this.start) && location.contains(this.end)
+    override fun inside(location: Location) = if (ssDrawing.secondaryStructure.rna.useNumberingSystem)
+        location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.start)) && location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.end))
+    else
+        location.contains(this.start) && location.contains(this.end)
 
     override val selectionPoints:List<Point2D>
         get() {
@@ -2254,7 +2275,10 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
 
     val junctionType = this.junction.junctionType
 
-    override fun inside(location:Location) = this.junction.locationWithoutSecondaries.ends.all { location.contains(it) }
+    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useNumberingSystem)
+        this.junction.locationWithoutSecondaries.ends.all { location.contains(ssDrawing.secondaryStructure.rna.mapPosition(it)) }
+    else
+        this.junction.locationWithoutSecondaries.ends.all { location.contains(it) }
 
     override val selectionPoints: List<Point2D>
         get() {
@@ -2300,7 +2324,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
             helixRank += 1
             var inPoint: Point2D
 
-            var outId = currentJunctionBehaviors[this.junctionType]?.let { it(this, helixRank) }
+            var outId = junctionsBehaviors[this.junctionType]?.let { it(this, helixRank) }
 
             var nextJunction: Junction? = null
             if (helix.junctionsLinked.first != null && helix.junctionsLinked.first != this.junction) {
@@ -2316,14 +2340,14 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
                 from = if (helixRank == 1) {
                     getConnectorId((inId.value + 1) % ConnectorId.values().size)
                 } else {
-                    getConnectorId((currentJunctionBehaviors[this.junctionType]!!(this, helixRank - 1)!!.value + 1) % ConnectorId.values().size)
+                    getConnectorId((junctionsBehaviors[this.junctionType]!!(this, helixRank - 1)!!.value + 1) % ConnectorId.values().size)
                 }
 
                 to = if (helixRank == this.junction.helicesLinked.size - 1) {
                     val newRawValue = if (inId.value - 1 < 0) ConnectorId.values().size - 1 else inId.value - 1
                     getConnectorId(newRawValue)
                 } else {
-                    val newRawValue = if (currentJunctionBehaviors[this.junctionType]!!(this, helixRank + 1)!!.value - 1 < 0) ConnectorId.values().size - 1 else currentJunctionBehaviors[this.junctionType]!!(this, helixRank + 1)!!.value - 1
+                    val newRawValue = if (junctionsBehaviors[this.junctionType]!!(this, helixRank + 1)!!.value - 1 < 0) ConnectorId.values().size - 1 else junctionsBehaviors[this.junctionType]!!(this, helixRank + 1)!!.value - 1
                     getConnectorId(newRawValue)
                 }
 
@@ -2699,7 +2723,10 @@ abstract class LWSymbolDrawing(parent: DrawingElement?, ssDrawing: SecondaryStru
 
     abstract fun setShape(p1: Point2D, p2: Point2D)
 
-    override fun inside(location:Location) = location.ends.all {location.contains(it)}
+    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useNumberingSystem)
+        location.ends.all {location.contains(ssDrawing.secondaryStructure.rna.mapPosition(it))}
+    else
+        location.ends.all {location.contains(it)}
 
     override val selectionPoints: List<Point2D>
         get() {
@@ -3051,7 +3078,10 @@ abstract class BaseBaseInteractionDrawing(parent: DrawingElement?, val interacti
             return this.location.end
         }
 
-    override fun inside(location:Location) = location.contains(this.start) && location.contains(this.end)
+    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useNumberingSystem)
+        location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.start)) && location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.end))
+    else
+        location.contains(this.start) && location.contains(this.end)
 
     val isCanonical: Boolean
         get() {
@@ -3349,7 +3379,10 @@ class InteractionSymbolDrawing(parent: DrawingElement?, val interaction: BasePai
 
     override val selectionPoints = mutableListOf<Point2D>()
 
-    override fun inside(location: Location) = location.contains(interaction.start) && location.contains(interaction.end)
+    override fun inside(location: Location) = if (ssDrawing.secondaryStructure.rna.useNumberingSystem)
+        location.contains(ssDrawing.secondaryStructure.rna.mapPosition(interaction.start)) && location.contains(ssDrawing.secondaryStructure.rna.mapPosition(interaction.end))
+    else
+        location.contains(interaction.start) && location.contains(interaction.end)
 
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         if (this.getLineWidth() > 0) {
@@ -3609,7 +3642,10 @@ open class PhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing: Seconda
 
     override val selectionPoints = mutableListOf<Point2D>()
 
-    override fun inside(location:Location) = location.contains(this.start) && location.contains(this.end)
+    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useNumberingSystem)
+        location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.start)) && location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.end))
+    else
+        location.contains(this.start) && location.contains(this.end)
 
     init {
         this.residue = this.ssDrawing.getResiduesFromAbsPositions(this.start).first()
@@ -4124,7 +4160,7 @@ fun previousConnectorId(c: ConnectorId) = if (c.value - 1 < 0) ConnectorId.value
 fun oppositeConnectorId(c: ConnectorId) = ConnectorId.values().first { it.value == (c.value + ConnectorId.values().size / 2) % ConnectorId.values().size }
 
 //the different behaviors to compute the outId of an helix according to its rank for a given junction type
-val defaultJunctionBehaviors = mapOf(
+val junctionsBehaviors = mutableMapOf(
     Pair(JunctionType.ApicalLoop, { junctionDrawing: JunctionDrawing, helixRank: Int -> null }),
     Pair(JunctionType.InnerLoop, { junctionDrawing: JunctionDrawing, helixRank: Int ->
         /*if (junctionDrawing.junction.location.blocks[0].length < 5 || junctionDrawing.junction.location.blocks[1].length < 5) {

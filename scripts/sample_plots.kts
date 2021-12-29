@@ -11,7 +11,7 @@ rnartist {
     ss {
         bn {
             seq = "CAACAUCAUACGUACUGCGCCCAAGCGUAACGCGAACACCACGAGUGGUGACUGGUGCUUG"
-            value =  "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+            value = "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
         }
 
     }
@@ -22,27 +22,27 @@ rnartist {
         }
 
         color {
-            type="A"
+            type = "A"
             value = "#A0ECF5"
         }
 
         color {
-            type="a"
+            type = "a"
             value = "black"
         }
 
         color {
-            type="U"
+            type = "U"
             value = "#9157E5"
         }
 
         color {
-            type="G"
+            type = "G"
             value = "darkgreen"
         }
 
         color {
-            type="C"
+            type = "C"
             value = "#E557E5"
         }
 
@@ -66,27 +66,27 @@ rnartist {
         }
 
         color {
-            type="A"
+            type = "A"
             value = "#A0ECF5"
         }
 
         color {
-            type="a"
+            type = "a"
             value = "black"
         }
 
         color {
-            type="U"
+            type = "U"
             value = "#9157E5"
         }
 
         color {
-            type="G"
+            type = "G"
             value = "darkgreen"
         }
 
         color {
-            type="C"
+            type = "C"
             value = "#E557E5"
         }
 
@@ -94,46 +94,53 @@ rnartist {
 }
 
 rnartist {
-        svg {
-            path = "outputs/"
+    svg {
+        path = "outputs/"
+    }
+
+    ss {
+        stockholm {
+            file = "/project/inputs/RF02001.stockholm"
+        }
+    }
+
+    theme {
+        details {
+            value = 3
         }
 
-        ss {
-            stockholm {
-                file = "/project/inputs/RF02001.stockholm"
-            }
+        color {
+            type = "A"
+            value = "#A0ECF5"
         }
 
-        theme {
-            details {
-                value = 3
-            }
+        color {
+            type = "a"
+            value = "black"
+        }
 
-            color {
-                type="A"
-                value = "#A0ECF5"
-            }
+        color {
+            type = "U"
+            value = "#9157E5"
+        }
 
-            color {
-                type="a"
-                value = "black"
-            }
+        color {
+            type = "G"
+            value = "darkgreen"
+        }
 
-            color {
-                type="U"
-                value = "#9157E5"
-            }
+        color {
+            type = "C"
+            value = "#E557E5"
+        }
 
-            color {
-                type="G"
-                value = "darkgreen"
-            }
+    }
+}
 
-            color {
-                type="C"
-                value = "#E557E5"
-            }
-
+rnartist {
+    ss {
+        rfam {
+            use alignment numbering
         }
     }
 }

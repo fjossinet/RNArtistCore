@@ -106,8 +106,8 @@ class SecondaryStructureBuilder {
 open abstract class OutputFileBuilder {
     var path: String? = null
 
-    var width: Double = 600.0
-    var height: Double = 400.0
+    var width: Double = 800.0
+    var height: Double = 800.0
     var locationBuilder: LocationBuilder = LocationBuilder()
 
     abstract fun build(drawing: SecondaryStructureDrawing)
@@ -264,12 +264,32 @@ abstract class PublicDatabaseBuilder {
     abstract fun build(): List<SecondaryStructure>
 }
 
+object numbering
+
+
 class RfamBuilder : PublicDatabaseBuilder() {
+
+    val use = Use()
+    private var useAlignmentNumbering = false
+
+    inner class Use {
+
+        infix fun alignment(ns:numbering) {
+            useAlignmentNumbering = true
+        }
+
+        infix fun species(ns:numbering) {
+            useAlignmentNumbering = false
+        }
+
+    }
+
     override fun build(): List<SecondaryStructure> {
         this.id?.let { id ->
             val secondaryStructures = parseStockholm(Rfam().getEntry(id), withConsensus2D = true)
             secondaryStructures.forEach {
                 it.source = RfamSource(id)
+                it.rna.useNumberingSystem = useAlignmentNumbering
             }
             this.name?.let {
                 if ("consensus".equals(name))
@@ -668,7 +688,7 @@ class LayoutBuilder {
                             16 -> JunctionType.SixteenWay
                             else -> JunctionType.Flower
                         }
-                        currentJunctionBehaviors[junctionType] = { junctionDrawing: JunctionDrawing, helixRank: Int ->
+                        junctionsBehaviors[junctionType] = { junctionDrawing: JunctionDrawing, helixRank: Int ->
                             val newLayout = junctionLayoutBuilder.out_ids!!.split(" ")?.map {
                                 ConnectorId.valueOf(it)
                             }?.toList()
