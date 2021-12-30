@@ -18,9 +18,37 @@ Check the project [RNArtistCore Demo Binder](https://github.com/fjossinet/RNArti
 
 ## Use RNArtistCore on your own computer
 
-This option installs a local copy of RNArtistCore and creates a project directory both fully configured. To use this option, you just need to:
+This option installs a local copy of RNArtistCore and creates a project directory both fully configured. 
 
-* install [Docker](https://www.docker.com/get-started) on your computer and run it. If you're using Windows or MacOSX, you should install [Docker Desktop](https://www.docker.com/products/docker-desktop) 
+### Prerequisite 1: Docker
+The fully configured copy of RNArtistCore is running in a Docker container. Consequently, you need to have docker installed on your computer. If you're using Windows or MacOSX, you should install [Docker Desktop](https://www.docker.com/products/docker-desktop).
+
+### Prerequisite 2: a Unix terminal
+Now you need to have access to the Docker daemon from a Unix command line (since my scripts are written with bash syntax).
+No need to install anything for MacOSX and Linux users. 
+
+#### Windows 10 and later
+
+Since version 10, you can host a Unix system inside your Windows. To do so, you need to install a component that allows to run a Linux distribution inside Windows (WSL2) and a Linux distribution (Ubuntu)
+
+___WSL2 and Ubuntu___
+
+WSL2 should have been installed during the installation process of [Docker Desktop](https://www.docker.com/products/docker-desktop). Then you just need to install Ubuntu from the Windows Store.
+
+___Docker daemon from WSL2 & Ubuntu___
+
+From the Ubuntu commandline, type these two commands to be sure that you will have the rights to connect the daemon from Ubuntu:
+
+```bash
+sudo groupadd docker
+sudo usermod -aG docker $USER
+```
+
+Now type ```docker``` to check if you can connect the daemon. 
+If not, you should enable the option "integration with WSL2" in the settings of your Docker Desktop.
+
+### Configure a first RNArtistCore project
+
 * type this command to create a fully configured project directory: 
   * using curl: ```bash -c "$(curl -fsSL https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore.sh)"```
   * using wget: ```bash -c "$(wget https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore.sh -O -)"```
