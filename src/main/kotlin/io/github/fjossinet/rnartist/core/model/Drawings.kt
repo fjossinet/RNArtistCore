@@ -1378,6 +1378,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
     }
 
     fun asSVG(frame:Rectangle2D, selectionFrame:Rectangle2D? = null, outputFile: File? = null):String {
+        //We simulate a draw with a graphics object. This allows to call the draw() functions and then to set everything fine (like for example the numbering labels that are created only if the draw() functions have been called.
         selectionFrame?.let {
             this.fitViewTo(frame, selectionFrame)
         } ?: run {
@@ -1386,6 +1387,28 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
         val at = AffineTransform()
         at.translate(this.workingSession.viewX, this.workingSession.viewY)
         at.scale(this.workingSession.zoomLevel, this.workingSession.zoomLevel)
+
+        var bufferedImage: BufferedImage?
+        bufferedImage = BufferedImage(
+            frame.width.toInt(),
+            frame.height.toInt(),
+            BufferedImage.TYPE_INT_ARGB
+        )
+        val g2 = bufferedImage.createGraphics()
+        g2.color = Color.WHITE
+        g2.fill(
+            Rectangle2D.Double(
+                0.0, 0.0, frame.width,
+                frame.height
+            )
+        )
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+        g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON)
+        g2.background = Color.white
+
+        this.draw(g2, at, Rectangle2D.Double(0.0, 0.0, frame.width, frame.height));
+        g2.dispose()
 
         val svgBuffer = StringBuffer("""<svg width="${frame.width}" height="${frame.height}" viewBox="0 0 ${frame.width} ${frame.height}"  xmlns="http://www.w3.org/2000/svg">""")
 
@@ -1466,6 +1489,9 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
 
     lateinit var residueLetter:ResidueLetterDrawing
 
+    var letterNumbering= mutableListOf<Triple<String, Float, Float>>()
+    var shapesNumbering= mutableListOf<Shape>()
+
     var center: Point2D = Point2D.Double(0.0,0.0)
         set(value) {
             field = value
@@ -1484,6 +1510,8 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
         }
 
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
+        this.letterNumbering.clear()
+        this.shapesNumbering.clear()
         if (this.isFullDetails()) {
             val _c = at.createTransformedShape(this.circle)
             g.color = this.getColor()
@@ -1519,6 +1547,40 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
             buffer.append(this.residueLetter.asSVG(at))
         }
         buffer.append("</g>")
+        letterNumbering.forEach {
+            buffer.append("<g>")
+            buffer.append(
+                if (RnartistConfig.exportSVGWithBrowserCompatibility())
+                    """<text x="${it.second}" y="${it.third}" text-anchor="middle" dy=".3em" style="fill:${
+                        getHTMLColorString(
+                            Color(
+                                Color.DARK_GRAY.red, Color.DARK_GRAY.green, Color.DARK_GRAY.blue,
+                                this.getOpacity()
+                            )
+                        )
+                    };font-family:${ssDrawing.workingSession.fontName};font-size:${ssDrawing.workingSession.fontSize-4};">${it.first}</text>"""
+                else
+                    """<text x="${it.second}" y="${it.third}" style="fill:${
+                        getHTMLColorString(
+                            Color(
+                                Color.DARK_GRAY.red, Color.DARK_GRAY.green, Color.DARK_GRAY.blue,
+                                this.getOpacity()
+                            )
+                        )
+                    };font-family:${ssDrawing.workingSession.fontName};font-size:${ssDrawing.workingSession.fontSize-4};">${it.first}</text>"""
+            )
+            buffer.append("</g>")
+        }
+        shapesNumbering.forEach {
+            buffer.append("<g>")
+            buffer.append(
+                """<circle cx="${it.bounds.centerX}" cy="${it.bounds.centerY}" r="${it.bounds.width/2}"  stroke-width="0.0" fill="${getHTMLColorString(Color(
+                    Color.DARK_GRAY.red, Color.DARK_GRAY.green, Color.DARK_GRAY.blue,
+                    this.getOpacity()
+                ))}"/>"""
+            )
+            buffer.append("</g>")
+        }
         return buffer.toString()
     }
 
@@ -1544,6 +1606,7 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
                 )
             )
             g.fill(e)
+            shapesNumbering.add(e as Shape)
 
             p = pointsFrom(
                 this.center,
@@ -1571,6 +1634,7 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
                 )
             )
             g.fill(e)
+            shapesNumbering.add(e as Shape)
 
             p = pointsFrom(
                 this.center,
@@ -1601,6 +1665,7 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
                 )
             )
             g.fill(e)
+            shapesNumbering.add(e as Shape)
 
             p = pointsFrom(
                 Point2D.Double(this.center.x, this.center.y + radiusConst),
@@ -1628,6 +1693,7 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
                     e!!.bounds2D.minX.toFloat() + transX,
                     e!!.bounds2D.minY.toFloat() + transY
                 )
+                letterNumbering.add(Triple("$absPos".substring(0, 1), e!!.bounds2D.minX.toFloat() + transX, e!!.bounds2D.minY.toFloat() + transY))
                 var i = 1
                 while (i < n) {
                     var _p = pointsFrom(
@@ -1654,6 +1720,7 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
                         e!!.bounds2D.minX.toFloat() + transX,
                         e!!.bounds2D.minY.toFloat() + transY
                     )
+                    letterNumbering.add(Triple("$absPos".substring(i, i + 1), e!!.bounds2D.minX.toFloat() + transX, e!!.bounds2D.minY.toFloat() + transY))
                     i++
                 }
             } else {
@@ -1662,6 +1729,7 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
                     e!!.bounds2D.minX.toFloat() + transX,
                     e!!.bounds2D.minY.toFloat() + transY
                 )
+                letterNumbering.add(Triple("$absPos".substring(n - 1, n), e!!.bounds2D.minX.toFloat() + transX, e!!.bounds2D.minY.toFloat() + transY))
                 var i = 1
                 while (i < n) {
                     var _p = pointsFrom(
@@ -1688,6 +1756,7 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
                         e!!.bounds2D.minX.toFloat() + transX,
                         e!!.bounds2D.minY.toFloat() + transY
                     )
+                    letterNumbering.add(Triple("$absPos".substring(n - 1 - i, n - i), e!!.bounds2D.minX.toFloat() + transX, e!!.bounds2D.minY.toFloat() + transY))
                     i++
                 }
             }
