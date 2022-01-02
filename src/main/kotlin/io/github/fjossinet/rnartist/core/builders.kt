@@ -11,11 +11,11 @@ import kotlin.random.Random
 
 class RNABuilder {
     var name: String = "A"
-    var sequence: String? = null
+    var seq: String? = null
     var length: Int? = null
 
     fun build(): RNA? {
-        this.sequence?.let {
+        this.seq?.let {
             return RNA(name, it)
         }
         this.length?.let {
@@ -49,12 +49,81 @@ class BracketNotationBuilder {
     }
 }
 
+class InteractionBuilder() {
+
+}
+
+class HelixBuilder() {
+
+    val locationBuilder = LocationBuilder()
+    var name: String? = null
+    private val interactionBuilders = mutableListOf<InteractionBuilder>() //non canonical secondary interactions
+
+    fun location(setup: LocationBuilder.() -> Unit) {
+        this.locationBuilder.setup()
+    }
+
+    fun interaction(setup:InteractionBuilder.() -> Unit) {
+        val interaction = InteractionBuilder()
+        interaction.setup()
+        interactionBuilders.add(interaction)
+    }
+
+    fun build():Helix {
+        val h = Helix(name ?: "MyHelix")
+        val location =locationBuilder.build()
+        for (i in location.start..location.start+location.length/2-1) {
+            val l = Location(Location(i), Location(location.end-(i-location.start)))
+            h.secondaryInteractions.add(BasePair(l, Edge.WC, Edge.WC, Orientation.cis))
+        }
+        return h
+    }
+
+}
+
 class SecondaryStructureBuilder {
 
     private var secondaryStructures = mutableListOf<SecondaryStructure>()
+    private val helixBuilders = mutableListOf<HelixBuilder>()
+    private val interactionBuilders = mutableListOf<InteractionBuilder>() //tertiary interactions
+    private var rnaBuilder:RNABuilder? = null
 
     fun build(): List<SecondaryStructure> {
+        this.rnaBuilder?.let { rnaBuilder ->
+            var helices = mutableListOf<Helix>()
+            helixBuilders.forEach {
+                helices.add(it.build())
+            }
+            helices.sortBy { it.start }
+            rnaBuilder.build()?.let { rna ->
+                val ss = SecondaryStructure(rna, helices = helices)
+                if (rnaBuilder.seq == null) {
+                    //this means that the sequence is a random one, but then nnot fitting the structural constraints. So we generate a new one fitting the constraints
+                    ss.randomizeSeq()
+                }
+                secondaryStructures.add(ss)
+            }
+        }
+
         return secondaryStructures
+    }
+
+    fun rna(setup: RNABuilder.() -> Unit) {
+        this.rnaBuilder = RNABuilder()
+        this.rnaBuilder?.setup()
+
+    }
+
+    fun helix(setup: HelixBuilder.() -> Unit) {
+        val helixBuilder = HelixBuilder()
+        helixBuilder.setup()
+        helixBuilders.add(helixBuilder)
+    }
+
+    fun interaction(setup: InteractionBuilder.() -> Unit) {
+        val interactionBuilder = InteractionBuilder()
+        interactionBuilder.setup()
+        interactionBuilders.add(interactionBuilder)
     }
 
     fun bn(setup: BracketNotationBuilder.() -> Unit) {
@@ -648,8 +717,9 @@ class LayoutBuilder {
         val layout = Layout()
         junctionLayoutBuilders.forEach { junctionLayoutBuilder ->
             if (!junctionLayoutBuilder.locationBuilder.isEmpty()) {
+                val l = junctionLayoutBuilder.locationBuilder.build()
                 val selection =
-                    { e: DrawingElement -> e is JunctionDrawing && e.inside(junctionLayoutBuilder.locationBuilder.build()) }
+                    { e: DrawingElement -> e is JunctionDrawing &&  e.inside(l) && l.blocks.size == e.location.blocks.size }
                 junctionLayoutBuilder.radius?.let { radius ->
                     layout.setConfigurationFor(selection, LayoutParameter.radius, radius.toString())
                 }
@@ -2522,7 +2592,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                             { e: DrawingElement ->
                                 (if (typesSelected.isEmpty()) true else typesSelected.contains(e.type)) && ((if (location == null) true else e.inside(
                                     location as Location
-                                )) && (e.location.start == position.toInt() && e.location.end == position.toInt()))
+                                )) && e.inside(Location(position.toInt())))
                             }
                         t.setConfigurationFor(
                             selection,
@@ -2563,7 +2633,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                         { e: DrawingElement ->
                             (if (typesSelected.isEmpty()) true else typesSelected.contains(e.type)) && ((if (location == null) true else e.inside(
                                 location as Location
-                            )) && (e.location.start == position.toInt() && e.location.end == position.toInt()))
+                            )) && e.inside(Location(position.toInt())))
                         }
                     t.setConfigurationFor(
                         selection,
@@ -2599,12 +2669,11 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
 
             if (data.isNotEmpty() && hideBuilder.filtered) { //if we have some data and the user filtered them
                 hideBuilder.data.forEach { position, value ->
-                    println("$position -> $value")
                     val selection =
                         { e: DrawingElement ->
                             (if (typesSelected.isEmpty()) true else typesSelected.contains(e.type)) && ((if (location == null) true else e.inside(
                                 location as Location
-                            )) && (e.location.start == position.toInt() && e.location.end == position.toInt()))
+                            )) && e.inside(Location(position.toInt())))
                         }
                     t.setConfigurationFor(
                         selection,
@@ -2644,7 +2713,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                         { e: DrawingElement ->
                             (if (typesSelected.isEmpty()) true else typesSelected.contains(e.type)) && ((if (location == null) true else e.inside(
                                 location as Location
-                            )) && e.location.start == position.toInt())
+                            )) && e.inside(Location(position.toInt())))
                         }
                     t.setConfigurationFor(
                         selection,
@@ -2770,8 +2839,6 @@ class LocationBuilder {
     }
 
 }
-
-fun rna(setup: RNABuilder.() -> Unit) = RNABuilder().apply { setup() }.build()
 
 fun ss(setup: SecondaryStructureBuilder.() -> Unit) = SecondaryStructureBuilder().apply { setup() }.build()
 

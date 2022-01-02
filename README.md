@@ -293,10 +293,119 @@ rnartist {
 
 ### <a name="ss"></a>The ```ss``` element
 
-You have three different ways to define a secondary structure:
-* from scratch using the element **```bn```** (meaning bracket notation)
+You have different ways to define a secondary structure:
+* using a single element  **```rna```** and at least one element **```helix```**
+* from a bracket notation using the element **```bn```**
 * from a file using the elements **```vienna```**, **```bpseq```**, **```ct```**, or **```stockholm```**
 * from a public database using the elements **```rfam```**, **```rnacentral```**, or **```pdb```**
+
+#### <a name="rna"></a>The ```rna``` and ```helix``` elements
+
+The ``rna``` element needs at least an attribute seq or an attribute length:
+* **seq** (mandatory in no length): the sequence of your molecule. If this parameter is not defined, a random sequence is computed. Each execution of the script will compute a different sequence.
+* **length** (mandatoryif no seq): the length of your molecule. If this parameter is defined, a random sequence is computed. Each execution of the script will compute a different sequence.
+* **name**: the name of the molecule (default: **```A```**)
+
+The ``helix``` element needs at least a location:
+* **name**: the name of the helix
+* **location** (mandatory): the location of the helix
+
+The parameter **```location```** needs to have the following format:
+
+```kotlin
+location {
+    1 to 10
+    30 to 40
+}
+```
+In this example, the location is made with absolute positions from 1 to 10 and 30 to 40 (inclusive). An object 2D is targeted if its own location is inside the one defined with this parameter.
+
+```kotlin
+rnartist {
+
+  png {
+    path = "media/"
+  }
+
+  ss {
+    rna {
+      seq = "ACAUAGCGUUCGCGCGUGUUCCUGUAGUUAAACUUAGAGUAUCUGUACUUAGAAUUAAUGUUGGAGGCCCAACAAUGGGUGUGGAUCAAUCGUAGUUAUUU"
+      name = "rna_and_helix_elements"
+    }
+    helix {
+      name = "H1"
+      location {
+        1 to 3
+        17 to 19
+      }
+    }
+    helix {
+      name = "H2"
+      location {
+        6 to 8
+        13 to 15
+      }
+    }
+    helix {
+      name = "H3"
+      location {
+        23 to 25
+        39 to 41
+      }
+    }
+    helix {
+      name = "H4"
+      location {
+        28 to 30
+        35 to 37
+      }
+    }
+    helix {
+      name = "H5"
+      location {
+        45 to 47
+        80 to 82
+      }
+    }
+    helix {
+      name = "H6"
+      location {
+        48 to 50
+        64 to 66
+      }
+    }
+    helix {
+      name = "H7"
+      location {
+        53 to 55
+        60 to 62
+      }
+    }
+    helix {
+      name = "H8"
+      location {
+        69 to 71
+        76 to 78
+      }
+    }
+    helix {
+      name = "H9"
+      location {
+        83 to 85
+        99 to 101
+      }
+    }
+    helix {
+      name = "H10"
+      location {
+        88 to 90
+        95 to 97
+      }
+    }
+  }
+}
+```
+
 
 #### <a name="bn"></a>The ```bn``` element
 

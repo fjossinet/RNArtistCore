@@ -4,6 +4,92 @@ java -jar rnartist_core.jar -c dsl_script_file
 
 The option ```-c``` check the syntax of the script before to run it. It prints the issues found.
 
+### 0.2.19-SNAPSHOT
+
+- the element ```rfam``` can contain an element ```rna``` and at least one element ```helix``` to describe a secondary structure.
+
+```kotlin
+rnartist {
+
+  ss {
+    rna {
+      seq = "ACAUAGCGUUCGCGCGUGUUCCUGUAGUUAAACUUAGAGUAUCUGUACUUAGAAUUAAUGUUGGAGGCCCAACAAUGGGUGUGGAUCAAUCGUAGUUAUUU"
+      name = "my RNA"
+    }
+    helix {
+      name = "H1"
+      location {
+        1 to 3
+        17 to 19
+      }
+    }
+    helix {
+      name = "H2"
+      location {
+        6 to 8
+        13 to 15
+      }
+    }
+    helix {
+      name = "H3"
+      location {
+        23 to 25
+        39 to 41
+      }
+    }
+    helix {
+      name = "H4"
+      location {
+        28 to 30
+        35 to 37
+      }
+    }
+    helix {
+      name = "H5"
+      location {
+        45 to 47
+        80 to 82
+      }
+    }
+    helix {
+      name = "H6"
+      location {
+        48 to 50
+        64 to 66
+      }
+    }
+    helix {
+      name = "H7"
+      location {
+        53 to 55
+        60 to 62
+      }
+    }
+    helix {
+      name = "H8"
+      location {
+        69 to 71
+        76 to 78
+      }
+    }
+    helix {
+      name = "H9"
+      location {
+        83 to 85
+        99 to 101
+      }
+    }
+    helix {
+      name = "H10"
+      location {
+        88 to 90
+        95 to 97
+      }
+    }
+  }
+}
+```
+
 ### 0.2.18-SNAPSHOT
 
 - the element ```rfam``` can contain an attribute named ```use alignment numbering```. If this attribute is set, the locations described in the script will be understood as locations in the original alignment. Check this [video](https://www.youtube.com/watch?v=cEFlneO_muE) for details

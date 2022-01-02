@@ -938,6 +938,95 @@ rnartist {
     }
 }
 
+rnartist {
+
+    png {
+        path = "media/"
+    }
+
+    ss {
+        rna {
+            seq = "ACAUAGCGUUCGCGCGUGUUCCUGUAGUUAAACUUAGAGUAUCUGUACUUAGAAUUAAUGUUGGAGGCCCAACAAUGGGUGUGGAUCAAUCGUAGUUAUUU"
+            name = "rna_and_helix_elements"
+        }
+        helix {
+            name = "H1"
+            location {
+                1 to 3
+                17 to 19
+            }
+        }
+        helix {
+            name = "H2"
+            location {
+                6 to 8
+                13 to 15
+            }
+        }
+        helix {
+            name = "H3"
+            location {
+                23 to 25
+                39 to 41
+            }
+        }
+        helix {
+            name = "H4"
+            location {
+                28 to 30
+                35 to 37
+            }
+        }
+        helix {
+            name = "H5"
+            location {
+                45 to 47
+                80 to 82
+            }
+        }
+        helix {
+            name = "H6"
+            location {
+                48 to 50
+                64 to 66
+            }
+        }
+        helix {
+            name = "H7"
+            location {
+                53 to 55
+                60 to 62
+            }
+        }
+        helix {
+            name = "H8"
+            location {
+                69 to 71
+                76 to 78
+            }
+        }
+        helix {
+            name = "H9"
+            location {
+                83 to 85
+                99 to 101
+            }
+        }
+        helix {
+            name = "H10"
+            location {
+                88 to 90
+                95 to 97
+            }
+        }
+    }
+    theme {
+        details {
+            value = 3
+        }
+    }
+}
+
 
 /*rnartist {
     file = "/project/media/hide_purines.svg"

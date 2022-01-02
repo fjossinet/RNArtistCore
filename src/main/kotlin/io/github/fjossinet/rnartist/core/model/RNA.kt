@@ -855,7 +855,7 @@ class Atom(val name:String):Serializable {
 
 }
 
-class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null, var source:DataSource? = null):Serializable {
+class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null, helices:List<Helix>? = null, var source:DataSource? = null):Serializable {
 
     var name:String = "2D for ${this.rna.name}"
     val tertiaryInteractions = mutableSetOf<BasePair>()
@@ -893,6 +893,10 @@ class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs
             }
         }
 
+        helices?.let {
+            this.helices.addAll(it)
+        }
+
         //do we have an aligned RNA sequence containing gaps??
         if (rna.seq.contains('-')) {
             var bps2Remove = arrayListOf<BasePair>()
@@ -903,9 +907,9 @@ class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs
             bps.removeAll(bps2Remove)
         }
 
-        if (bracketNotation != null || basePairs != null) { // to be sure to create a uniq single-strand only if no base-pairs in the bracket or basepairs list. If the seconday structure is created only with an RNA molecule, nothing is done at the structural level
+        if (bracketNotation != null || basePairs != null || this.helices.isNotEmpty()) { // to be sure to create a uniq single-strand only if no base-pairs in the bracket or basepairs list. If the secondary structure is created only with an RNA molecule, nothing is done at the structural level
 
-            if (!bps.isEmpty()) {
+            if (bps.isNotEmpty()) {
                 bps.sortBy { it.start }
                 val bpInHelix = mutableSetOf<BasePair>()
                 BASEPAIRS@ for (i in 0 until bps.size - 1) { //for each basepair with gather the successive stacked basepairs
@@ -962,6 +966,9 @@ class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs
                     this.helices.add(h)
                     bpInHelix.clear()
                 }
+            }
+
+            if (this.helices.isNotEmpty()) {
 
                 //since a residue can interact through 3 edges, it can be in several helices (it makes two different interactions, each one consecutive to another one, and then making two different helices)
                 //then we need to check if several helices contains the same position, and keep the longest one
