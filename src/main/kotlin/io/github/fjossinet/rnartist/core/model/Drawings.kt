@@ -142,10 +142,6 @@ class WorkingSession() {
     var viewX = 0.0
     var viewY = 0.0
     var zoomLevel = 1.0
-    var is_screen_capture = false
-    var screen_capture_area: Rectangle2D? = null
-    var screen_capture_transX = 0.0
-    var screen_capture_transY = 0.0
 
     val branchesDrawn = mutableListOf<JunctionDrawing>()
     val phosphoBondsLinkingBranchesDrawn = mutableListOf<BranchesLinkingPhosphodiesterBondDrawing>()

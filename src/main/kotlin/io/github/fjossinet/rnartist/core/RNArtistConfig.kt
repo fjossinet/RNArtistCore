@@ -1045,6 +1045,24 @@ object RnartistConfig {
         e?.removeChildren("file")
     }
 
+    @JvmStatic
+    var projectsFolder:String?
+        get() {
+            var e = document!!.rootElement.getChild("projects-folder")
+            if (e == null) {
+                return null
+            }
+            return e.text
+        }
+        set(folder) {
+            var e = document!!.rootElement.getChild("projects-folder")
+            if (e == null) {
+                e = Element("projects-folder")
+                document!!.rootElement.addContent(e)
+            }
+            e.text = folder
+        }
+
     data class GlobalProperties(var website: Map<String,String>)
 
     @JvmStatic

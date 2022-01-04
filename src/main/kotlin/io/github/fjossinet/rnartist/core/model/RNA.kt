@@ -242,7 +242,7 @@ class Location:Serializable {
     override fun toString() = this.description
 
     override fun equals(other: Any?): Boolean {
-        return other is Location && other.blocks.equals(this.blocks)
+        return other is Location && other.blocks.toTypedArray().contentEquals(this.blocks.toTypedArray())
     }
 }
 
