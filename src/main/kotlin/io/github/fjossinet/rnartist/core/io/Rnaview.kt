@@ -40,6 +40,11 @@ class Rnaview : Computation() {
                 for (ts in tertiaryStructures)
                     if (tertiaryStructures.indexOf(ts) + 1 == Integer.parseInt(ss.rna.name)) {
                         ss.rna.name = ts.rna.name
+                        val ns = mutableMapOf<Int,Int>()
+                        ts.getNumberingSystem().forEachIndexed { index, label ->
+                            ns[index] =  label.toInt()
+                        }
+                        ss.rna.numbering_system = ns
                         found = true
                         annotatedStructures.add(Pair(ts,ss))
                         if (ss.rna.length != ts.rna.length) {
@@ -49,34 +54,6 @@ class Rnaview : Computation() {
                     }
                 if (!found)
                     ss.rna.name = "?"  //should never happen
-            }
-        }
-        else if (System.getProperty("os.name") == "Windows 10") {
-            val pb = ProcessBuilder(File(getUserDir(), "rnaview.bat").absolutePath, pdb.absolutePath)
-            val p = pb.start()
-            p.waitFor()
-            val secondaryStructures = parseRnaml(File(pdb.parent, pdb.name + ".xml"))
-            secondaryStructures.forEach {
-                it.source = RnaviewSource()
-            }
-            File(pdb.parent, pdb.name + ".ps").delete()
-            File(pdb.parent, pdb.name + ".out").delete()
-            File(pdb.parent, pdb.name + ".xml").delete()
-            var found = false
-            val tertiaryStructures = parsePDB(FileReader(pdb))
-            for (ss in secondaryStructures) {
-                for (ts in tertiaryStructures)
-                    if (tertiaryStructures.indexOf(ts) + 1 == Integer.parseInt(ss.rna.name)) {
-                        ss.rna.name = ts.rna.name
-                        found = true
-                        annotatedStructures.add(Pair(ts,ss))
-                        if (ss.rna.length != ts.rna.length) {
-                            //TODO check if RNAVIEW has modified the RNA -> newTS (see below) like 1C0A
-                        }
-                        break
-                    }
-                if (!found)
-                    ss.rna.name = "?" //should never happen
             }
         }
         else {
@@ -118,20 +95,6 @@ class Rnaview : Computation() {
         return annotatedStructures
     }
 
-    init {
-        if (System.getProperty("os.name") == "Windows 10") {
-            try {
-                val destFile = File(getUserDir(), "rnaview.bat")
-                if (!destFile.exists()) {
-                    destFile.createNewFile()
-                    val inputUrl = Rnaview::class.java.getResource("/io/github/fjossinet/rnartist/core/model/io/rnaview.bat")
-                    FileUtils.copyURLToFile(inputUrl, destFile)
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        }
-    }
 }
 
 class RnaviewSource:ToolSource("no version available") {

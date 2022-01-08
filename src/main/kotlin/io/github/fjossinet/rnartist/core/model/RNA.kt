@@ -594,7 +594,7 @@ class TertiaryStructure(val rna: RNA):Serializable {
     var authors:String? = null
     var pubDate:String="To be published"
     var pdbId: String? = null
-    var source:String? = null
+    var source:DataSource? = null
 
     fun addResidue3D(absolutePosition: Int): Residue3D {
         var r: Residue3D = when(this.rna.getResidue(absolutePosition)) {
@@ -1395,6 +1395,17 @@ fun randomRNA(size:Int): RNA {
     return RNA("random rna", seq)
 }
 
+fun getSource(s:String): DataSource? {
+    val tokens = s.split(":")
+    return when (tokens.first()) {
+        "db" -> when(tokens[1]) {
+            "pdb" -> PDBSource(tokens.last())
+            else -> null
+        }
+        else -> null
+    }
+}
+
 interface DataSource {
     fun getId():String?
 }
@@ -1405,7 +1416,7 @@ class BracketNotation:DataSource {
     }
 
     override fun toString(): String {
-        return "from bracket notation"
+        return "local:bn"
     }
 }
 
@@ -1419,7 +1430,7 @@ class PDBSource(val pdbId:String):DatabaseSource() {
     }
 
     override fun toString(): String {
-        return "from PDB entry ${this.pdbId}"
+        return "db:pdb:${this.pdbId}"
     }
 }
 
@@ -1429,7 +1440,7 @@ class RfamSource(val rfamId:String):DatabaseSource() {
     }
 
     override fun toString(): String {
-        return "from Rfam entry ${this.rfamId}"
+        return "db:rfam:${this.rfamId}"
     }
 }
 
@@ -1440,7 +1451,7 @@ class FileSource(val fileName:String): DataSource {
     }
 
     override fun toString(): String {
-        return "from file ${this.fileName}"
+        return "local:file:${this.fileName}"
     }
 
 }

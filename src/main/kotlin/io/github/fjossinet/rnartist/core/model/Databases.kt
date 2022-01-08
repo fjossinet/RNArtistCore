@@ -30,7 +30,7 @@ class RNACentral {
                         name = id
                     }
 
-                }.forEach {
+                }.first.forEach {
                    it.source = RfamSource(id)
                    return it
                }

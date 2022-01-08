@@ -1315,6 +1315,8 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
             i.applyTheme(theme)
         for (r in this.residues)
             r.applyTheme(theme)
+        for (phospho in this.phosphoBonds)
+            phospho.applyTheme(theme)
     }
 
     fun applyAdvancedTheme(theme: AdvancedTheme) {
@@ -1332,6 +1334,8 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
             i.applyAdvancedTheme(theme)
         for (r in this.residues)
             r.applyAdvancedTheme(theme)
+        for (phospho in this.phosphoBonds)
+            phospho.applyAdvancedTheme(theme)
     }
 
     fun applyLayout(layout: Layout) {

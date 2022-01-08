@@ -73,7 +73,7 @@ fun parseDSLScript(reader: Reader): Pair<List<ScriptElement>, List<String>> {
     val text = reader.readText().replace(System.getProperty("line.separator"), "")
     //println(text)
     var elements = mutableListOf<ScriptElement>()
-    var regex = Regex("[a-z]+\\s?\\{") //this regexp matches "keyword {"
+    var regex = Regex("[a-z]+\\s+\\{") //this regexp matches "keyword {"
     val openBrackets = regex.findAll(text)
     regex = Regex("\\}")
     val closedBrackets = regex.findAll(text)
@@ -411,6 +411,7 @@ fun parseJSON(reader: Reader): SecondaryStructureDrawing {
 
     return parseProject(Project(secondaryStructure, layout, theme, ws));
 }
+
 
 class Project(val secondaryStructure: SecondaryStructure, val layout: Map<String, Map<String, String>>, val theme: Map<String, Map<String, Map<String, String>>>, val workingSession:WorkingSession)
 

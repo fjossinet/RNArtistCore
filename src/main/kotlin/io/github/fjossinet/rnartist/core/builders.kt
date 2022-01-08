@@ -84,11 +84,13 @@ class HelixBuilder() {
 class SecondaryStructureBuilder {
 
     private var secondaryStructures = mutableListOf<SecondaryStructure>()
+    private var tertiaryStructures = mutableListOf<TertiaryStructure>()
     private val helixBuilders = mutableListOf<HelixBuilder>()
     private val interactionBuilders = mutableListOf<InteractionBuilder>() //tertiary interactions
     private var rnaBuilder:RNABuilder? = null
+    var source:String? = null
 
-    fun build(): List<SecondaryStructure> {
+    fun build(): Pair<List<SecondaryStructure>, List<TertiaryStructure>> {
         this.rnaBuilder?.let { rnaBuilder ->
             var helices = mutableListOf<Helix>()
             helixBuilders.forEach {
@@ -101,11 +103,14 @@ class SecondaryStructureBuilder {
                     //this means that the sequence is a random one, but then nnot fitting the structural constraints. So we generate a new one fitting the constraints
                     ss.randomizeSeq()
                 }
+                source?.let {
+                    ss.source = getSource(it)
+                }
                 secondaryStructures.add(ss)
             }
         }
 
-        return secondaryStructures
+        return Pair(secondaryStructures, tertiaryStructures)
     }
 
     fun rna(setup: RNABuilder.() -> Unit) {
@@ -161,7 +166,8 @@ class SecondaryStructureBuilder {
     fun pdb(setup: PDBBuilder.() -> Unit) {
         val pdbBuilder = PDBBuilder()
         pdbBuilder.setup()
-        secondaryStructures.addAll(pdbBuilder.build())
+        secondaryStructures.addAll(pdbBuilder.build().map { it.second })
+        tertiaryStructures.addAll(pdbBuilder.build().map { it.first })
     }
 
     fun stockholm(setup: StockholmBuilder.() -> Unit) {
@@ -232,19 +238,58 @@ class SVGBuilder : OutputFileBuilder() {
 
 }
 
+class ChimeraBuilder {
+
+    var path: String? = null
+
+    fun build(drawing: SecondaryStructureDrawing, tertiaryStructures:List<TertiaryStructure>) {
+        path?.let { path ->
+            val chainName: String = drawing.secondaryStructure.rna.name
+            var numberingSystem: List<String>? = drawing.secondaryStructure.rna.numbering_system?.map { it.value.toString() }
+            //if no numbering system, we generate a fake one to be able to generate the ChimeraX script
+            if (numberingSystem == null)
+                numberingSystem =  (1..drawing.secondaryStructure.rna.length).map { it.toString()  }
+            if (numberingSystem != null) {
+                val colors2residues = mutableMapOf<String, MutableList<ResidueDrawing>>()
+                for (r in drawing.residues) {
+                    val coloredResidues = colors2residues.getOrDefault(getHTMLColorString(r.getColor()), mutableListOf())
+                    coloredResidues.add(r)
+                    colors2residues[getHTMLColorString(r.getColor())] = coloredResidues
+                }
+                (drawing.secondaryStructure.source as? PDBSource)?.let { pdbSource ->
+                    var command = StringBuffer("open \"https://files.rcsb.org/download/${pdbSource.pdbId}.pdb\"${System.lineSeparator()}")
+                    colors2residues.forEach { colorCode, residues ->
+                        command.append("color /${chainName}:")
+                        residues.forEach {
+                            command.append(numberingSystem[it.absPos - 1]+",")
+                            //command.append("${it.absPos},")
+                        }
+                        command = StringBuffer(command.removeSuffix(","))
+                        command.append(" ${colorCode}${System.lineSeparator()}")
+                    }
+                    val f = File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.cxc")
+                    f.writeText(command.toString())
+                }
+            }
+        }
+    }
+
+}
+
 open abstract class InputFileBuilder {
     var file: String? = null
 
     abstract fun build(): List<SecondaryStructure>
 }
 
-class PDBBuilder : InputFileBuilder() {
+class PDBBuilder {
 
+    var file: String? = null
     var name: String? = null
     var id: String? = null
 
-    override fun build(): List<SecondaryStructure> {
-        var secondaryStructures = listOf<SecondaryStructure>()
+    fun build(): List<Pair<TertiaryStructure,SecondaryStructure>> {
+        var structures = mutableListOf<Pair<TertiaryStructure,SecondaryStructure>>()
         if (this.id != null) {
             val pdbFile = File.createTempFile(this.id!!, ".pdb")
             pdbFile.writeText(PDB().getEntry(this.id!!).readText())
@@ -252,20 +297,22 @@ class PDBBuilder : InputFileBuilder() {
         }
         if (this.file != null) {
             try {
-                secondaryStructures = Rnaview().annotate(File(file)).map { pair -> pair.second }
-                secondaryStructures.forEach {
-                    it.source = if (this.id != null) PDBSource(this.id!!) else FileSource(this.file!!)
+                structures.addAll(Rnaview().annotate(File(file)))
+                structures.forEach {
+                    it.first.source = if (this.id != null) PDBSource(this.id!!) else FileSource(this.file!!)
+                    it.second.source = if (this.id != null) PDBSource(this.id!!) else FileSource(this.file!!)
+
                 }
             } catch (e: Exception) {
                 println(e.message)
             }
             if (this.name != null) {
-                secondaryStructures.forEach {
-                    if (it.rna.name.equals(this.name))
+                structures.forEach {
+                    if (it.second.rna.name.equals(this.name))
                         return arrayListOf(it)
                 }
             }
-            return secondaryStructures
+            return structures
         }
         return listOf()
     }
@@ -439,159 +486,6 @@ class OpenscadInputBuilder {
     }
 }
 
-class MalaBuilder {
-    var file: String? = null
-    var location = mutableMapOf<Int, Int>()
-    var secondaryStructures = mutableListOf<SecondaryStructure>()
-    var line = 2.0
-    var theme: AdvancedTheme? = null
-    var layout: Layout? = null
-    var data: MutableMap<String, Double> = mutableMapOf()
-
-    fun build() {
-        this.file?.let { outputFile ->
-            //if a location is defined, we zoom on it
-            if (!this.location.isEmpty()) {
-                this.location.let { ranges ->
-                    this.secondaryStructures.forEach { ss ->
-                        val drawing = SecondaryStructureDrawing(ss, WorkingSession())
-                        this.theme?.let { theme ->
-                            drawing.applyAdvancedTheme(theme)
-                        }
-                        this.layout?.let { layout ->
-                            drawing.applyLayout(layout)
-                        }
-
-                        val drawingFrame = Rectangle2D.Double(0.0, 0.0, 1024.0, 1024.0)
-
-                        var selectionFrame: Rectangle2D? = null
-
-                        val selectedLocation =
-                            Location(ranges.map { "${it.key}:${it.value - it.key + 1}" }.joinToString(","))
-
-                        val residuePositions = mutableListOf<Int>()
-
-                        ss.rna.numbering_system?.forEach { (real_pos, alignment_pos) ->
-                            if (selectedLocation.contains(alignment_pos)) {
-                                residuePositions.add(real_pos)
-                            }
-                        }
-
-                        val theme = AdvancedTheme()
-                        residuePositions.forEach {
-                            theme.setConfigurationFor(
-                                { e: DrawingElement -> e.inside(Location(it)) },
-                                ThemeParameter.color,
-                                "#fa0702"
-                            )
-                            theme.setConfigurationFor(
-                                { e: DrawingElement -> e.inside(Location(it)) },
-                                ThemeParameter.fulldetails,
-                                "true"
-                            )
-                        }
-
-                        drawing.applyAdvancedTheme(theme)
-
-                        for (selectedResidue in drawing.getResiduesFromAbsPositions(*residuePositions.toIntArray())) {
-                            selectionFrame = if (selectionFrame == null) {
-                                selectedResidue.selectionFrame?.bounds
-                            } else
-                                selectionFrame!!.createUnion(selectedResidue.selectionFrame?.bounds)
-                        }
-
-                        if (selectionFrame != null) {
-                            drawing.asSVG(
-                                drawingFrame,
-                                selectionFrame,
-                                File("${outputFile.split(".svg").first()}_${ss.rna.name.replace("/", "_")}.svg")
-                            )
-                        }
-                    }
-                }
-            } else { //if no location defined, we draw and zoom on each full 2D with different colors for each junction
-                val consensus2D = this.secondaryStructures.first()
-                //we choose the color for each junction defined in the consensus2D
-                val junctionColors = mutableListOf<String>()
-                var i = 0
-                while (i < consensus2D.junctions.size) {
-                    val rand_num: Int = Random.nextInt(0xffffff + 1)
-                    junctionColors.add(String.format("#%06x", rand_num))
-                    i++
-                }
-
-                this.secondaryStructures.forEach { ss ->
-                    val drawing = SecondaryStructureDrawing(ss, WorkingSession())
-                    this.theme?.let { theme ->
-                        drawing.applyAdvancedTheme(theme)
-                    }
-                    this.layout?.let { layout ->
-                        drawing.applyLayout(layout)
-                    }
-
-                    val theme = AdvancedTheme()
-                    i = 0
-                    consensus2D.junctions.forEach { junction ->
-                        val residuePositions = mutableListOf<Int>()
-
-                        if (ss == consensus2D)
-                            residuePositions.addAll(junction.location.positions)
-                        else
-                            ss.rna.numbering_system?.forEach { (real_pos, alignment_pos) ->
-                                if (junction.location.contains(alignment_pos))
-                                    residuePositions.add(real_pos)
-                            }
-
-                        residuePositions.forEach {
-                            theme.setConfigurationFor(
-                                { e: DrawingElement -> e.inside(Location(it)) },
-                                ThemeParameter.color,
-                                junctionColors[i]
-                            )
-                            theme.setConfigurationFor(
-                                { e: DrawingElement -> e.inside(Location(it)) },
-                                ThemeParameter.fulldetails,
-                                "true"
-                            )
-                        }
-                        i++
-                    }
-
-                    drawing.applyAdvancedTheme(theme)
-                    drawing.asSVG(
-                        frame = Rectangle2D.Double(0.0, 0.0, 1024.0, 1024.0),
-                        outputFile = File("${outputFile.split(".svg").first()}_${ss.rna.name.replace("/", "_")}.svg")
-                    )
-                }
-            }
-        }
-    }
-
-    fun ss(setup: SecondaryStructureBuilder.() -> Unit) {
-        val secondaryStructureBuilder = SecondaryStructureBuilder()
-        secondaryStructureBuilder.setup()
-        secondaryStructures.addAll(secondaryStructureBuilder.build())
-    }
-
-    fun theme(setup: ThemeBuilder.() -> Unit) {
-        val themeBuilder = ThemeBuilder(data)
-        themeBuilder.setup()
-        this.theme = themeBuilder.build()
-    }
-
-    fun layout(setup: LayoutBuilder.() -> Unit) {
-        val layoutBuilder = LayoutBuilder()
-        layoutBuilder.setup()
-        this.layout = layoutBuilder.build()
-    }
-
-    fun data(setup: DataBuilder.() -> Unit) {
-        val dataBuilder = DataBuilder()
-        dataBuilder.setup()
-        data = dataBuilder.data
-    }
-}
-
 class BooquetBuilder {
     var file: String? = null
     var width = 600.0
@@ -622,14 +516,17 @@ class BooquetBuilder {
     fun ss(setup: SecondaryStructureBuilder.() -> Unit) {
         val secondaryStructureBuilder = SecondaryStructureBuilder()
         secondaryStructureBuilder.setup()
-        secondaryStructures.addAll(secondaryStructureBuilder.build())
+        secondaryStructures.addAll(secondaryStructureBuilder.build().first)
     }
 
 }
 
 class RNArtistBuilder {
-    private var outputFileBuilder: OutputFileBuilder? = null
+    private var svgOutputBuilder: SVGBuilder? = null
+    private var pngOutputBuilder: PNGBuilder? = null
+    private var chimeraOutputBuilder: ChimeraBuilder? = null
     var secondaryStructures = mutableListOf<SecondaryStructure>()
+    var tertiaryStructures = mutableListOf<TertiaryStructure>()
     var theme: AdvancedTheme? = null
     var data: MutableMap<String, Double> = mutableMapOf()
     private var layout: Layout? = null
@@ -644,8 +541,9 @@ class RNArtistBuilder {
             this.layout?.let { layout ->
                 drawing.applyLayout(layout)
             }
-            this.outputFileBuilder?.build(drawing)
-
+            this.pngOutputBuilder?.build(drawing)
+            this.svgOutputBuilder?.build(drawing)
+            this.chimeraOutputBuilder?.build(drawing, tertiaryStructures)
             drawings.add(drawing)
         }
         return drawings
@@ -654,7 +552,8 @@ class RNArtistBuilder {
     fun ss(setup: SecondaryStructureBuilder.() -> Unit) {
         val secondaryStructureBuilder = SecondaryStructureBuilder()
         secondaryStructureBuilder.setup()
-        secondaryStructures.addAll(secondaryStructureBuilder.build())
+        secondaryStructures.addAll(secondaryStructureBuilder.build().first)
+        tertiaryStructures.addAll(secondaryStructureBuilder.build().second)
     }
 
     fun theme(setup: ThemeBuilder.() -> Unit) {
@@ -676,13 +575,18 @@ class RNArtistBuilder {
     }
 
     fun svg(setup: SVGBuilder.() -> Unit) {
-        this.outputFileBuilder = SVGBuilder()
-        (outputFileBuilder as SVGBuilder).setup()
+        this.svgOutputBuilder = SVGBuilder()
+        this.svgOutputBuilder?.setup()
     }
 
     fun png(setup: PNGBuilder.() -> Unit) {
-        this.outputFileBuilder = PNGBuilder()
-        (outputFileBuilder as PNGBuilder).setup()
+        this.pngOutputBuilder = PNGBuilder()
+        this.pngOutputBuilder?.setup()
+    }
+
+    fun chimera(setup: ChimeraBuilder.() -> Unit) {
+        this.chimeraOutputBuilder = ChimeraBuilder()
+        this.chimeraOutputBuilder?.setup()
     }
 
 }
@@ -2843,8 +2747,6 @@ class LocationBuilder {
 fun ss(setup: SecondaryStructureBuilder.() -> Unit) = SecondaryStructureBuilder().apply { setup() }.build()
 
 fun bn(setup: BracketNotationBuilder.() -> Unit) = BracketNotationBuilder().apply { setup() }.build()
-
-fun mala(setup: MalaBuilder.() -> Unit) = MalaBuilder().apply { setup() }.build()
 
 fun booquet(setup: BooquetBuilder.() -> Unit) = BooquetBuilder().apply { setup() }.build()
 
