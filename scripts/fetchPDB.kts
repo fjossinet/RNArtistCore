@@ -43,7 +43,7 @@ ids.forEach { pdbId ->
                 pdb {
                     file = pdbFile.absolutePath
                 }
-            }.forEach {
+            }.first.forEach {
                 val s = mutableListOf("[${pdbId}](https://www.rcsb.org/structure/${pdbId})")
                 s.add(it.rna.name)
                 var found = false

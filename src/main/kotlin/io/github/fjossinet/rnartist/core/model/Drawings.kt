@@ -314,7 +314,7 @@ abstract class DrawingElement(val ssDrawing: SecondaryStructureDrawing, var pare
 
     var drawingConfiguration: DrawingConfiguration = DrawingConfiguration()
 
-    open val selectionPoints:List<Point2D> = mutableListOf<Point2D>()
+    open val selectionPoints:List<Point2D> = mutableListOf()
 
     val selectionFrame:Shape?
         get() {
@@ -944,9 +944,9 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
         this.workingSession.setFont(g, this.residues.first())
     }
 
-    fun fitViewTo(frame:Rectangle2D, selectionFrame:Rectangle2D) {
-        val widthRatio = selectionFrame.bounds2D!!.width / frame.bounds2D.width
-        val heightRatio = selectionFrame.bounds2D!!.height / frame.bounds2D.height
+    fun fitViewTo(frame:Rectangle2D, selectionFrame:Rectangle2D, ratio:Double = 1.0) {
+        val widthRatio = selectionFrame.bounds2D!!.width*ratio / frame.bounds2D.width
+        val heightRatio = selectionFrame.bounds2D!!.height*ratio / frame.bounds2D.height
         this.workingSession.zoomLevel =
             if (widthRatio > heightRatio) 1.0 / widthRatio else 1.0 / heightRatio
         var at = AffineTransform()
@@ -1344,6 +1344,10 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
     }
 
     fun asPNG(frame:Rectangle2D, selectionFrame:Rectangle2D? = null, outputFile: File) {
+        val previousViewX = this.workingSession.viewX
+        val previousViewY = this.workingSession.viewY
+        val previousZoomLevel = this.workingSession.zoomLevel
+
         selectionFrame?.let {
             this.fitViewTo(frame, selectionFrame)
         } ?: run {
@@ -1375,9 +1379,16 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
         this.draw(g2, at, Rectangle2D.Double(0.0, 0.0, frame.width, frame.height));
         g2.dispose()
         ImageIO.write(bufferedImage, "PNG", outputFile)
+        this.workingSession.viewX = previousViewX
+        this.workingSession.viewY = previousViewY
+        this.workingSession.zoomLevel = previousZoomLevel
     }
 
     fun asSVG(frame:Rectangle2D, selectionFrame:Rectangle2D? = null, outputFile: File? = null):String {
+        val previousViewX = this.workingSession.viewX
+        val previousViewY = this.workingSession.viewY
+        val previousZoomLevel = this.workingSession.zoomLevel
+
         //We simulate a draw with a graphics object. This allows to call the draw() functions and then to set everything fine (like for example the numbering labels that are created only if the draw() functions have been called.
         selectionFrame?.let {
             this.fitViewTo(frame, selectionFrame)
@@ -1445,6 +1456,10 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
             writer.println(svgBuffer.toString())
             writer.close()
         }
+
+        this.workingSession.viewX = previousViewX
+        this.workingSession.viewY = previousViewY
+        this.workingSession.zoomLevel = previousZoomLevel
 
         return svgBuffer.toString()
 
@@ -2679,14 +2694,10 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
         }
     }
 
-    override open fun applyLayout(layout: Layout)  {
+    override fun applyLayout(layout: Layout)  {
         layout.configurations.entries.forEach { entry ->
             if (entry.key(this)) {
                 when(entry.value.first) {
-                    LayoutParameter.radius.toString() -> {
-                        radius = entry.value.second.toDouble()
-                        ssDrawing.computeResidues(this)
-                    }
                     LayoutParameter.center.toString() -> {}
                     LayoutParameter.in_id.toString() -> {}
                     LayoutParameter.out_ids.toString() -> {
@@ -2694,6 +2705,10 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
                             ConnectorId.valueOf(it)
                         }
                         currentLayout = connectors.toMutableList()
+                        ssDrawing.computeResidues(this)
+                    }
+                    LayoutParameter.radius.toString() -> {
+                        radius = entry.value.second.toDouble()
                         ssDrawing.computeResidues(this)
                     }
                 }

@@ -81,6 +81,7 @@ Please note that this is still a work under development and that all instruction
 * [The **```rnartist```** element](#rnartist)
 * [The **```svg```** and **```png```** elements](#output) 
 * [The **```ss```** element](#ss)
+  * [The **```parts```** element](#parts)
   * [The **```bn```** element](#bn)
   * [The ```bpseq```, ```ct```, ```vienna```, ```pdb``` and ```stockholm``` elements](#file)
   * [The ```rfam``` and ```pdb``` elements](#database)
@@ -294,14 +295,16 @@ rnartist {
 ### <a name="ss"></a>The ```ss``` element
 
 You have different ways to define a secondary structure:
-* using a single element  **```rna```** and at least one element **```helix```**
+* by describing all the structural elements yourself using the element **```raw```**
 * from a bracket notation using the element **```bn```**
 * from a file using the elements **```vienna```**, **```bpseq```**, **```ct```**, or **```stockholm```**
 * from a public database using the elements **```rfam```**, **```rnacentral```**, or **```pdb```**
 
-#### <a name="rna"></a>The ```rna``` and ```helix``` elements
+#### <a name="parts"></a>The ```parts``` element
 
-The ``rna``` element needs at least an attribute seq or an attribute length:
+Inside an element ```parts```, you need to describe your 2D with the elements ```rna``` and ```helix``` 
+
+The element ``rna``` needs at least an attribute seq or an attribute length:
 * **seq** (mandatory in no length): the sequence of your molecule. If this parameter is not defined, a random sequence is computed. Each execution of the script will compute a different sequence.
 * **length** (mandatoryif no seq): the length of your molecule. If this parameter is defined, a random sequence is computed. Each execution of the script will compute a different sequence.
 * **name**: the name of the molecule (default: **```A```**)
@@ -328,84 +331,85 @@ rnartist {
   }
 
   ss {
-    rna {
-      seq = "ACAUAGCGUUCGCGCGUGUUCCUGUAGUUAAACUUAGAGUAUCUGUACUUAGAAUUAAUGUUGGAGGCCCAACAAUGGGUGUGGAUCAAUCGUAGUUAUUU"
-      name = "rna_and_helix_elements"
-    }
-    helix {
-      name = "H1"
-      location {
-        1 to 3
-        17 to 19
+    parts {
+      rna {
+        seq = "ACAUAGCGUUCGCGCGUGUUCCUGUAGUUAAACUUAGAGUAUCUGUACUUAGAAUUAAUGUUGGAGGCCCAACAAUGGGUGUGGAUCAAUCGUAGUUAUUU"
+        name = "rna_and_helix_elements"
       }
-    }
-    helix {
-      name = "H2"
-      location {
-        6 to 8
-        13 to 15
+      helix {
+        name = "H1"
+        location {
+          1 to 3
+          17 to 19
+        }
       }
-    }
-    helix {
-      name = "H3"
-      location {
-        23 to 25
-        39 to 41
+      helix {
+        name = "H2"
+        location {
+          6 to 8
+          13 to 15
+        }
       }
-    }
-    helix {
-      name = "H4"
-      location {
-        28 to 30
-        35 to 37
+      helix {
+        name = "H3"
+        location {
+          23 to 25
+          39 to 41
+        }
       }
-    }
-    helix {
-      name = "H5"
-      location {
-        45 to 47
-        80 to 82
+      helix {
+        name = "H4"
+        location {
+          28 to 30
+          35 to 37
+        }
       }
-    }
-    helix {
-      name = "H6"
-      location {
-        48 to 50
-        64 to 66
+      helix {
+        name = "H5"
+        location {
+          45 to 47
+          80 to 82
+        }
       }
-    }
-    helix {
-      name = "H7"
-      location {
-        53 to 55
-        60 to 62
+      helix {
+        name = "H6"
+        location {
+          48 to 50
+          64 to 66
+        }
       }
-    }
-    helix {
-      name = "H8"
-      location {
-        69 to 71
-        76 to 78
+      helix {
+        name = "H7"
+        location {
+          53 to 55
+          60 to 62
+        }
       }
-    }
-    helix {
-      name = "H9"
-      location {
-        83 to 85
-        99 to 101
+      helix {
+        name = "H8"
+        location {
+          69 to 71
+          76 to 78
+        }
       }
-    }
-    helix {
-      name = "H10"
-      location {
-        88 to 90
-        95 to 97
+      helix {
+        name = "H9"
+        location {
+          83 to 85
+          99 to 101
+        }
+      }
+      helix {
+        name = "H10"
+        location {
+          88 to 90
+          95 to 97
+        }
       }
     }
   }
 }
 ```
-
 
 #### <a name="bn"></a>The ```bn``` element
 

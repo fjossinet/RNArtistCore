@@ -7,7 +7,6 @@ import java.awt.geom.Rectangle2D
 import java.io.File
 import java.io.FileReader
 import java.lang.Exception
-import kotlin.random.Random
 
 class RNABuilder {
     var name: String = "A"
@@ -25,6 +24,54 @@ class RNABuilder {
         }
         return null
     }
+}
+
+class PartsBuilder {
+
+    private val helixBuilders = mutableListOf<HelixBuilder>()
+    private val interactionBuilders = mutableListOf<InteractionBuilder>() //tertiary interactions
+    private var rnaBuilder:RNABuilder? = null
+    var source:String? = null
+
+    fun rna(setup: RNABuilder.() -> Unit) {
+        this.rnaBuilder = RNABuilder()
+        this.rnaBuilder?.setup()
+    }
+
+    fun helix(setup: HelixBuilder.() -> Unit) {
+        val helixBuilder = HelixBuilder()
+        helixBuilder.setup()
+        helixBuilders.add(helixBuilder)
+    }
+
+    fun interaction(setup: InteractionBuilder.() -> Unit) {
+        val interactionBuilder = InteractionBuilder()
+        interactionBuilder.setup()
+        interactionBuilders.add(interactionBuilder)
+    }
+
+    fun build():SecondaryStructure? {
+        this.rnaBuilder?.let { rnaBuilder ->
+            var helices = mutableListOf<Helix>()
+            helixBuilders.forEach {
+                helices.add(it.build())
+            }
+            helices.sortBy { it.start }
+            rnaBuilder.build()?.let { rna ->
+                val ss = SecondaryStructure(rna, helices = helices)
+                if (rnaBuilder.seq == null) {
+                    //this means that the sequence is a random one, but then nnot fitting the structural constraints. So we generate a new one fitting the constraints
+                    ss.randomizeSeq()
+                }
+                source?.let {
+                    ss.source = getSource(it)
+                }
+                return ss
+            }
+        }
+        return null
+    }
+
 }
 
 class BracketNotationBuilder {
@@ -85,50 +132,17 @@ class SecondaryStructureBuilder {
 
     private var secondaryStructures = mutableListOf<SecondaryStructure>()
     private var tertiaryStructures = mutableListOf<TertiaryStructure>()
-    private val helixBuilders = mutableListOf<HelixBuilder>()
-    private val interactionBuilders = mutableListOf<InteractionBuilder>() //tertiary interactions
-    private var rnaBuilder:RNABuilder? = null
-    var source:String? = null
 
     fun build(): Pair<List<SecondaryStructure>, List<TertiaryStructure>> {
-        this.rnaBuilder?.let { rnaBuilder ->
-            var helices = mutableListOf<Helix>()
-            helixBuilders.forEach {
-                helices.add(it.build())
-            }
-            helices.sortBy { it.start }
-            rnaBuilder.build()?.let { rna ->
-                val ss = SecondaryStructure(rna, helices = helices)
-                if (rnaBuilder.seq == null) {
-                    //this means that the sequence is a random one, but then nnot fitting the structural constraints. So we generate a new one fitting the constraints
-                    ss.randomizeSeq()
-                }
-                source?.let {
-                    ss.source = getSource(it)
-                }
-                secondaryStructures.add(ss)
-            }
-        }
-
         return Pair(secondaryStructures, tertiaryStructures)
     }
 
-    fun rna(setup: RNABuilder.() -> Unit) {
-        this.rnaBuilder = RNABuilder()
-        this.rnaBuilder?.setup()
-
-    }
-
-    fun helix(setup: HelixBuilder.() -> Unit) {
-        val helixBuilder = HelixBuilder()
-        helixBuilder.setup()
-        helixBuilders.add(helixBuilder)
-    }
-
-    fun interaction(setup: InteractionBuilder.() -> Unit) {
-        val interactionBuilder = InteractionBuilder()
-        interactionBuilder.setup()
-        interactionBuilders.add(interactionBuilder)
+    fun parts(setup:PartsBuilder.() -> Unit) {
+        val partsBuilder = PartsBuilder()
+        partsBuilder.setup()
+        partsBuilder.build()?.let {
+            secondaryStructures.add(it)
+        }
     }
 
     fun bn(setup: BracketNotationBuilder.() -> Unit) {
@@ -174,6 +188,12 @@ class SecondaryStructureBuilder {
         val stockholmBuilder = StockholmBuilder()
         stockholmBuilder.setup()
         secondaryStructures.addAll(stockholmBuilder.build())
+    }
+
+    fun rnacentral(setup: RNACentralBuilder.() -> Unit) {
+        val rnaCentralBuilder = RNACentralBuilder()
+        rnaCentralBuilder.setup()
+        secondaryStructures.addAll(rnaCentralBuilder.build())
     }
 
 }
@@ -423,6 +443,20 @@ class RfamBuilder : PublicDatabaseBuilder() {
     }
 }
 
+class RNACentralBuilder : PublicDatabaseBuilder() {
+
+    override fun build(): List<SecondaryStructure> {
+        this.id?.let { id ->
+            val secondaryStructure = RNACentral().fetch(id)
+            secondaryStructure?.let {
+                it.source = RnaCentralSource(id)
+                return listOf(secondaryStructure)
+            }
+        }
+        return listOf()
+    }
+}
+
 class OpenScadBuilder {
     var output: String? = null
     var annotatedStructures = mutableListOf<Pair<TertiaryStructure, SecondaryStructure>>()
@@ -622,22 +656,26 @@ class LayoutBuilder {
         junctionLayoutBuilders.forEach { junctionLayoutBuilder ->
             if (!junctionLayoutBuilder.locationBuilder.isEmpty()) {
                 val l = junctionLayoutBuilder.locationBuilder.build()
-                val selection =
-                    { e: DrawingElement -> e is JunctionDrawing &&  e.inside(l) && l.blocks.size == e.location.blocks.size }
                 junctionLayoutBuilder.radius?.let { radius ->
+                    val selection =
+                        { e: DrawingElement -> e is JunctionDrawing &&  e.inside(l) && l.blocks.size == e.location.blocks.size }
                     layout.setConfigurationFor(selection, LayoutParameter.radius, radius.toString())
                 }
                 junctionLayoutBuilder.out_ids?.let { out_ids ->
+                    val selection =
+                        { e: DrawingElement -> e is JunctionDrawing &&  e.inside(l) && l.blocks.size == e.location.blocks.size }
                     layout.setConfigurationFor(selection, LayoutParameter.out_ids, out_ids)
                 }
             } else {
                 junctionLayoutBuilder.name?.let { name ->
-                    val selection =
-                        { e: DrawingElement -> e is JunctionDrawing && e.name.equals(name) }
                     junctionLayoutBuilder.radius?.let { radius ->
+                        val selection =
+                            { e: DrawingElement -> e is JunctionDrawing && e.name.equals(name) }
                         layout.setConfigurationFor(selection, LayoutParameter.radius, radius.toString())
                     }
                     junctionLayoutBuilder.out_ids?.let { out_ids ->
+                        val selection =
+                            { e: DrawingElement -> e is JunctionDrawing && e.name.equals(name) }
                         layout.setConfigurationFor(selection, LayoutParameter.out_ids, out_ids)
                     }
                 } ?: run {

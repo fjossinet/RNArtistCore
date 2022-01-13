@@ -64,6 +64,13 @@ class ScriptElement(var name:String, content:String, val start:Int, val end:Int,
             return this.children.map { it.children.contains(el) }.contains(true)
     }
 
+    fun getAllElements(elements:MutableList<ScriptElement>){
+        elements.add(this)
+        this.children.forEach {
+            it.getAllElements(elements)
+        }
+    }
+
 }
 
 /**

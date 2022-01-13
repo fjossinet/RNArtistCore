@@ -4,6 +4,51 @@ java -jar rnartist_core.jar -c dsl_script_file
 
 The option ```-c``` check the syntax of the script before to run it. It prints the issues found.
 
+### 0.2.21-SNAPSHOT
+
+- to avoid to mix the description of a 2D with other elements, details for a 2D are inside a element named ```parts``` 
+
+```kotlin
+//before
+rnartist {
+    ss {
+        rna {
+            seq =
+                "ACAUAGCGUUCGCGCGUGUUCCUGUAGUUAAACUUAGAGUAUCUGUACUUAGAAUUAAUGUUGGAGGCCCAACAAUGGGUGUGGAUCAAUCGUAGUUAUUU"
+            name = "my RNA"
+        }
+        helix {
+            name = "H1"
+            location {
+                1 to 3
+                17 to 19
+            }
+        }
+    }
+}
+
+//now
+
+rnartist {
+    ss {
+        parts {
+            rna {
+                seq =
+                    "ACAUAGCGUUCGCGCGUGUUCCUGUAGUUAAACUUAGAGUAUCUGUACUUAGAAUUAAUGUUGGAGGCCCAACAAUGGGUGUGGAUCAAUCGUAGUUAUUU"
+                name = "my RNA"
+            }
+            helix {
+                name = "H1"
+                location {
+                    1 to 3
+                    17 to 19
+                }
+            }
+        }
+    }
+}
+```
+
 ### 0.2.20-SNAPSHOT
 
 - if the 2D has been computed from a PDB file, the new element chimera allows to export the 2D theme (residue colors) as a chimera script (cxc file). Combined with the elements ```svg``` and/or ```png```, this allows to have 2D and 3D pictures with the same coloring scheme.
@@ -14,7 +59,7 @@ rnartist {
         path = "my_output_dir/"
     }
 
-    scg {
+    svg {
         path = "my_output_dir/"
     }
 

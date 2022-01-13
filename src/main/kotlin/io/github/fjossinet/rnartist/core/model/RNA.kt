@@ -1434,6 +1434,16 @@ class PDBSource(val pdbId:String):DatabaseSource() {
     }
 }
 
+class RnaCentralSource(val rnacentralId:String):DatabaseSource() {
+    override fun getId():String {
+        return this.rnacentralId
+    }
+
+    override fun toString(): String {
+        return "db:rnacentral:${this.rnacentralId}"
+    }
+}
+
 class RfamSource(val rfamId:String):DatabaseSource() {
     override fun getId():String {
         return this.rfamId

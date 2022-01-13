@@ -27,13 +27,13 @@ class Rnaview : Computation() {
             )
             val p = pb.start()
             p.waitFor()
-            val secondaryStructures = parseRnaml(File(pdb.parent, pdb.name + ".xml"))
+            val secondaryStructures = parseRnaml(File("${pdb.absolutePath}.xml"))
             secondaryStructures.forEach {
                 it.source = RnaviewSource()
             }
-            File(pdb.parent, pdb.name + ".ps").delete()
-            File(pdb.parent, pdb.name + ".out").delete()
-            File(pdb.parent, pdb.name + ".xml").delete()
+            File("${pdb.absolutePath}.ps").delete()
+            File("${pdb.absolutePath}.out").delete()
+            File("${pdb.absolutePath}.xml").delete()
             var found = false
             val tertiaryStructures = parsePDB(FileReader(pdb))
             for (ss in secondaryStructures) {
@@ -65,13 +65,13 @@ class Rnaview : Computation() {
                 )
                 val p = pb.start()
                 p.waitFor()
-                val secondaryStructures = parseRnaml(File(pdb.parent, pdb.name + ".xml"))
+                val secondaryStructures = parseRnaml(File("${pdb.absolutePath}.xml"))
                 secondaryStructures.forEach {
                     it.source = RnaviewSource()
                 }
-                File(pdb.parent, pdb.name + ".ps").delete()
-                File(pdb.parent, pdb.name + ".out").delete()
-                File(pdb.parent, pdb.name + ".xml").delete()
+                File("${pdb.absolutePath}.ps").delete()
+                File("${pdb.absolutePath}.out").delete()
+                File("${pdb.absolutePath}.xml").delete()
                 var found = false
                 val tertiaryStructures = parsePDB(FileReader(pdb))
                 for (ss in secondaryStructures) {
