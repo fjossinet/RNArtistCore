@@ -658,24 +658,95 @@ class LayoutBuilder {
                 val l = junctionLayoutBuilder.locationBuilder.build()
                 junctionLayoutBuilder.radius?.let { radius ->
                     val selection =
-                        { e: DrawingElement -> e is JunctionDrawing &&  e.inside(l) && l.blocks.size == e.location.blocks.size }
+                        { e: DrawingElement -> Pair(e is JunctionDrawing &&  e.inside(l) && l.blocks.size == e.location.blocks.size, null) }
                     layout.setConfigurationFor(selection, LayoutParameter.radius, radius.toString())
                 }
                 junctionLayoutBuilder.out_ids?.let { out_ids ->
+
+                    /*val selection =
+                        { e: DrawingElement ->
+                            e is JunctionDrawing && e.inside(l) && l.blocks.size == e.location.blocks.size
+                        }*/
+
                     val selection =
-                        { e: DrawingElement -> e is JunctionDrawing &&  e.inside(l) && l.blocks.size == e.location.blocks.size }
+                        { e: DrawingElement ->
+                            val new_out_ids = StringBuilder()
+                            (e as? JunctionDrawing)?.let { junctionDrawing ->
+                                var i = 0
+//                                if needed, to debug this code section, use Rfam entry RF00011 and RNA X69982.1/45-449. It has a 6-way junction in the consensus that becomes 5-way for this RNA.
+//                                if ("X69982.1/45-449".equals(junctionDrawing.ssDrawing.secondaryStructure.rna.name) && junctionDrawing.location.start == 88)
+//                                    println("Search to apply out_ids ${out_ids} to junction ${junctionDrawing.location}")
+                                while (i < l.blocks.size-1) {
+                                    val helicalBpInJunction = Location(Location(l.blocks[i].end), Location(l.blocks[i+1].start))
+//                                    if ("X69982.1/45-449".equals(junctionDrawing.ssDrawing.secondaryStructure.rna.name) && junctionDrawing.location.start == 88) {
+//                                        println("############## bp in junction ${helicalBpInJunction}")
+//                                    }
+                                    junctionDrawing.outHelices.forEach { helixDrawing ->
+                                        var helixLocation:Location? = null
+                                        junctionDrawing.ssDrawing.secondaryStructure.rna.numbering_system?.let { ns ->
+                                            helixLocation = Location(
+                                                Location(
+                                                    ns[helixDrawing.secondaryInteractions.first().location.start - 1]!!,
+                                                    ns[helixDrawing.secondaryInteractions.last().location.start + 1]!!
+                                                ),
+                                                Location(
+                                                    ns[helixDrawing.secondaryInteractions.last().location.end - 1]!!,
+                                                    ns[helixDrawing.secondaryInteractions.first().location.end + 1]!!
+                                                )
+                                            )
+                                        } ?: run {
+                                            helixLocation = Location(
+                                                Location(
+                                                    helixDrawing.secondaryInteractions.first().location.start - 1,
+                                                    helixDrawing.secondaryInteractions.last().location.start + 1
+                                                ),
+                                                Location(
+                                                    helixDrawing.secondaryInteractions.last().location.end - 1,
+                                                    helixDrawing.secondaryInteractions.first().location.end + 1
+                                                )
+                                            )
+                                        }
+
+//                                        if ("X69982.1/45-449".equals(junctionDrawing.ssDrawing.secondaryStructure.rna.name) && junctionDrawing.location.start == 88) {
+//                                            println("According to the ns this bp should be located in ${helixLocation}")
+//                                        }
+                                        helixLocation?.let {
+                                            //If the basepair in junction is contained in this helix location, we catched the helix that should have the out_id orientation at i
+                                            if (it.contains(helicalBpInJunction)) {
+//                                                if ("X69982.1/45-449".equals(junctionDrawing.ssDrawing.secondaryStructure.rna.name) && junctionDrawing.location.start == 88) {
+//                                                    println("-------> Got it")
+//                                                }
+                                                new_out_ids.append(out_ids.split(" ")[i])
+                                                new_out_ids.append(" ")
+                                            }
+                                        }
+                                    }
+                                    i++
+                                }
+//                                if ("X69982.1/45-449".equals(junctionDrawing.ssDrawing.secondaryStructure.rna.name) && junctionDrawing.location.start == 88)
+//                                    println("out ids recomputed to ${new_out_ids.toString().trim()}")
+                                if (new_out_ids.toString().trim().split(" ").size != junctionDrawing.outHelices.size) {
+                                    new_out_ids.clear()
+                                    new_out_ids.append(out_ids)
+                                }
+                            }
+                            if (new_out_ids.isNotEmpty()) {
+                                Pair(new_out_ids.toString().trim().split(" ").size == (e as JunctionDrawing).outHelices.size, new_out_ids.toString().trim())
+                            } else
+                                Pair(false, null)
+                        }
                     layout.setConfigurationFor(selection, LayoutParameter.out_ids, out_ids)
                 }
             } else {
                 junctionLayoutBuilder.name?.let { name ->
                     junctionLayoutBuilder.radius?.let { radius ->
                         val selection =
-                            { e: DrawingElement -> e is JunctionDrawing && e.name.equals(name) }
+                            { e: DrawingElement -> Pair(e is JunctionDrawing && e.name.equals(name), null) }
                         layout.setConfigurationFor(selection, LayoutParameter.radius, radius.toString())
                     }
                     junctionLayoutBuilder.out_ids?.let { out_ids ->
                         val selection =
-                            { e: DrawingElement -> e is JunctionDrawing && e.name.equals(name) }
+                            { e: DrawingElement -> Pair(e is JunctionDrawing && e.name.equals(name), null) }
                         layout.setConfigurationFor(selection, LayoutParameter.out_ids, out_ids)
                     }
                 } ?: run {

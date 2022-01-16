@@ -8,8 +8,8 @@ import java.util.*
  *
  * @param start the first position
  * @param end the last position
-*/
-class Block(start:Int,end:Int):Serializable {
+ */
+class Block(start: Int, end: Int) : Serializable {
 
     /**
      * Returns the first position for the block
@@ -24,7 +24,7 @@ class Block(start:Int,end:Int):Serializable {
     /**
      * Returns the length of the Location
      */
-    val length = end-start+1
+    val length = end - start + 1
 
     /**
      * Returns the single positions making the block
@@ -38,12 +38,12 @@ class Block(start:Int,end:Int):Serializable {
      *
      * @return true if the position is inside the block
      */
-    fun contains(position:Int) = position in start..end
+    fun contains(position: Int) = position in start..end
 
     /**
      * Returns the description of the block complying the pattern "start:length"
      */
-    override fun toString() =  if (length == 1) "$start" else "$start:$length"
+    override fun toString() = if (length == 1) "$start" else "$start:$length"
 
     override fun equals(other: Any?): Boolean {
         return other is Block && other.start == this.start && other.end == this.end
@@ -56,7 +56,7 @@ class Block(start:Int,end:Int):Serializable {
  * A location is made with a list of [Block]. Each [Block] is a set of contiguous positions for the location.
  *
  */
-class Location:Serializable {
+class Location : Serializable {
 
     /**
      * The [Block] making the location
@@ -75,7 +75,7 @@ class Location:Serializable {
             return positions.sorted()
         }
 
-    val start:Int
+    val start: Int
         /**
          * Returns the first position for the location
          */
@@ -83,7 +83,7 @@ class Location:Serializable {
             return this.blocks.first().start
         }
 
-    val end:Int
+    val end: Int
         /**
          * Returns the last position for the location
          */
@@ -91,7 +91,7 @@ class Location:Serializable {
             return this.blocks.last().end
         }
 
-    val ends:List<Int>
+    val ends: List<Int>
         /**
          * Returns the start and end positions for each [Block] in the location
          */
@@ -104,7 +104,7 @@ class Location:Serializable {
             return positions.sorted()
         }
 
-    val length:Int
+    val length: Int
         /**
          * Returns the length of the Location
          */
@@ -112,7 +112,7 @@ class Location:Serializable {
             return this.blocks.sumBy { it.length }
         }
 
-    val description:String
+    val description: String
         /**
          * Returns the description of the Location complying the pattern "start:length,start:length,start:length"
          */
@@ -133,7 +133,7 @@ class Location:Serializable {
      * @param [start] the start position
      * @param [end] the end position
      */
-    constructor(start:Int,end:Int):this() {
+    constructor(start: Int, end: Int) : this() {
         this.blocks.add(Block(start, end))
     }
 
@@ -142,7 +142,7 @@ class Location:Serializable {
      *
      * @param [pos] the single position making the location
      */
-    constructor(pos:Int):this(pos, pos) {
+    constructor(pos: Int) : this(pos, pos) {
     }
 
     /**
@@ -150,11 +150,11 @@ class Location:Serializable {
      *
      * @param [description] must comply the following pattern "start:length,start:length,start:length"
      */
-    constructor(description:String):this() {
+    constructor(description: String) : this() {
         for (s in description.split(",")) {
             if (s.contains(':')) {
                 val (start, length) = s.trim().split(':').map { it.toInt() }
-                this.blocks.add(Block(start, start+length-1))
+                this.blocks.add(Block(start, start + length - 1))
             } else {
                 this.blocks.add(
                     Block(
@@ -172,7 +172,7 @@ class Location:Serializable {
      *
      * @param [positions] the single positions contained in the location.
      */
-    constructor(positions:IntArray):this() {
+    constructor(positions: IntArray) : this() {
         this.blocks.addAll(toBlocks(positions))
     }
 
@@ -181,7 +181,7 @@ class Location:Serializable {
      *
      * @param [blocks] the list of [Block}.
      */
-    constructor(blocks:List<Block>):this() {
+    constructor(blocks: List<Block>) : this() {
         this.blocks.addAll(blocks)
     }
 
@@ -191,7 +191,7 @@ class Location:Serializable {
      * @param [l1] first location to merge
      * @param [l2] second location to merge
      */
-    constructor(l1: Location, l2: Location):this((l1.positions + l2.positions).distinct().sorted().toIntArray()) {
+    constructor(l1: Location, l2: Location) : this((l1.positions + l2.positions).distinct().sorted().toIntArray()) {
     }
 
     /**
@@ -201,7 +201,7 @@ class Location:Serializable {
      *
      * @return a new Location
      */
-    fun addLocation(l:Location):Location {
+    fun addLocation(l: Location): Location {
         val mutableSet = mutableSetOf<Int>()
         for (pos in l.positions)
             mutableSet.add(pos)
@@ -226,7 +226,7 @@ class Location:Serializable {
      *
      * @return true is the position is inside this location
      */
-    fun contains(position:Int) = this.blocks.any { it.contains(position) }
+    fun contains(position: Int) = this.blocks.any { it.contains(position) }
 
     /**
      * Tests if a location is inside this one
@@ -234,7 +234,7 @@ class Location:Serializable {
      * @param [location] the location to test
      * @return true is all the single positions of the location to test are inside this location
      */
-    fun contains(location:Location) = location.positions.all{this.contains(it)}
+    fun contains(location: Location) = location.positions.all { this.contains(it) }
 
     /**
      * Returns the description of the Location complying the pattern "start:length,start:length,start:length"
@@ -254,9 +254,9 @@ class Location:Serializable {
  * @param [source] where the RNA molecule comes from
  *
  */
-class RNA(var name:String="A", seq:String, var source:DataSource? = null):Serializable {
+class RNA(var name: String = "A", seq: String, var source: DataSource? = null) : Serializable {
 
-    val length:Int
+    val length: Int
         /**
          * Returns the length of the RNA
          */
@@ -266,7 +266,7 @@ class RNA(var name:String="A", seq:String, var source:DataSource? = null):Serial
 
     private var _seq = java.lang.StringBuilder(seq)
 
-    var seq:String
+    var seq: String
         /**
          * Sets the sequence of the RNA
          */
@@ -280,7 +280,7 @@ class RNA(var name:String="A", seq:String, var source:DataSource? = null):Serial
             return this._seq.toString()
         }
 
-    var numbering_system:Map<Int,Int>? = null
+    var numbering_system: Map<Int, Int>? = null
 
     /**
      * If true, some functions will use the numbering system (if any) if tests against locations are needed
@@ -292,7 +292,7 @@ class RNA(var name:String="A", seq:String, var source:DataSource? = null):Serial
      *
      * @param [residue] the name of the residue
      */
-    fun addResidue(residue:String) {
+    fun addResidue(residue: String) {
         val unModifiedNucleotide = modifiedNucleotides[residue];
         if (unModifiedNucleotide != null)
             this._seq.append(unModifiedNucleotide);
@@ -305,7 +305,10 @@ class RNA(var name:String="A", seq:String, var source:DataSource? = null):Serial
                 this._seq.append("G");
             else if ("CYT".equals(residue) || "C".equals(residue))
                 this._seq.append("C");
-            else if ("a".equals(residue) || "u".equals(residue) || "g".equals(residue) || "c".equals(residue) || "t".equals(residue))
+            else if ("a".equals(residue) || "u".equals(residue) || "g".equals(residue) || "c".equals(residue) || "t".equals(
+                    residue
+                )
+            )
                 this._seq.append(residue);
             else if ("X".equals(residue))
                 this._seq.append("X")
@@ -326,10 +329,10 @@ class RNA(var name:String="A", seq:String, var source:DataSource? = null):Serial
      * @throws [RuntimeException] if the [pos] is outside the ends of the RNA molecule
      *
      */
-    fun getResidue(pos:Int) = if (pos <= 0 || pos > this.length)
-            throw RuntimeException("The position asked for is outside the ends of your RNA")
-        else
-            this._seq[pos-1]
+    fun getResidue(pos: Int) = if (pos <= 0 || pos > this.length)
+        throw RuntimeException("The position asked for is outside the ends of your RNA")
+    else
+        this._seq[pos - 1]
 
     /**
      * Returns the subsequence for a given [Location]
@@ -338,7 +341,7 @@ class RNA(var name:String="A", seq:String, var source:DataSource? = null):Serial
      *
      * @return the subsequence as a String
      */
-    fun subSequence(l: Location) = this._seq.substring(l.start-1,l.end).toString()
+    fun subSequence(l: Location) = this._seq.substring(l.start - 1, l.end).toString()
 
     /**
      * Returns the location with the positions defined in the [numbering_system]
@@ -348,7 +351,7 @@ class RNA(var name:String="A", seq:String, var source:DataSource? = null):Serial
      * @return the same location if the [numbering_system] is null
      * @return the modified location
      */
-    fun mapLocation(l:Location): Location {
+    fun mapLocation(l: Location): Location {
         return numbering_system?.let { ns ->
             var blocks = mutableListOf<Block>()
             l.blocks.forEach {
@@ -372,7 +375,7 @@ class RNA(var name:String="A", seq:String, var source:DataSource? = null):Serial
      * @return the same position if the [numbering_system] is null
      * @return the modified position
      */
-    fun mapPosition(p:Int): Int {
+    fun mapPosition(p: Int): Int {
         return numbering_system?.let { ns ->
             ns[p]
         } ?: run {
@@ -391,12 +394,17 @@ class RNA(var name:String="A", seq:String, var source:DataSource? = null):Serial
  * @property [edge3] the edge for the second residue (first meaning according to the 5'->3' orientation)
  * @property [orientation] the orientation for this base-pair
  * */
-class BasePair(val location: Location, val edge5: Edge = Edge.WC, val edge3: Edge = Edge.WC, val orientation: Orientation = Orientation.cis):Serializable{
+class BasePair(
+    val location: Location,
+    val edge5: Edge = Edge.WC,
+    val edge3: Edge = Edge.WC,
+    val orientation: Orientation = Orientation.cis
+) : Serializable {
 
     /**
      * Returns the absolute position of the first residue (first meaning according to the 5'->3' orientation)
      */
-    val start:Int
+    val start: Int
         get() {
             return this.location.start
         }
@@ -404,55 +412,69 @@ class BasePair(val location: Location, val edge5: Edge = Edge.WC, val edge3: Edg
     /**
      * Returns the absolute position of the second residue (first meaning according to the 5'->3' orientation)
      */
-    val end:Int
+    val end: Int
         get() {
             return this.location.end
         }
 
-    override fun toString() =  if (edge5 == Edge.SingleHBond && edge3 == Edge.SingleHBond) "$edge5" else "$orientation:$edge5:$edge3"
+    override fun toString() =
+        if (edge5 == Edge.SingleHBond && edge3 == Edge.SingleHBond) "$edge5" else "$orientation:$edge5:$edge3"
 
 }
 
-class SingleStrand(val name:String="MySingleStrand", start:Int, end:Int):Serializable {
+class SingleStrand(val name: String = "MySingleStrand", start: Int, end: Int) : Serializable {
 
     val location = Location(start, end)
 
-    val start:Int
+    val start: Int
         get() {
             return this.location.start
         }
 
-    val end:Int
+    val end: Int
         get() {
             return this.location.end
         }
 
-    val length:Int
+    val length: Int
         get() {
             return this.location.length
         }
 }
 
-class Pknot(val name:String="MyPknot", helix1:Helix? = null, helix2:Helix? = null, pknotsSoFar: MutableList<Pknot>? = null):Serializable {
+class Pknot(
+    val name: String = "MyPknot",
+    helix1: Helix? = null,
+    helix2: Helix? = null,
+    pknotsSoFar: MutableList<Pknot>? = null,
+    helicesInPknots2Keep: List<Location> = listOf()
+) : Serializable {
 
     val tertiaryInteractions = mutableListOf<BasePair>()
-    lateinit var helix:Helix
+    lateinit var helix: Helix
 
     init {
         helix1?.let {
             helix2?.let {
-                pknotsSoFar?.let { pknotsSoFar ->
-                    if (!pknotsSoFar.filter { it.helix == helix1 }.isEmpty()) {
-                        this.helix = helix1
-                        this.tertiaryInteractions.addAll(helix2.secondaryInteractions)
-                    } else if (!pknotsSoFar.filter { it.helix == helix2 }.isEmpty()) {
-                        this.helix = helix2
-                        this.tertiaryInteractions.addAll(helix1.secondaryInteractions)
-                    } else {
-                        this.helix = if (helix1.end - helix1.start > helix2.end - helix2.start) helix2 else helix1
-                        this.tertiaryInteractions.addAll((if (helix1.end - helix1.start > helix2.end - helix2.start) helix1 else helix2).secondaryInteractions)
+                if (helicesInPknots2Keep.contains(helix1.location)) {
+                    this.helix = helix1
+                    this.tertiaryInteractions.addAll(helix2.secondaryInteractions)
+                } else if (helicesInPknots2Keep.contains(helix2.location)) {
+                    this.helix = helix2
+                    this.tertiaryInteractions.addAll(helix1.secondaryInteractions)
+                } else
+                    pknotsSoFar?.let { pknotsSoFar ->
+                        if (!pknotsSoFar.filter { it.helix == helix1 }.isEmpty()) {
+                            this.helix = helix1
+                            this.tertiaryInteractions.addAll(helix2.secondaryInteractions)
+                        } else if (!pknotsSoFar.filter { it.helix == helix2 }.isEmpty()) {
+                            this.helix = helix2
+                            this.tertiaryInteractions.addAll(helix1.secondaryInteractions)
+                        } else {
+                            this.helix = if (helix1.end - helix1.start > helix2.end - helix2.start) helix2 else helix1
+                            this.tertiaryInteractions.addAll((if (helix1.end - helix1.start > helix2.end - helix2.start) helix1 else helix2).secondaryInteractions)
+                        }
                     }
-                }
             }
 
         }
@@ -469,19 +491,19 @@ class Pknot(val name:String="MyPknot", helix1:Helix? = null, helix2:Helix? = nul
 }
 
 interface StructuralDomain {
-    val location:Location
-    val start:Int
-    val end:Int
-    val length:Int
-    var maxBranchLength:Int
+    val location: Location
+    val start: Int
+    val end: Int
+    val length: Int
+    var maxBranchLength: Int
 
     /**
      * The standard deviation for the length of this structural domain
      */
-    var lengthStd:Double
+    var lengthStd: Double
 }
 
-abstract class AbstractStructuralDomain: StructuralDomain {
+abstract class AbstractStructuralDomain : StructuralDomain {
     override var maxBranchLength = 0
         set(value) {
             if (value > field)
@@ -490,43 +512,43 @@ abstract class AbstractStructuralDomain: StructuralDomain {
     override var lengthStd = 0.0
 }
 
-class Helix(val name:String="MyHelix"): AbstractStructuralDomain() {
+class Helix(val name: String = "MyHelix") : AbstractStructuralDomain() {
 
     val secondaryInteractions = mutableListOf<BasePair>()
-    var junctionsLinked = Pair<Junction?, Junction?>(null,null)
+    var junctionsLinked = Pair<Junction?, Junction?>(null, null)
 
     override val location: Location
         get() {
-            val positionsInHelix = this.secondaryInteractions.map { bp ->  arrayOf(bp.start, bp.end) }.toTypedArray().flatten()
+            val positionsInHelix =
+                this.secondaryInteractions.map { bp -> arrayOf(bp.start, bp.end) }.toTypedArray().flatten()
             return Location(positions = positionsInHelix.toIntArray())
         }
 
-    override val start:Int
+    override val start: Int
         get() {
             return this.location.start
         }
 
-    override val end:Int
+    override val end: Int
         get() {
             return this.location.end
         }
 
-    override val length:Int
+    override val length: Int
         get() {
-            return this.location.length/2
+            return this.location.length / 2
         }
 
-    val ends:List<Int>
+    val ends: List<Int>
         get() {
             val ends = arrayListOf<Int>()
             if (this.location.blocks.size == 1) {
                 val b = this.location.blocks[0]
                 ends.add(b.start)
-                ends.add(b.start+b.length/2-1)
-                ends.add(b.start+b.length/2)
+                ends.add(b.start + b.length / 2 - 1)
+                ends.add(b.start + b.length / 2)
                 ends.add(b.end)
-            }
-            else
+            } else
                 for (b in this.location.blocks) {
                     ends.add(b.start)
                     ends.add(b.end)
@@ -535,10 +557,13 @@ class Helix(val name:String="MyHelix"): AbstractStructuralDomain() {
         }
 
     fun setJunction(junction: Junction) {
-        this.junctionsLinked = if (this.junctionsLinked.first == null) this.junctionsLinked.copy(first = junction) else this.junctionsLinked.copy(second = junction)
+        this.junctionsLinked =
+            if (this.junctionsLinked.first == null) this.junctionsLinked.copy(first = junction) else this.junctionsLinked.copy(
+                second = junction
+            )
     }
 
-    fun getPairedPosition(position:Int): Int? {
+    fun getPairedPosition(position: Int): Int? {
         for (bp in this.secondaryInteractions) {
             if (bp.start == position) {
                 return bp.end
@@ -551,19 +576,23 @@ class Helix(val name:String="MyHelix"): AbstractStructuralDomain() {
     }
 }
 
-class Junction(var name:String="MyJunction", override val location: Location, val helicesLinked:MutableList<Helix>):AbstractStructuralDomain() {
+class Junction(
+    var name: String = "MyJunction",
+    override val location: Location,
+    val helicesLinked: MutableList<Helix>
+) : AbstractStructuralDomain() {
 
-    override val length:Int
+    override val length: Int
         get() {
             return this.location.length
         }
 
-    override val start:Int
+    override val start: Int
         get() {
             return this.location.start
         }
 
-    override val end:Int
+    override val end: Int
         get() {
             return this.location.end
         }
@@ -573,7 +602,7 @@ class Junction(var name:String="MyJunction", override val location: Location, va
             return JunctionType.values().first { it.value == this.location.blocks.size }
         }
 
-    val locationWithoutSecondaries:Location
+    val locationWithoutSecondaries: Location
 
     init {
         this.helicesLinked.sortBy { it.start }
@@ -581,23 +610,23 @@ class Junction(var name:String="MyJunction", override val location: Location, va
             h.setJunction(this)
         val j = Location()
         for (b in this.location.blocks)
-            j.blocks.add(Block(b.start+1, b.end-1))
-        this.locationWithoutSecondaries  = j
+            j.blocks.add(Block(b.start + 1, b.end - 1))
+        this.locationWithoutSecondaries = j
     }
 
 }
 
-class TertiaryStructure(val rna: RNA):Serializable {
+class TertiaryStructure(val rna: RNA) : Serializable {
 
     val residues: MutableList<Residue3D> = mutableListOf<Residue3D>()
-    var title:String? = null
-    var authors:String? = null
-    var pubDate:String="To be published"
+    var title: String? = null
+    var authors: String? = null
+    var pubDate: String = "To be published"
     var pdbId: String? = null
-    var source:DataSource? = null
+    var source: DataSource? = null
 
     fun addResidue3D(absolutePosition: Int): Residue3D {
-        var r: Residue3D = when(this.rna.getResidue(absolutePosition)) {
+        var r: Residue3D = when (this.rna.getResidue(absolutePosition)) {
             'A' -> Adenine3D(absolutePosition)
             'U' -> Uracil3D(absolutePosition)
             'G' -> Guanine3D(absolutePosition)
@@ -626,10 +655,10 @@ class TertiaryStructure(val rna: RNA):Serializable {
 
 }
 
-abstract class Residue3D(val name:String, val absolutePosition:Int):Serializable {
+abstract class Residue3D(val name: String, val absolutePosition: Int) : Serializable {
 
     val atoms: MutableList<Atom> = mutableListOf<Atom>()
-    lateinit var label:String
+    lateinit var label: String
     var sugarPucker = 0
 
     open fun setAtomCoordinates(atomName: String, x: Float, y: Float, z: Float): Atom? {
@@ -725,22 +754,27 @@ class UnknownResidue3D(absolutePosition: Int) : Residue3D("X", absolutePosition)
 class Adenine3D(absolutePosition: Int) : RiboNucleotide3D("A", absolutePosition) {
     override fun getDefaultBaseAtoms(withDefaultCoordinates: Boolean): List<Atom> {
         val atoms = arrayOf<Any>(
-                "N9", 5.671f, -4.305f, 1.390f,
-                "C8", 4.358f, -4.673f, 1.330f,
-                "N7", 3.565f, -3.717f, 0.950f,
-                "C5", 4.410f, -2.640f, 0.750f,
-                "N6", 2.967f, -0.828f, 0.050f,
-                "C6", 4.189f, -1.313f, 0.340f,
-                "N1", 5.256f, -0.506f, 0.240f,
-                "C2", 6.465f, -0.989f, 0.540f,
-                "N3", 6.800f, -2.209f, 0.930f,
-                "C4", 5.707f, -2.984f, 1.010f)
+            "N9", 5.671f, -4.305f, 1.390f,
+            "C8", 4.358f, -4.673f, 1.330f,
+            "N7", 3.565f, -3.717f, 0.950f,
+            "C5", 4.410f, -2.640f, 0.750f,
+            "N6", 2.967f, -0.828f, 0.050f,
+            "C6", 4.189f, -1.313f, 0.340f,
+            "N1", 5.256f, -0.506f, 0.240f,
+            "C2", 6.465f, -0.989f, 0.540f,
+            "N3", 6.800f, -2.209f, 0.930f,
+            "C4", 5.707f, -2.984f, 1.010f
+        )
         val ret: MutableList<Atom> = ArrayList()
         var i = 0
         while (i < atoms.size) {
             val a: Atom =
                 Atom(atoms[i] as String)
-            if (withDefaultCoordinates) a.setCoordinates((atoms[i + 1] as Float), (atoms[i + 2] as Float), (atoms[i + 3] as Float))
+            if (withDefaultCoordinates) a.setCoordinates(
+                (atoms[i + 1] as Float),
+                (atoms[i + 2] as Float),
+                (atoms[i + 3] as Float)
+            )
             ret.add(a)
             i += 4
         }
@@ -751,48 +785,57 @@ class Adenine3D(absolutePosition: Int) : RiboNucleotide3D("A", absolutePosition)
 class Cytosine3D(absolutePosition: Int) : RiboNucleotide3D("C", absolutePosition) {
     override fun getDefaultBaseAtoms(withDefaultCoordinates: Boolean): List<Atom> {
         val atoms = arrayOf<Any>(
-                "N1", 5.671f, -4.305f, 1.390f,
-                "C6", 4.403f, -4.822f, 1.380f,
-                "C5", 3.339f, -4.065f, 1.030f,
-                "N4", 2.610f, -1.903f, 0.310f,
-                "C4", 3.603f, -2.696f, 0.670f,
-                "N3", 4.845f, -2.198f, 0.680f,
-                "O2", 7.062f, -2.556f, 1.060f,
-                "C2", 5.900f, -2.980f, 1.040f
+            "N1", 5.671f, -4.305f, 1.390f,
+            "C6", 4.403f, -4.822f, 1.380f,
+            "C5", 3.339f, -4.065f, 1.030f,
+            "N4", 2.610f, -1.903f, 0.310f,
+            "C4", 3.603f, -2.696f, 0.670f,
+            "N3", 4.845f, -2.198f, 0.680f,
+            "O2", 7.062f, -2.556f, 1.060f,
+            "C2", 5.900f, -2.980f, 1.040f
         )
         val ret: MutableList<Atom> = ArrayList()
         var i = 0
         while (i < atoms.size) {
             val a: Atom =
                 Atom(atoms[i] as String)
-            if (withDefaultCoordinates) a.setCoordinates((atoms[i + 1] as Float), (atoms[i + 2] as Float), (atoms[i + 3] as Float))
+            if (withDefaultCoordinates) a.setCoordinates(
+                (atoms[i + 1] as Float),
+                (atoms[i + 2] as Float),
+                (atoms[i + 3] as Float)
+            )
             ret.add(a)
             i += 4
         }
         return ret
     }
 }
+
 class Guanine3D(absolutePosition: Int) : RiboNucleotide3D("G", absolutePosition) {
     override fun getDefaultBaseAtoms(withDefaultCoordinates: Boolean): List<Atom> {
         val atoms = arrayOf<Any>(
-                "N9", 5.671f, -4.305f, 1.390f,
-                "C8", 4.338f, -4.651f, 1.320f,
-                "N7", 3.550f, -3.676f, 0.940f,
-                "C5", 4.420f, -2.604f, 0.740f,
-                "O6", 3.067f, -0.759f, 0.040f,
-                "C6", 4.148f, -1.276f, 0.330f,
-                "N1", 5.325f, -0.513f, 0.260f,
-                "N2", 7.579f, -0.093f, 0.420f,
-                "C2", 6.597f, -0.986f, 0.550f,
-                "N3", 6.848f, -2.225f, 0.940f,
-                "C4", 5.712f, -2.974f, 1.010f
+            "N9", 5.671f, -4.305f, 1.390f,
+            "C8", 4.338f, -4.651f, 1.320f,
+            "N7", 3.550f, -3.676f, 0.940f,
+            "C5", 4.420f, -2.604f, 0.740f,
+            "O6", 3.067f, -0.759f, 0.040f,
+            "C6", 4.148f, -1.276f, 0.330f,
+            "N1", 5.325f, -0.513f, 0.260f,
+            "N2", 7.579f, -0.093f, 0.420f,
+            "C2", 6.597f, -0.986f, 0.550f,
+            "N3", 6.848f, -2.225f, 0.940f,
+            "C4", 5.712f, -2.974f, 1.010f
         )
         val ret: MutableList<Atom> = ArrayList()
         var i = 0
         while (i < atoms.size) {
             val a: Atom =
                 Atom(atoms[i] as String)
-            if (withDefaultCoordinates) a.setCoordinates((atoms[i + 1] as Float), (atoms[i + 2] as Float), (atoms[i + 3] as Float))
+            if (withDefaultCoordinates) a.setCoordinates(
+                (atoms[i + 1] as Float),
+                (atoms[i + 2] as Float),
+                (atoms[i + 3] as Float)
+            )
             ret.add(a)
             i += 4
         }
@@ -803,21 +846,25 @@ class Guanine3D(absolutePosition: Int) : RiboNucleotide3D("G", absolutePosition)
 class Uracil3D(absolutePosition: Int) : RiboNucleotide3D("U", absolutePosition) {
     override fun getDefaultBaseAtoms(withDefaultCoordinates: Boolean): List<Atom> {
         val atoms = arrayOf<Any>(
-                "N1", 5.671f, -4.305f, 1.390f,
-                "C6", 4.402f, -4.837f, 1.380f,
-                "C5", 3.337f, -4.092f, 1.040f,
-                "O4", 2.584f, -1.954f, 0.320f,
-                "C4", 3.492f, -2.709f, 0.660f,
-                "N3", 4.805f, -2.261f, 0.690f,
-                "O2", 7.028f, -2.502f, 1.040f,
-                "C2", 5.913f, -3.000f, 1.040f
+            "N1", 5.671f, -4.305f, 1.390f,
+            "C6", 4.402f, -4.837f, 1.380f,
+            "C5", 3.337f, -4.092f, 1.040f,
+            "O4", 2.584f, -1.954f, 0.320f,
+            "C4", 3.492f, -2.709f, 0.660f,
+            "N3", 4.805f, -2.261f, 0.690f,
+            "O2", 7.028f, -2.502f, 1.040f,
+            "C2", 5.913f, -3.000f, 1.040f
         )
         val ret: MutableList<Atom> = ArrayList()
         var i = 0
         while (i < atoms.size) {
             val a: Atom =
                 Atom(atoms[i] as String)
-            if (withDefaultCoordinates) a.setCoordinates((atoms[i + 1] as Float), (atoms[i + 2] as Float), (atoms[i + 3] as Float))
+            if (withDefaultCoordinates) a.setCoordinates(
+                (atoms[i + 1] as Float),
+                (atoms[i + 2] as Float),
+                (atoms[i + 3] as Float)
+            )
             ret.add(a)
             i += 4
         }
@@ -825,18 +872,18 @@ class Uracil3D(absolutePosition: Int) : RiboNucleotide3D("U", absolutePosition) 
     }
 }
 
-class Atom(val name:String):Serializable {
+class Atom(val name: String) : Serializable {
 
     var coordinates: FloatArray? = null
-    var x:Float? = null
+    var x: Float? = null
         get() {
             return this.coordinates!![0]
         }
-    var y:Float? = null
+    var y: Float? = null
         get() {
             return this.coordinates!![1]
         }
-    var z:Float? = null
+    var z: Float? = null
         get() {
             return this.coordinates!![2]
         }
@@ -855,16 +902,23 @@ class Atom(val name:String):Serializable {
 
 }
 
-class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs:List<BasePair>? = null, helices:List<Helix>? = null, var source:DataSource? = null):Serializable {
+class SecondaryStructure(
+    var rna: RNA,
+    bracketNotation: String? = null,
+    basePairs: List<BasePair>? = null,
+    helices: List<Helix>? = null,
+    var source: DataSource? = null,
+    helicesInPknots2Keep: List<Location> = listOf()
+) : Serializable {
 
-    var name:String = "2D for ${this.rna.name}"
+    var name: String = "${this.rna.name}"
     val tertiaryInteractions = mutableSetOf<BasePair>()
     val helices = mutableListOf<Helix>()
     val singleStrands = mutableListOf<SingleStrand>()
     val pknots = mutableListOf<Pknot>()
     val junctions = mutableListOf<Junction>()
 
-    val secondaryInteractions:List<BasePair>
+    val secondaryInteractions: List<BasePair>
         get() {
             val interactions = mutableListOf<BasePair>()
             for (h in this.helices) {
@@ -873,7 +927,7 @@ class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs
             return interactions
         }
 
-    val length:Int
+    val length: Int
         get() {
             return this.rna.seq.length
         }
@@ -999,8 +1053,8 @@ class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs
                                         "PK${this.pknots.size + 1}",
                                         this.helices[i],
                                         this.helices[j],
-                                        this.pknots
-                                    )
+                                        this.pknots,
+                                        helicesInPknots2Keep)
                                 )
                                 foundPknot = true
                                 break@I
@@ -1032,12 +1086,14 @@ class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs
                         var currentJunction = junction
                         currentJunction.maxBranchLength = length++
                         currentJunction.helicesLinked[0].maxBranchLength = length++
-                        var previousJunction = currentJunction.helicesLinked[0].junctionsLinked.toList().find { it != currentJunction }
+                        var previousJunction =
+                            currentJunction.helicesLinked[0].junctionsLinked.toList().find { it != currentJunction }
                         while (previousJunction != null) {
                             currentJunction = previousJunction
                             currentJunction.maxBranchLength = length++
                             currentJunction.helicesLinked[0].maxBranchLength = length++
-                            previousJunction = currentJunction.helicesLinked[0].junctionsLinked.toList().find { it != currentJunction }
+                            previousJunction =
+                                currentJunction.helicesLinked[0].junctionsLinked.toList().find { it != currentJunction }
                         }
 
                     }
@@ -1051,9 +1107,13 @@ class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs
                 val junctionsLinked = h.junctionsLinked
                 if (junctionsLinked.first == null || junctionsLinked.second == null) {
                     if (currentPosition <= h.location.start - 1)
-                        this.singleStrands.add(SingleStrand("SS${this.singleStrands.size}",
-                            currentPosition,
-                            h.location.start - 1))
+                        this.singleStrands.add(
+                            SingleStrand(
+                                "SS${this.singleStrands.size}",
+                                currentPosition,
+                                h.location.start - 1
+                            )
+                        )
                     currentPosition = h.end + 1
                 }
             }
@@ -1067,7 +1127,7 @@ class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs
     /**
     Return the position paired to the position given as argument. Return nil if this position is not paired at all.
      **/
-    fun getPairedPosition(position:Int): Int? {
+    fun getPairedPosition(position: Int): Int? {
         for (h in this.helices) {
             for (bp in h.secondaryInteractions) {
                 if (bp.start == position) {
@@ -1090,7 +1150,7 @@ class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs
     }
 
     //compute the location from an apical loop to a 3-way or greater
-    fun getStemLoopLocation(apicalLoop:Junction):Location {
+    fun getStemLoopLocation(apicalLoop: Junction): Location {
         var l = apicalLoop.location
         var previousHelix = this.helices.find { l.start in it.ends }
         var previousJunction = this.junctions.find { it.location.contains(l.start) }
@@ -1102,11 +1162,11 @@ class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs
         return l
     }
 
-    fun getPreviousJunction(helix:Helix) = this.junctions.find { it.location.contains(helix.start) }
+    fun getPreviousJunction(helix: Helix) = this.junctions.find { it.location.contains(helix.start) }
 
-    fun getPreviousHelix(junction:Junction) = this.helices.find { it.ends.contains(junction.start) }!!
+    fun getPreviousHelix(junction: Junction) = this.helices.find { it.ends.contains(junction.start) }!!
 
-    fun getPreviousStructuralDomain(domain:StructuralDomain):StructuralDomain? {
+    fun getPreviousStructuralDomain(domain: StructuralDomain): StructuralDomain? {
         return when (domain) {
             is Helix -> this.getPreviousJunction(domain)
             is Junction -> this.getPreviousHelix(domain)
@@ -1114,12 +1174,12 @@ class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs
         }
     }
 
-    fun getJunctionLevel(junction:Junction):Int {
+    fun getJunctionLevel(junction: Junction): Int {
         var lvl = 1
         var domain = getPreviousStructuralDomain(junction)
         while (domain != null) {
             lvl++
-            domain =getPreviousStructuralDomain(domain)
+            domain = getPreviousStructuralDomain(domain)
         }
         return lvl
     }
@@ -1128,8 +1188,9 @@ class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs
     Return the next end of an helix (its paired position and the helix itself) after the position given as argument (along the sequence).
     Useful to get the next helix after an helix.
      **/
-    fun getNextHelixEnd(position:Int): Triple<Int, Int, Helix>? {
-        var minNextEnd = this.length //the next end is the lowest 3' position of an helix right after the position given as argument
+    fun getNextHelixEnd(position: Int): Triple<Int, Int, Helix>? {
+        var minNextEnd =
+            this.length //the next end is the lowest 3' position of an helix right after the position given as argument
         var pairedPosition = -1
         lateinit var helix: Helix
 
@@ -1155,14 +1216,14 @@ class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs
         this.junctions.clear()
         var junctionCount = 0
         this.helices.forEach {
-            it.junctionsLinked = Pair<Junction?, Junction?>(null,null)
+            it.junctionsLinked = Pair<Junction?, Junction?>(null, null)
         }
         var positionsInJunction = mutableListOf<Int>()
         var helicesLinked = mutableListOf<Helix>()
         for (h in this.helices) {
             //one side of the helix
             var pos = h.ends[1] //3'-end
-            if (this.junctions.filter {it.location.contains(pos)}.isEmpty()) { //already in a junction?
+            if (this.junctions.filter { it.location.contains(pos) }.isEmpty()) { //already in a junction?
                 LOOP@ do {
                     val nextHelix = this.getNextHelixEnd(pos)
                     if (nextHelix != null) {
@@ -1190,7 +1251,7 @@ class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs
             positionsInJunction = mutableListOf<Int>()
             helicesLinked = mutableListOf<Helix>()
             pos = h.ends[3] //3'-end
-            if (this.junctions.filter {it.location.contains(pos)}.isEmpty()) { //already in a junction?
+            if (this.junctions.filter { it.location.contains(pos) }.isEmpty()) { //already in a junction?
                 LOOP@ do {
                     val nextHelix = this.getNextHelixEnd(pos)
                     if (nextHelix != null) {
@@ -1239,7 +1300,7 @@ class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs
         val residues = listOf('A', 'U', 'G', 'C')
         val purines = listOf('A', 'G')
         val pyrimidines = listOf('U', 'C')
-        newSeq.append((1..this.rna.length).map { residues.random()}.joinToString(separator = ""))
+        newSeq.append((1..this.rna.length).map { residues.random() }.joinToString(separator = ""))
         this.secondaryInteractions.forEach {
             val r = residues.random()
             val paired = when (r) {
@@ -1249,8 +1310,8 @@ class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs
                 'C' -> 'G'
                 else -> 'N'
             }
-            newSeq.setCharAt(it.start-1, r)
-            newSeq.setCharAt(it.end-1, paired)
+            newSeq.setCharAt(it.start - 1, r)
+            newSeq.setCharAt(it.end - 1, paired)
         }
         this.pknots.forEach { pknot ->
             pknot.tertiaryInteractions.forEach {
@@ -1271,20 +1332,20 @@ class SecondaryStructure(var rna: RNA, bracketNotation:String? = null, basePairs
 
 }
 
-fun toBlocks(positions:IntArray):MutableList<Block> {
+fun toBlocks(positions: IntArray): MutableList<Block> {
     val blocks = arrayListOf<Block>()
     val sortedPositions = positions.sorted()
     var length = 0
     var i = 0
     var start = sortedPositions.first()
 
-    while (i < sortedPositions.size-1) {
-        if (sortedPositions[i]+1 == sortedPositions[i+1]) {
+    while (i < sortedPositions.size - 1) {
+        if (sortedPositions[i] + 1 == sortedPositions[i + 1]) {
             length += 1
         } else {
             blocks.add(Block(start, start + length))
             length = 0
-            start = sortedPositions[i+1]
+            start = sortedPositions[i + 1]
         }
         i += 1
     }
@@ -1292,37 +1353,37 @@ fun toBlocks(positions:IntArray):MutableList<Block> {
     return blocks
 }
 
-fun toBasePairs(bracketNotation: String):MutableList<BasePair> {
+fun toBasePairs(bracketNotation: String): MutableList<BasePair> {
     val basePairs = arrayListOf<BasePair>()
     var pos = 0
     val firstStrands = mutableMapOf<Char, Pair<MutableList<Int>, MutableList<Edge>>>()
 
     ('A'..'Z').forEach {
-        firstStrands.put(it, Pair(mutableListOf<Int>(),mutableListOf<Edge>()))
+        firstStrands.put(it, Pair(mutableListOf<Int>(), mutableListOf<Edge>()))
     }
 
-    firstStrands.put('(', Pair(mutableListOf<Int>(),mutableListOf<Edge>()))
-    firstStrands.put('{', Pair(mutableListOf<Int>(),mutableListOf<Edge>()))
-    firstStrands.put('[', Pair(mutableListOf<Int>(),mutableListOf<Edge>()))
-    firstStrands.put('<', Pair(mutableListOf<Int>(),mutableListOf<Edge>()))
+    firstStrands.put('(', Pair(mutableListOf<Int>(), mutableListOf<Edge>()))
+    firstStrands.put('{', Pair(mutableListOf<Int>(), mutableListOf<Edge>()))
+    firstStrands.put('[', Pair(mutableListOf<Int>(), mutableListOf<Edge>()))
+    firstStrands.put('<', Pair(mutableListOf<Int>(), mutableListOf<Edge>()))
 
     loop@ for (c in bracketNotation) {
         pos++
         when (c) {
-            in 'A'..'Z'  -> {
+            in 'A'..'Z' -> {
                 firstStrands[c]!!.first.add(pos)
                 firstStrands[c]!!.second.add(Edge.WC)
             }
 
-            in listOf('(', '[', '{', '<')  -> {
+            in listOf('(', '[', '{', '<') -> {
                 firstStrands[c]!!.first.add(pos)
                 firstStrands[c]!!.second.add(Edge.WC)
             }
 
             ')' -> {
-                val _lastPos = firstStrands['(']!!.first.removeAt(firstStrands['(']!!.first.size-1)
+                val _lastPos = firstStrands['(']!!.first.removeAt(firstStrands['(']!!.first.size - 1)
                 val _location = Location(Location(_lastPos), Location(pos))
-                val _lastLeft = firstStrands['(']!!.second.removeAt(firstStrands['(']!!.second.size-1)
+                val _lastLeft = firstStrands['(']!!.second.removeAt(firstStrands['(']!!.second.size - 1)
                 basePairs.add(
                     BasePair(
                         location = _location,
@@ -1332,9 +1393,9 @@ fun toBasePairs(bracketNotation: String):MutableList<BasePair> {
                 )
             }
             '}' -> {
-                val _lastPos = firstStrands['{']!!.first.removeAt(firstStrands['{']!!.first.size-1)
+                val _lastPos = firstStrands['{']!!.first.removeAt(firstStrands['{']!!.first.size - 1)
                 val _location = Location(Location(_lastPos), Location(pos))
-                val _lastLeft = firstStrands['{']!!.second.removeAt(firstStrands['{']!!.second.size-1)
+                val _lastLeft = firstStrands['{']!!.second.removeAt(firstStrands['{']!!.second.size - 1)
                 basePairs.add(
                     BasePair(
                         location = _location,
@@ -1344,9 +1405,9 @@ fun toBasePairs(bracketNotation: String):MutableList<BasePair> {
                 )
             }
             ']' -> {
-                val _lastPos = firstStrands['[']!!.first.removeAt(firstStrands['[']!!.first.size-1)
+                val _lastPos = firstStrands['[']!!.first.removeAt(firstStrands['[']!!.first.size - 1)
                 val _location = Location(Location(_lastPos), Location(pos))
-                val _lastLeft = firstStrands['[']!!.second.removeAt(firstStrands['[']!!.second.size-1)
+                val _lastLeft = firstStrands['[']!!.second.removeAt(firstStrands['[']!!.second.size - 1)
                 basePairs.add(
                     BasePair(
                         location = _location,
@@ -1356,9 +1417,9 @@ fun toBasePairs(bracketNotation: String):MutableList<BasePair> {
                 )
             }
             '>' -> {
-                val _lastPos = firstStrands['<']!!.first.removeAt(firstStrands['<']!!.first.size-1)
+                val _lastPos = firstStrands['<']!!.first.removeAt(firstStrands['<']!!.first.size - 1)
                 val _location = Location(Location(_lastPos), Location(pos))
-                val _lastLeft = firstStrands['<']!!.second.removeAt(firstStrands['<']!!.second.size-1)
+                val _lastLeft = firstStrands['<']!!.second.removeAt(firstStrands['<']!!.second.size - 1)
                 basePairs.add(
                     BasePair(
                         location = _location,
@@ -1368,10 +1429,10 @@ fun toBasePairs(bracketNotation: String):MutableList<BasePair> {
                 )
             }
             in 'a'..'z' -> {
-                val upperChar = c.toUpperCase()
-                val _lastPos = firstStrands[upperChar]!!.first.removeAt(firstStrands[upperChar]!!.first.size-1)
+                val upperChar = c.uppercaseChar()
+                val _lastPos = firstStrands[upperChar]!!.first.removeAt(firstStrands[upperChar]!!.first.size - 1)
                 val _location = Location(Location(_lastPos), Location(pos))
-                val _lastLeft = firstStrands[upperChar]!!.second.removeAt(firstStrands[upperChar]!!.second.size-1)
+                val _lastLeft = firstStrands[upperChar]!!.second.removeAt(firstStrands[upperChar]!!.second.size - 1)
                 basePairs.add(
                     BasePair(
                         location = _location,
@@ -1386,19 +1447,19 @@ fun toBasePairs(bracketNotation: String):MutableList<BasePair> {
     return basePairs
 }
 
-fun randomRNA(size:Int): RNA {
-    val residues = listOf<Char>('A','U','G','C')
+fun randomRNA(size: Int): RNA {
+    val residues = listOf<Char>('A', 'U', 'G', 'C')
     val seq = (1..size)
-            .map { _ -> kotlin.random.Random.nextInt(0, residues.size) }
-            .map(residues::get)
-            .joinToString("")
+        .map { _ -> kotlin.random.Random.nextInt(0, residues.size) }
+        .map(residues::get)
+        .joinToString("")
     return RNA("random rna", seq)
 }
 
-fun getSource(s:String): DataSource? {
+fun getSource(s: String): DataSource? {
     val tokens = s.split(":")
     return when (tokens.first()) {
-        "db" -> when(tokens[1]) {
+        "db" -> when (tokens[1]) {
             "pdb" -> PDBSource(tokens.last())
             else -> null
         }
@@ -1407,11 +1468,11 @@ fun getSource(s:String): DataSource? {
 }
 
 interface DataSource {
-    fun getId():String?
+    fun getId(): String?
 }
 
-class BracketNotation:DataSource {
-    override fun getId():String? {
+class BracketNotation : DataSource {
+    override fun getId(): String? {
         return null
     }
 
@@ -1420,12 +1481,12 @@ class BracketNotation:DataSource {
     }
 }
 
-abstract class DatabaseSource: DataSource {
+abstract class DatabaseSource : DataSource {
 
 }
 
-class PDBSource(val pdbId:String):DatabaseSource() {
-    override fun getId():String {
+class PDBSource(val pdbId: String) : DatabaseSource() {
+    override fun getId(): String {
         return this.pdbId
     }
 
@@ -1434,8 +1495,8 @@ class PDBSource(val pdbId:String):DatabaseSource() {
     }
 }
 
-class RnaCentralSource(val rnacentralId:String):DatabaseSource() {
-    override fun getId():String {
+class RnaCentralSource(val rnacentralId: String) : DatabaseSource() {
+    override fun getId(): String {
         return this.rnacentralId
     }
 
@@ -1444,8 +1505,8 @@ class RnaCentralSource(val rnacentralId:String):DatabaseSource() {
     }
 }
 
-class RfamSource(val rfamId:String):DatabaseSource() {
-    override fun getId():String {
+class RfamSource(val rfamId: String) : DatabaseSource() {
+    override fun getId(): String {
         return this.rfamId
     }
 
@@ -1454,9 +1515,9 @@ class RfamSource(val rfamId:String):DatabaseSource() {
     }
 }
 
-class FileSource(val fileName:String): DataSource {
+class FileSource(val fileName: String) : DataSource {
 
-    override fun getId():String {
+    override fun getId(): String {
         return this.fileName
     }
 
@@ -1466,9 +1527,9 @@ class FileSource(val fileName:String): DataSource {
 
 }
 
-abstract class ToolSource(val toolVersion:String): DataSource {
+abstract class ToolSource(val toolVersion: String) : DataSource {
 
-    override fun getId():String {
+    override fun getId(): String {
         return this.toolVersion
     }
 
@@ -1482,7 +1543,7 @@ enum class Orientation {
     cis, trans, Unknown
 }
 
-enum class JunctionType(val value:Int) {
+enum class JunctionType(val value: Int) {
     ApicalLoop(1),
     InnerLoop(2),
     ThreeWay(3),

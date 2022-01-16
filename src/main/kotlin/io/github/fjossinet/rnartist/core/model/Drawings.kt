@@ -257,13 +257,13 @@ class AdvancedTheme() {
 
 class Layout {
 
-    var configurations: MutableMap<(DrawingElement) -> Boolean, Pair<String, String>> = mutableMapOf()
+    var configurations: MutableMap<(DrawingElement) -> Pair<Boolean, String?>, Pair<String, String>> = mutableMapOf()
 
-    fun setConfigurationFor(selection: (DrawingElement) -> Boolean, parameter: LayoutParameter, parameterValue: String) {
+    fun setConfigurationFor(selection: (DrawingElement) -> Pair<Boolean, String?>, parameter: LayoutParameter, parameterValue: String) {
         this.setConfigurationFor(selection, parameter.toString(), parameterValue)
     }
 
-    private fun setConfigurationFor(selection: (DrawingElement) -> Boolean, parameter: String, parameterValue: String) {
+    private fun setConfigurationFor(selection: (DrawingElement) -> Pair<Boolean, String?>, parameter: String, parameterValue: String) {
         configurations[selection] = Pair(parameter, parameterValue)
     }
 
@@ -2696,16 +2696,26 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
 
     override fun applyLayout(layout: Layout)  {
         layout.configurations.entries.forEach { entry ->
-            if (entry.key(this)) {
+            if (entry.key(this).first) {
                 when(entry.value.first) {
                     LayoutParameter.center.toString() -> {}
                     LayoutParameter.in_id.toString() -> {}
                     LayoutParameter.out_ids.toString() -> {
-                        val connectors = entry.value.second.split(" ").map {
-                            ConnectorId.valueOf(it)
+                        //if a new out_ids has been returned wy the selection fonction (for example for an orthologuous junction with less outids than the junction defined in the consensus 2D
+                        entry.key(this).second?.let { out_ids ->
+                            val connectors = out_ids.split(" ").map {
+                                ConnectorId.valueOf(it)
+                            }
+                            currentLayout = connectors.toMutableList()
+                            ssDrawing.computeResidues(this)
+                        } ?: run {
+                            val connectors = entry.value.second.split(" ").map {
+                                ConnectorId.valueOf(it)
+                            }
+                            currentLayout = connectors.toMutableList()
+                            ssDrawing.computeResidues(this)
                         }
-                        currentLayout = connectors.toMutableList()
-                        ssDrawing.computeResidues(this)
+
                     }
                     LayoutParameter.radius.toString() -> {
                         radius = entry.value.second.toDouble()

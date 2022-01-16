@@ -28,7 +28,7 @@ class ScriptElement(var name:String, content:String, val start:Int, val end:Int,
             hit = regex.find(_content)
         }
         //we split the attributes. First we match the attributes with a value inside quotes (since we can have spaces inside the quotes). Then we match attributes whose value is without any spaces (then we match until we meet a space)
-        regex = Regex("(\\S+\\s*(to|=|eq|gt|lt)\\s*\".+?\"|\\S+\\s*(to|=|eq|gt|lt)\\s*\\S+)")
+        regex = Regex("(\\S+\\s*(to|=|eq|gt|lt|alignment)\\s*\".+?\"|\\S+\\s*(to|=|eq|gt|lt|alignment)\\s*\\S+)")
         regex.findAll(_content).forEach {
             attributes.add(it.value)
         }
@@ -120,26 +120,10 @@ fun parseDSLScript(reader: Reader): Pair<List<ScriptElement>, List<String>> {
     }
     elements.removeAll(toRemove)
 
-    /*println("BEFORE")
-    var writer = StringWriter()
-    elements.forEach {
-        it.print(writer, "   ")
-    }
-
-    println(writer)*/
-
     //we check outdated syntax
     val issues = mutableListOf<String>()
 
     curateScript(elements, issues)
-
-    /*println("AFTER")
-    writer = StringWriter()
-    elements.forEach {
-        it.print(writer, "   ")
-    }
-
-    println(writer)*/
 
     return Pair(elements, issues)
 
@@ -576,7 +560,37 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
         "consensus",
         (1..bn.length).map { listOf("A", "U", "G", "C").random()}.joinToString(separator = "")
     )
+
     var consensusSS = SecondaryStructure(rna, bn.toString())
+
+    val helices2keep = mutableListOf<Location>()
+
+    consensusSS.pknots.forEach { pknot ->
+        val helicalLengths = mutableListOf<Int>()
+        val tertiariesLengths = mutableListOf<Int>()
+
+        val tertiariesLocation = Location(pknot.tertiaryInteractions.map{ it.start}.toSet().union(pknot.tertiaryInteractions.map{ it.end}).toIntArray())
+
+        alignedMolecules.forEach { alignedMolecule ->
+            pknot.helix.location.blocks.forEach { block ->
+                helicalLengths.add(alignedMolecule.value.substring(block.start-1, block.end).replace("-", "").length)
+            }
+            tertiariesLocation.blocks.forEach { block ->
+                tertiariesLengths.add(alignedMolecule.value.substring(block.start-1, block.end).replace("-", "").length)
+            }
+        }
+
+        val deletedHelixCount = helicalLengths.count { it == 0 }
+
+        val deletedtertiariesCount = tertiariesLengths.count { it == 0 }
+
+        if (deletedHelixCount < deletedtertiariesCount)
+            helices2keep.add(pknot.helix.location)
+        else
+            helices2keep.add(tertiariesLocation)
+    }
+
+    consensusSS = SecondaryStructure(rna, bn.toString(), helicesInPknots2Keep = helices2keep)
 
     if (withConsensus2D) {
         secondaryStructures.add(consensusSS)
@@ -618,37 +632,36 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
                 }
         }
     }
-
     for ((key, value) in alignedMolecules) {
-        var rna = RNA(key, value.toString())
+        var rna= RNA(key, value.toString())
         var _bn = bn.toString()
 
         for (bp in consensusSS.secondaryInteractions) {
-            if (rna.seq[bp.start-1] == '-')
-                _bn = _bn.replaceRange(bp.end-1,bp.end,".")
-            if (rna.seq[bp.end-1] == '-')
-                _bn = _bn.replaceRange(bp.start-1,bp.start,".")
+            if (rna.seq[bp.start-1] == '-' || rna.seq[bp.end-1] == '-') {
+                _bn = _bn.replaceRange(bp.start - 1, bp.start, ".")
+                _bn = _bn.replaceRange(bp.end - 1, bp.end, ".")
+            }
         }
 
         for (bp in consensusSS.tertiaryInteractions) {
-            if (rna.seq[bp.start-1] == '-')
-                _bn = _bn.replaceRange(bp.end-1,bp.end,".")
-            if (rna.seq[bp.end-1] == '-')
-                _bn = _bn.replaceRange(bp.start-1,bp.start,".")
+            if (rna.seq[bp.start-1] == '-' || rna.seq[bp.end-1] == '-') {
+                _bn = _bn.replaceRange(bp.start - 1, bp.start, ".")
+                _bn = _bn.replaceRange(bp.end - 1, bp.end, ".")
+            }
         }
 
         for (pknot in consensusSS.pknots) {
             for (bp in pknot.helix.secondaryInteractions) {
-                if (rna.seq[bp.start-1] == '-')
-                    _bn = _bn.replaceRange(bp.end-1,bp.end,".")
-                if (rna.seq[bp.end-1] == '-')
-                    _bn = _bn.replaceRange(bp.start-1,bp.start,".")
+                if (rna.seq[bp.start-1] == '-' || rna.seq[bp.end-1] == '-') {
+                    _bn = _bn.replaceRange(bp.start - 1, bp.start, ".")
+                    _bn = _bn.replaceRange(bp.end - 1, bp.end, ".")
+                }
             }
             for (bp in pknot.tertiaryInteractions) {
-                if (rna.seq[bp.start-1] == '-')
-                    _bn = _bn.replaceRange(bp.end-1,bp.end,".")
-                if (rna.seq[bp.end-1] == '-')
-                    _bn = _bn.replaceRange(bp.start-1,bp.start,".")
+                if (rna.seq[bp.start-1] == '-' || rna.seq[bp.end-1] == '-') {
+                    _bn = _bn.replaceRange(bp.start - 1, bp.start, ".")
+                    _bn = _bn.replaceRange(bp.end - 1, bp.end, ".")
+                }
             }
 
         }
@@ -679,8 +692,19 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
 
         gapPositions.reverse()
         gapPositions.forEach { _bn = _bn.replaceRange(it,it+1,"") }
-        
-        secondaryStructures.add(SecondaryStructure(rna, _bn))
+
+        //we need to remap the location of the helices to keep in the pknots from the numbering system of the alignment to the absolute position for the RNA molecule
+        val _helices2keep = mutableListOf<Location>()
+        helices2keep.forEach { helix2Keep ->
+            var blocks = mutableListOf<Block>()
+            helix2Keep.blocks.forEach { block2Keep ->
+                blocks.add(Block(numbering_system.filter { it.value == block2Keep.start }.keys.first(), numbering_system.filter { it.value == block2Keep.end }.keys.first()))
+            }
+            _helices2keep.add(Location(blocks))
+        }
+
+        secondaryStructures.add(SecondaryStructure(rna, _bn, helicesInPknots2Keep = _helices2keep))
+
     }
     return secondaryStructures
 }
