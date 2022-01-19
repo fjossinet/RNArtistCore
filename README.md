@@ -411,6 +411,9 @@ rnartist {
 }
 ```
 
+![](media/rna_and_helix_elements.png)
+![](media/rna_and_helix_elements.png)
+
 #### <a name="bn"></a>The ```bn``` element
 
 The parameters available are:
