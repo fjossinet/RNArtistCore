@@ -7,6 +7,7 @@ import io.github.fjossinet.rnartist.core.model.getHTMLColorString
 import io.github.fjossinet.rnartist.core.numbering
 import io.github.fjossinet.rnartist.core.rnartist
 import java.awt.datatransfer.SystemFlavorMap
+import java.awt.geom.Rectangle2D
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -35,72 +36,30 @@ var totalNts = 0
             try {
                 //first we generate the structure to have all the structural domains
                 var structures = rnartist {
+                    png {
+                        path = "${familyDir.path}"
+                        height = 200.0
+                        width = 200.0
+                    }
+
                     ss {
                         rfam {
                             id = rfamID
                             name = "consensus"
                             use alignment numbering
                         }
-                    }
-                    theme {
-                        details {
-                            value = 3
+                        theme {
+                            details {
+                                value = 3
+                            }
+                            color {
+                                scheme = "Structural Domains"
+                            }
                         }
                     }
                 }
 
                 totalNts += structures.first().secondaryStructure.rna.length
-
-                //now we redo the script with a png export and each structural domain with its own random color
-                structures = rnartist {
-
-                    png {
-                        path = "${familyDir.path}"
-                        height = 400.0
-                        width = 400.0
-                    }
-                    ss {
-                        rfam {
-                            id = rfamID
-                            name = "consensus"
-                            use alignment numbering
-                        }
-                    }
-                    theme {
-                        details {
-                            value = 3
-                        }
-                        structures.first().secondaryStructure.helices.forEach {
-                            color {
-                                value = getHTMLColorString(randomColor())
-                                location {
-                                    it.location.blocks.first().start to it.location.blocks.first().end
-                                    it.location.blocks.last().start to it.location.blocks.last().end
-                                }
-                            }
-                        }
-
-                        structures.first().secondaryStructure.junctions.forEach {
-                            color {
-                                value = getHTMLColorString(randomColor())
-                                location {
-                                    it.location.blocks.forEach {
-                                        it.start to it.end
-                                    }
-                                }
-                            }
-                        }
-
-                        structures.first().singleStrands.forEach {
-                            color {
-                                value = getHTMLColorString(randomColor())
-                                location {
-                                    it.location.start to it.location.end
-                                }
-                            }
-                        }
-                    }
-                }
 
                 val helixColors = StringBuilder()
                 structures.first().allHelices.forEach {
