@@ -4,6 +4,20 @@ java -jar rnartist_core.jar -c dsl_script_file
 
 The option ```-c``` check the syntax of the script before to run it. It prints the issues found.
 
+### 0.2.22-SNAPSHOT
+
+- the element ```color``` can contain an attribute named ```scheme``` to use predefined color schemes.
+
+```kotlin
+rnartist {
+    theme {
+        color {
+            scheme = "Persian Carolina"
+        }
+    }
+}
+```
+
 ### 0.2.21-SNAPSHOT
 
 - to avoid to mix the description of a 2D with other elements, details for a 2D are inside a element named ```parts``` 

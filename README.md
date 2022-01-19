@@ -871,7 +871,53 @@ Parameters:
 * **```type```**: the type of objects 2D targeted (check this [table](theme) for details)
 * **```location```**: the location of objects 2D targeted
 * **```data```**: selection based on the values linked to the residues  (see explanation for this element below)
+* **```scheme```**: the name of a color scheme to apply. It can be: 
+  * Persian Carolina
+  * Snow Lavender
+  * Fuzzy French
+  * Chestnut Navajo
+  * Irresistible Turquoise
+  * Charm Jungle
+  * Atomic Xanadu
+  * Pale Coral
+  * Maximum Salmon
+  * Pacific Dream
+  * New York Camel
+  * Screamin' Olive
+  * Baby Lilac
+  * Celeste Olivine
+  * Midnight Paradise
+  * African Lavender
+  * Charcoal Lazuli
+  * Pumpkin Vegas
 
+```kotlin
+rnartist {
+  png {
+    path = "media/"
+  }
+  ss {
+    bn {
+      seq = "CAGAUAAGAAGGUUCCCCGAUAUGUUGGGCAACCAAAGAAUUCAUGUUCUUCCUUUGUUUG"
+      value =
+        "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+      name = "atomic_xanadu"
+    }
+  }
+  theme {
+    details {
+      value = 5
+    }
+
+    color {
+      scheme = "Atomic Xanadu"
+    }
+  }
+}
+```
+
+![](media/atomic_xanadu.png)
+  
 If the parameter **```type```** is not defined, all types are targeted. You can define several types in the same string using a space as separator: **```"single_strand R C interaction_symbol"```**
 
 The parameter **```location```** needs to have the following format:

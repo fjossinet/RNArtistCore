@@ -1,8 +1,8 @@
 package io.github.fjossinet.rnartist.core.io
 
+import java.awt.Color
 import java.io.*
-import java.io.InputStream
-import java.io.OutputStream
+import java.util.*
 
 fun getTmpDirectory(): File {
     return File(getUserDir(), "tmp")
@@ -16,12 +16,12 @@ fun createTemporaryFile(fileName: String): File {
     return f
 }
 
-@Throws(IOException::class)
-fun createTemporaryFile(dir: File?, fileName: String): File {
-    val f = File(dir, fileName + System.nanoTime())
-    f.createNewFile()
-    f.deleteOnExit()
-    return f
+fun randomColor():Color {
+    val random = Random()
+    val red: Int = random.nextInt(256)
+    val green: Int = random.nextInt(256)
+    val blue: Int = random.nextInt(256)
+    return Color(red, green, blue)
 }
 
 

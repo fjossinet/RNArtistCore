@@ -1030,6 +1030,29 @@ rnartist {
     }
 }
 
+rnartist {
+    png {
+        path = "media/"
+    }
+    ss {
+        bn {
+            seq = "CAGAUAAGAAGGUUCCCCGAUAUGUUGGGCAACCAAAGAAUUCAUGUUCUUCCUUUGUUUG"
+            value =
+                "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
+            name = "atomic_xanadu"
+        }
+    }
+    theme {
+        details {
+            value = 5
+        }
+
+        color {
+            scheme = "Atomic Xanadu"
+        }
+    }
+}
+
 /*
 booquet {
     file = "/project/media/booquet_from_rfam.svg"

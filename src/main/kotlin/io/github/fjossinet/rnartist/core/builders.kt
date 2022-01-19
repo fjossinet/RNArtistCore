@@ -30,8 +30,8 @@ class PartsBuilder {
 
     private val helixBuilders = mutableListOf<HelixBuilder>()
     private val interactionBuilders = mutableListOf<InteractionBuilder>() //tertiary interactions
-    private var rnaBuilder:RNABuilder? = null
-    var source:String? = null
+    private var rnaBuilder: RNABuilder? = null
+    var source: String? = null
 
     fun rna(setup: RNABuilder.() -> Unit) {
         this.rnaBuilder = RNABuilder()
@@ -50,7 +50,7 @@ class PartsBuilder {
         interactionBuilders.add(interactionBuilder)
     }
 
-    fun build():SecondaryStructure? {
+    fun build(): SecondaryStructure? {
         this.rnaBuilder?.let { rnaBuilder ->
             var helices = mutableListOf<Helix>()
             helixBuilders.forEach {
@@ -110,17 +110,17 @@ class HelixBuilder() {
         this.locationBuilder.setup()
     }
 
-    fun interaction(setup:InteractionBuilder.() -> Unit) {
+    fun interaction(setup: InteractionBuilder.() -> Unit) {
         val interaction = InteractionBuilder()
         interaction.setup()
         interactionBuilders.add(interaction)
     }
 
-    fun build():Helix {
+    fun build(): Helix {
         val h = Helix(name ?: "MyHelix")
-        val location =locationBuilder.build()
-        for (i in location.start..location.start+location.length/2-1) {
-            val l = Location(Location(i), Location(location.end-(i-location.start)))
+        val location = locationBuilder.build()
+        for (i in location.start..location.start + location.length / 2 - 1) {
+            val l = Location(Location(i), Location(location.end - (i - location.start)))
             h.secondaryInteractions.add(BasePair(l, Edge.WC, Edge.WC, Orientation.cis))
         }
         return h
@@ -137,7 +137,7 @@ class SecondaryStructureBuilder {
         return Pair(secondaryStructures, tertiaryStructures)
     }
 
-    fun parts(setup:PartsBuilder.() -> Unit) {
+    fun parts(setup: PartsBuilder.() -> Unit) {
         val partsBuilder = PartsBuilder()
         partsBuilder.setup()
         partsBuilder.build()?.let {
@@ -262,26 +262,29 @@ class ChimeraBuilder {
 
     var path: String? = null
 
-    fun build(drawing: SecondaryStructureDrawing, tertiaryStructures:List<TertiaryStructure>) {
+    fun build(drawing: SecondaryStructureDrawing, tertiaryStructures: List<TertiaryStructure>) {
         path?.let { path ->
             val chainName: String = drawing.secondaryStructure.rna.name
-            var numberingSystem: List<String>? = drawing.secondaryStructure.rna.numbering_system?.map { it.value.toString() }
+            var numberingSystem: List<String>? =
+                drawing.secondaryStructure.rna.numbering_system?.map { it.value.toString() }
             //if no numbering system, we generate a fake one to be able to generate the ChimeraX script
             if (numberingSystem == null)
-                numberingSystem =  (1..drawing.secondaryStructure.rna.length).map { it.toString()  }
+                numberingSystem = (1..drawing.secondaryStructure.rna.length).map { it.toString() }
             if (numberingSystem != null) {
                 val colors2residues = mutableMapOf<String, MutableList<ResidueDrawing>>()
                 for (r in drawing.residues) {
-                    val coloredResidues = colors2residues.getOrDefault(getHTMLColorString(r.getColor()), mutableListOf())
+                    val coloredResidues =
+                        colors2residues.getOrDefault(getHTMLColorString(r.getColor()), mutableListOf())
                     coloredResidues.add(r)
                     colors2residues[getHTMLColorString(r.getColor())] = coloredResidues
                 }
                 (drawing.secondaryStructure.source as? PDBSource)?.let { pdbSource ->
-                    var command = StringBuffer("open \"https://files.rcsb.org/download/${pdbSource.pdbId}.pdb\"${System.lineSeparator()}")
+                    var command =
+                        StringBuffer("open \"https://files.rcsb.org/download/${pdbSource.pdbId}.pdb\"${System.lineSeparator()}")
                     colors2residues.forEach { colorCode, residues ->
                         command.append("color /${chainName}:")
                         residues.forEach {
-                            command.append(numberingSystem[it.absPos - 1]+",")
+                            command.append(numberingSystem[it.absPos - 1] + ",")
                             //command.append("${it.absPos},")
                         }
                         command = StringBuffer(command.removeSuffix(","))
@@ -308,8 +311,8 @@ class PDBBuilder {
     var name: String? = null
     var id: String? = null
 
-    fun build(): List<Pair<TertiaryStructure,SecondaryStructure>> {
-        var structures = mutableListOf<Pair<TertiaryStructure,SecondaryStructure>>()
+    fun build(): List<Pair<TertiaryStructure, SecondaryStructure>> {
+        var structures = mutableListOf<Pair<TertiaryStructure, SecondaryStructure>>()
         if (this.id != null) {
             val pdbFile = File.createTempFile(this.id!!, ".pdb")
             pdbFile.writeText(PDB().getEntry(this.id!!).readText())
@@ -410,11 +413,11 @@ class RfamBuilder : PublicDatabaseBuilder() {
 
     inner class Use {
 
-        infix fun alignment(ns:numbering) {
+        infix fun alignment(ns: numbering) {
             useAlignmentNumbering = true
         }
 
-        infix fun species(ns:numbering) {
+        infix fun species(ns: numbering) {
             useAlignmentNumbering = false
         }
 
@@ -561,7 +564,7 @@ class RNArtistBuilder {
     private var chimeraOutputBuilder: ChimeraBuilder? = null
     var secondaryStructures = mutableListOf<SecondaryStructure>()
     var tertiaryStructures = mutableListOf<TertiaryStructure>()
-    var theme: AdvancedTheme? = null
+    var theme: Theme? = null
     var data: MutableMap<String, Double> = mutableMapOf()
     private var layout: Layout? = null
 
@@ -570,7 +573,7 @@ class RNArtistBuilder {
         this.secondaryStructures.forEach { ss ->
             val drawing = SecondaryStructureDrawing(ss, WorkingSession())
             this.theme?.let { theme ->
-                drawing.applyAdvancedTheme(theme)
+                drawing.applyTheme(theme)
             }
             this.layout?.let { layout ->
                 drawing.applyLayout(layout)
@@ -658,80 +661,95 @@ class LayoutBuilder {
                 val l = junctionLayoutBuilder.locationBuilder.build()
                 junctionLayoutBuilder.radius?.let { radius ->
                     val selection =
-                        { e: DrawingElement -> Pair(e is JunctionDrawing &&  e.inside(l) && l.blocks.size == e.location.blocks.size, null) }
+                        { e: DrawingElement ->
+                            Pair(
+                                e is JunctionDrawing && e.inside(l) && l.blocks.size == e.location.blocks.size,
+                                null
+                            )
+                        }
                     layout.setConfigurationFor(selection, LayoutParameter.radius, radius.toString())
                 }
                 junctionLayoutBuilder.out_ids?.let { out_ids ->
-
-                    /*val selection =
-                        { e: DrawingElement ->
-                            e is JunctionDrawing && e.inside(l) && l.blocks.size == e.location.blocks.size
-                        }*/
 
                     val selection =
                         { e: DrawingElement ->
                             val new_out_ids = StringBuilder()
                             (e as? JunctionDrawing)?.let { junctionDrawing ->
-                                var i = 0
+                                if (e.inside(l) && l.blocks.size == e.location.blocks.size) {
+                                    new_out_ids.append(out_ids)
+                                } else if (e.inside(l)) {
+                                    var i = 0
 //                                if needed, to debug this code section, use Rfam entry RF00011 and RNA X69982.1/45-449. It has a 6-way junction in the consensus that becomes 5-way for this RNA.
 //                                if ("X69982.1/45-449".equals(junctionDrawing.ssDrawing.secondaryStructure.rna.name) && junctionDrawing.location.start == 88)
 //                                    println("Search to apply out_ids ${out_ids} to junction ${junctionDrawing.location}")
-                                while (i < l.blocks.size-1) {
-                                    val helicalBpInJunction = Location(Location(l.blocks[i].end), Location(l.blocks[i+1].start))
+                                    while (i < l.blocks.size - 1) {
+                                        val helicalBpInJunction =
+                                            Location(Location(l.blocks[i].end), Location(l.blocks[i + 1].start))
 //                                    if ("X69982.1/45-449".equals(junctionDrawing.ssDrawing.secondaryStructure.rna.name) && junctionDrawing.location.start == 88) {
 //                                        println("############## bp in junction ${helicalBpInJunction}")
 //                                    }
-                                    junctionDrawing.outHelices.forEach { helixDrawing ->
-                                        var helixLocation:Location? = null
-                                        junctionDrawing.ssDrawing.secondaryStructure.rna.numbering_system?.let { ns ->
-                                            helixLocation = Location(
-                                                Location(
-                                                    ns[helixDrawing.secondaryInteractions.first().location.start - 1]!!,
-                                                    ns[helixDrawing.secondaryInteractions.last().location.start + 1]!!
-                                                ),
-                                                Location(
-                                                    ns[helixDrawing.secondaryInteractions.last().location.end - 1]!!,
-                                                    ns[helixDrawing.secondaryInteractions.first().location.end + 1]!!
+                                        junctionDrawing.outHelices.forEach { helixDrawing ->
+                                            var helixLocation: Location? = null
+                                            junctionDrawing.ssDrawing.secondaryStructure.rna.numbering_system?.let { ns ->
+                                                helixLocation = Location(
+                                                    Location(
+                                                        ns[helixDrawing.secondaryInteractions.first().location.start - 1]!!,
+                                                        ns[helixDrawing.secondaryInteractions.last().location.start + 1]!!
+                                                    ),
+                                                    Location(
+                                                        ns[helixDrawing.secondaryInteractions.last().location.end - 1]!!,
+                                                        ns[helixDrawing.secondaryInteractions.first().location.end + 1]!!
+                                                    )
                                                 )
-                                            )
-                                        } ?: run {
-                                            helixLocation = Location(
-                                                Location(
-                                                    helixDrawing.secondaryInteractions.first().location.start - 1,
-                                                    helixDrawing.secondaryInteractions.last().location.start + 1
-                                                ),
-                                                Location(
-                                                    helixDrawing.secondaryInteractions.last().location.end - 1,
-                                                    helixDrawing.secondaryInteractions.first().location.end + 1
+                                            } ?: run {
+                                                helixLocation = Location(
+                                                    Location(
+                                                        helixDrawing.secondaryInteractions.first().location.start - 1,
+                                                        helixDrawing.secondaryInteractions.last().location.start + 1
+                                                    ),
+                                                    Location(
+                                                        helixDrawing.secondaryInteractions.last().location.end - 1,
+                                                        helixDrawing.secondaryInteractions.first().location.end + 1
+                                                    )
                                                 )
-                                            )
-                                        }
+                                            }
 
 //                                        if ("X69982.1/45-449".equals(junctionDrawing.ssDrawing.secondaryStructure.rna.name) && junctionDrawing.location.start == 88) {
 //                                            println("According to the ns this bp should be located in ${helixLocation}")
 //                                        }
-                                        helixLocation?.let {
-                                            //If the basepair in junction is contained in this helix location, we catched the helix that should have the out_id orientation at i
-                                            if (it.contains(helicalBpInJunction)) {
+                                            helixLocation?.let {
+                                                //If the basepair in junction is contained in this helix location, we catched the helix that should have the out_id orientation at i
+                                                if (it.contains(helicalBpInJunction)) {
 //                                                if ("X69982.1/45-449".equals(junctionDrawing.ssDrawing.secondaryStructure.rna.name) && junctionDrawing.location.start == 88) {
 //                                                    println("-------> Got it")
 //                                                }
-                                                new_out_ids.append(out_ids.split(" ")[i])
-                                                new_out_ids.append(" ")
+                                                    new_out_ids.append(out_ids.split(" ")[i])
+                                                    new_out_ids.append(" ")
+                                                }
                                             }
                                         }
+                                        i++
                                     }
-                                    i++
-                                }
 //                                if ("X69982.1/45-449".equals(junctionDrawing.ssDrawing.secondaryStructure.rna.name) && junctionDrawing.location.start == 88)
 //                                    println("out ids recomputed to ${new_out_ids.toString().trim()}")
-                                if (new_out_ids.toString().trim().split(" ").size != junctionDrawing.outHelices.size) {
-                                    new_out_ids.clear()
-                                    new_out_ids.append(out_ids)
+                                    if (new_out_ids.toString().trim()
+                                            .split(" ").size != junctionDrawing.outHelices.size
+                                    ) {
+                                        new_out_ids.clear()
+                                        new_out_ids.append(out_ids)
+                                    } else {
+
+                                    }
+                                } else {
+
                                 }
                             }
                             if (new_out_ids.isNotEmpty()) {
-                                Pair(new_out_ids.toString().trim().split(" ").size == (e as JunctionDrawing).outHelices.size, new_out_ids.toString().trim())
+                                Pair(
+                                    new_out_ids.toString().trim()
+                                        .split(" ").size == (e as JunctionDrawing).outHelices.size,
+                                    new_out_ids.toString().trim()
+                                )
                             } else
                                 Pair(false, null)
                         }
@@ -841,8 +859,8 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
         this.hides.add(hideBuilder)
     }
 
-    fun build(): AdvancedTheme {
-        val t = AdvancedTheme()
+    fun build(): Theme {
+        val t = Theme()
         this.details.forEach { detailsBuilder ->
             var location: Location? = null
             if (!detailsBuilder.locationBuilder.isEmpty()) {
@@ -855,8 +873,8 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                 }
             }
             if (typesSelected.isNotEmpty()) {
-                typesSelected.forEach {  typesSelected ->
-                    when(typesSelected) {
+                typesSelected.forEach { typesSelected ->
+                    when (typesSelected) {
                         SecondaryStructureType.Helix -> {
                             when (detailsBuilder.value) {
                                 1 -> {
@@ -865,91 +883,91 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                             el.type == SecondaryStructureType.Helix
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.SecondaryInteraction
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.PhosphodiesterBond && el.parent is HelixDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.AShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.A && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.UShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.U && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.GShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.G && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.CShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.C && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.XShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.X && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                 }
                                 2 -> {
@@ -958,91 +976,91 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                             el.type == SecondaryStructureType.Helix
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.SecondaryInteraction
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
-                                            el.type == SecondaryStructureType.PhosphodiesterBond && el.parent is HelixDrawing
+                                            el.type == SecondaryStructureType.PhosphodiesterBond
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.AShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.A && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.UShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.U && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.GShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.G && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.CShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.C && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.XShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.X && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                 }
                                 3 -> {
@@ -1051,184 +1069,184 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                             el.type == SecondaryStructureType.Helix
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.SecondaryInteraction
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
-                                            el.type == SecondaryStructureType.PhosphodiesterBond && el.parent is HelixDrawing
+                                            el.type == SecondaryStructureType.PhosphodiesterBond
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.AShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.A && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.UShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.U && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.GShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.G && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.CShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.C && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.XShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.X && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                 }
-                                4,5 -> {
+                                4, 5 -> {
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.Helix
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.SecondaryInteraction
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
-                                            el.type == SecondaryStructureType.PhosphodiesterBond && el.parent is HelixDrawing
+                                            el.type == SecondaryStructureType.PhosphodiesterBond
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.AShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.A && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.UShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.U && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.GShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.G && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.CShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.C && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.XShape && el.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.X && el.parent?.parent is SecondaryInteractionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
+                                        { el -> "true"}
                                     )
                                 }
                             }
@@ -1241,84 +1259,84 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                             el.type == SecondaryStructureType.Junction
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.PhosphodiesterBond && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.AShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.A && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.UShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.U && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.GShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.G && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.CShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.C && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.XShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.X && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
+                                        { el -> "false"}
                                     )
 
                                 }
@@ -1328,85 +1346,73 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                             el.type == SecondaryStructureType.Junction
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.PhosphodiesterBond && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.AShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.A && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.UShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.U && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.GShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.G && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.CShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.C && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.XShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.X && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                 }
                                 3 -> {
                                     t.setConfigurationFor(
@@ -1414,171 +1420,147 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                             el.type == SecondaryStructureType.Junction
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.PhosphodiesterBond && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.AShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.A && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.UShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.U && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.GShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.G && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.CShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.C && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.XShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.X && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                 }
-                                4,5 -> {
+                                4, 5 -> {
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.Junction
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.PhosphodiesterBond && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.AShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.A && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.UShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.U && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.GShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.G && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.CShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.C && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.XShape && el.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.X && el.parent?.parent is JunctionDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                 }
                             }
 
@@ -1591,85 +1573,73 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                             el.type == SecondaryStructureType.SingleStrand
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.PhosphodiesterBond && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.AShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.A && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.UShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.U && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.GShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.G && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.CShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.C && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.XShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.X && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                 }
                                 2 -> {
                                     t.setConfigurationFor(
@@ -1677,85 +1647,73 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                             el.type == SecondaryStructureType.SingleStrand
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.PhosphodiesterBond && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.AShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.A && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.UShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.U && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.GShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.G && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.CShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.C && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.XShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.X && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                 }
                                 3 -> {
                                     t.setConfigurationFor(
@@ -1763,171 +1721,147 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                             el.type == SecondaryStructureType.SingleStrand
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.PhosphodiesterBond && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.AShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.A && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.UShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.U && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.GShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.G && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.CShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.C && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.XShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.X && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "false"
-                                    )
+                                       { el -> "false"}                                    )
                                 }
-                                4,5 -> {
+                                4, 5 -> {
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.SingleStrand
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.PhosphodiesterBond && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.AShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.A && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.UShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.U && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.GShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.G && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.CShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.C && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.XShape && el.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                     t.setConfigurationFor(
                                         { el ->
                                             el.type == SecondaryStructureType.X && el.parent?.parent is SingleStrandDrawing
                                         },
                                         ThemeParameter.fulldetails,
-                                        "true"
-                                    )
+                                       { el -> "true"}                                    )
                                 }
                             }
                         }
@@ -1943,8 +1877,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.SecondaryInteraction && (if (location == null) true else el.inside(
@@ -1952,8 +1885,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.Junction && (if (location == null) true else el.inside(
@@ -1961,8 +1893,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.SingleStrand && (if (location == null) true else el.inside(
@@ -1970,8 +1901,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.PhosphodiesterBond && (if (location == null) true else el.inside(
@@ -1979,8 +1909,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.AShape && (if (location == null) true else el.inside(
@@ -1988,13 +1917,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.A && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "false")
+                        }, ThemeParameter.fulldetails,{ el -> "false"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.UShape && (if (location == null) true else el.inside(
@@ -2002,13 +1930,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.U && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "false")
+                        }, ThemeParameter.fulldetails,{ el -> "false"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.GShape && (if (location == null) true else el.inside(
@@ -2016,13 +1943,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.G && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "false")
+                        }, ThemeParameter.fulldetails,{ el -> "false"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.CShape && (if (location == null) true else el.inside(
@@ -2030,13 +1956,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.C && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "false")
+                        }, ThemeParameter.fulldetails,{ el -> "false"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.XShape && (if (location == null) true else el.inside(
@@ -2044,13 +1969,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.X && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "false")
+                        }, ThemeParameter.fulldetails,{ el -> "false"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.InteractionSymbol && (if (location == null) true else el.inside(
@@ -2058,8 +1982,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t
                     }
                     2 -> {
@@ -2070,8 +1993,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.SecondaryInteraction && (if (location == null) true else el.inside(
@@ -2079,8 +2001,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.Junction && (if (location == null) true else el.inside(
@@ -2088,8 +2009,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.SingleStrand && (if (location == null) true else el.inside(
@@ -2097,8 +2017,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.PhosphodiesterBond && (if (location == null) true else el.inside(
@@ -2106,8 +2025,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.AShape && (if (location == null) true else el.inside(
@@ -2115,13 +2033,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.A && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "false")
+                        }, ThemeParameter.fulldetails,{ el -> "false"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.UShape && (if (location == null) true else el.inside(
@@ -2129,13 +2046,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.U && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "false")
+                        }, ThemeParameter.fulldetails,{ el -> "false"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.GShape && (if (location == null) true else el.inside(
@@ -2143,13 +2059,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.G && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "false")
+                        }, ThemeParameter.fulldetails,{ el -> "false"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.CShape && (if (location == null) true else el.inside(
@@ -2157,13 +2072,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.C && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "false")
+                        }, ThemeParameter.fulldetails,{ el -> "false"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.XShape && (if (location == null) true else el.inside(
@@ -2171,13 +2085,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.X && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "false")
+                        }, ThemeParameter.fulldetails,{ el -> "false"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.InteractionSymbol && (if (location == null) true else el.inside(
@@ -2185,8 +2098,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t
                     }
                     3 -> {
@@ -2197,8 +2109,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.SecondaryInteraction && (if (location == null) true else el.inside(
@@ -2206,8 +2117,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.Junction && (if (location == null) true else el.inside(
@@ -2215,8 +2125,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.SingleStrand && (if (location == null) true else el.inside(
@@ -2224,8 +2133,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.PhosphodiesterBond && (if (location == null) true else el.inside(
@@ -2233,8 +2141,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.AShape && (if (location == null) true else el.inside(
@@ -2242,13 +2149,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.A && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "false")
+                        }, ThemeParameter.fulldetails,{ el -> "false"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.UShape && (if (location == null) true else el.inside(
@@ -2256,13 +2162,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.U && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "false")
+                        }, ThemeParameter.fulldetails,{ el -> "false"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.GShape && (if (location == null) true else el.inside(
@@ -2270,13 +2175,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.G && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "false")
+                        }, ThemeParameter.fulldetails,{ el -> "false"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.CShape && (if (location == null) true else el.inside(
@@ -2284,13 +2188,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.C && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "false")
+                        }, ThemeParameter.fulldetails,{ el -> "false"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.XShape && (if (location == null) true else el.inside(
@@ -2298,13 +2201,11 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el -> el.type == SecondaryStructureType.X },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.InteractionSymbol && (if (location == null) true else el.inside(
@@ -2312,8 +2213,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t
                     }
                     4 -> {
@@ -2324,8 +2224,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.SecondaryInteraction && (if (location == null) true else el.inside(
@@ -2333,8 +2232,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.Junction && (if (location == null) true else el.inside(
@@ -2342,8 +2240,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.SingleStrand && (if (location == null) true else el.inside(
@@ -2351,8 +2248,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.PhosphodiesterBond && (if (location == null) true else el.inside(
@@ -2360,8 +2256,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.AShape && (if (location == null) true else el.inside(
@@ -2369,13 +2264,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.A && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "true")
+                        }, ThemeParameter.fulldetails,{ el -> "true"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.UShape && (if (location == null) true else el.inside(
@@ -2383,13 +2277,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.U && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "true")
+                        }, ThemeParameter.fulldetails,{ el -> "true"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.GShape && (if (location == null) true else el.inside(
@@ -2397,13 +2290,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.G && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "true")
+                        }, ThemeParameter.fulldetails,{ el -> "true"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.CShape && (if (location == null) true else el.inside(
@@ -2411,13 +2303,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.C && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "true")
+                        }, ThemeParameter.fulldetails,{ el -> "true"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.XShape && (if (location == null) true else el.inside(
@@ -2425,13 +2316,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.X && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "true")
+                        }, ThemeParameter.fulldetails,{ el -> "true"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.InteractionSymbol && (if (location == null) true else el.inside(
@@ -2439,8 +2329,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "false"
-                        )
+                           { el -> "false"}                        )
                         t
                     }
                     else -> {
@@ -2451,8 +2340,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.SecondaryInteraction && (if (location == null) true else el.inside(
@@ -2460,8 +2348,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.Junction && (if (location == null) true else el.inside(
@@ -2469,8 +2356,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.SingleStrand && (if (location == null) true else el.inside(
@@ -2478,8 +2364,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.PhosphodiesterBond && (if (location == null) true else el.inside(
@@ -2487,8 +2372,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.AShape && (if (location == null) true else el.inside(
@@ -2496,13 +2380,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.A && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "true")
+                        }, ThemeParameter.fulldetails,{ el -> "true"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.UShape && (if (location == null) true else el.inside(
@@ -2510,13 +2393,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.U && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "true")
+                        }, ThemeParameter.fulldetails,{ el -> "true"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.GShape && (if (location == null) true else el.inside(
@@ -2524,13 +2406,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.G && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "true")
+                        }, ThemeParameter.fulldetails,{ el -> "true"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.CShape && (if (location == null) true else el.inside(
@@ -2538,13 +2419,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.C && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "true")
+                        }, ThemeParameter.fulldetails,{ el -> "true"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.XShape && (if (location == null) true else el.inside(
@@ -2552,13 +2432,12 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t.setConfigurationFor({ el ->
                             el.type == SecondaryStructureType.X && (if (location == null) true else el.inside(
                                 location as Location
                             ))
-                        }, ThemeParameter.fulldetails, "true")
+                        }, ThemeParameter.fulldetails,{ el -> "true"})
                         t.setConfigurationFor(
                             { el ->
                                 el.type == SecondaryStructureType.InteractionSymbol && (if (location == null) true else el.inside(
@@ -2566,65 +2445,78 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                 ))
                             },
                             ThemeParameter.fulldetails,
-                            "true"
-                        )
+                           { el -> "true"}                        )
                         t
                     }
                 }
         }
         this.colors.forEach { colorBuilder ->
-            colorBuilder.value?.let {
-                var color2Apply = colorBuilder.value.toString()
-                var location: Location? = null
-                val typesSelected = mutableListOf<SecondaryStructureType>()
-                if (!colorBuilder.locationBuilder.isEmpty()) {
-                    location = colorBuilder.locationBuilder.build()
-                }
-                colorBuilder.getSecondaryStructureTypes()?.let { types ->
-                    types.forEach { type ->
-                        typesSelected.add(type)
-                    }
-                }
+            colorBuilder.scheme?.let { schemeName ->
+                RnartistConfig.colorSchemes.get(schemeName)?.let { scheme ->
 
-                if (data.isNotEmpty() && (colorBuilder.filtered || colorBuilder.to != null)) { //if we have some data and the user filtered them OR the color to has been set
-                    colorBuilder.data.forEach { position, value ->
-                        val fromColor = getAWTColor(colorBuilder.value.toString())
-                        val min = colorBuilder.data.values.minOrNull()
-                        val max = colorBuilder.data.values.maxOrNull()
-                        colorBuilder.to?.let { to ->
-                            val toColor = getAWTColor(to)
-                            if (min != max) {
-                                val p = (value - min!!) / (max!! - min!!)
-                                val r = fromColor.red * (1 - p) + toColor.red * p
-                                val g = fromColor.green * (1 - p) + toColor.green * p
-                                val b = fromColor.blue * (1.toFloat() - p) + toColor.blue * p
-                                color2Apply = getHTMLColorString(Color(r.toInt(), g.toInt(), b.toInt()))
-                            }
+                    scheme.forEach { selection, color ->
+                        t.setConfigurationFor(
+                            selection,
+                            ThemeParameter.color,
+                            color
+                        )
+                    }
+
+                }
+            } ?: run {
+                colorBuilder.value?.let {
+                    var color2Apply = colorBuilder.value.toString()
+                    var location: Location? = null
+                    val typesSelected = mutableListOf<SecondaryStructureType>()
+                    if (!colorBuilder.locationBuilder.isEmpty()) {
+                        location = colorBuilder.locationBuilder.build()
+                    }
+                    colorBuilder.getSecondaryStructureTypes()?.let { types ->
+                        types.forEach { type ->
+                            typesSelected.add(type)
                         }
+                    }
+
+                    if (data.isNotEmpty() && (colorBuilder.filtered || colorBuilder.to != null)) { //if we have some data and the user filtered them OR the color to has been set
+                        colorBuilder.data.forEach { position, value ->
+                            val fromColor = getAWTColor(colorBuilder.value.toString())
+                            val min = colorBuilder.data.values.minOrNull()
+                            val max = colorBuilder.data.values.maxOrNull()
+                            colorBuilder.to?.let { to ->
+                                val toColor = getAWTColor(to)
+                                if (min != max) {
+                                    val p = (value - min!!) / (max!! - min!!)
+                                    val r = fromColor.red * (1 - p) + toColor.red * p
+                                    val g = fromColor.green * (1 - p) + toColor.green * p
+                                    val b = fromColor.blue * (1.toFloat() - p) + toColor.blue * p
+                                    color2Apply = getHTMLColorString(Color(r.toInt(), g.toInt(), b.toInt()))
+                                }
+                            }
+                            val selection =
+                                { e: DrawingElement ->
+                                    (if (typesSelected.isEmpty()) true else typesSelected.contains(e.type)) && ((if (location == null) true else e.inside(
+                                        location as Location
+                                    )) && e.inside(Location(position.toInt())))
+                                }
+                            t.setConfigurationFor(
+                                selection,
+                                ThemeParameter.color,
+                                {e -> color2Apply}
+                            )
+                        }
+                    } else {
                         val selection =
                             { e: DrawingElement ->
-                                (if (typesSelected.isEmpty()) true else typesSelected.contains(e.type)) && ((if (location == null) true else e.inside(
+                                (if (typesSelected.isEmpty()) true else typesSelected.contains(e.type)) && (if (location == null) true else e.inside(
                                     location as Location
-                                )) && e.inside(Location(position.toInt())))
+                                ))
                             }
                         t.setConfigurationFor(
                             selection,
                             ThemeParameter.color,
-                            color2Apply
+                            {e -> color2Apply}
                         )
                     }
-                } else {
-                    val selection =
-                        { e: DrawingElement ->
-                            (if (typesSelected.isEmpty()) true else typesSelected.contains(e.type)) && (if (location == null) true else e.inside(
-                                location as Location
-                            ))
-                        }
-                    t.setConfigurationFor(
-                        selection,
-                        ThemeParameter.color,
-                        color2Apply
-                    )
                 }
             }
         }
@@ -2651,8 +2543,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                     t.setConfigurationFor(
                         selection,
                         ThemeParameter.fulldetails,
-                        "true"
-                    )
+                       { el -> "true"}                    )
                 }
             } else if (typesSelected.isNotEmpty() || location != null) {
                 val selection =
@@ -2664,8 +2555,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                 t.setConfigurationFor(
                     selection,
                     ThemeParameter.fulldetails,
-                    "true"
-                )
+                   { el -> "true"}                )
             }
         }
         this.hides.forEach { hideBuilder ->
@@ -2691,7 +2581,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                     t.setConfigurationFor(
                         selection,
                         ThemeParameter.fulldetails,
-                        "none"
+                        {e -> "none"}
                     )
                 }
             } else if (typesSelected.isNotEmpty() || location != null) {
@@ -2704,7 +2594,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                 t.setConfigurationFor(
                     selection,
                     ThemeParameter.fulldetails,
-                    "none"
+                    {e -> "none"}
                 )
             }
         }
@@ -2731,7 +2621,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                     t.setConfigurationFor(
                         selection,
                         ThemeParameter.linewidth,
-                        lineBuilder.value.toString()
+                        { e -> lineBuilder.value.toString()}
                     )
                 }
             } else {
@@ -2744,7 +2634,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                 t.setConfigurationFor(
                     selection,
                     ThemeParameter.linewidth,
-                    lineBuilder.value.toString()
+                    { e -> lineBuilder.value.toString()}
                 )
             }
         }
@@ -2826,6 +2716,7 @@ class ColorBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder
                 if (!value.startsWith("#")) getColorCode(value) else value
             }
         }
+    var scheme:String? = null
 
 }
 

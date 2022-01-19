@@ -192,235 +192,235 @@ fun annotatePDBfiles(pdbDir: String, outputdir: String) {
 
     val t = Theme()
     t.setConfigurationFor(
-        SecondaryStructureType.Helix,
+        { e -> e.type == SecondaryStructureType.Helix},
         ThemeParameter.fulldetails,
-        "true"
+        { e -> "true"}
     )
     t.setConfigurationFor(
-        SecondaryStructureType.SecondaryInteraction,
+        { e -> e.type == SecondaryStructureType.SecondaryInteraction},
         ThemeParameter.fulldetails,
-        "true"
+            { e -> "true"}
     )
     t.setConfigurationFor(
-        SecondaryStructureType.SingleStrand,
+        { e -> e.type == SecondaryStructureType.SingleStrand},
         ThemeParameter.fulldetails,
-        "true"
+            { e -> "true"}
     )
     t.setConfigurationFor(
-        SecondaryStructureType.PKnot,
+        { e -> e.type == SecondaryStructureType.PKnot},
         ThemeParameter.fulldetails,
-        "true"
+            { e -> "true"}
     )
     t.setConfigurationFor(
-        SecondaryStructureType.InteractionSymbol,
+        { e -> e.type == SecondaryStructureType.InteractionSymbol},
         ThemeParameter.fulldetails,
-        "false"
-    )
-
-    t.setConfigurationFor(
-        SecondaryStructureType.PhosphodiesterBond,
-        ThemeParameter.fulldetails,
-        "true"
-    )
-    t.setConfigurationFor(
-        SecondaryStructureType.Junction,
-        ThemeParameter.fulldetails,
-        "true"
-    )
-    t.setConfigurationFor(
-        SecondaryStructureType.AShape,
-        ThemeParameter.fulldetails,
-        "true"
+            { e -> "false"}
     )
 
     t.setConfigurationFor(
-        SecondaryStructureType.AShape,
+        { e -> e.type == SecondaryStructureType.PhosphodiesterBond},
+        ThemeParameter.fulldetails,
+            { e -> "true"}
+    )
+    t.setConfigurationFor(
+        { e -> e.type == SecondaryStructureType.Junction},
+        ThemeParameter.fulldetails,
+            { e ->"true"}
+    )
+    t.setConfigurationFor(
+        { e -> e.type == SecondaryStructureType.AShape},
+        ThemeParameter.fulldetails,
+            { e -> "true"}
+    )
+
+    t.setConfigurationFor(
+        { e -> e.type == SecondaryStructureType.AShape},
         ThemeParameter.color,
-        getHTMLColorString(Color.LIGHT_GRAY)
+            { e -> getHTMLColorString(Color.LIGHT_GRAY)}
     )
 
     t.setConfigurationFor(
-        SecondaryStructureType.UShape,
+        { e -> e.type == SecondaryStructureType.UShape},
         ThemeParameter.fulldetails,
-        "true"
+            { e -> "true"}
     )
 
     t.setConfigurationFor(
-        SecondaryStructureType.UShape,
+        { e -> e.type == SecondaryStructureType.UShape},
         ThemeParameter.color,
-        getHTMLColorString(Color.LIGHT_GRAY)
+            { e -> getHTMLColorString(Color.LIGHT_GRAY)}
     )
 
     t.setConfigurationFor(
-        SecondaryStructureType.GShape,
+        { e -> e.type == SecondaryStructureType.GShape},
         ThemeParameter.fulldetails,
-        "true"
+            { e -> "true"}
     )
 
     t.setConfigurationFor(
-        SecondaryStructureType.GShape,
+        { e -> e.type == SecondaryStructureType.GShape},
         ThemeParameter.color,
-        getHTMLColorString(Color.LIGHT_GRAY)
+            { e -> getHTMLColorString(Color.LIGHT_GRAY)}
     )
 
 
     t.setConfigurationFor(
-        SecondaryStructureType.CShape,
+        { e -> e.type == SecondaryStructureType.CShape},
         ThemeParameter.fulldetails,
-        "true"
+            { e -> "true"}
     )
 
     t.setConfigurationFor(
-        SecondaryStructureType.CShape,
+        { e -> e.type == SecondaryStructureType.CShape},
         ThemeParameter.color,
-        getHTMLColorString(Color.LIGHT_GRAY)
+            { e -> getHTMLColorString(Color.LIGHT_GRAY)}
     )
 
     t.setConfigurationFor(
-        SecondaryStructureType.XShape,
+        { e -> e.type == SecondaryStructureType.XShape},
         ThemeParameter.fulldetails,
-        "true"
+            { e -> "true"}
     )
 
     t.setConfigurationFor(
-        SecondaryStructureType.XShape,
+        { e -> e.type == SecondaryStructureType.XShape},
         ThemeParameter.color,
-        getHTMLColorString(Color.LIGHT_GRAY)
+            { e -> getHTMLColorString(Color.LIGHT_GRAY)}
     )
 
     t.setConfigurationFor(
-        SecondaryStructureType.A,
+        { e -> e.type == SecondaryStructureType.A},
         ThemeParameter.fulldetails,
-        "false"
+            { e -> "false"}
     )
     t.setConfigurationFor(
-        SecondaryStructureType.U,
+        { e -> e.type == SecondaryStructureType.U},
         ThemeParameter.fulldetails,
-        "false"
+            { e -> "false"}
     )
     t.setConfigurationFor(
-        SecondaryStructureType.G,
+        { e -> e.type == SecondaryStructureType.G},
         ThemeParameter.fulldetails,
-        "false"
+            { e -> "false"}
     )
     t.setConfigurationFor(
-        SecondaryStructureType.C,
+        { e -> e.type == SecondaryStructureType.C},
         ThemeParameter.fulldetails,
-        "false"
+            { e -> "false"}
     )
     t.setConfigurationFor(
-        SecondaryStructureType.X,
+        { e -> e.type == SecondaryStructureType.X},
         ThemeParameter.fulldetails,
-        "false"
+            { e -> "false"}
     )
 
     t.setConfigurationFor(
-        SecondaryStructureType.TertiaryInteraction,
+        { e -> e.type == SecondaryStructureType.TertiaryInteraction},
         ThemeParameter.fulldetails,
-        "false"
+            { e -> "false"}
     )
 
     val t2 = Theme()
     t2.setConfigurationFor(
-        SecondaryStructureType.Helix,
+        { e -> e.type == SecondaryStructureType.Helix},
         ThemeParameter.fulldetails,
-        "true"
+            { e -> "true"}
     )
     t2.setConfigurationFor(
-        SecondaryStructureType.SecondaryInteraction,
+        { e -> e.type == SecondaryStructureType.SecondaryInteraction},
         ThemeParameter.fulldetails,
-        "true"
+            { e -> "true"}
     )
     t2.setConfigurationFor(
-        SecondaryStructureType.SingleStrand,
+        { e -> e.type == SecondaryStructureType.SingleStrand},
         ThemeParameter.fulldetails,
-        "true"
-    )
-
-    t2.setConfigurationFor(
-        SecondaryStructureType.InteractionSymbol,
-        ThemeParameter.fulldetails,
-        "false"
+            { e -> "true"}
     )
 
     t2.setConfigurationFor(
-        SecondaryStructureType.PhosphodiesterBond,
+        { e -> e.type == SecondaryStructureType.InteractionSymbol},
         ThemeParameter.fulldetails,
-        "true"
+            { e -> "false"}
     )
 
     t2.setConfigurationFor(
-        SecondaryStructureType.Junction,
+        { e -> e.type == SecondaryStructureType.PhosphodiesterBond},
         ThemeParameter.fulldetails,
-        "true"
-    )
-    t2.setConfigurationFor(
-        SecondaryStructureType.AShape,
-        ThemeParameter.fulldetails,
-        "false"
+            { e -> "true"}
     )
 
     t2.setConfigurationFor(
-        SecondaryStructureType.UShape,
+        { e -> e.type == SecondaryStructureType.Junction},
         ThemeParameter.fulldetails,
-        "false"
+            { e -> "true"}
+    )
+    t2.setConfigurationFor(
+        { e -> e.type == SecondaryStructureType.AShape},
+        ThemeParameter.fulldetails,
+            { e -> "false"}
     )
 
     t2.setConfigurationFor(
-        SecondaryStructureType.UShape,
+        { e -> e.type == SecondaryStructureType.UShape},
+        ThemeParameter.fulldetails,
+            { e -> "false"}
+    )
+
+    t2.setConfigurationFor(
+        { e -> e.type == SecondaryStructureType.UShape},
         ThemeParameter.color,
-        getHTMLColorString(Color.LIGHT_GRAY)
+            { e -> getHTMLColorString(Color.LIGHT_GRAY)}
     )
 
     t2.setConfigurationFor(
-        SecondaryStructureType.GShape,
+        { e -> e.type == SecondaryStructureType.GShape},
         ThemeParameter.fulldetails,
-        "false"
+            { e -> "false"}
     )
 
 
     t2.setConfigurationFor(
-        SecondaryStructureType.CShape,
+        { e -> e.type == SecondaryStructureType.CShape},
         ThemeParameter.fulldetails,
-        "false"
+            { e -> "false"}
     )
 
     t2.setConfigurationFor(
-        SecondaryStructureType.XShape,
+        { e -> e.type == SecondaryStructureType.XShape},
         ThemeParameter.fulldetails,
-        "false"
+            { e -> "false"}
     )
 
     t2.setConfigurationFor(
-        SecondaryStructureType.A,
+        { e -> e.type == SecondaryStructureType.A},
         ThemeParameter.fulldetails,
-        "false"
+            { e -> "false"}
     )
     t2.setConfigurationFor(
-        SecondaryStructureType.U,
+        { e -> e.type == SecondaryStructureType.U},
         ThemeParameter.fulldetails,
-        "false"
+            { e -> "false"}
     )
     t2.setConfigurationFor(
-        SecondaryStructureType.G,
+        { e -> e.type == SecondaryStructureType.G},
         ThemeParameter.fulldetails,
-        "false"
+        { e -> "false"}
     )
     t2.setConfigurationFor(
-        SecondaryStructureType.C,
+        { e -> e.type == SecondaryStructureType.C},
         ThemeParameter.fulldetails,
-        "false"
+            { e -> "false"}
     )
     t2.setConfigurationFor(
-        SecondaryStructureType.X,
+        { e -> e.type == SecondaryStructureType.X},
         ThemeParameter.fulldetails,
-        "false"
+            { e -> "false"}
     )
 
     t2.setConfigurationFor(
-        SecondaryStructureType.TertiaryInteraction,
+        { e -> e.type == SecondaryStructureType.TertiaryInteraction},
         ThemeParameter.fulldetails,
-        "false"
+            { e -> "false"}
     )
 
     val rnaview = Rnaview()
@@ -433,12 +433,12 @@ fun annotatePDBfiles(pdbDir: String, outputdir: String) {
             rnaview.annotate(pdbFile).forEach { ss ->
                 var ok = false
                 for (ts in tertiaryStructures)
-                    if (ss.rna.name.equals(ts.rna.name)) {
+                    if (ss.second.rna.name.equals(ts.rna.name)) {
                         ok = ss.rna.length == ts.rna.length
                         break
                     }
                 if (ok) {
-                    if (ss.rna.length in 51..149) {
+                    if (ss.second.rna.length in 51..149) {
                         val drawing = rnartist {
                             secondaryStructures.add(ss)
                         }.first()
@@ -454,16 +454,16 @@ fun annotatePDBfiles(pdbDir: String, outputdir: String) {
                                         "true"
                                 }
                             }
-                            File("${outputdir}/${pdbFile.name.split(".pdb").first()}_${ss.rna.name}.svg").writeText(
+                            File("${outputdir}/${pdbFile.name.split(".pdb").first()}_${ss.second.rna.name}.svg").writeText(
                                 toSVG(drawing, frame.width.toDouble(), frame.height.toDouble())
                             )
                             File("${outputdir}/${
                                 pdbFile.name.split(".pdb").first()
-                            }_${ss.rna.name}.json").writeText(
-                                toJSON(drawing)
+                            }_${ss.second.rna.name}.json").writeText(
+                                //toJSON(drawing)
                             )
                             val junctionsList =
-                                File("${outputdir}/${pdbFile.name.split(".pdb").first()}_${ss.rna.name}.txt")
+                                File("${outputdir}/${pdbFile.name.split(".pdb").first()}_${ss.second.rna.name}.txt")
                             junctionsList.appendText("""boucles apicales : ${drawing.allJunctions.filter { it.junctionType == JunctionType.ApicalLoop }.size}
 bulles internes : ${drawing.allJunctions.filter { it.junctionType == JunctionType.InnerLoop }.size}
 jonctions triples : ${drawing.allJunctions.filter { it.junctionType == JunctionType.ThreeWay }.size}
@@ -662,7 +662,7 @@ jonctions quadruples : ${drawing.allJunctions.filter { it.junctionType == Juncti
                                             File("${outputdir}/${
                                                 pdbFile.name.split(".pdb").first()
                                             }_${ss.rna.name}_${domains.first().name}_${domains.last().name}.json").writeText(
-                                                toJSON(drawing)
+                                                //toJSON(drawing)
                                             )
                                             var outputPDB = File("${outputdir}/${
                                                 pdbFile.name.split(".pdb").first()

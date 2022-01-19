@@ -446,7 +446,7 @@ class Pknot(
     val name: String = "MyPknot",
     helix1: Helix? = null,
     helix2: Helix? = null,
-    pknotsSoFar: MutableList<Pknot>? = null,
+    pknotsSoFar: MutableList<Pknot> = mutableListOf(),
     helicesInPknots2Keep: List<Location> = listOf()
 ) : Serializable {
 
@@ -456,25 +456,22 @@ class Pknot(
     init {
         helix1?.let {
             helix2?.let {
-                if (helicesInPknots2Keep.contains(helix1.location)) {
+                if (pknotsSoFar.filter { it.helix == helix1 }.isNotEmpty()) {
+                    this.helix = helix1
+                    this.tertiaryInteractions.addAll(helix2.secondaryInteractions)
+                } else if (pknotsSoFar.filter { it.helix == helix2 }.isNotEmpty()) {
+                    this.helix = helix2
+                    this.tertiaryInteractions.addAll(helix1.secondaryInteractions)
+                } else if (helicesInPknots2Keep.contains(helix1.location)) {
                     this.helix = helix1
                     this.tertiaryInteractions.addAll(helix2.secondaryInteractions)
                 } else if (helicesInPknots2Keep.contains(helix2.location)) {
                     this.helix = helix2
                     this.tertiaryInteractions.addAll(helix1.secondaryInteractions)
-                } else
-                    pknotsSoFar?.let { pknotsSoFar ->
-                        if (!pknotsSoFar.filter { it.helix == helix1 }.isEmpty()) {
-                            this.helix = helix1
-                            this.tertiaryInteractions.addAll(helix2.secondaryInteractions)
-                        } else if (!pknotsSoFar.filter { it.helix == helix2 }.isEmpty()) {
-                            this.helix = helix2
-                            this.tertiaryInteractions.addAll(helix1.secondaryInteractions)
-                        } else {
-                            this.helix = if (helix1.end - helix1.start > helix2.end - helix2.start) helix2 else helix1
-                            this.tertiaryInteractions.addAll((if (helix1.end - helix1.start > helix2.end - helix2.start) helix1 else helix2).secondaryInteractions)
-                        }
-                    }
+                } else {
+                    this.helix = if (helix1.end - helix1.start > helix2.end - helix2.start) helix2 else helix1
+                    this.tertiaryInteractions.addAll((if (helix1.end - helix1.start > helix2.end - helix2.start) helix1 else helix2).secondaryInteractions)
+                }
             }
 
         }
@@ -1054,7 +1051,8 @@ class SecondaryStructure(
                                         this.helices[i],
                                         this.helices[j],
                                         this.pknots,
-                                        helicesInPknots2Keep)
+                                        helicesInPknots2Keep
+                                    )
                                 )
                                 foundPknot = true
                                 break@I

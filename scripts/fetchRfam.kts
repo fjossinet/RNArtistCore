@@ -1,55 +1,182 @@
 /**
- * This script recovers Rfam entries and produces 2D drawing based on both drawing algorithms (Booquet and the one used in the RNArtist app)
- * Create an rnartistcore project with the script rnartistcore.sh (see README for details). Copy this script in the project directory and run it like:
- * ./plot_2ds.sh fetchRfam.kts
- * All the output files will be stored in the project directory.
+ * this Script creates the data for the project
  */
 
-import io.github.fjossinet.rnartist.core.booquet
+import io.github.fjossinet.rnartist.core.io.randomColor
+import io.github.fjossinet.rnartist.core.model.getHTMLColorString
+import io.github.fjossinet.rnartist.core.numbering
 import io.github.fjossinet.rnartist.core.rnartist
+import java.awt.datatransfer.SystemFlavorMap
+import java.nio.file.Files
+import java.nio.file.Paths
 
-(1..100).forEach {
-    val rfamID = "RF${"%05d".format(it)}"
-    println(rfamID)
-    try {
-        booquet {
-            file = "/project/${rfamID}_booquet.svg"
-            junction_diameter = 15.0
-            ss {
-                rfam {
-                    id = rfamID
-                    name="consensus"
+if (args.size < 1) {
+    println(
+        """To run this script:
+kotlin -cp location_of_your_rnartistcore-jar-with-dependencies.jar outputdir
+        """.trimMargin())
+    System.exit(0)
+}
+
+val outputDir = Paths.get(args[0]).toFile()
+
+if (!outputDir.exists())
+    outputDir.mkdir()
+
+var totalNts = 0
+
+(1..4069).forEach {
+    if (!arrayOf(9,10,1072,1728,2680,3079,3086,3087).contains(it)) {
+        val rfamID = "RF${"%05d".format(it)}"
+        println(rfamID)
+        val familyDir = outputDir.toPath().resolve(rfamID).toFile()
+        if (!familyDir.exists()) {
+            familyDir.mkdir()
+            try {
+                //first we generate the structure to have all the structural domains
+                var structures = rnartist {
+                    ss {
+                        rfam {
+                            id = rfamID
+                            name = "consensus"
+                            use alignment numbering
+                        }
+                    }
+                    theme {
+                        details {
+                            value = 3
+                        }
+                    }
                 }
+
+                totalNts += structures.first().secondaryStructure.rna.length
+
+                //now we redo the script with a png export and each structural domain with its own random color
+                structures = rnartist {
+
+                    png {
+                        path = "${familyDir.path}"
+                        height = 400.0
+                        width = 400.0
+                    }
+                    ss {
+                        rfam {
+                            id = rfamID
+                            name = "consensus"
+                            use alignment numbering
+                        }
+                    }
+                    theme {
+                        details {
+                            value = 3
+                        }
+                        structures.first().secondaryStructure.helices.forEach {
+                            color {
+                                value = getHTMLColorString(randomColor())
+                                location {
+                                    it.location.blocks.first().start to it.location.blocks.first().end
+                                    it.location.blocks.last().start to it.location.blocks.last().end
+                                }
+                            }
+                        }
+
+                        structures.first().secondaryStructure.junctions.forEach {
+                            color {
+                                value = getHTMLColorString(randomColor())
+                                location {
+                                    it.location.blocks.forEach {
+                                        it.start to it.end
+                                    }
+                                }
+                            }
+                        }
+
+                        structures.first().singleStrands.forEach {
+                            color {
+                                value = getHTMLColorString(randomColor())
+                                location {
+                                    it.location.start to it.location.end
+                                }
+                            }
+                        }
+                    }
+                }
+
+                val helixColors = StringBuilder()
+                structures.first().allHelices.forEach {
+                    helixColors.append("""
+        color {
+            location {
+                ${it.location.blocks.first().start} to ${it.location.blocks.first().end}
+                ${it.location.blocks.last().start} to ${it.location.blocks.last().end}
+            }
+            value = "${getHTMLColorString(it.getColor())}"
+        }
+""")
+                    helixColors.append(System.lineSeparator())
+                }
+
+                val junctionColors = StringBuilder()
+                structures.first().allJunctions.forEach {
+                    junctionColors.append("""
+        color {
+            location {
+${it.location.blocks.map { "                ${it.start} to ${it.end}" }.joinToString(System.lineSeparator())}
+            }
+            value = "${getHTMLColorString(it.getColor())}"
+        }
+""")
+                    junctionColors.append(System.lineSeparator())
+                }
+
+                val singleStrandColors = StringBuilder()
+                structures.first().singleStrands.forEach {
+                    singleStrandColors.append("""
+        color {
+            location {
+                ${it.location.start} to ${it.location.end}
+            }
+            value = "${getHTMLColorString(it.getColor())}"
+        }
+""")
+                    singleStrandColors.append(System.lineSeparator())
+                }
+
+                Files.move(familyDir.toPath().resolve("consensus.png"), familyDir.toPath().resolve("preview.png"))
+                val script = familyDir.toPath().resolve("rnartist.kts").toFile()
+                script.createNewFile()
+                script.writeText(
+                    """
+import io.github.fjossinet.rnartist.core.*      
+
+rnartist {
+    ss {
+        rfam {
+            id = "$rfamID"
+            name = "consensus"
+            use alignment numbering
+        }
+    }
+    theme {
+        details { 
+            value = 3
+        }
+$helixColors
+$junctionColors
+$singleStrandColors
+    }
+}           
+    """.trimIndent()
+                )
+            } catch (e: Exception) {
+                println("Exception for $rfamID: ${e.message}")
+                familyDir.delete()
             }
         }
-        rnartist {
-            svg {
-                path = "./"
-            }
-            ss {
-                rfam {
-                    id = rfamID
-                    name = "consensus"
-                }
-            }
-            theme {
-                details {
-                    value = 5
-                }
-
-                color {
-                    type = "R"
-                    value = "deepskyblue"
-                }
-
-                color {
-                    type = "Y"
-                    value = "darkgreen"
-                }
-            }
-        }
-    } catch (e: Exception) {
-        println("Exception for $rfamID: ${e.message}")
     }
 }
+
+println("Total Nts: $totalNts")
+
+
 

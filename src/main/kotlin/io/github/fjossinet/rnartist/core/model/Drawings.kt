@@ -214,42 +214,12 @@ class WorkingSession() {
     }
 }
 
-class Theme(defaultConfigurations: Map<String, Map<String, String>> = mutableMapOf()) {
+class Theme {
 
-    var configurations: MutableMap<String, MutableMap<String, String>> = mutableMapOf()
+    var configurations: MutableMap<(DrawingElement) -> Boolean, Pair<String, (DrawingElement) -> String>> = mutableMapOf()
 
-    fun setConfigurationFor(elementType: SecondaryStructureType? = null, parameter: ThemeParameter, parameterValue: String) {
-        if (elementType == null)
-            this.setConfigurationFor(SecondaryStructureType.Full2D.toString(), parameter.toString(), parameterValue)
-        else
-            this.setConfigurationFor(elementType.toString(), parameter.toString(), parameterValue)
-    }
-
-    private fun setConfigurationFor(elementType: String, parameter: String, parameterValue: String) {
-        if (!configurations.containsKey(elementType))
-            configurations[elementType] = mutableMapOf<String, String>()
-        configurations[elementType]!![parameter] = parameterValue
-    }
-
-    init {
-        for ((elementType, parameters) in defaultConfigurations.entries)
-            for ((name, value) in parameters.entries)
-                this.setConfigurationFor(elementType = elementType, parameter = name, parameterValue = value)
-    }
-
-    fun clear() = this.configurations.clear()
-}
-
-class AdvancedTheme() {
-
-    var configurations: MutableMap<(DrawingElement) -> Boolean, Pair<String, String>> = mutableMapOf()
-
-    fun setConfigurationFor(selection: (DrawingElement) -> Boolean, parameter: ThemeParameter, parameterValue: String) {
-        this.setConfigurationFor(selection, parameter.toString(), parameterValue)
-    }
-
-    private fun setConfigurationFor(selection: (DrawingElement) -> Boolean, parameter: String, parameterValue: String) {
-        configurations[selection] = Pair(parameter, parameterValue)
+    fun setConfigurationFor(selection: (DrawingElement) -> Boolean, parameter: ThemeParameter, parameterValue: (DrawingElement) -> String) {
+        configurations[selection] = Pair(parameter.toString(), parameterValue)
     }
 
     fun clear() = this.configurations.clear()
@@ -260,11 +230,7 @@ class Layout {
     var configurations: MutableMap<(DrawingElement) -> Pair<Boolean, String?>, Pair<String, String>> = mutableMapOf()
 
     fun setConfigurationFor(selection: (DrawingElement) -> Pair<Boolean, String?>, parameter: LayoutParameter, parameterValue: String) {
-        this.setConfigurationFor(selection, parameter.toString(), parameterValue)
-    }
-
-    private fun setConfigurationFor(selection: (DrawingElement) -> Pair<Boolean, String?>, parameter: String, parameterValue: String) {
-        configurations[selection] = Pair(parameter, parameterValue)
+        configurations[selection] = Pair(parameter.toString(), parameterValue)
     }
 
     fun clear() = this.configurations.clear()
@@ -276,19 +242,19 @@ class DrawingConfiguration(defaultParams: Map<String, String> = defaultConfigura
     val params: MutableMap<String, String> = mutableMapOf()
 
     var opacity: Int = defaultConfiguration[ThemeParameter.opacity.toString()]!!.toInt()
-        get() = this.params[ThemeParameter.opacity.toString()]!!.toInt()
+        get() = this.params.getOrDefault(ThemeParameter.opacity.toString(), defaultConfiguration[ThemeParameter.opacity.toString()]!!).toInt()
 
     var fullDetails: Boolean = defaultConfiguration[ThemeParameter.fulldetails.toString()]!!.toBoolean()
-        get() = this.params[ThemeParameter.fulldetails.toString()]!!.toBoolean()
+        get() =  this.params.getOrDefault(ThemeParameter.fulldetails.toString(),defaultConfiguration[ThemeParameter.fulldetails.toString()]!!).toBoolean()
 
     var lineShift: Double = defaultConfiguration[ThemeParameter.lineshift.toString()]!!.toDouble()
-        get() = this.params[ThemeParameter.lineshift.toString()]!!.toDouble()
+        get() =  this.params.getOrDefault(ThemeParameter.lineshift.toString(),defaultConfiguration[ThemeParameter.lineshift.toString()]!!).toDouble()
 
     var lineWidth: Double = defaultConfiguration[ThemeParameter.linewidth.toString()]!!.toDouble()
-        get() = this.params[ThemeParameter.linewidth.toString()]!!.toDouble()
+        get() =  this.params.getOrDefault(ThemeParameter.linewidth.toString(),defaultConfiguration[ThemeParameter.linewidth.toString()]!!).toDouble()
 
     var color: Color = getAWTColor(defaultConfiguration[ThemeParameter.color.toString()]!!)
-        get() = getAWTColor(this.params[ThemeParameter.color.toString()]!!)
+        get() = getAWTColor( this.params.getOrDefault(ThemeParameter.color.toString(),defaultConfiguration[ThemeParameter.color.toString()]!!))
 
     init {
         defaultParams.forEach { (k, v) ->
@@ -367,18 +333,16 @@ abstract class DrawingElement(val ssDrawing: SecondaryStructureDrawing, var pare
 
     fun getSinglePositions()= this.location.positions.toIntArray()
 
-    open fun applyTheme(theme: Theme) = theme.configurations[this.type.toString()]?.let {
-            it.forEach { t, u ->
-                this.drawingConfiguration.params[t] = u
-            }
-        }
-
-    open fun applyAdvancedTheme(theme: AdvancedTheme)  {
+    open fun applyTheme(theme: Theme)  {
         theme.configurations.entries.forEach { entry ->
             if (entry.key(this)) {
-                this.drawingConfiguration.params[entry.value.first] = entry.value.second
+                this.drawingConfiguration.params[entry.value.first] = entry.value.second(this)
             }
         }
+    }
+
+    open fun clearTheme() {
+        this.drawingConfiguration.clear()
     }
 
     open fun applyLayout(layout: Layout)  {
@@ -1291,16 +1255,7 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
 
     override fun toString() = this.secondaryStructure.toString()
 
-    fun applyConfiguration(drawingConfiguration: DrawingConfiguration) {
-        this.drawingConfiguration = drawingConfiguration
-    }
-
     fun applyTheme(theme: Theme) {
-        theme.configurations[SecondaryStructureType.Full2D.toString()]?.let {
-            it.forEach { t, u ->
-                this.drawingConfiguration.params[t] = u
-            }
-        }
         for (pk in this.pknots)
             pk.applyTheme(theme)
         for (jc in this.allJunctions)
@@ -1319,23 +1274,23 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
             phospho.applyTheme(theme)
     }
 
-    fun applyAdvancedTheme(theme: AdvancedTheme) {
+    fun clearTheme() {
         for (pk in this.pknots)
-            pk.applyAdvancedTheme(theme)
+            pk.clearTheme()
         for (jc in this.allJunctions)
-            jc.applyAdvancedTheme(theme)
+            jc.clearTheme()
         for (ss in this.singleStrands)
-            ss.applyAdvancedTheme(theme)
+            ss.clearTheme()
         for (h in this.allHelices)
-            h.applyAdvancedTheme(theme)
+            h.clearTheme()
         for (i in this.allSecondaryInteractions)
-            i.applyAdvancedTheme(theme)
+            i.clearTheme()
         for (i in this.tertiaryInteractions)
-            i.applyAdvancedTheme(theme)
+            i.clearTheme()
         for (r in this.residues)
-            r.applyAdvancedTheme(theme)
+            r.clearTheme()
         for (phospho in this.phosphoBonds)
-            phospho.applyAdvancedTheme(theme)
+            phospho.clearTheme()
     }
 
     fun applyLayout(layout: Layout) {
@@ -1660,8 +1615,8 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
                 Ellipse2D.Double(
                     (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
                     (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.zoomLevel),
-                    numberDim.width.toDouble() / ssDrawing.zoomLevel,
-                    numberDim.width.toDouble() / ssDrawing.zoomLevel
+                    numberDim.width / ssDrawing.zoomLevel,
+                    numberDim.width / ssDrawing.zoomLevel
                 )
             )
         }
@@ -1691,15 +1646,15 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
                 Ellipse2D.Double(
                     (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
                     (p as Pair<Point2D, Point2D>).first.y - numberDim.width / (2.0 * ssDrawing.zoomLevel),
-                    numberDim.width.toDouble() / ssDrawing.zoomLevel,
-                    numberDim.width.toDouble() / ssDrawing.zoomLevel
+                    numberDim.width / ssDrawing.zoomLevel,
+                    numberDim.width / ssDrawing.zoomLevel
                 )
             )
         }
 
         if (e != null && p != null) {
-            val transX = (e!!.bounds2D.width - numberDim.width.toDouble()).toFloat() / 2F
-            val transY = (e!!.bounds2D.height + numberDim.height.toDouble()).toFloat() / 2F
+            val transX = (e!!.bounds2D.width - numberDim.width).toFloat() / 2F
+            val transY = (e!!.bounds2D.height + numberDim.height).toFloat() / 2F
             val cp =
                 crossProduct(center, Point2D.Double(center.x, center.y - 20), (p as Pair<Point2D, Point2D>).first)
             if (cp >= 0) {
@@ -1787,9 +1742,9 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
         this.residueLetter.applyTheme(theme)
     }
 
-    override fun applyAdvancedTheme(theme: AdvancedTheme) {
-        super.applyAdvancedTheme(theme)
-        this.residueLetter.applyAdvancedTheme(theme)
+    override fun clearTheme() {
+        super.clearTheme()
+        this.residueLetter.clearTheme()
     }
 
 }
@@ -2052,11 +2007,11 @@ class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, private val pknot: Pkno
         }
     }
 
-    override fun applyAdvancedTheme(theme: AdvancedTheme) {
-        super.applyAdvancedTheme(theme)
-        this.helix.applyAdvancedTheme(theme)
+    override fun clearTheme() {
+        super.clearTheme()
+        this.helix.clearTheme()
         this.tertiaryInteractions.forEach {
-            it.applyAdvancedTheme(theme)
+            it.clearTheme()
         }
     }
 }
@@ -2122,7 +2077,24 @@ class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructure
     }
 
     override fun applyTheme(theme: Theme) {
-        super.applyTheme(theme)
+        theme.configurations.entries.forEach { entry ->
+            if (entry.key(this)) {
+                this.drawingConfiguration.params[entry.value.first] = entry.value.second(this)
+                //an helix will forward color and lines to its children
+                when (entry.value.first) {
+                    ThemeParameter.color.toString(),  ThemeParameter.linewidth.toString() -> {
+                        var t = Theme()
+                        t.setConfigurationFor({e -> e.type == SecondaryStructureType.PhosphodiesterBond}, ThemeParameter.valueOf(entry.value.first), entry.value.second )
+                        for (p in this.phosphoBonds)
+                            p.applyTheme(t)
+                        t = Theme()
+                        t.setConfigurationFor({e -> e.type == SecondaryStructureType.SecondaryInteraction}, ThemeParameter.valueOf(entry.value.first), entry.value.second )
+                        for (i in this.secondaryInteractions)
+                            i.applyTheme(t)
+                    }
+                }
+            }
+        }
         for (p in this.phosphoBonds)
             p.applyTheme(theme)
         for (i in this.secondaryInteractions) {
@@ -2130,12 +2102,12 @@ class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructure
         }
     }
 
-    override fun applyAdvancedTheme(theme: AdvancedTheme) {
-        super.applyAdvancedTheme(theme)
+    override fun clearTheme() {
+        super.clearTheme()
         for (p in this.phosphoBonds)
-            p.applyAdvancedTheme(theme)
+            p.clearTheme()
         for (i in this.secondaryInteractions) {
-            i.applyAdvancedTheme(theme)
+            i.clearTheme()
         }
     }
 
@@ -2291,19 +2263,32 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
     }
 
     override fun applyTheme(theme: Theme) {
-        super.applyTheme(theme)
-        for (p in this.phosphoBonds)
-            p.applyTheme(theme)
-        for (r in this.ssDrawing.getResiduesFromAbsPositions(*this.getSinglePositions()))
-            r.applyTheme(theme)
+        theme.configurations.entries.forEach { entry ->
+            if (entry.key(this)) {
+                this.drawingConfiguration.params[entry.value.first] = entry.value.second(this)
+                //a single strand will forward color and lines to its children
+                when (entry.value.first) {
+                    ThemeParameter.color.toString(),  ThemeParameter.linewidth.toString() -> {
+                        var t = Theme()
+                        t.setConfigurationFor({e -> e.type == SecondaryStructureType.PhosphodiesterBond}, ThemeParameter.valueOf(entry.value.first), entry.value.second )
+                        for (p in this.phosphoBonds)
+                            p.applyTheme(t)
+                        t = Theme()
+                        t.setConfigurationFor({e -> e.type == SecondaryStructureType.AShape || e.type == SecondaryStructureType.UShape || e.type == SecondaryStructureType.GShape || e.type == SecondaryStructureType.CShape  || e.type == SecondaryStructureType.XShape}, ThemeParameter.valueOf(entry.value.first), entry.value.second )
+                        for (r in this.ssDrawing.getResiduesFromAbsPositions(*this.getSinglePositions()))
+                            r.applyTheme(t)
+                    }
+                }
+            }
+        }
     }
 
-    override fun applyAdvancedTheme(theme: AdvancedTheme) {
-        super.applyAdvancedTheme(theme)
+    override fun clearTheme() {
+        super.clearTheme()
         for (p in this.phosphoBonds)
-            p.applyAdvancedTheme(theme)
+            p.clearTheme()
         for (r in this.ssDrawing.getResiduesFromAbsPositions(*this.getSinglePositions()))
-            r.applyAdvancedTheme(theme)
+            r.clearTheme()
     }
 }
 
@@ -2791,19 +2776,36 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
     }
 
     override fun applyTheme(theme: Theme) {
-        super.applyTheme(theme)
+        theme.configurations.entries.forEach { entry ->
+            if (entry.key(this)) {
+                this.drawingConfiguration.params[entry.value.first] = entry.value.second(this)
+                //a junction will forward color and lines to its children
+                when (entry.value.first) {
+                    ThemeParameter.color.toString(),  ThemeParameter.linewidth.toString() -> {
+                        var t = Theme()
+                        t.setConfigurationFor({e -> e.type == SecondaryStructureType.PhosphodiesterBond}, ThemeParameter.valueOf(entry.value.first), entry.value.second )
+                        for (p in this.phosphoBonds)
+                            p.applyTheme(t)
+                        t = Theme()
+                        t.setConfigurationFor({e -> e.type == SecondaryStructureType.AShape || e.type == SecondaryStructureType.UShape || e.type == SecondaryStructureType.GShape || e.type == SecondaryStructureType.CShape  || e.type == SecondaryStructureType.XShape}, ThemeParameter.valueOf(entry.value.first), entry.value.second )
+                        for (i in this.residues)
+                            i.applyTheme(t)
+                    }
+                }
+            }
+        }
         for (p in this.phosphoBonds)
             p.applyTheme(theme)
         for (r in this.residues)
             r.applyTheme(theme)
     }
 
-    override fun applyAdvancedTheme(theme: AdvancedTheme) {
-        super.applyAdvancedTheme(theme)
+    override fun clearTheme() {
+        super.clearTheme()
         for (p in this.phosphoBonds)
-            p.applyAdvancedTheme(theme)
+            p.clearTheme()
         for (r in this.residues)
-            r.applyAdvancedTheme(theme)
+            r.clearTheme()
     }
 }
 
@@ -3234,17 +3236,33 @@ abstract class BaseBaseInteractionDrawing(parent: DrawingElement?, val interacti
     override fun toString() = this.interaction.toString()
 
     override fun applyTheme(theme: Theme) {
-        super.applyTheme(theme)
+        theme.configurations.entries.forEach { entry ->
+            if (entry.key(this)) {
+                this.drawingConfiguration.params[entry.value.first] = entry.value.second(this)
+                //an secondary interaction will forward color and lines to its children
+                when (entry.value.first) {
+                    ThemeParameter.color.toString(),  ThemeParameter.linewidth.toString() -> {
+                        var t = Theme()
+                        t.setConfigurationFor({e -> e.type == SecondaryStructureType.AShape || e.type == SecondaryStructureType.UShape || e.type == SecondaryStructureType.GShape || e.type == SecondaryStructureType.CShape  || e.type == SecondaryStructureType.XShape}, ThemeParameter.valueOf(entry.value.first), entry.value.second )
+                        this.residue.applyTheme(t)
+                        this.pairedResidue.applyTheme(t)
+                        t = Theme()
+                        t.setConfigurationFor({e -> e.type == SecondaryStructureType.InteractionSymbol}, ThemeParameter.valueOf(entry.value.first), entry.value.second )
+                        this.interactionSymbol.applyTheme(t)
+                    }
+                }
+            }
+        }
         this.residue.applyTheme(theme)
         this.pairedResidue.applyTheme(theme)
         this.interactionSymbol.applyTheme(theme)
     }
 
-    override fun applyAdvancedTheme(theme: AdvancedTheme) {
-        super.applyAdvancedTheme(theme)
-        this.residue.applyAdvancedTheme(theme)
-        this.pairedResidue.applyAdvancedTheme(theme)
-        this.interactionSymbol.applyAdvancedTheme(theme)
+    override fun clearTheme() {
+        super.clearTheme()
+        this.residue.clearTheme()
+        this.pairedResidue.clearTheme()
+        this.interactionSymbol.clearTheme()
     }
 }
 
@@ -3539,11 +3557,11 @@ class InteractionSymbolDrawing(parent: DrawingElement?, val interaction: BasePai
         }
     }
 
-    override fun applyAdvancedTheme(theme: AdvancedTheme) {
-        super.applyAdvancedTheme(theme)
-        this.defaultSymbol?.applyAdvancedTheme(theme)
+    override fun clearTheme() {
+        super.clearTheme()
+        this.defaultSymbol?.clearTheme()
         for (s in this.lwSymbols) {
-            s.applyAdvancedTheme(theme)
+            s.clearTheme()
         }
     }
 
@@ -5176,7 +5194,7 @@ private fun drawBooquetBranch(booquet:MutableMap<String, DoubleArray>, ss:Second
     }
 }
 
-fun SpiralTree(secondaryStructures:List<SecondaryStructure>, selection:Location, width:Double, height:Double, lineWidth:Double, theme:AdvancedTheme?=null, layout:Layout?=null):String {
+fun SpiralTree(secondaryStructures:List<SecondaryStructure>, selection:Location, width:Double, height:Double, lineWidth:Double, theme:Theme?=null, layout:Layout?=null):String {
     
     val svgBuffer =
         StringBuffer("""<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">""" + "\n")
