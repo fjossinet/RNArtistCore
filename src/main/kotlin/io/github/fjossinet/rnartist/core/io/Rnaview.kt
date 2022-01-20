@@ -4,10 +4,8 @@ import io.github.fjossinet.rnartist.core.RnartistConfig
 import io.github.fjossinet.rnartist.core.model.SecondaryStructure
 import io.github.fjossinet.rnartist.core.model.TertiaryStructure
 import io.github.fjossinet.rnartist.core.model.ToolSource
-import org.apache.commons.io.FileUtils
 import java.io.File
 import java.io.FileReader
-import java.io.IOException
 
 class Rnaview : Computation() {
 
@@ -44,7 +42,7 @@ class Rnaview : Computation() {
                         ts.getNumberingSystem().forEachIndexed { index, label ->
                             ns[index] =  label.toInt()
                         }
-                        ss.rna.numbering_system = ns
+                        ss.rna.alignment_numbering_system = ns
                         found = true
                         annotatedStructures.add(Pair(ts,ss))
                         if (ss.rna.length != ts.rna.length) {

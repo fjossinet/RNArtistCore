@@ -27,7 +27,6 @@ if (!outputDir.exists())
 var totalNts = 0
 
 (1..4069).forEach {
-    if (!arrayOf(9,10,1072,1728,2680,3079,3086,3087).contains(it)) {
         val rfamID = "RF${"%05d".format(it)}"
         println(rfamID)
         val familyDir = outputDir.toPath().resolve(rfamID).toFile()
@@ -80,7 +79,7 @@ var totalNts = 0
                     junctionColors.append("""
         color {
             location {
-${it.location.blocks.map { "                ${it.start} to ${it.end}" }.joinToString(System.lineSeparator())}
+${it.location.blocks.map { "                ${it.start+1} to ${it.end-1}" }.joinToString(System.lineSeparator())}
             }
             value = "${getHTMLColorString(it.getColor())}"
         }
@@ -132,7 +131,6 @@ $singleStrandColors
                 familyDir.delete()
             }
         }
-    }
 }
 
 println("Total Nts: $totalNts")

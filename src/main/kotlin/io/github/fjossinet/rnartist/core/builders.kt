@@ -266,7 +266,7 @@ class ChimeraBuilder {
         path?.let { path ->
             val chainName: String = drawing.secondaryStructure.rna.name
             var numberingSystem: List<String>? =
-                drawing.secondaryStructure.rna.numbering_system?.map { it.value.toString() }
+                drawing.secondaryStructure.rna.alignment_numbering_system?.map { it.value.toString() }
             //if no numbering system, we generate a fake one to be able to generate the ChimeraX script
             if (numberingSystem == null)
                 numberingSystem = (1..drawing.secondaryStructure.rna.length).map { it.toString() }
@@ -428,7 +428,7 @@ class RfamBuilder : PublicDatabaseBuilder() {
             val secondaryStructures = parseStockholm(Rfam().getEntry(id), withConsensus2D = true)
             secondaryStructures.forEach {
                 it.source = RfamSource(id)
-                it.rna.useNumberingSystem = useAlignmentNumbering
+                it.rna.useAlignmentNumberingSystem = useAlignmentNumbering
             }
             this.name?.let {
                 if ("consensus".equals(name))
@@ -690,7 +690,7 @@ class LayoutBuilder {
 //                                    }
                                         junctionDrawing.outHelices.forEach { helixDrawing ->
                                             var helixLocation: Location? = null
-                                            junctionDrawing.ssDrawing.secondaryStructure.rna.numbering_system?.let { ns ->
+                                            junctionDrawing.ssDrawing.secondaryStructure.rna.alignment_numbering_system?.let { ns ->
                                                 helixLocation = Location(
                                                     Location(
                                                         ns[helixDrawing.secondaryInteractions.first().location.start - 1]!!,

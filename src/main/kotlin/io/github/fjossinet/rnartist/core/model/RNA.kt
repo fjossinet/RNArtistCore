@@ -280,12 +280,12 @@ class RNA(var name: String = "A", seq: String, var source: DataSource? = null) :
             return this._seq.toString()
         }
 
-    var numbering_system: Map<Int, Int>? = null
+    var alignment_numbering_system: Map<Int, Int>? = null
 
     /**
-     * If true, some functions will use the numbering system (if any) if tests against locations are needed
+     * If true, some functions will compute the location according to the alignment numbering system
      */
-    var useNumberingSystem = false
+    var useAlignmentNumberingSystem = false
 
     /**
      * Adds a single residue to the end of the RNA sequence
@@ -344,15 +344,15 @@ class RNA(var name: String = "A", seq: String, var source: DataSource? = null) :
     fun subSequence(l: Location) = this._seq.substring(l.start - 1, l.end).toString()
 
     /**
-     * Returns the location with the positions defined in the [numbering_system]
+     * Returns the location with the positions defined in the [alignment_numbering_system]
      *
-     * @param [l] the [Location] to map against the [numbering_system]
+     * @param [l] the [Location] to map against the [alignment_numbering_system]
      *
-     * @return the same location if the [numbering_system] is null
+     * @return the same location if the [alignment_numbering_system] is null
      * @return the modified location
      */
     fun mapLocation(l: Location): Location {
-        return numbering_system?.let { ns ->
+        return alignment_numbering_system?.let { ns ->
             var blocks = mutableListOf<Block>()
             l.blocks.forEach {
                 ns[it.start]?.let { newStart ->
@@ -368,15 +368,15 @@ class RNA(var name: String = "A", seq: String, var source: DataSource? = null) :
     }
 
     /**
-     * Returns the single position defined in the [numbering_system]
+     * Returns the single position defined in the [alignment_numbering_system]
      *
-     * @param [p] the single position to map against the [numbering_system]
+     * @param [p] the single position to map against the [alignment_numbering_system]
      *
-     * @return the same position if the [numbering_system] is null
+     * @return the same position if the [alignment_numbering_system] is null
      * @return the modified position
      */
     fun mapPosition(p: Int): Int {
-        return numbering_system?.let { ns ->
+        return alignment_numbering_system?.let { ns ->
             ns[p]
         } ?: run {
             p

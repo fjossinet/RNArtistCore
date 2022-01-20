@@ -1,12 +1,12 @@
 package io.github.fjossinet.rnartist.core.io
 
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import io.github.fjossinet.rnartist.core.model.*
 import io.github.fjossinet.rnartist.core.rnartist
 import org.jdom2.Element
 import org.jdom2.input.SAXBuilder
 import java.io.*
+import java.lang.RuntimeException
 import java.text.NumberFormat
 import java.util.*
 import java.util.stream.Collectors
@@ -674,8 +674,8 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
                 //println("${key} ${currentPos} ${numbering_system[currentPos]}")
             }
         }
-        
-        rna.numbering_system = numbering_system
+
+        rna.alignment_numbering_system = numbering_system
 
         gapPositions.reverse()
         gapPositions.forEach { _bn = _bn.replaceRange(it,it+1,"") }
@@ -684,17 +684,21 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
         val _helices2keep = mutableListOf<Location>()
         helices2keep.forEach { helix2Keep ->
             var blocks = mutableListOf<Block>()
-            helix2Keep.blocks.forEach { block2Keep ->
-                //the position in the alignment can have no correspondance in the numbering system for this RNA (if this RNA had a gap at this alignment position), so...
+            helix2Keep.blocks.forEach here@{ block2Keep ->
+                //the position in the alignment can have no correspondence in the numbering system for this RNA (if this RNA had a gap at this alignment position), so...
                 var _start = block2Keep.start
-                while (!numbering_system.values.contains(_start))
-                    _start --
+                while (!numbering_system.values.contains(_start) && _start > 0)
+                    _start--
                 var _end = block2Keep.end
-                while (!numbering_system.values.contains(_end))
+                while (!numbering_system.values.contains(_end) && _end < consensusSS.rna.length)
                     _end ++
+                if (_start == 0 || _end == consensusSS.rna.length) { //this means that the block (helix strand), and consequently the helix, doesn't exist in this RNA
+                    return@here
+                }
                 blocks.add(Block(numbering_system.filter { it.value == _start }.keys.first(), numbering_system.filter { it.value == _end }.keys.first()))
             }
-            _helices2keep.add(Location(blocks))
+            if (blocks.size == 2) //to check if the 2 helix strand were found in this RNA
+                _helices2keep.add(Location(blocks))
         }
 
         secondaryStructures.add(SecondaryStructure(rna, _bn, helicesInPknots2Keep = _helices2keep))

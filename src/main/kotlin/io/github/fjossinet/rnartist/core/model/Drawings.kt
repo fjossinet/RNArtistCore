@@ -1448,7 +1448,7 @@ abstract class ResidueDrawing(parent: DrawingElement?, residueLetter: Char, ssDr
     val absPos: Int
         get() = this.location.start
 
-    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useNumberingSystem) {
+    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useAlignmentNumberingSystem) {
         location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.location.start))
     }
     else {
@@ -1790,7 +1790,7 @@ abstract class ResidueLetterDrawing(parent: ResidueDrawing?, ssDrawing: Secondar
 
     abstract fun asSVG(at:AffineTransform): String
 
-    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useNumberingSystem)
+    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useAlignmentNumberingSystem)
         location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.location.start))
     else
         location.contains(this.location.start)
@@ -2041,7 +2041,7 @@ class HelixDrawing(parent: DrawingElement? = null, ssDrawing: SecondaryStructure
     val maxBranchLength:Int
         get() = this.helix.maxBranchLength
 
-    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useNumberingSystem)
+    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useAlignmentNumberingSystem)
         ends.all { location.contains(ssDrawing.secondaryStructure.rna.mapPosition(it)) }
     else
         ends.all { location.contains(it)}
@@ -2175,7 +2175,7 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
     var previousBranch:JunctionDrawing? = null
     var nextBranch:JunctionDrawing? = null
 
-    override fun inside(location: Location) = if (ssDrawing.secondaryStructure.rna.useNumberingSystem)
+    override fun inside(location: Location) = if (ssDrawing.secondaryStructure.rna.useAlignmentNumberingSystem)
         location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.start)) && location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.end))
     else
         location.contains(this.start) && location.contains(this.end)
@@ -2281,6 +2281,11 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
                 }
             }
         }
+        for (p in this.phosphoBonds)
+            p.applyTheme(theme)
+        for (r in this.ssDrawing.getResiduesFromAbsPositions(*this.getSinglePositions()))
+            r.applyTheme(theme)
+
     }
 
     override fun clearTheme() {
@@ -2344,7 +2349,7 @@ open class JunctionDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDr
 
     val junctionType = this.junction.junctionType
 
-    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useNumberingSystem)
+    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useAlignmentNumberingSystem)
         this.junction.locationWithoutSecondaries.ends.all { location.contains(ssDrawing.secondaryStructure.rna.mapPosition(it)) }
     else
         this.junction.locationWithoutSecondaries.ends.all { location.contains(it) }
@@ -2819,7 +2824,7 @@ abstract class LWSymbolDrawing(parent: DrawingElement?, ssDrawing: SecondaryStru
 
     abstract fun setShape(p1: Point2D, p2: Point2D)
 
-    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useNumberingSystem)
+    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useAlignmentNumberingSystem)
         location.ends.all {location.contains(ssDrawing.secondaryStructure.rna.mapPosition(it))}
     else
         location.ends.all {location.contains(it)}
@@ -3174,7 +3179,7 @@ abstract class BaseBaseInteractionDrawing(parent: DrawingElement?, val interacti
             return this.location.end
         }
 
-    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useNumberingSystem)
+    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useAlignmentNumberingSystem)
         location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.start)) && location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.end))
     else
         location.contains(this.start) && location.contains(this.end)
@@ -3491,7 +3496,7 @@ class InteractionSymbolDrawing(parent: DrawingElement?, val interaction: BasePai
 
     override val selectionPoints = mutableListOf<Point2D>()
 
-    override fun inside(location: Location) = if (ssDrawing.secondaryStructure.rna.useNumberingSystem)
+    override fun inside(location: Location) = if (ssDrawing.secondaryStructure.rna.useAlignmentNumberingSystem)
         location.contains(ssDrawing.secondaryStructure.rna.mapPosition(interaction.start)) && location.contains(ssDrawing.secondaryStructure.rna.mapPosition(interaction.end))
     else
         location.contains(interaction.start) && location.contains(interaction.end)
@@ -3754,7 +3759,7 @@ open class PhosphodiesterBondDrawing(parent: DrawingElement?, ssDrawing: Seconda
 
     override val selectionPoints = mutableListOf<Point2D>()
 
-    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useNumberingSystem)
+    override fun inside(location:Location) = if (ssDrawing.secondaryStructure.rna.useAlignmentNumberingSystem)
         location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.start)) && location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.end))
     else
         location.contains(this.start) && location.contains(this.end)
