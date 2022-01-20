@@ -9,6 +9,51 @@ import java.net.URL
 import java.net.URLEncoder
 import kotlin.collections.HashMap
 
+class NCBI {
+
+    val baseURL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
+
+    /**
+     * Return a map whose key is the entry id asked for and value is the title found (or null if nothing found)
+     */
+    fun getSummaryTitle(vararg nucleotideEntryId:String):Map<String,String?> {
+        val titles = mutableMapOf<String, String?>()
+        try {
+            val ids = nucleotideEntryId.toList()
+            ids.chunked(20).forEach { subids -> //to avoid to send to many ids in a single request
+                subids.forEach {
+                    titles[it] = null
+                }
+                var currentId: String? = null
+                URL("${baseURL}/esummary.fcgi?db=nuccore&id=${subids.joinToString(",")}").readText()
+                    .split("<Item Name=\"").forEach { line ->
+                    if (line.startsWith("Caption")) {
+                        Regex(".+>(.+)<.+").find(line)?.groups?.get(1)?.let { match ->
+                            subids.find { it.startsWith(match.value) }?.let { id ->
+                                currentId = id
+                            }
+                        }
+                    }
+                    if (line.startsWith("Title")) {
+                        Regex(".+>(.+)<.+").find(line)?.groups?.get(1)?.let { match ->
+                            currentId?.let {
+                                titles[it] = match.value
+                            }
+                        }
+                    }
+                }
+                Thread.sleep(1000)
+            }
+
+        } catch (e:Exception) {
+            println(nucleotideEntryId)
+            e.printStackTrace()
+        }
+        return titles
+    }
+
+}
+
 class RNACentral {
 
     val baseURL = "https://rnacentral.org/api/v1/rna"
@@ -171,6 +216,6 @@ class NDB {
 
 }
 
-class Rfam {
+class Rfam(var nameAsAccessionNumbers:Boolean = true) {
     fun getEntry(rfamID:String) = StringReader(URL("http://rfam.xfam.org/family/$rfamID/alignment?acc=$rfamID&format=stockholm&download=0").readText())
 }

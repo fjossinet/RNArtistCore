@@ -908,7 +908,7 @@ class SecondaryStructure(
     helicesInPknots2Keep: List<Location> = listOf()
 ) : Serializable {
 
-    var name: String = "${this.rna.name}"
+    var name: String = this.rna.name
     val tertiaryInteractions = mutableSetOf<BasePair>()
     val helices = mutableListOf<Helix>()
     val singleStrands = mutableListOf<SingleStrand>()

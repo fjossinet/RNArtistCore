@@ -425,18 +425,30 @@ class RfamBuilder : PublicDatabaseBuilder() {
 
     override fun build(): List<SecondaryStructure> {
         this.id?.let { id ->
-            val secondaryStructures = parseStockholm(Rfam().getEntry(id), withConsensus2D = true)
-            secondaryStructures.forEach {
-                it.source = RfamSource(id)
-                it.rna.useAlignmentNumberingSystem = useAlignmentNumbering
+            val rfam = Rfam()
+            val secondaryStructures = parseStockholm(rfam.getEntry(id), withConsensus2D = true)
+            var ids = secondaryStructures.map { it.name.split("/").first() }
+            if (rfam.nameAsAccessionNumbers) {
+                secondaryStructures.forEach { ss ->
+                    ss.source = RfamSource(id)
+                    ss.rna.useAlignmentNumberingSystem = useAlignmentNumbering
+                }
+            } else {
+                val ncbi = NCBI()
+                val titles = ncbi.getSummaryTitle(*ids.toTypedArray())
+                secondaryStructures.forEach { ss ->
+                    ss.source = RfamSource(id)
+                    ss.name = titles[ss.name.split("/").first()] ?: ss.name
+                    ss.rna.useAlignmentNumberingSystem = useAlignmentNumbering
+                }
             }
             this.name?.let {
                 if ("consensus".equals(name))
                     return arrayListOf(secondaryStructures.first())
                 else {
                     secondaryStructures.forEach {
-                        if (name.equals(it.rna.name))
-                            return arrayListOf<SecondaryStructure>(it)
+                        if (name.equals(it.name))
+                            return arrayListOf(it)
                     }
                 }
             }
