@@ -377,17 +377,32 @@ class CTBuilder : InputFileBuilder() {
 
 class StockholmBuilder : InputFileBuilder() {
     var name: String? = null
+    val use = Use()
+    private var useAlignmentNumbering = false
+
+    inner class Use {
+
+        infix fun alignment(ns: numbering) {
+            useAlignmentNumbering = true
+        }
+
+        infix fun species(ns: numbering) {
+            useAlignmentNumbering = false
+        }
+
+    }
 
     override fun build(): List<SecondaryStructure> {
         this.file?.let { file ->
             var secondaryStructures = parseStockholm(FileReader(this.file), withConsensus2D = true)
             secondaryStructures.forEach {
                 it.source = FileSource(file)
+                it.rna.useAlignmentNumberingSystem = useAlignmentNumbering
             }
             if (this.name != null) {
                 secondaryStructures.forEach {
                     if (it.rna.name.equals(this.name))
-                        arrayListOf(it)
+                        return arrayListOf(it)
                 }
             } else
                 return secondaryStructures
