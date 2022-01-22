@@ -606,8 +606,10 @@ class Junction(
         for (h in helicesLinked)
             h.setJunction(this)
         val j = Location()
-        for (b in this.location.blocks)
-            j.blocks.add(Block(b.start + 1, b.end - 1))
+        for (b in this.location.blocks) {
+            if (b.length > 2) //The block is deleted. Otherwise we will invert start and end and get the same Block in the end
+                j.blocks.add(Block(b.start + 1, b.end - 1))
+        }
         this.locationWithoutSecondaries = j
     }
 
