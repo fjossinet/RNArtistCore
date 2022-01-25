@@ -1420,6 +1420,34 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
 
     }
 
+    fun asChimeraScript(outputFile: File) {
+        val chainName: String = this.secondaryStructure.rna.name
+        //if no numbering system, we generate a fake one to be able to generate the ChimeraX script
+        var numberingSystem: List<String> =
+            this.secondaryStructure.rna.tertiary_structure_numbering_system?.values?.toList() ?: (1..this.secondaryStructure.rna.length).map { it.toString() }
+        val colors2residues = mutableMapOf<String, MutableList<ResidueDrawing>>()
+        for (r in this.residues) {
+            val coloredResidues =
+                colors2residues.getOrDefault(getHTMLColorString(r.getColor()), mutableListOf())
+            coloredResidues.add(r)
+            colors2residues[getHTMLColorString(r.getColor())] = coloredResidues
+        }
+        (this.secondaryStructure.source as? PDBSource)?.let { pdbSource ->
+            var command =
+                StringBuffer("open \"https://files.rcsb.org/download/${pdbSource.pdbId}.pdb\"${System.lineSeparator()}")
+            colors2residues.forEach { colorCode, residues ->
+                command.append("color /${chainName}:")
+                residues.forEach {
+                    command.append( "${numberingSystem[it.absPos - 1]},")
+                    //command.append("${it.absPos},")
+                }
+                command = StringBuffer(command.removeSuffix(","))
+                command.append(" ${colorCode}${System.lineSeparator()}")
+            }
+            outputFile.writeText(command.toString())
+        }
+    }
+
     fun getFrame(location:Location): Rectangle2D? {
         val allSelectionPoints = this.getResiduesFromAbsPositions(*location.positions.toIntArray()).flatMap { it.selectionPoints }
         allSelectionPoints.minByOrNull { it.x }?.x?.let { minX ->

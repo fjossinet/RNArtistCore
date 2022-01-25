@@ -287,6 +287,13 @@ class RNA(var name: String = "A", seq: String, var source: DataSource? = null) :
      */
     var useAlignmentNumberingSystem = false
 
+    var tertiary_structure_numbering_system: Map<Int, String>? = null
+
+    /**
+     * If true, some functions will compute the location according to the 3D Structure numbering system
+     */
+    var useTertiaryStructureNumberingSystem = false
+
     /**
      * Adds a single residue to the end of the RNA sequence
      *

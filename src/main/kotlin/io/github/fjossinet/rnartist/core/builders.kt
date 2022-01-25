@@ -264,36 +264,7 @@ class ChimeraBuilder {
 
     fun build(drawing: SecondaryStructureDrawing, tertiaryStructures: List<TertiaryStructure>) {
         path?.let { path ->
-            val chainName: String = drawing.secondaryStructure.rna.name
-            var numberingSystem: List<String>? =
-                drawing.secondaryStructure.rna.alignment_numbering_system?.map { it.value.toString() }
-            //if no numbering system, we generate a fake one to be able to generate the ChimeraX script
-            if (numberingSystem == null)
-                numberingSystem = (1..drawing.secondaryStructure.rna.length).map { it.toString() }
-            if (numberingSystem != null) {
-                val colors2residues = mutableMapOf<String, MutableList<ResidueDrawing>>()
-                for (r in drawing.residues) {
-                    val coloredResidues =
-                        colors2residues.getOrDefault(getHTMLColorString(r.getColor()), mutableListOf())
-                    coloredResidues.add(r)
-                    colors2residues[getHTMLColorString(r.getColor())] = coloredResidues
-                }
-                (drawing.secondaryStructure.source as? PDBSource)?.let { pdbSource ->
-                    var command =
-                        StringBuffer("open \"https://files.rcsb.org/download/${pdbSource.pdbId}.pdb\"${System.lineSeparator()}")
-                    colors2residues.forEach { colorCode, residues ->
-                        command.append("color /${chainName}:")
-                        residues.forEach {
-                            command.append(numberingSystem[it.absPos - 1] + ",")
-                            //command.append("${it.absPos},")
-                        }
-                        command = StringBuffer(command.removeSuffix(","))
-                        command.append(" ${colorCode}${System.lineSeparator()}")
-                    }
-                    val f = File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.cxc")
-                    f.writeText(command.toString())
-                }
-            }
+            drawing.asChimeraScript(File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.cxc"))
         }
     }
 

@@ -38,11 +38,12 @@ class Rnaview : Computation() {
                 for (ts in tertiaryStructures)
                     if (tertiaryStructures.indexOf(ts) + 1 == Integer.parseInt(ss.rna.name)) {
                         ss.rna.name = ts.rna.name
-                        val ns = mutableMapOf<Int,Int>()
+                        ss.name = ts.rna.name
+                        val ns = mutableMapOf<Int,String>()
                         ts.getNumberingSystem().forEachIndexed { index, label ->
-                            ns[index] =  label.toInt()
+                            ns[index] =  label
                         }
-                        ss.rna.alignment_numbering_system = ns
+                        ss.rna.tertiary_structure_numbering_system = ns
                         found = true
                         annotatedStructures.add(Pair(ts,ss))
                         if (ss.rna.length != ts.rna.length) {
@@ -76,6 +77,12 @@ class Rnaview : Computation() {
                     for (ts in tertiaryStructures)
                         if (tertiaryStructures.indexOf(ts) + 1 == Integer.parseInt(ss.rna.name)) {
                             ss.rna.name = ts.rna.name
+                            ss.name = ts.rna.name
+                            val ns = mutableMapOf<Int,String>()
+                            ts.getNumberingSystem().forEachIndexed { index, label ->
+                                ns[index] =  label
+                            }
+                            ss.rna.tertiary_structure_numbering_system = ns
                             found = true
                             annotatedStructures.add(Pair(ts,ss))
                             if (ss.rna.length != ts.rna.length) {
