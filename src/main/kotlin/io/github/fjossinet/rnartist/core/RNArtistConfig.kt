@@ -18,7 +18,6 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.prefs.BackingStoreException
 
 object RnartistConfig {
 
@@ -450,7 +449,6 @@ object RnartistConfig {
     )
 
     @JvmStatic
-    @Throws(BackingStoreException::class, IOException::class)
     fun load() {
         if (document != null) return
         val configFile = File(getUserDir(), "config.xml")
@@ -469,7 +467,6 @@ object RnartistConfig {
             )
             document = Document(root)
         }
-        //recoverWebsite()
     }
 
     @JvmStatic

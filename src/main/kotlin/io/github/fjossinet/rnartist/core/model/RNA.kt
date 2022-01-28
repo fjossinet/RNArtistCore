@@ -1388,65 +1388,75 @@ fun toBasePairs(bracketNotation: String): MutableList<BasePair> {
             }
 
             ')' -> {
-                val _lastPos = firstStrands['(']!!.first.removeAt(firstStrands['(']!!.first.size - 1)
-                val _location = Location(Location(_lastPos), Location(pos))
-                val _lastLeft = firstStrands['(']!!.second.removeAt(firstStrands['(']!!.second.size - 1)
-                basePairs.add(
-                    BasePair(
-                        location = _location,
-                        edge5 = _lastLeft,
-                        edge3 = Edge.WC
+                if (firstStrands['(']!!.first.size - 1 >= 0) {
+                    val _lastPos = firstStrands['(']!!.first.removeAt(firstStrands['(']!!.first.size - 1)
+                    val _location = Location(Location(_lastPos), Location(pos))
+                    val _lastLeft = firstStrands['(']!!.second.removeAt(firstStrands['(']!!.second.size - 1)
+                    basePairs.add(
+                        BasePair(
+                            location = _location,
+                            edge5 = _lastLeft,
+                            edge3 = Edge.WC
+                        )
                     )
-                )
+                }
             }
             '}' -> {
-                val _lastPos = firstStrands['{']!!.first.removeAt(firstStrands['{']!!.first.size - 1)
-                val _location = Location(Location(_lastPos), Location(pos))
-                val _lastLeft = firstStrands['{']!!.second.removeAt(firstStrands['{']!!.second.size - 1)
-                basePairs.add(
-                    BasePair(
-                        location = _location,
-                        edge5 = _lastLeft,
-                        edge3 = Edge.WC
+                if (firstStrands['{']!!.first.size - 1 >= 0) {
+                    val _lastPos = firstStrands['{']!!.first.removeAt(firstStrands['{']!!.first.size - 1)
+                    val _location = Location(Location(_lastPos), Location(pos))
+                    val _lastLeft = firstStrands['{']!!.second.removeAt(firstStrands['{']!!.second.size - 1)
+                    basePairs.add(
+                        BasePair(
+                            location = _location,
+                            edge5 = _lastLeft,
+                            edge3 = Edge.WC
+                        )
                     )
-                )
+                }
             }
             ']' -> {
-                val _lastPos = firstStrands['[']!!.first.removeAt(firstStrands['[']!!.first.size - 1)
-                val _location = Location(Location(_lastPos), Location(pos))
-                val _lastLeft = firstStrands['[']!!.second.removeAt(firstStrands['[']!!.second.size - 1)
-                basePairs.add(
-                    BasePair(
-                        location = _location,
-                        edge5 = _lastLeft,
-                        edge3 = Edge.WC
+                if (firstStrands['[']!!.first.size - 1 >= 0) {
+                    val _lastPos = firstStrands['[']!!.first.removeAt(firstStrands['[']!!.first.size - 1)
+                    val _location = Location(Location(_lastPos), Location(pos))
+                    val _lastLeft = firstStrands['[']!!.second.removeAt(firstStrands['[']!!.second.size - 1)
+                    basePairs.add(
+                        BasePair(
+                            location = _location,
+                            edge5 = _lastLeft,
+                            edge3 = Edge.WC
+                        )
                     )
-                )
+                }
             }
             '>' -> {
-                val _lastPos = firstStrands['<']!!.first.removeAt(firstStrands['<']!!.first.size - 1)
-                val _location = Location(Location(_lastPos), Location(pos))
-                val _lastLeft = firstStrands['<']!!.second.removeAt(firstStrands['<']!!.second.size - 1)
-                basePairs.add(
-                    BasePair(
-                        location = _location,
-                        edge5 = _lastLeft,
-                        edge3 = Edge.WC
+                if (firstStrands['<']!!.first.size - 1 >= 0) {
+                    val _lastPos = firstStrands['<']!!.first.removeAt(firstStrands['<']!!.first.size - 1)
+                    val _location = Location(Location(_lastPos), Location(pos))
+                    val _lastLeft = firstStrands['<']!!.second.removeAt(firstStrands['<']!!.second.size - 1)
+                    basePairs.add(
+                        BasePair(
+                            location = _location,
+                            edge5 = _lastLeft,
+                            edge3 = Edge.WC
+                        )
                     )
-                )
+                }
             }
             in 'a'..'z' -> {
                 val upperChar = c.uppercaseChar()
-                val _lastPos = firstStrands[upperChar]!!.first.removeAt(firstStrands[upperChar]!!.first.size - 1)
-                val _location = Location(Location(_lastPos), Location(pos))
-                val _lastLeft = firstStrands[upperChar]!!.second.removeAt(firstStrands[upperChar]!!.second.size - 1)
-                basePairs.add(
-                    BasePair(
-                        location = _location,
-                        edge5 = _lastLeft,
-                        edge3 = Edge.WC
+                if (firstStrands[upperChar]!!.first.size - 1 >= 0) {
+                    val _lastPos = firstStrands[upperChar]!!.first.removeAt(firstStrands[upperChar]!!.first.size - 1)
+                    val _location = Location(Location(_lastPos), Location(pos))
+                    val _lastLeft = firstStrands[upperChar]!!.second.removeAt(firstStrands[upperChar]!!.second.size - 1)
+                    basePairs.add(
+                        BasePair(
+                            location = _location,
+                            edge5 = _lastLeft,
+                            edge3 = Edge.WC
+                        )
                     )
-                )
+                }
             }
             else -> continue@loop
         }

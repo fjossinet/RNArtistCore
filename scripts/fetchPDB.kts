@@ -60,7 +60,6 @@ ids.forEach { pdbId ->
                     s.add("Y")  //should never happen
                 if (!it.helices.isEmpty()) {
                     rnartist {
-                        file = "/project/${pdbId}.json"
                         theme {
                             details {
                                 value = 5
