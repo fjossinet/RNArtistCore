@@ -1,5 +1,6 @@
 package io.github.fjossinet.rnartist.core.model
 
+import java.io.File
 import java.io.Serializable
 import java.util.*
 
@@ -1478,6 +1479,12 @@ fun getSource(s: String): DataSource? {
     return when (tokens.first()) {
         "db" -> when (tokens[1]) {
             "pdb" -> PDBSource(tokens.last())
+            "rnacentral" -> RnaCentralSource(tokens.last())
+            "rfam" -> RfamSource(tokens.last())
+            else -> null
+        }
+        "local" -> when (tokens[1]) {
+            "file" -> FileSource(s.split("local:file:").last())
             else -> null
         }
         else -> null
@@ -1498,9 +1505,7 @@ class BracketNotation : DataSource {
     }
 }
 
-abstract class DatabaseSource : DataSource {
-
-}
+abstract class DatabaseSource : DataSource
 
 class PDBSource(val pdbId: String) : DatabaseSource() {
     override fun getId(): String {
