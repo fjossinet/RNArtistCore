@@ -681,7 +681,7 @@ abstract class Residue3D(val name: String, val absolutePosition: Int) : Serializ
         return a
     }
 
-    private fun getAtom(atomName: String): Atom? {
+    fun getAtom(atomName: String): Atom? {
         for (a in atoms) if (a.name == atomName) return a
         return null
     }

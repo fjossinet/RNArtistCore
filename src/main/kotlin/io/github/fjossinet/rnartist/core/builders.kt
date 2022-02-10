@@ -180,8 +180,9 @@ class SecondaryStructureBuilder {
     fun pdb(setup: PDBBuilder.() -> Unit) {
         val pdbBuilder = PDBBuilder()
         pdbBuilder.setup()
-        secondaryStructures.addAll(pdbBuilder.build().map { it.second })
-        tertiaryStructures.addAll(pdbBuilder.build().map { it.first })
+        val result = pdbBuilder.build()
+        secondaryStructures.addAll(result.map {it.second})
+        tertiaryStructures.addAll(result.map {it.first})
     }
 
     fun stockholm(setup: StockholmBuilder.() -> Unit) {
@@ -291,7 +292,7 @@ class PDBBuilder {
         }
         if (this.file != null) {
             try {
-                structures.addAll(Rnaview().annotate(File(file)))
+                structures.addAll(Annotate3D().annotate(File(file)))
                 structures.forEach {
                     it.first.source = if (this.id != null) PDBSource(this.id!!) else FileSource(this.file!!)
                     it.second.source = if (this.id != null) PDBSource(this.id!!) else FileSource(this.file!!)
@@ -505,7 +506,7 @@ class OpenscadInputBuilder {
         }
         if (this.file != null) {
             try {
-                annotatedStructures.addAll(Rnaview().annotate(File(file)))
+                annotatedStructures.addAll(Annotate3D().annotate(File(file)))
             } catch (e: Exception) {
                 println(e.message)
             }

@@ -6,7 +6,6 @@ import io.github.fjossinet.rnartist.core.rnartist
 import org.jdom2.Element
 import org.jdom2.input.SAXBuilder
 import java.io.*
-import java.lang.RuntimeException
 import java.text.NumberFormat
 import java.util.*
 import java.util.stream.Collectors
