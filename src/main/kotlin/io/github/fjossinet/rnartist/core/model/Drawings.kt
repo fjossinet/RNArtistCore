@@ -1432,19 +1432,37 @@ class SecondaryStructureDrawing(val secondaryStructure: SecondaryStructure, val 
             coloredResidues.add(r)
             colors2residues[getHTMLColorString(r.getColor())] = coloredResidues
         }
-        (this.secondaryStructure.source as? PDBSource)?.let { pdbSource ->
-            var command =
-                StringBuffer("open \"https://files.rcsb.org/download/${pdbSource.pdbId}.pdb\"${System.lineSeparator()}")
-            colors2residues.forEach { colorCode, residues ->
-                command.append("color /${chainName}:")
-                residues.forEach {
-                    command.append( "${numberingSystem[it.absPos - 1]},")
-                    //command.append("${it.absPos},")
+        when (this.secondaryStructure.source) {
+            is PDBSource -> {
+                var command =
+                    StringBuffer("open \"https://files.rcsb.org/download/${(this.secondaryStructure.source as PDBSource).pdbId}.pdb\"${System.lineSeparator()}")
+                colors2residues.forEach { colorCode, residues ->
+                    command.append("color /${chainName}:")
+                    residues.forEach {
+                        command.append( "${numberingSystem[it.absPos - 1]},")
+                        //command.append("${it.absPos},")
+                    }
+                    command = StringBuffer(command.removeSuffix(","))
+                    command.append(" ${colorCode}${System.lineSeparator()}")
                 }
-                command = StringBuffer(command.removeSuffix(","))
-                command.append(" ${colorCode}${System.lineSeparator()}")
+                outputFile.writeText(command.toString())
             }
-            outputFile.writeText(command.toString())
+            is FileSource -> {
+                if ((this.secondaryStructure.source as FileSource).fileName.endsWith("pdb")) {
+                    var command =
+                        StringBuffer("open \"${(this.secondaryStructure.source as FileSource).fileName}\"${System.lineSeparator()}")
+                    colors2residues.forEach { colorCode, residues ->
+                        command.append("color /${chainName}:")
+                        residues.forEach {
+                            command.append( "${numberingSystem[it.absPos - 1]},")
+                            //command.append("${it.absPos},")
+                        }
+                        command = StringBuffer(command.removeSuffix(","))
+                        command.append(" ${colorCode}${System.lineSeparator()}")
+                    }
+                    outputFile.writeText(command.toString())
+                }
+            }
         }
     }
 
