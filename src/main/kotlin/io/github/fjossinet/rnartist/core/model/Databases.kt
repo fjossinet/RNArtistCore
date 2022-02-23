@@ -75,7 +75,7 @@ class RNACentral {
                         name = id
                     }
 
-                }.first.forEach {
+                }.forEach {
                    it.source = RfamSource(id)
                    return it
                }

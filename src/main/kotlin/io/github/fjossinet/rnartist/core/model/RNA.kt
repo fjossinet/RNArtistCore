@@ -884,15 +884,15 @@ class Atom(val name: String) : Serializable {
     var coordinates: FloatArray? = null
     var x: Float? = null
         get() {
-            return this.coordinates!![0]
+            return this.coordinates?.get(0)
         }
     var y: Float? = null
         get() {
-            return this.coordinates!![1]
+            return this.coordinates?.get(1)
         }
     var z: Float? = null
         get() {
-            return this.coordinates!![2]
+            return this.coordinates?.get(2)
         }
 
     fun setCoordinates(x: Float, y: Float, z: Float) {
@@ -918,6 +918,7 @@ class SecondaryStructure(
     helicesInPknots2Keep: List<Location> = listOf()
 ) : Serializable {
 
+    var tertiaryStructure:TertiaryStructure? = null
     var name: String = this.rna.name
     val tertiaryInteractions = mutableSetOf<BasePair>()
     val helices = mutableListOf<Helix>()

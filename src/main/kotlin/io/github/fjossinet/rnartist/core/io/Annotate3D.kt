@@ -9,8 +9,8 @@ import kotlin.math.sqrt
 class Annotate3D {
 
     @Throws(Exception::class)
-    fun annotate(pdb: File): List<Pair<TertiaryStructure, SecondaryStructure>> {
-        val annotatedStructures = mutableListOf<Pair<TertiaryStructure,SecondaryStructure>>()
+    fun annotate(pdb: File): List<SecondaryStructure> {
+        val annotatedStructures = mutableListOf<SecondaryStructure>()
         val tertiaryStructures = parsePDB(FileReader(pdb))
         tertiaryStructures.forEach { ts ->
             val basePairs = mutableListOf<BasePair>()
@@ -60,7 +60,8 @@ class Annotate3D {
                 ns[index] =  label
             }
             ss.rna.tertiary_structure_numbering_system = ns
-            annotatedStructures.add(Pair(ts, ss))
+            ss.tertiaryStructure = ts
+            annotatedStructures.add(ss)
         }
         return annotatedStructures
     }

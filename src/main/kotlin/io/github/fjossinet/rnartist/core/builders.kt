@@ -131,10 +131,9 @@ class HelixBuilder() {
 class SecondaryStructureBuilder {
 
     private var secondaryStructures = mutableListOf<SecondaryStructure>()
-    private var tertiaryStructures = mutableListOf<TertiaryStructure>()
 
-    fun build(): Pair<List<SecondaryStructure>, List<TertiaryStructure>> {
-        return Pair(secondaryStructures, tertiaryStructures)
+    fun build(): List<SecondaryStructure> {
+        return secondaryStructures
     }
 
     fun parts(setup: PartsBuilder.() -> Unit) {
@@ -181,8 +180,7 @@ class SecondaryStructureBuilder {
         val pdbBuilder = PDBBuilder()
         pdbBuilder.setup()
         val result = pdbBuilder.build()
-        secondaryStructures.addAll(result.map {it.second})
-        tertiaryStructures.addAll(result.map {it.first})
+        secondaryStructures.addAll(result)
     }
 
     fun stockholm(setup: StockholmBuilder.() -> Unit) {
@@ -201,7 +199,7 @@ class SecondaryStructureBuilder {
 
 open abstract class OutputFileBuilder {
     var path: String? = null
-
+    var name: String? = null
     var width: Double = 800.0
     var height: Double = 800.0
     var locationBuilder: LocationBuilder = LocationBuilder()
@@ -262,10 +260,30 @@ class SVGBuilder : OutputFileBuilder() {
 class ChimeraBuilder {
 
     var path: String? = null
+    var name: String? = null
 
-    fun build(drawing: SecondaryStructureDrawing, tertiaryStructures: List<TertiaryStructure>) {
+    fun build(drawing: SecondaryStructureDrawing) {
         path?.let { path ->
-            drawing.asChimeraScript(File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.cxc"))
+            drawing.secondaryStructure.tertiaryStructure?.let { tertiaryStructure ->
+                drawing.asChimeraScript(File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.cxc"))
+            }
+        }
+    }
+
+}
+
+class BlenderBuilder {
+
+    var path: String? = null
+
+    fun build(drawing: SecondaryStructureDrawing) {
+        path?.let { path ->
+            drawing.secondaryStructure.tertiaryStructure?.let { tertiaryStructure ->
+                drawing.asBlenderScript(
+                    tertiaryStructure,
+                    File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.py")
+                )
+            }
         }
     }
 
@@ -283,8 +301,8 @@ class PDBBuilder {
     var name: String? = null
     var id: String? = null
 
-    fun build(): List<Pair<TertiaryStructure, SecondaryStructure>> {
-        var structures = mutableListOf<Pair<TertiaryStructure, SecondaryStructure>>()
+    fun build(): List<SecondaryStructure> {
+        var structures = mutableListOf<SecondaryStructure>()
         if (this.id != null) {
             val pdbFile = File.createTempFile(this.id!!, ".pdb")
             pdbFile.writeText(PDB().getEntry(this.id!!).readText())
@@ -294,16 +312,14 @@ class PDBBuilder {
             try {
                 structures.addAll(Annotate3D().annotate(File(file)))
                 structures.forEach {
-                    it.first.source = if (this.id != null) PDBSource(this.id!!) else FileSource(this.file!!)
-                    it.second.source = if (this.id != null) PDBSource(this.id!!) else FileSource(this.file!!)
-
+                    it.source = if (this.id != null) PDBSource(this.id!!) else FileSource(this.file!!)
                 }
             } catch (e: Exception) {
                 println(e.message)
             }
             if (this.name != null) {
                 structures.forEach {
-                    if (it.second.rna.name.equals(this.name))
+                    if (it.rna.name.equals(this.name))
                         return arrayListOf(it)
                 }
             }
@@ -459,69 +475,6 @@ class RNACentralBuilder : PublicDatabaseBuilder() {
     }
 }
 
-class OpenScadBuilder {
-    var output: String? = null
-    var annotatedStructures = mutableListOf<Pair<TertiaryStructure, SecondaryStructure>>()
-
-    fun build() {
-        this.output?.let { outputFile ->
-            val f = File("${outputFile}")
-            f.createNewFile()
-            this.annotatedStructures.forEach { annotatedStructure ->
-                var i = 0
-                annotatedStructure.second.helices.forEach { helix ->
-                    i++
-                    val firstbp = helix.secondaryInteractions.first()
-                    val lastbp = helix.secondaryInteractions.last()
-                    f.appendText(
-                        """
-translate([${i * 40},0,0])
-    cylinder(h = ${helix.length * 10}, r1 = 20, r2 = 20, center = true);
-"""
-                    )
-                }
-            }
-        }
-    }
-
-    fun input(setup: OpenscadInputBuilder.() -> Unit) {
-        val openscadInputBuilder = OpenscadInputBuilder()
-        openscadInputBuilder.setup()
-        annotatedStructures.addAll(openscadInputBuilder.build())
-    }
-
-}
-
-class OpenscadInputBuilder {
-    var name: String? = null
-    var id: String? = null
-    var file: String? = null
-
-    fun build(): List<Pair<TertiaryStructure, SecondaryStructure>> {
-        var annotatedStructures = mutableListOf<Pair<TertiaryStructure, SecondaryStructure>>()
-        if (this.id != null) {
-            val pdbFile = File.createTempFile(this.id!!, ".pdb")
-            pdbFile.writeText(PDB().getEntry(this.id!!).readText())
-            this.file = pdbFile.absolutePath
-        }
-        if (this.file != null) {
-            try {
-                annotatedStructures.addAll(Annotate3D().annotate(File(file)))
-            } catch (e: Exception) {
-                println(e.message)
-            }
-            if (this.name != null) {
-                annotatedStructures.forEach {
-                    if (it.first.rna.name.equals(this.name))
-                        return arrayListOf(it)
-                }
-            }
-            return annotatedStructures
-        }
-        return listOf()
-    }
-}
-
 class BooquetBuilder {
     var file: String? = null
     var width = 600.0
@@ -552,7 +505,7 @@ class BooquetBuilder {
     fun ss(setup: SecondaryStructureBuilder.() -> Unit) {
         val secondaryStructureBuilder = SecondaryStructureBuilder()
         secondaryStructureBuilder.setup()
-        secondaryStructures.addAll(secondaryStructureBuilder.build().first)
+        secondaryStructures.addAll(secondaryStructureBuilder.build())
     }
 
 }
@@ -561,15 +514,15 @@ class RNArtistBuilder {
     private var svgOutputBuilder: SVGBuilder? = null
     private var pngOutputBuilder: PNGBuilder? = null
     private var chimeraOutputBuilder: ChimeraBuilder? = null
+    private var blenderOutputBuilder: BlenderBuilder? = null
     var secondaryStructures = mutableListOf<SecondaryStructure>()
-    var tertiaryStructures = mutableListOf<TertiaryStructure>()
     var theme: Theme? = null
     var data: MutableMap<String, Double> = mutableMapOf()
     private var layout: Layout? = null
 
     fun build(): List<SecondaryStructureDrawing> {
         val drawings = mutableListOf<SecondaryStructureDrawing>()
-        this.secondaryStructures.forEach { ss ->
+        this.secondaryStructures.forEachIndexed { index, ss ->
             val drawing = SecondaryStructureDrawing(ss, WorkingSession())
             this.theme?.let { theme ->
                 drawing.applyTheme(theme)
@@ -577,9 +530,24 @@ class RNArtistBuilder {
             this.layout?.let { layout ->
                 drawing.applyLayout(layout)
             }
-            this.pngOutputBuilder?.build(drawing)
-            this.svgOutputBuilder?.build(drawing)
-            this.chimeraOutputBuilder?.build(drawing, tertiaryStructures)
+            this.pngOutputBuilder?.name?.let { chainName ->
+                if (chainName.equals(ss.rna.name))
+                    this.pngOutputBuilder?.build(drawing)
+            } ?: run {
+                this.pngOutputBuilder?.build(drawing)
+            }
+            this.svgOutputBuilder?.name?.let { chainName ->
+                if (chainName.equals(ss.rna.name))
+                    this.svgOutputBuilder?.build(drawing)
+            } ?: run {
+                this.svgOutputBuilder?.build(drawing)
+            }
+            this.chimeraOutputBuilder?.name?.let { chainName ->
+                if (chainName.equals(ss.rna.name))
+                    this.chimeraOutputBuilder?.build(drawing)
+            } ?: run {
+                this.chimeraOutputBuilder?.build(drawing)
+            }
             drawings.add(drawing)
         }
         return drawings
@@ -588,8 +556,7 @@ class RNArtistBuilder {
     fun ss(setup: SecondaryStructureBuilder.() -> Unit) {
         val secondaryStructureBuilder = SecondaryStructureBuilder()
         secondaryStructureBuilder.setup()
-        secondaryStructures.addAll(secondaryStructureBuilder.build().first)
-        tertiaryStructures.addAll(secondaryStructureBuilder.build().second)
+        secondaryStructures.addAll(secondaryStructureBuilder.build())
     }
 
     fun theme(setup: ThemeBuilder.() -> Unit) {
@@ -623,6 +590,11 @@ class RNArtistBuilder {
     fun chimera(setup: ChimeraBuilder.() -> Unit) {
         this.chimeraOutputBuilder = ChimeraBuilder()
         this.chimeraOutputBuilder?.setup()
+    }
+
+    fun blender(setup: BlenderBuilder.() -> Unit) {
+        this.blenderOutputBuilder = BlenderBuilder()
+        this.blenderOutputBuilder?.setup()
     }
 
 }
@@ -2750,8 +2722,6 @@ fun bn(setup: BracketNotationBuilder.() -> Unit) = BracketNotationBuilder().appl
 fun booquet(setup: BooquetBuilder.() -> Unit) = BooquetBuilder().apply { setup() }.build()
 
 fun rnartist(setup: RNArtistBuilder.() -> Unit) = RNArtistBuilder().apply { setup() }.build()
-
-fun openscad(setup: OpenScadBuilder.() -> Unit) = OpenScadBuilder().apply { setup() }.build()
 
 fun theme(setup: ThemeBuilder.() -> Unit) = ThemeBuilder().apply { setup() }.build()
 
