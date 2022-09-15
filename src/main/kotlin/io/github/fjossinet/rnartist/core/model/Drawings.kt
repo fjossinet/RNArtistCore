@@ -10,6 +10,7 @@ import java.io.File
 import java.io.PrintWriter
 import javax.imageio.ImageIO
 import kotlin.math.hypot
+import kotlin.math.sqrt
 
 //parameters that can be modified
 val radiusConst: Double = 7.0
@@ -349,6 +350,20 @@ abstract class DrawingElement(
         l.add(this)
         while (l.last().parent != null)
             l.add(l.last().parent!!)
+        return l
+    }
+
+    fun pathToStructuralDomain(): List<DrawingElement> {
+        val l = mutableListOf<DrawingElement>()
+        l.add(this)
+        if (this is HelixDrawing || this is JunctionDrawing || this is SingleStrandDrawing)
+            return l
+        while (l.last().parent != null) {
+            val p = l.last().parent!!
+            l.add(p)
+            if (p is HelixDrawing || p is JunctionDrawing || p is SingleStrandDrawing)
+                return l
+        }
         return l
     }
 
@@ -1721,7 +1736,7 @@ class SecondaryStructureDrawing(
                 }
             }
 
-            val junctions2Center = mutableMapOf<String, Triple<Double, Double, Double>>()
+            val junctions2Center = mutableMapOf<String, Triple<Float, Float, Float>>()
 
             this.secondaryStructure.junctions.forEach { junction ->
 
@@ -1743,7 +1758,7 @@ class SecondaryStructureDrawing(
                 val color = this.allJunctions.find { it.junction == junction }!!.getColor()
                 bldInstructions.append(".color ${color.red.toFloat() / 255f} ${color.green.toFloat() / 255f} ${color.blue.toFloat() / 255f}${System.lineSeparator()}")
                 bldInstructions.append(".sphere ${allX.average()} ${allY.average()} ${allZ.average()} 3${System.lineSeparator()}")
-                junctions2Center[junction.name] = Triple(allX.average(), allY.average(), allZ.average())
+                junctions2Center[junction.name] = Triple(allX.average().toFloat(), allY.average().toFloat(), allZ.average().toFloat())
 
             }
 
@@ -1805,12 +1820,12 @@ class SecondaryStructureDrawing(
                             is Junction -> {
                                 this.allJunctions.find { it.junction == sd }?.let { junctionDrawing ->
                                     bldInstructions.append(".color 1.0 1.0 1.0${System.lineSeparator()}")
-                                    bldInstructions.append(".arrow ${helices2Ends[junctionDrawing.inHelix.name]!!.second.first} ${helices2Ends[junctionDrawing.inHelix.name]!!.second.second} ${helices2Ends[junctionDrawing.inHelix.name]!!.second.third} ${junctions2Center[sd.name]!!.first} ${junctions2Center[sd.name]!!.second} ${junctions2Center[sd.name]!!.third} 0.5 1.0${System.lineSeparator()}")
+                                    val newEnd = getPoint(helices2Ends[junctionDrawing.inHelix.name]!!.second, junctions2Center[sd.name]!!, -3.0f)
+                                    bldInstructions.append(".arrow ${helices2Ends[junctionDrawing.inHelix.name]!!.second.first} ${helices2Ends[junctionDrawing.inHelix.name]!!.second.second} ${helices2Ends[junctionDrawing.inHelix.name]!!.second.third} ${newEnd.first} ${newEnd.second} ${newEnd.third} 0.5 1.0${System.lineSeparator()}")
                                     sd.helicesLinked.forEach {
                                         if (it != junctionDrawing.inHelix) {
                                             bldInstructions.append(".color 1.0 1.0 1.0${System.lineSeparator()}")
                                             bldInstructions.append(".arrow ${junctions2Center[sd.name]!!.first} ${junctions2Center[sd.name]!!.second} ${junctions2Center[sd.name]!!.third} ${helices2Ends[it.name]!!.first.first} ${helices2Ends[it.name]!!.first.second} ${helices2Ends[it.name]!!.first.third} 0.5 1.0${System.lineSeparator()}")
-
                                         }
                                     }
                                 }
@@ -1822,8 +1837,42 @@ class SecondaryStructureDrawing(
                 }
             }
 
+            secondaryStructure.singleStrands.filter { it.start != 1 && it.end != secondaryStructure.rna.length }
+                .forEach { single_strand ->
+                    var h1 = secondaryStructure.helices.find { it.ends.contains(single_strand.start - 1) }!!
+                    var h2 = secondaryStructure.helices.find { it.ends.contains(single_strand.end + 1) }!!
+                    bldInstructions.append(".color 1.0 1.0 1.0${System.lineSeparator()}")
+                    bldInstructions.append(".arrow ${helices2Ends[h1.name]!!.first.first} ${helices2Ends[h1.name]!!.first.second} ${helices2Ends[h1.name]!!.first.third} ${helices2Ends[h2.name]!!.first.first} ${helices2Ends[h2.name]!!.first.second} ${helices2Ends[h2.name]!!.first.third} 0.5 1.0${System.lineSeparator()}")
+                }
+
+            val branches =
+                secondaryStructure.helices.filter { it.junctionsLinked.first == null || it.junctionsLinked.second == null }
+
+            branches.forEach { branch ->
+                branches.find { it.start == branch.end + 1 }?.let {
+                    //two helices linked directly
+                    bldInstructions.append(".color 1.0 1.0 1.0${System.lineSeparator()}")
+                    bldInstructions.append(".arrow ${helices2Ends[branch.name]!!.first.first} ${helices2Ends[branch.name]!!.first.second} ${helices2Ends[branch.name]!!.first.third} ${helices2Ends[it.name]!!.first.first} ${helices2Ends[it.name]!!.first.second} ${helices2Ends[it.name]!!.first.third} 0.5 1.0${System.lineSeparator()}")
+                }
+            }
+
             bldFile.writeText(bldInstructions.toString())
         }
+
+    }
+
+    fun getPoint(p1: Triple<Float, Float, Float>, p2: Triple<Float, Float, Float>, distance: Float):Triple<Float,Float,Float> {
+        val distX = p2.first - p1.first
+        val distY = p2.second - p1.second
+        val distZ = p2.third - p1.third
+
+        val normalizedVector = Triple(
+            distX / sqrt(distX * distX + distY * distY + distZ * distZ),
+            distY / sqrt(distX * distX + distY * distY + distZ * distZ),
+            distZ / sqrt(distX * distX + distY * distY + distZ * distZ)
+        )
+
+        return Triple(p2.first+distance*normalizedVector.first, p2.second+distance*normalizedVector.second, p2.third+distance*normalizedVector.third)
 
     }
 
@@ -3651,6 +3700,8 @@ open class JunctionDrawing(
             this.update()
         }
 
+    var initialRadius: Double = 0.0 //to recompute the currentRadius more precisely
+    var radiusRatio = 1.0
 
     lateinit var center: Point2D
     lateinit var circle: Ellipse2D
@@ -3720,7 +3771,6 @@ open class JunctionDrawing(
         get() = this.junction.maxBranchLength
 
     init {
-
         this.residues =
             this.ssDrawing.getResiduesFromAbsPositions(*this.junction.locationWithoutSecondaries.positions.toIntArray())
         this.connectors[this.inId.value] = inPoint
@@ -3728,6 +3778,7 @@ open class JunctionDrawing(
         val circumference =
             (this.junction.length.toFloat() - this.junction.junctionType.value * 2).toFloat() * (radiusConst * 2).toFloat() + this.junction.junctionType.value * helixDrawingWidth()
         this.radius = circumference / (2F * Math.PI).toDouble()
+        this.initialRadius = circumference / (2F * Math.PI).toDouble()
 
         var helixRank = 0
 
