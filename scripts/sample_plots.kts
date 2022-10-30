@@ -1,7 +1,3 @@
-/**
- * This file is one of the file available from a new project directory created with the sscript rnartistcore.sh (see README for details).
- */
-
 import io.github.fjossinet.rnartist.core.*
 
 rnartist {
@@ -57,7 +53,7 @@ rnartist {
     ss {
         pdb {
             name = "B"
-            file = "/project/inputs/1gid.pdb"
+            file = "samples/1gid.pdb"
         }
     }
     theme {
@@ -100,7 +96,7 @@ rnartist {
 
     ss {
         stockholm {
-            file = "/project/inputs/RF02001.stockholm"
+            file = "samples/RF02001.stockholm"
         }
     }
 

@@ -1,12 +1,3 @@
-/**
- * This file is used to produce the pictures for the README file. If you want to produce them yourself:
- * - create an rnartistcore project with the script rnartistcore.sh (see README for details)
- * - copy this script in the project directory
- * - create an empty folder named media
- * - copy the folder samples from https://github.com/fjossinet/RNArtistCore/tree/master/samples
- * - type the command: ./plot_2ds.sh readme_plots.kts
- * All the output files will be stored in the media subfolder.
- */
 import io.github.fjossinet.rnartist.core.*
 
 rnartist {
