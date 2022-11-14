@@ -12,64 +12,16 @@ While [RNArtist](https://github.com/fjossinet/RNArtist) is an interactive tool f
 
 The largest part of this documentation explains the [syntax to write your own plotting instructions](#dsl). But first, how to run your instructions? 
 
-## Use RNArtistCore on a cloud service
+## Prerequisites and installation
 
-Check the project [RNArtistCore Demo Binder](https://github.com/fjossinet/RNArtistCore-binder). It will redirect you to a fully configured environment hosted by [MyBinder.org](https://mybinder.org/). You will be able to write and run your plotting instructions inside Jupyter notebooks.
+You need to have java installed on your computer and executable in a terminal. Two options to install RNArtistCOre on your computer:
+* download the last release available [here](https://github.com/fjossinet/RNArtistCore/releases) and unzip the zip file
+* download the source code from Github. You will need the tool [maven](https://maven.apache.org/) and a Java Development Kit to be installed. In the project directory, type: <pre>mvn clean package</pre> The zip file will be created in the target subdirectory. 
 
-## Use RNArtistCore on your own computer
+## Usage
 
-This option installs a local copy of RNArtistCore and creates a project directory both fully configured. 
-
-### Prerequisite 1: Docker
-The fully configured copy of RNArtistCore is running in a Docker container. Consequently, you need to have docker installed on your computer. If you're using Windows or MacOSX, you should install [Docker Desktop](https://www.docker.com/products/docker-desktop).
-
-### Prerequisite 2: a Unix terminal
-Now you need to have access to the Docker daemon from a Unix command line (since my scripts are written with bash syntax).
-No need to install anything for MacOSX and Linux users. 
-
-#### Windows 10 and later
-
-Since version 10, you can host a Unix system inside your Windows. To do so, you need to install a component that allows to run a Linux distribution inside Windows (WSL2) and a Linux distribution (Ubuntu)
-
-___WSL2 and Ubuntu___
-
-WSL2 should have been installed during the installation process of [Docker Desktop](https://www.docker.com/products/docker-desktop). Then you just need to install Ubuntu from the Windows Store.
-
-___Docker daemon from WSL2 & Ubuntu___
-
-From the Ubuntu commandline, type these two commands to be sure that you will have the rights to connect the daemon from Ubuntu:
-
-```bash
-sudo groupadd docker
-sudo usermod -aG docker $USER
-```
-
-Now type ```docker``` to check if you can connect the daemon. 
-If not, you should enable the option "integration with WSL2" in the settings of your Docker Desktop.
-
-### Configure a first RNArtistCore project
-
-* type this command to create a fully configured project directory: 
-  * using curl: ```bash -c "$(curl -fsSL https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore.sh)"```
-  * using wget: ```bash -c "$(wget https://raw.githubusercontent.com/fjossinet/RNArtistCore/master/rnartistcore.sh -O -)"```
-* you will be asked to define the full path for your project directory. If the command is launched for the first time on your computer, a local copy of RNArtistCore fully configured will be installed.
-
-![](media/quickstart_script.png)
-
-Once the project directory created and everything installed and configured, you will see several files:
-
-* [plot_2ds.sh](scripts/plot_2ds.sh): this script parses and executes your plotting instructions
-* [sample_plots.kts](scripts/sample_plots.kts): a sample file containing plotting instructions
-* inputs folder: contains input files used in [sample_plots.kts](scripts/sample_plots.kts)
-* outputs folder: will contain the SVG outputs generated from [sample_plots.kts](scripts/sample_plots.kts)
-* [rnartist_demo.ipynb](scripts/rnartistcore_demo.ipynb): a sample file to use RNArtistCore through Jupyter.
-
-To create additional project directories you can:
-* either relaunch the command ```sh -c "$(....)"```
-* or make a copy of any project directory already installed.
-
-RNArtistCore is frequently updated to fix bugs and to add new features. To update your local copy, you need to type this command from any project directory:
-```./plot_2ds.sh -u```
+In the RNArtistCore directory type: 
+<pre>java -jar rnartistcore-X.X.X-jar-with-dependencies.jar your_plotting_script.kts</pre>
 
 # <a name="dsl"></a> How to write your plotting instructions
 
