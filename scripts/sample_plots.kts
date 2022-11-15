@@ -1,5 +1,3 @@
-import io.github.fjossinet.rnartist.core.*
-
 rnartist {
     svg {
         path = "outputs/"

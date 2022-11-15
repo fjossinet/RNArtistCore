@@ -14,12 +14,6 @@
         <fileSet>
             <directory>${project.basedir}/scripts</directory>
         </fileSet>
-        <fileSet>
-            <outputDirectory>outputs</outputDirectory>
-            <excludes>
-                <exclude>**/*</exclude>
-            </excludes>
-        </fileSet>
     </fileSets>
     <files>
         <file>

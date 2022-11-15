@@ -4,6 +4,10 @@ java -jar rnartist_core.jar -c dsl_script_file
 
 The option ```-c``` check the syntax of the script before to run it. It prints the issues found.
 
+### 0.3.0-SNAPSHOT
+
+- any location (file inputs/outputs) can be described as an absolute or relative path. If relative, the RNArtistCore engine prepends the path of its own jar.
+
 ### 0.2.22-SNAPSHOT
 
 - the element ```color``` can contain an attribute named ```scheme``` to use predefined color schemes.
@@ -20,7 +24,7 @@ rnartist {
 
 ### 0.2.21-SNAPSHOT
 
-- to avoid to mix the description of a 2D with other elements, details for a 2D are inside a element named ```parts``` 
+- to avoid to mix the description of a 2D with other elements, details for a 2D are inside an element named ```parts``` 
 
 ```kotlin
 //before
@@ -42,7 +46,6 @@ rnartist {
 }
 
 //now
-
 rnartist {
     ss {
         parts {
@@ -82,7 +85,7 @@ rnartist {
 
 ### 0.2.19-SNAPSHOT
 
-- the element ```rfam``` can contain an element ```rna``` and at least one element ```helix``` to describe a secondary structure.
+- the element ```ss``` can contain an element ```rna``` and at least one element ```helix``` to describe a secondary structure.
 
 ```kotlin
 rnartist {

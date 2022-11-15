@@ -1,6 +1,49 @@
-/**
- * this Script creates the data for the project
- */
+import java.nio.file.Files
+import java.nio.file.Paths
+
+(1..4094).forEach {
+    val rfamID = "RF${"%05d".format(it)}"
+
+    rnartist {
+        svg {
+            path = "rfam/rnartist/$rfamID"
+        }
+
+        ss {
+            rfam {
+                id = rfamID
+                name = "consensus"
+                use alignment numbering
+            }
+
+        }
+
+        theme {
+            details {
+                value = 3
+            }
+            color {
+                scheme = "Structural Domains"
+            }
+        }
+    }
+
+    booquet {
+        path = "rfam/booquet/$rfamID"
+        junction_diameter = 15.0
+        color = "midnightblue"
+        line = 1.0
+        ss {
+            rfam {
+                id = rfamID
+                name = "consensus"
+                use alignment numbering
+            }
+        }
+    }
+}
+
+/*
 
 import io.github.fjossinet.rnartist.core.io.randomColor
 import io.github.fjossinet.rnartist.core.model.getHTMLColorString
@@ -14,7 +57,7 @@ import java.nio.file.Paths
 if (args.size < 1) {
     println(
         """To run this script:
-kotlin -cp location_of_your_rnartistcore-jar-with-dependencies.jar outputdir
+java -jar rnartistcore-XXX-jar-with-dependencies.jar outputdir
         """.trimMargin())
     System.exit(0)
 }
@@ -133,7 +176,7 @@ $singleStrandColors
         }
 }
 
-println("Total Nts: $totalNts")
+println("Total Nts: $totalNts")*/
 
 
 

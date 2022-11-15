@@ -6,7 +6,10 @@ import java.awt.Color
 import java.awt.geom.Rectangle2D
 import java.io.File
 import java.io.FileReader
+import java.io.IOException
 import java.lang.Exception
+import java.nio.file.FileSystems
+import java.nio.file.Paths
 
 class RNABuilder {
     var name: String = "A"
@@ -215,18 +218,26 @@ class PNGBuilder : OutputFileBuilder() {
 
     override fun build(drawing: SecondaryStructureDrawing) {
         path?.let { path ->
+            val sep = FileSystems.getDefault().getSeparator()
+            val f = if (!path.startsWith(sep))
+                File("${Jar().path()}${sep}${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.png")
+            else
+                File("${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.png")
+            if (!f.parentFile.exists())
+                f.parentFile.mkdirs()
+            f.createNewFile()
             if (!locationBuilder.isEmpty()) {
                 drawing.getFrame(locationBuilder.build())?.let { selectionFrame ->
                     drawing.asPNG(
                         frame = Rectangle2D.Double(0.0, 0.0, width, height),
                         selectionFrame = selectionFrame,
-                        outputFile = File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.png")
+                        outputFile = f
                     )
                 }
             } else {
                 drawing.asPNG(
                     frame = Rectangle2D.Double(0.0, 0.0, width, height),
-                    outputFile = File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.png")
+                    outputFile = f
                 )
             }
         }
@@ -238,18 +249,26 @@ class SVGBuilder : OutputFileBuilder() {
 
     override fun build(drawing: SecondaryStructureDrawing) {
         path?.let { path ->
+            val sep = FileSystems.getDefault().getSeparator()
+            val f = if (!path.startsWith(sep))
+                File("${Jar().path()}${sep}${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.svg")
+            else
+                File("${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.svg")
+            if (!f.parentFile.exists())
+                f.parentFile.mkdirs()
+            f.createNewFile()
             if (!locationBuilder.isEmpty()) {
                 drawing.getFrame(locationBuilder.build())?.let { selectionFrame ->
                     drawing.asSVG(
                         frame = Rectangle2D.Double(0.0, 0.0, width, height),
                         selectionFrame = selectionFrame,
-                        outputFile = File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.svg")
+                        outputFile = f
                     )
                 }
             } else {
                 drawing.asSVG(
                     frame = Rectangle2D.Double(0.0, 0.0, width, height),
-                    outputFile = File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.svg")
+                    outputFile = f
                 )
             }
         }
@@ -264,8 +283,13 @@ class ChimeraBuilder {
 
     fun build(drawing: SecondaryStructureDrawing) {
         path?.let { path ->
+            val sep = FileSystems.getDefault().getSeparator()
+            val f = if (!path.startsWith(sep))
+                File("${Jar().path()}${sep}${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.cxc")
+            else
+                File("${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.cxc")
             drawing.secondaryStructure.tertiaryStructure?.let { tertiaryStructure ->
-                drawing.asChimeraScript(File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.cxc"))
+                drawing.asChimeraScript(f)
             }
         }
     }
@@ -278,11 +302,15 @@ class BlenderBuilder {
 
     fun build(drawing: SecondaryStructureDrawing) {
         path?.let { path ->
+            val sep = FileSystems.getDefault().getSeparator()
+            val f = if (!path.startsWith(sep))
+                File("${Jar().path()}${sep}${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.py")
+            else
+                File("${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.py")
             drawing.secondaryStructure.tertiaryStructure?.let { tertiaryStructure ->
                 drawing.asBlenderScript(
                     tertiaryStructure,
-                    File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.py")
-                )
+                    f)
             }
         }
     }
@@ -308,9 +336,14 @@ class PDBBuilder {
             pdbFile.writeText(PDB().getEntry(this.id!!).readText())
             this.file = pdbFile.absolutePath
         }
-        if (this.file != null) {
+        this.file?.let { file ->
+            val sep = FileSystems.getDefault().getSeparator()
+            val f = if (!file.startsWith(sep))
+                File("${Jar().path()}${sep}${file}")
+            else
+                File(file)
             try {
-                structures.addAll(Annotate3D().annotate(File(file)))
+                structures.addAll(Annotate3D().annotate(f))
                 structures.forEach {
                     it.source = if (this.id != null) PDBSource(this.id!!) else FileSource(this.file!!)
                 }
@@ -331,9 +364,14 @@ class PDBBuilder {
 
 class ViennaBuilder : InputFileBuilder() {
     override fun build(): List<SecondaryStructure> {
-        this.file?.let {
-            val ss = parseVienna(FileReader(it))
-            ss.source = FileSource(it)
+        this.file?.let { file ->
+            val sep = FileSystems.getDefault().getSeparator()
+            val f = if (!file.startsWith(sep))
+                File("${Jar().path()}${sep}${file}")
+            else
+                File(file)
+            val ss = parseVienna(FileReader(f))
+            ss.source = FileSource(file)
             return arrayListOf(ss)
         }
         return listOf()
@@ -342,9 +380,14 @@ class ViennaBuilder : InputFileBuilder() {
 
 class BPSeqBuilder : InputFileBuilder() {
     override fun build(): List<SecondaryStructure> {
-        this.file?.let {
-            val ss = parseBPSeq(FileReader(it))
-            ss.source = FileSource(it)
+        this.file?.let { file ->
+            val sep = FileSystems.getDefault().getSeparator()
+            val f = if (!file.startsWith(sep))
+                File("${Jar().path()}${sep}${file}")
+            else
+                File(file)
+            val ss = parseBPSeq(FileReader(f))
+            ss.source = FileSource(file)
             return arrayListOf(ss)
         }
         return listOf<SecondaryStructure>()
@@ -353,9 +396,14 @@ class BPSeqBuilder : InputFileBuilder() {
 
 class CTBuilder : InputFileBuilder() {
     override fun build(): List<SecondaryStructure> {
-        this.file?.let {
-            val ss = parseCT(FileReader(it))
-            ss.source = FileSource(it)
+        this.file?.let { file ->
+            val sep = FileSystems.getDefault().getSeparator()
+            val f = if (!file.startsWith(sep))
+                File("${Jar().path()}${sep}${file}")
+            else
+                File(file)
+            val ss = parseCT(FileReader(f))
+            ss.source = FileSource(file)
             return arrayListOf(ss)
 
         }
@@ -382,7 +430,12 @@ class StockholmBuilder : InputFileBuilder() {
 
     override fun build(): List<SecondaryStructure> {
         this.file?.let { file ->
-            var secondaryStructures = parseStockholm(FileReader(this.file), withConsensus2D = true)
+            val sep = FileSystems.getDefault().getSeparator()
+            val f = if (!file.startsWith(sep))
+                File("${Jar().path()}${sep}${file}")
+            else
+                File(file)
+            var secondaryStructures = parseStockholm(FileReader(f), withConsensus2D = true)
             secondaryStructures.forEach {
                 it.source = FileSource(file)
                 it.rna.useAlignmentNumberingSystem = useAlignmentNumbering
@@ -429,29 +482,31 @@ class RfamBuilder : PublicDatabaseBuilder() {
     override fun build(): List<SecondaryStructure> {
         this.id?.let { id ->
             val rfam = Rfam()
-            val secondaryStructures = parseStockholm(rfam.getEntry(id), withConsensus2D = true)
-            var ids = secondaryStructures.map { it.name.split("/").first() }
-            if (rfam.nameAsAccessionNumbers) {
-                secondaryStructures.forEach { ss ->
-                    ss.source = RfamSource(id)
-                    ss.rna.useAlignmentNumberingSystem = useAlignmentNumbering
+            val secondaryStructures = try {parseStockholm(rfam.getEntry(id), withConsensus2D = true)} catch (e:IOException) {println("RFAM Entry $id not found"); arrayListOf()}
+            if (secondaryStructures.isNotEmpty()) {
+                var ids = secondaryStructures.map { it.name.split("/").first() }
+                if (rfam.nameAsAccessionNumbers) {
+                    secondaryStructures.forEach { ss ->
+                        ss.source = RfamSource(id)
+                        ss.rna.useAlignmentNumberingSystem = useAlignmentNumbering
+                    }
+                } else {
+                    val ncbi = NCBI()
+                    val titles = ncbi.getSummaryTitle(*ids.toTypedArray())
+                    secondaryStructures.forEach { ss ->
+                        ss.source = RfamSource(id)
+                        ss.name = titles[ss.name.split("/").first()] ?: ss.name
+                        ss.rna.useAlignmentNumberingSystem = useAlignmentNumbering
+                    }
                 }
-            } else {
-                val ncbi = NCBI()
-                val titles = ncbi.getSummaryTitle(*ids.toTypedArray())
-                secondaryStructures.forEach { ss ->
-                    ss.source = RfamSource(id)
-                    ss.name = titles[ss.name.split("/").first()] ?: ss.name
-                    ss.rna.useAlignmentNumberingSystem = useAlignmentNumbering
-                }
-            }
-            this.name?.let {
-                if ("consensus".equals(name))
-                    return arrayListOf(secondaryStructures.first())
-                else {
-                    secondaryStructures.forEach {
-                        if (name.equals(it.name))
-                            return arrayListOf(it)
+                this.name?.let {
+                    if ("consensus".equals(name))
+                        return arrayListOf(secondaryStructures.first())
+                    else {
+                        secondaryStructures.forEach {
+                            if (name.equals(it.name))
+                                return arrayListOf(it)
+                        }
                     }
                 }
             }
@@ -476,7 +531,7 @@ class RNACentralBuilder : PublicDatabaseBuilder() {
 }
 
 class BooquetBuilder {
-    var file: String? = null
+    var path: String? = null
     var width = 600.0
     var height = 600.0
     var junction_diameter = 25.0
@@ -485,7 +540,7 @@ class BooquetBuilder {
     var line = 2.0
 
     fun build() {
-        this.file?.let { outputFile ->
+        this.path?.let { path ->
             this.secondaryStructures.forEach { ss ->
                 val svgOutput = Booquet(
                     ss,
@@ -495,7 +550,13 @@ class BooquetBuilder {
                     lineWidth = line,
                     color = if (color.startsWith("#")) getAWTColor(color) else getAWTColor(getColorCode(color))
                 )
-                val f = File("${outputFile.split(".svg").first()}_${ss.rna.name.replace("/", "_")}.svg")
+                val sep = FileSystems.getDefault().getSeparator()
+                val f = if (!path.startsWith(sep))
+                    File("${Jar().path()}${sep}${path}${sep}${ss.rna.name.replace("/", "_")}.svg")
+                else
+                    File("${path}${sep}${ss.rna.name.replace("/", "_")}.svg")
+                if (!f.parentFile.exists())
+                    f.parentFile.mkdirs()
                 f.createNewFile()
                 f.writeText(svgOutput)
             }

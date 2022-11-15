@@ -5,25 +5,27 @@ RNArtistCore
 
 ![](media/booquet_from_pdb_0.png)
 
-
 RNArtistCore provides a language to automate the plotting for RNA secondary structures. It is also a component of the graphical tool named [RNArtist](https://github.com/fjossinet/RNArtist).
 
 While [RNArtist](https://github.com/fjossinet/RNArtist) is an interactive tool for RNA drawing and coloring, RNArtistCore can be used from the commandline to automate the drawing and highlight of specific regions for hundreds of RNA structures.
 
-The largest part of this documentation explains the [syntax to write your own plotting instructions](#dsl). But first, how to run your instructions? 
+The largest part of this documentation explains the [syntax to write your own plotting script](#dsl). But first, how to install and run RNArtistCore? 
 
 ## Prerequisites and installation
 
-You need to have java installed on your computer and executable in a terminal. Two options to install RNArtistCOre on your computer:
+You need to have java installed on your computer and executable in a terminal. Two options to install RNArtistCore on your computer:
 * download the last release available [here](https://github.com/fjossinet/RNArtistCore/releases) and unzip the zip file
 * download the source code from Github. You will need the tool [maven](https://maven.apache.org/) and a Java Development Kit to be installed. In the project directory, type: <pre>mvn clean package</pre> The zip file will be created in the target subdirectory. 
 
 ## Usage
 
-In the RNArtistCore directory type: 
-<pre>java -jar rnartistcore-X.X.X-jar-with-dependencies.jar your_plotting_script.kts</pre>
+In the RNArtistCore directory, type: 
+<pre>java -jar rnartistcore-X.X.X-jar-with-dependencies.jar path/to/your/plotting_script.kts</pre>
 
-# <a name="dsl"></a> How to write your plotting instructions
+From any directory, type:
+<pre>java -jar path/to/your/rnartistcore-X.X.X-jar-with-dependencies.jar path/to/plotting_script.kts</pre>
+
+# <a name="dsl"></a> How to write your plotting script
 
 RNArtistCore exposes a language to write your plotting instructions more easily. All the examples described in this README are available in the file [scripts/readme_plots.kts](scripts/readme_plots.kts). 
 

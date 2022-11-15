@@ -1,5 +1,3 @@
-import io.github.fjossinet.rnartist.core.*
-
 rnartist {
     png {
         path = "media/"
