@@ -249,7 +249,7 @@ rnartist {
 ### <a name="ss"></a>The ```ss``` element
 
 You have different ways to define a secondary structure:
-* by describing all the structural elements yourself using the element **```raw```**
+* by describing all the structural elements yourself using the element **```parts```**
 * from a bracket notation using the element **```bn```**
 * from a file using the elements **```vienna```**, **```bpseq```**, **```ct```**, or **```stockholm```**
 * from a public database using the elements **```rfam```**, **```rnacentral```**, or **```pdb```**
@@ -260,7 +260,7 @@ Inside an element ```parts```, you need to describe your 2D with the elements ``
 
 The element ``rna``` needs at least an attribute seq or an attribute length:
 * **seq** (mandatory in no length): the sequence of your molecule. If this parameter is not defined, a random sequence is computed. Each execution of the script will compute a different sequence.
-* **length** (mandatoryif no seq): the length of your molecule. If this parameter is defined, a random sequence is computed. Each execution of the script will compute a different sequence.
+* **length** (mandatory if no seq): the length of your molecule. If this parameter is defined, a random sequence is computed. Each execution of the script will compute a different sequence.
 * **name**: the name of the molecule (default: **```A```**)
 
 The ``helix``` element needs at least a location:

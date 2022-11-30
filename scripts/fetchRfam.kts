@@ -1,7 +1,7 @@
 import java.nio.file.Files
 import java.nio.file.Paths
 
-(1..4094).forEach {
+(1..4108).forEach {
     val rfamID = "RF${"%05d".format(it)}"
 
     rnartist {
