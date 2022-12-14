@@ -258,12 +258,12 @@ You have different ways to define a secondary structure:
 
 Inside an element ```parts```, you need to describe your 2D with the elements ```rna``` and ```helix``` 
 
-The element ``rna``` needs at least an attribute seq or an attribute length:
+The element ```rna``` needs at least an attribute seq or an attribute length:
 * **seq** (mandatory in no length): the sequence of your molecule. If this parameter is not defined, a random sequence is computed. Each execution of the script will compute a different sequence.
 * **length** (mandatory if no seq): the length of your molecule. If this parameter is defined, a random sequence is computed. Each execution of the script will compute a different sequence.
 * **name**: the name of the molecule (default: **```A```**)
 
-The ``helix``` element needs at least a location:
+The ```helix``` element needs at least a location:
 * **name**: the name of the helix
 * **location** (mandatory): the location of the helix
 
@@ -500,9 +500,6 @@ The parameters are:
 
 ```kotlin
 ss {
-  svg {
-    path = "media/"
-  }
   
   rfam {
     id = "RF00072"
@@ -513,9 +510,6 @@ ss {
 
 ```kotlin
 ss {
-  svg {
-    path = "media/"
-  }
   
   pdb {
     id = "1EHZ"
@@ -525,9 +519,6 @@ ss {
 
 ```kotlin
 ss {
-  svg {
-    path = "media/"
-  }
   pdb {
     id = "1JJ2"
     name = "0"
@@ -558,7 +549,7 @@ To quickly change the details level of an entire 2D, you can use the element nam
 
 _____Level 1_____
 
-The children of the 2D (helix, junction, single_strabd) are lowly rendered
+The children of the 2D (helix, junction, single_strand) are lowly rendered
 
 ```kotlin
 rnartist {
