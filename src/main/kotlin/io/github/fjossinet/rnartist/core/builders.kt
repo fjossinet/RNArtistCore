@@ -9,6 +9,7 @@ import java.io.FileReader
 import java.io.IOException
 import java.lang.Exception
 import java.nio.file.FileSystems
+import java.nio.file.FileSystems.*
 import java.nio.file.Paths
 
 class RNABuilder {
@@ -200,7 +201,7 @@ class SecondaryStructureBuilder {
 
 }
 
-open abstract class OutputFileBuilder {
+abstract class OutputFileBuilder {
     var path: String? = null
     var name: String? = null
     var width: Double = 800.0
@@ -218,7 +219,7 @@ class PNGBuilder : OutputFileBuilder() {
 
     override fun build(drawing: SecondaryStructureDrawing) {
         path?.let { path ->
-            val sep = FileSystems.getDefault().getSeparator()
+            val sep = getDefault().getSeparator()
             val f = if (!path.startsWith(sep))
                 File("${Jar().path()}${sep}${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.png")
             else
@@ -249,7 +250,7 @@ class SVGBuilder : OutputFileBuilder() {
 
     override fun build(drawing: SecondaryStructureDrawing) {
         path?.let { path ->
-            val sep = FileSystems.getDefault().getSeparator()
+            val sep = getDefault().getSeparator()
             val f = if (!path.startsWith(sep))
                 File("${Jar().path()}${sep}${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.svg")
             else
@@ -283,7 +284,7 @@ class ChimeraBuilder {
 
     fun build(drawing: SecondaryStructureDrawing) {
         path?.let { path ->
-            val sep = FileSystems.getDefault().getSeparator()
+            val sep = getDefault().getSeparator()
             val f = if (!path.startsWith(sep))
                 File("${Jar().path()}${sep}${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.cxc")
             else
@@ -302,7 +303,7 @@ class BlenderBuilder {
 
     fun build(drawing: SecondaryStructureDrawing) {
         path?.let { path ->
-            val sep = FileSystems.getDefault().getSeparator()
+            val sep = getDefault().getSeparator()
             val f = if (!path.startsWith(sep))
                 File("${Jar().path()}${sep}${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.py")
             else
@@ -317,7 +318,7 @@ class BlenderBuilder {
 
 }
 
-open abstract class InputFileBuilder {
+abstract class InputFileBuilder {
     var file: String? = null
 
     abstract fun build(): List<SecondaryStructure>
@@ -337,7 +338,7 @@ class PDBBuilder {
             this.file = pdbFile.absolutePath
         }
         this.file?.let { file ->
-            val sep = FileSystems.getDefault().getSeparator()
+            val sep = getDefault().getSeparator()
             val f = if (!file.startsWith(sep))
                 File("${Jar().path()}${sep}${file}")
             else
@@ -365,7 +366,7 @@ class PDBBuilder {
 class ViennaBuilder : InputFileBuilder() {
     override fun build(): List<SecondaryStructure> {
         this.file?.let { file ->
-            val sep = FileSystems.getDefault().getSeparator()
+            val sep = getDefault().getSeparator()
             val f = if (!file.startsWith(sep))
                 File("${Jar().path()}${sep}${file}")
             else
@@ -381,7 +382,7 @@ class ViennaBuilder : InputFileBuilder() {
 class BPSeqBuilder : InputFileBuilder() {
     override fun build(): List<SecondaryStructure> {
         this.file?.let { file ->
-            val sep = FileSystems.getDefault().getSeparator()
+            val sep = getDefault().getSeparator()
             val f = if (!file.startsWith(sep))
                 File("${Jar().path()}${sep}${file}")
             else
@@ -397,7 +398,7 @@ class BPSeqBuilder : InputFileBuilder() {
 class CTBuilder : InputFileBuilder() {
     override fun build(): List<SecondaryStructure> {
         this.file?.let { file ->
-            val sep = FileSystems.getDefault().getSeparator()
+            val sep = getDefault().getSeparator()
             val f = if (!file.startsWith(sep))
                 File("${Jar().path()}${sep}${file}")
             else
@@ -430,7 +431,7 @@ class StockholmBuilder : InputFileBuilder() {
 
     override fun build(): List<SecondaryStructure> {
         this.file?.let { file ->
-            val sep = FileSystems.getDefault().getSeparator()
+            val sep = getDefault().getSeparator()
             val f = if (!file.startsWith(sep))
                 File("${Jar().path()}${sep}${file}")
             else
@@ -550,7 +551,7 @@ class BooquetBuilder {
                     lineWidth = line,
                     color = if (color.startsWith("#")) getAWTColor(color) else getAWTColor(getColorCode(color))
                 )
-                val sep = FileSystems.getDefault().getSeparator()
+                val sep = getDefault().getSeparator()
                 val f = if (!path.startsWith(sep))
                     File("${Jar().path()}${sep}${path}${sep}${ss.rna.name.replace("/", "_")}.svg")
                 else

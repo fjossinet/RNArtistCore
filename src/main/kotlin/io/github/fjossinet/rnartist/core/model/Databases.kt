@@ -217,5 +217,5 @@ class NDB {
 }
 
 class Rfam(var nameAsAccessionNumbers:Boolean = true) {
-    fun getEntry(rfamID:String) = StringReader(URL("http://rfam.xfam.org/family/$rfamID/alignment?acc=$rfamID&format=stockholm&download=0").readText())
+    fun getEntry(rfamID:String) = StringReader(URL("https://rfam.org/family/$rfamID/alignment?acc=$rfamID&format=stockholm&download=0").readText())
 }
