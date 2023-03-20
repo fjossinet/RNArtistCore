@@ -442,7 +442,7 @@ fun parseCT(reader: Reader): SecondaryStructure {
 /**
  * The first 2D is the consensus 2D with a fake seq
  */
-fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<SecondaryStructure> {
+fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): Pair<Map<String, String>, List<SecondaryStructure>> {
     var secondaryStructures = mutableListOf<SecondaryStructure>()
     val alignedMolecules: MutableMap<String, StringBuffer> = HashMap()
     val bn = StringBuffer()
@@ -457,14 +457,17 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
             else
                 alignedMolecules[tokens[0]] = StringBuffer(tokens[1])
         } else if (line!!.trim { it <= ' ' }.length != 0 && line!!.startsWith("#=GC SS_cons"))
-            bn.append(tokens[2].replace("<", "(").replace(">", ")").replace(":", ".").replace(",", ".").replace("-", ".").replace("_", "."))
+            bn.append(
+                tokens[2].replace("<", "(").replace(">", ")").replace(":", ".").replace(",", ".").replace("-", ".")
+                    .replace("_", ".")
+            )
         else if (line!!.trim { it <= ' ' }.startsWith("#=GF DE"))
             familyName = line!!.split("#=GF DE".toRegex()).toTypedArray()[1].trim { it <= ' ' }
     }
     `in`.close()
     val rna = RNA(
         "consensus",
-        (1..bn.length).map { listOf("A", "U", "G", "C").random()}.joinToString(separator = "")
+        (1..bn.length).map { listOf("A", "U", "G", "C").random() }.joinToString(separator = "")
     )
 
     var consensusSS = SecondaryStructure(rna, bn.toString())
@@ -475,14 +478,18 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
         val helicalLengths = mutableListOf<Int>()
         val tertiariesLengths = mutableListOf<Int>()
 
-        val tertiariesLocation = Location(pknot.tertiaryInteractions.map{ it.start}.toSet().union(pknot.tertiaryInteractions.map{ it.end}).toIntArray())
+        val tertiariesLocation = Location(pknot.tertiaryInteractions.map { it.start }.toSet()
+            .union(pknot.tertiaryInteractions.map { it.end }).toIntArray()
+        )
 
         alignedMolecules.forEach { alignedMolecule ->
             pknot.helix.location.blocks.forEach { block ->
-                helicalLengths.add(alignedMolecule.value.substring(block.start-1, block.end).replace("-", "").length)
+                helicalLengths.add(alignedMolecule.value.substring(block.start - 1, block.end).replace("-", "").length)
             }
             tertiariesLocation.blocks.forEach { block ->
-                tertiariesLengths.add(alignedMolecule.value.substring(block.start-1, block.end).replace("-", "").length)
+                tertiariesLengths.add(
+                    alignedMolecule.value.substring(block.start - 1, block.end).replace("-", "").length
+                )
             }
         }
 
@@ -508,7 +515,7 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
             alignedMolecules.forEach { alignedMolecule ->
                 var totalLength = 0
                 h.location.blocks.forEach { block ->
-                    totalLength += alignedMolecule.value.substring(block.start-1, block.end).replace("-", "").length
+                    totalLength += alignedMolecule.value.substring(block.start - 1, block.end).replace("-", "").length
                 }
                 domainLengths.add(totalLength)
             }
@@ -516,7 +523,8 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
             val mean = domainLengths.average()
             h.lengthStd = domainLengths
                 .fold(0.0) { accumulator, next -> accumulator + (next - mean).pow(2.0) }
-                .let { sqrt(it / domainLengths.size )
+                .let {
+                    sqrt(it / domainLengths.size)
                 }
         }
 
@@ -526,7 +534,7 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
             alignedMolecules.forEach { alignedMolecule ->
                 var totalLength = 0
                 j.location.blocks.forEach { block ->
-                    totalLength += alignedMolecule.value.substring(block.start-1, block.end).replace("-", "").length
+                    totalLength += alignedMolecule.value.substring(block.start - 1, block.end).replace("-", "").length
                 }
                 domainLengths.add(totalLength)
             }
@@ -534,23 +542,24 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
             val mean = domainLengths.average()
             j.lengthStd = domainLengths
                 .fold(0.0) { accumulator, next -> accumulator + (next - mean).pow(2.0) }
-                .let { sqrt(it / domainLengths.size )
+                .let {
+                    sqrt(it / domainLengths.size)
                 }
         }
     }
     for ((key, value) in alignedMolecules) {
-        var rna= RNA(key, value.toString())
+        var rna = RNA(key, value.toString())
         var _bn = bn.toString()
 
         for (bp in consensusSS.secondaryInteractions) {
-            if (rna.seq[bp.start-1] == '-' || rna.seq[bp.end-1] == '-') {
+            if (rna.seq[bp.start - 1] == '-' || rna.seq[bp.end - 1] == '-') {
                 _bn = _bn.replaceRange(bp.start - 1, bp.start, ".")
                 _bn = _bn.replaceRange(bp.end - 1, bp.end, ".")
             }
         }
 
         for (bp in consensusSS.tertiaryInteractions) {
-            if (rna.seq[bp.start-1] == '-' || rna.seq[bp.end-1] == '-') {
+            if (rna.seq[bp.start - 1] == '-' || rna.seq[bp.end - 1] == '-') {
                 _bn = _bn.replaceRange(bp.start - 1, bp.start, ".")
                 _bn = _bn.replaceRange(bp.end - 1, bp.end, ".")
             }
@@ -558,13 +567,13 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
 
         for (pknot in consensusSS.pknots) {
             for (bp in pknot.helix.secondaryInteractions) {
-                if (rna.seq[bp.start-1] == '-' || rna.seq[bp.end-1] == '-') {
+                if (rna.seq[bp.start - 1] == '-' || rna.seq[bp.end - 1] == '-') {
                     _bn = _bn.replaceRange(bp.start - 1, bp.start, ".")
                     _bn = _bn.replaceRange(bp.end - 1, bp.end, ".")
                 }
             }
             for (bp in pknot.tertiaryInteractions) {
-                if (rna.seq[bp.start-1] == '-' || rna.seq[bp.end-1] == '-') {
+                if (rna.seq[bp.start - 1] == '-' || rna.seq[bp.end - 1] == '-') {
                     _bn = _bn.replaceRange(bp.start - 1, bp.start, ".")
                     _bn = _bn.replaceRange(bp.end - 1, bp.end, ".")
                 }
@@ -576,11 +585,11 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
         var pos: Int = value.indexOf("-")
         while (pos >= 0) {
             gapPositions.add(pos)
-            pos = value.indexOf("-", pos+1)
+            pos = value.indexOf("-", pos + 1)
         }
         rna = RNA(key, value.toString().replace("-", ""))
 
-        val numbering_system: MutableMap<Int,Int> = mutableMapOf()
+        val numbering_system: MutableMap<Int, Int> = mutableMapOf()
 
         var gapCounts = 0
         var currentPos = 0
@@ -597,7 +606,7 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
         rna.alignment_numbering_system = numbering_system
 
         gapPositions.reverse()
-        gapPositions.forEach { _bn = _bn.replaceRange(it,it+1,"") }
+        gapPositions.forEach { _bn = _bn.replaceRange(it, it + 1, "") }
 
         //we need to remap the location of the helices to keep in the pknots from the numbering system of the alignment to the absolute position for the RNA molecule
         val _helices2keep = mutableListOf<Location>()
@@ -610,11 +619,16 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
                     _start--
                 var _end = block2Keep.end
                 while (!numbering_system.values.contains(_end) && _end < consensusSS.rna.length)
-                    _end ++
+                    _end++
                 if (_start == 0 || _end == consensusSS.rna.length) { //this means that the block (helix strand), and consequently the helix, doesn't exist in this RNA
                     return@here
                 }
-                blocks.add(Block(numbering_system.filter { it.value == _start }.keys.first(), numbering_system.filter { it.value == _end }.keys.first()))
+                blocks.add(
+                    Block(
+                        numbering_system.filter { it.value == _start }.keys.first(),
+                        numbering_system.filter { it.value == _end }.keys.first()
+                    )
+                )
             }
             if (blocks.size == 2) //to check if the 2 helix strand were found in this RNA
                 _helices2keep.add(Location(blocks))
@@ -623,8 +637,12 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): List<Second
         secondaryStructures.add(SecondaryStructure(rna, _bn, helicesInPknots2Keep = _helices2keep))
 
     }
-    return secondaryStructures
+
+    return Pair(alignedMolecules.map { (key, value) ->
+        key to value.toString()
+    }.toMap(), secondaryStructures)
 }
+
 
 @Throws(java.lang.Exception::class)
 fun parseBPSeq(reader: Reader): SecondaryStructure {

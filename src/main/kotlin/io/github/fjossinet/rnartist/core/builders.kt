@@ -436,7 +436,7 @@ class StockholmBuilder : InputFileBuilder() {
                 File("${Jar().path()}${sep}${file}")
             else
                 File(file)
-            var secondaryStructures = parseStockholm(FileReader(f), withConsensus2D = true)
+            var secondaryStructures = parseStockholm(FileReader(f), withConsensus2D = true).second
             secondaryStructures.forEach {
                 it.source = FileSource(file)
                 it.rna.useAlignmentNumberingSystem = useAlignmentNumbering
@@ -483,7 +483,7 @@ class RfamBuilder : PublicDatabaseBuilder() {
     override fun build(): List<SecondaryStructure> {
         this.id?.let { id ->
             val rfam = Rfam()
-            val secondaryStructures = try {parseStockholm(rfam.getEntry(id), withConsensus2D = true)} catch (e:IOException) {println("RFAM Entry $id not found"); arrayListOf()}
+            val secondaryStructures = try {parseStockholm(rfam.getEntry(id), withConsensus2D = true).second} catch (e:IOException) {println("RFAM Entry $id not found"); arrayListOf()}
             if (secondaryStructures.isNotEmpty()) {
                 var ids = secondaryStructures.map { it.name.split("/").first() }
                 if (rfam.nameAsAccessionNumbers) {
