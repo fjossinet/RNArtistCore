@@ -561,6 +561,11 @@ class Helix(val name: String = "MyHelix") : AbstractStructuralDomain() {
             return ends.sorted()
         }
 
+    constructor(location:Location):this() {
+        for (i in 0 until location.blocks.first().length)
+            this.secondaryInteractions.add(BasePair(location = Location("${location.blocks.first().start+i},${location.blocks.last().end-i}")))
+    }
+
     fun setJunction(junction: Junction) {
         this.junctionsLinked =
             if (this.junctionsLinked.first == null) this.junctionsLinked.copy(first = junction) else this.junctionsLinked.copy(
@@ -970,7 +975,6 @@ class SecondaryStructure(
         }
 
         if (bracketNotation != null || basePairs != null || this.helices.isNotEmpty()) { // to be sure to create a uniq single-strand only if no base-pairs in the bracket or basepairs list. If the secondary structure is created only with an RNA molecule, nothing is done at the structural level
-
             if (bps.isNotEmpty()) {
                 bps.sortBy { it.start }
                 val bpInHelix = mutableSetOf<BasePair>()
@@ -1031,7 +1035,6 @@ class SecondaryStructure(
             }
 
             if (this.helices.isNotEmpty()) {
-
                 //since a residue can interact through 3 edges, it can be in several helices (it makes two different interactions, each one consecutive to another one, and then making two different helices)
                 //then we need to check if several helices contains the same position, and keep the longest one
                 for (i in 0 until this.rna.length) {
@@ -1047,7 +1050,6 @@ class SecondaryStructure(
                             this.helices.remove(h)
                     }
                 }
-
 
                 var foundPknot: Boolean
 
@@ -1084,7 +1086,6 @@ class SecondaryStructure(
                         this.tertiaryInteractions.add(bp)
 
                 } while (foundPknot)
-
                 //now the junctions
                 this.findJunctions()
 
@@ -1227,9 +1228,9 @@ class SecondaryStructure(
         this.helices.forEach {
             it.junctionsLinked = Pair<Junction?, Junction?>(null, null)
         }
-        var positionsInJunction = mutableListOf<Int>()
-        var helicesLinked = mutableListOf<Helix>()
         for (h in this.helices) {
+            var positionsInJunction = mutableListOf<Int>()
+            var helicesLinked = mutableListOf<Helix>()
             //one side of the helix
             var pos = h.ends[1] //3'-end
             if (this.junctions.filter { it.location.contains(pos) }.isEmpty()) { //already in a junction?
@@ -1246,7 +1247,7 @@ class SecondaryStructure(
                     }
                 } while (pos != h.ends[1])
 
-                if (!positionsInJunction.isEmpty())
+                if (!positionsInJunction.isEmpty()) {
                     this.junctions.add(
                         Junction(
                             name = "J${junctionCount++}",
@@ -1254,11 +1255,12 @@ class SecondaryStructure(
                             helicesLinked = helicesLinked
                         )
                     )
+                }
             }
 
             //the other side (of the river ;-) )
-            positionsInJunction = mutableListOf<Int>()
-            helicesLinked = mutableListOf<Helix>()
+            positionsInJunction = mutableListOf()
+            helicesLinked = mutableListOf()
             pos = h.ends[3] //3'-end
             if (this.junctions.filter { it.location.contains(pos) }.isEmpty()) { //already in a junction?
                 LOOP@ do {
@@ -1274,7 +1276,7 @@ class SecondaryStructure(
                     }
                 } while (pos != h.ends[3])
 
-                if (!positionsInJunction.isEmpty())
+                if (!positionsInJunction.isEmpty()) {
                     this.junctions.add(
                         Junction(
                             name = "J${junctionCount++}",
@@ -1282,6 +1284,7 @@ class SecondaryStructure(
                             helicesLinked = helicesLinked
                         )
                     )
+                }
             }
         }
     }
