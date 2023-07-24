@@ -89,7 +89,7 @@ import io.github.fjossinet.rnartist.core.model.getHTMLColorString
             }
         }
     }*/
-}&@
+}
 
 
 

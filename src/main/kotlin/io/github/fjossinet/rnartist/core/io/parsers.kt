@@ -3,6 +3,8 @@ package io.github.fjossinet.rnartist.core.io
 import com.google.gson.Gson
 import io.github.fjossinet.rnartist.core.model.*
 import io.github.fjossinet.rnartist.core.rnartist
+import org.jdom2.Element
+import org.jdom2.input.SAXBuilder
 import java.io.*
 import java.text.NumberFormat
 import java.util.*
@@ -159,6 +161,84 @@ fun curateScript(elements:List<ScriptElement>, issues:MutableList<String>):List<
         curateScript(element.children, issues)
     }
     return issues
+}
+
+@Throws(java.lang.Exception::class)
+fun parseRnaml(f: File?): List<SecondaryStructure> {
+    val secondaryStructures = mutableListOf<SecondaryStructure>()
+    val builder = SAXBuilder(false)
+    builder.validation = false
+    builder.setFeature("http://xml.org/sax/features/validation", false)
+    builder.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false)
+    builder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+    val document = builder.build(f)
+    val root = document.rootElement
+    var child: Element?
+    var name: String?
+    var m: RNA?
+    val i: Iterator<*> = root.children.iterator()
+    while (i.hasNext()) {
+        child = i.next() as Element?
+        name = child!!.name
+        if (name == "molecule") {
+            var moleculeSequence = ""
+            val moleculeName = child.getAttribute("id").value
+            val sequence = child.getChild("sequence")
+            if (sequence != null) {
+                val seqdata = sequence.getChild("seq-data")
+                if (seqdata != null) moleculeSequence = seqdata.value.trim { it <= ' ' }.replace("\\s+".toRegex(), "")
+            }
+            m = RNA(moleculeName, moleculeSequence.uppercase())
+            val bps: MutableList<BasePair> = ArrayList()
+            val structure = child.getChild("structure")
+            if (structure != null) {
+                val str_annotation = structure.getChild("model").getChild("str-annotation")
+                for (e in str_annotation.getChildren("base-pair")) {
+                    val bp = e
+                    var edge1:Edge
+                    var edge2:Edge
+                    edge1 = when (bp!!.getChild("edge-5p").text[0]) {
+                        'S', 's' -> Edge.Sugar
+                        'H' -> Edge.Hoogsteen
+                        'W', '+', '-' -> Edge.WC
+                        '!', '?' -> Edge.SingleHBond
+                        else -> Edge.Unknown
+                    }
+                    edge2 = when (bp.getChild("edge-3p").text[0]) {
+                        'S', 's' -> Edge.Sugar
+                        'H' -> Edge.Hoogsteen
+                        'W', '+', '-' -> Edge.WC
+                        '!', '?' -> Edge.SingleHBond
+                        else -> Edge.Unknown
+                    }
+                    var orientation:Orientation
+                    orientation = when (bp.getChild("bond-orientation").text.uppercase().toCharArray()[0]) {
+                        'C' -> Orientation.cis
+                        'T' -> Orientation.trans
+                        else -> Orientation.Unknown
+                    }
+                    val l = Location(
+                        Location(
+                            bp.getChild("base-id-5p").getChild("base-id").getChild("position").text.toInt()
+                        ),
+                        Location(
+                            bp.getChild("base-id-3p").getChild("base-id").getChild("position").text.toInt()
+                        )
+                    )
+                    bps.add(
+                        BasePair(
+                            l,
+                            edge1,
+                            edge2,
+                            orientation
+                        )
+                    )
+                }
+            }
+            secondaryStructures.add(SecondaryStructure(m, null, bps))
+        }
+    }
+    return secondaryStructures
 }
 
 @Throws(java.lang.Exception::class)

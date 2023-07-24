@@ -4,6 +4,12 @@ import com.google.gson.Gson
 import io.github.fjossinet.rnartist.core.io.getUserDir
 import io.github.fjossinet.rnartist.core.io.randomColor
 import io.github.fjossinet.rnartist.core.model.*
+import org.jdom2.Document
+import org.jdom2.Element
+import org.jdom2.JDOMException
+import org.jdom2.input.SAXBuilder
+import org.jdom2.output.Format
+import org.jdom2.output.XMLOutputter
 import java.awt.Color
 import java.io.*
 import java.net.URI
@@ -431,6 +437,9 @@ object RnartistConfig {
         )
     )
 
+    @JvmStatic
+    private var document: Document? = null
+
     val defaultConfiguration = mutableMapOf(
         ThemeParameter.color.toString() to getHTMLColorString(Color.DARK_GRAY),
         ThemeParameter.linewidth.toString() to "1.0",
@@ -439,25 +448,456 @@ object RnartistConfig {
         ThemeParameter.fulldetails.toString() to "false"
     )
 
+    @JvmStatic
+    fun load() {
+        if (document != null) return
+        val configFile = File(getUserDir(), "config.xml")
+        if (configFile.exists()) {
+            val builder = SAXBuilder()
+            try {
+                document = builder.build(configFile)
+            } catch (e: JDOMException) {
+                e.printStackTrace()
+            }
+        } else {
+            val root = Element("rnartist-config")
+            root.setAttribute(
+                "release",
+                getRnartistRelease()
+            )
+            document = Document(root)
+        }
+    }
+
+    @JvmStatic
+    fun save() {
+        val outputter = XMLOutputter(Format.getPrettyFormat())
+        val writer = FileWriter(File(getUserDir(), "config.xml"))
+        outputter.output(document, writer)
+    }
+
+    @JvmStatic
+    fun clearRecentFiles() {
+        val e = document!!.rootElement.getChild("recent-files")
+        e?.removeChildren("file")
+    }
+
+    @JvmStatic
+    var projectsFolder:String?
+        get() {
+            var e = document!!.rootElement.getChild("projects-folder")
+            if (e == null) {
+                return null
+            }
+            return e.text
+        }
+        set(folder) {
+            var e = document!!.rootElement.getChild("projects-folder")
+            if (e == null) {
+                e = Element("projects-folder")
+                document!!.rootElement.addContent(e)
+            }
+            e.text = folder
+        }
+
     data class GlobalProperties(var website: Map<String,String>)
+
+    @JvmStatic
+    private fun recoverWebsite(status:String="dev") {
+        val client: HttpClient = HttpClient.newHttpClient()
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create("https://raw.githubusercontent.com/fjossinet/RNArtist/master/properties.json"))
+            .build()
+            val response: HttpResponse<String> = client.send(
+                request,
+                HttpResponse.BodyHandlers.ofString()
+            )
+            val properties = Gson().fromJson<GlobalProperties>(response.body() as String, GlobalProperties::class.java)
+            website = "http://${properties.website[status]}"
+    }
 
     @JvmStatic
     var website: String? = null
 
     @JvmStatic
+    var fragmentsLibrary: String?
+        get() {
+            var e = document!!.rootElement.getChild("fragments-library")
+            if (e == null) {
+                e = Element("fragments-library")
+                e.text = "Non redundant"
+                document!!.rootElement.addContent(e)
+            }
+            return e.textTrim
+        }
+        set(library) {
+            document!!.rootElement.getChild("fragments-library").text = library
+        }
+
+    @JvmStatic
+    val recentEntries: List<Pair<String, String>>
+        get() {
+            var e = document!!.rootElement.getChild("recent-entries")
+            if (e == null) {
+                e = Element("recent-entries")
+                document!!.rootElement.addContent(e)
+            }
+            val files: MutableList<Pair<String, String>> = ArrayList()
+            UPPERFOR@ for (o in e.getChildren("entry")) {
+                val entry = o
+                for (f in files) if (f.first == entry!!.getAttributeValue("id") && f.second == entry.getAttributeValue(
+                        "type"
+                    )
+                ) {
+                    continue@UPPERFOR
+                }
+                files.add(Pair(entry!!.getAttributeValue("id"), entry.getAttributeValue("type")))
+            }
+            document!!.rootElement.removeContent(e)
+            e = Element("recent-entries")
+            document!!.rootElement.addContent(e)
+            for (f in files) {
+                val file = Element("entry")
+                file.setAttribute("id", f.first)
+                file.setAttribute("type", f.second)
+                e.addContent(file)
+            }
+            return files
+        }
+
+    @JvmStatic
+    fun addRecentEntry(id: String, type: String) {
+        var e = document!!.rootElement.getChild("recent-entries")
+        if (e == null) {
+            e = Element("recent-entries")
+            document!!.rootElement.addContent(e)
+        }
+        val file = Element("entry")
+        file.setAttribute("id", id)
+        file.setAttribute("type", type)
+        val files: List<*> = ArrayList(e.getChildren("entry"))
+        if (files.size == 10) {
+            e.removeContent(files[files.size - 1] as Element?)
+            e.addContent(0, file)
+        } else {
+            for (o in files) {
+                val _f = o as Element
+                if (_f.getAttributeValue("id") == id && _f.getAttributeValue("type") == type) {
+                    e.removeContent(_f)
+                }
+            }
+            e.addContent(0, file)
+        }
+    }
+
+    @JvmStatic
+    var chimeraHost: String
+        get() {
+            var e = document!!.rootElement.getChild("external-tools")
+            if (e == null) {
+                e = Element("external-tools")
+                document!!.rootElement.addContent(e)
+            }
+            var _e = e.getChild("chimera")
+            if (_e == null) {
+                _e = Element("chimera")
+                _e.addContent(Element("isX"))
+                _e.addContent(Element("host"))
+                _e.addContent(Element("port"))
+                e.addContent(_e)
+                _e.getChild("isX").text = "false"
+                _e.getChild("host").text = "127.0.0.1"
+                _e.getChild("port").text = "50000"
+            }
+
+            return _e.getChild("host").value
+        }
+        set(host) {
+            document!!.rootElement.getChild("external-tools").getChild("chimera").getChild("host").text = host
+        }
+
+    @JvmStatic
+    var chimeraPort: Int
+        get() {
+            var e = document!!.rootElement.getChild("external-tools")
+            if (e == null) {
+                e = Element("external-tools")
+                document!!.rootElement.addContent(e)
+            }
+            var _e = e.getChild("chimera")
+            if (_e == null) {
+                _e = Element("chimera")
+                _e.addContent(Element("isX"))
+                _e.addContent(Element("host"))
+                _e.addContent(Element("port"))
+                e.addContent(_e)
+                _e.getChild("isX").text = "false"
+                _e.getChild("host").text = "127.0.0.1"
+                _e.getChild("port").text = "50000"
+            }
+
+            return Integer.parseInt(_e.getChild("port").value)
+        }
+        set(port) {
+            document!!.rootElement.getChild("external-tools").getChild("chimera").getChild("port").text = port.toString()
+        }
+
+    @JvmStatic
+    var isChimeraX: Boolean
+        get() {
+            var e = document!!.rootElement.getChild("external-tools")
+            if (e == null) {
+                e = Element("external-tools")
+                document!!.rootElement.addContent(e)
+            }
+            var _e = e.getChild("chimera")
+            if (_e == null) {
+                _e = Element("chimera")
+                _e.addContent(Element("isX"))
+                _e.addContent(Element("host"))
+                _e.addContent(Element("port"))
+                e.addContent(_e)
+                _e.getChild("isX").text = "false"
+                _e.getChild("host").text = "127.0.0.1"
+                _e.getChild("port").text = "50000"
+            }
+
+            if (_e.getChild("isX") == null) { //retrocompatibility
+                _e.addContent(Element("isX"))
+                _e.getChild("isX").text = "false"
+            }
+
+            return _e.getChild("isX") != null && _e.getChild("isX").value.equals("true")
+        }
+        set(isX) {
+            document!!.rootElement.getChild("external-tools").getChild("chimera").getChild("isX").text = isX.toString()
+        }
+
+    @JvmStatic
+    var userID: String?
+        get() = document!!.rootElement.getChild("userID")?.text
+        set(userID) {
+            var e: Element? = document!!.rootElement.getChild("userID")
+            if (e == null) {
+                e = Element("userID")
+                document!!.rootElement.addContent(e)
+            }
+            e.addContent(userID)
+        }
+
+    @JvmStatic
     fun exportSVGWithBrowserCompatibility(): Boolean {
-        /*val e = document?.rootElement?.getChild("export-SVG-with-browser-compatibility")
-        return e != null*/
-        return false
+        val e = document?.rootElement?.getChild("export-SVG-with-browser-compatibility")
+        return e != null
     }
 
     @JvmStatic
     fun exportSVGWithBrowserCompatibility(compatibility: Boolean) {
-        /*if (compatibility && !exportSVGWithBrowserCompatibility() /*the element is not already there*/)
+        if (compatibility && !exportSVGWithBrowserCompatibility() /*the element is not already there*/)
             document!!.rootElement.addContent(Element("export-SVG-with-browser-compatibility"))
         else if (!compatibility)
-            document!!.rootElement.removeChild("export-SVG-with-browser-compatibility")*/
+            document!!.rootElement.removeChild("export-SVG-with-browser-compatibility")
     }
+
+    @JvmStatic
+    var editorFontSize:Int
+        get() {
+            var e: Element? = document!!.rootElement.getChild("editor-fontsize")
+            if (e == null) {
+                e = Element("editor-fontsize")
+                e.text = "20"
+                document!!.rootElement.addContent(e)
+            }
+            return e.value.toInt()
+        }
+        set(value) {
+            var e: Element? = document!!.rootElement.getChild("editor-fontsize")
+            if (e == null) {
+                e = Element("editor-fontsize")
+                document!!.rootElement.addContent(e)
+            }
+            (e as Element).text = value.toString()
+        }
+
+    @JvmStatic
+    var editorFontName:String
+        get() {
+            var e: Element? = document!!.rootElement.getChild("editor-fontname")
+            if (e == null) {
+                e = Element("editor-fontname")
+                e.text = "Arial"
+                document!!.rootElement.addContent(e)
+            }
+            return e.value
+        }
+        set(value) {
+            var e: Element? = document!!.rootElement.getChild("editor-fontname")
+            if (e == null) {
+                e = Element("editor-fontname")
+                document!!.rootElement.addContent(e)
+            }
+            (e as Element).text = value
+        }
+
+    @JvmStatic
+    var backgroundEditorColor:Color
+        get() {
+            var e: Element? = document!!.rootElement.getChild("bg-editor-color")
+            if (e == null) {
+                e = Element("bg-editor-color")
+                e.text = getHTMLColorString(Color.BLACK)
+                document!!.rootElement.addContent(e)
+            }
+            return getAWTColor(e.value)
+        }
+        set(value) {
+            var e: Element? = document!!.rootElement.getChild("bg-editor-color")
+            if (e == null) {
+                e = Element("bg-editor-color")
+                document!!.rootElement.addContent(e)
+            }
+            (e as Element).text = getHTMLColorString(value)
+        }
+
+    @JvmStatic
+    var keywordEditorColor:Color
+        get() {
+            var e: Element? = document!!.rootElement.getChild("kw-editor-color")
+            if (e == null) {
+                e = Element("kw-editor-color")
+                e.text = "#8099ff"
+                document!!.rootElement.addContent(e)
+            }
+            return getAWTColor(e.value)
+        }
+        set(value) {
+            var e: Element? = document!!.rootElement.getChild("kw-editor-color")
+            if (e == null) {
+                e = Element("bg-editor-color")
+                document!!.rootElement.addContent(e)
+            }
+            (e as Element).text = getHTMLColorString(value)
+        }
+
+    @JvmStatic
+    var bracesEditorColor:Color
+        get() {
+            var e: Element? = document!!.rootElement.getChild("braces-editor-color")
+            if (e == null) {
+                e = Element("braces-editor-color")
+                e.text = getHTMLColorString(Color.WHITE)
+                document!!.rootElement.addContent(e)
+            }
+            return getAWTColor(e.value)
+        }
+        set(value) {
+            var e: Element? = document!!.rootElement.getChild("braces-editor-color")
+            if (e == null) {
+                e = Element("braces-editor-color")
+                document!!.rootElement.addContent(e)
+            }
+            (e as Element).text = getHTMLColorString(value)
+        }
+
+    @JvmStatic
+    var keyParamEditorColor:Color
+        get() {
+            var e: Element? = document!!.rootElement.getChild("keyParam-editor-color")
+            if (e == null) {
+                e = Element("keyParam-editor-color")
+                e.text = "#ff9966"
+                document!!.rootElement.addContent(e)
+            }
+            return getAWTColor(e.value)
+        }
+        set(value) {
+            var e: Element? = document!!.rootElement.getChild("keyParam-editor-color")
+            if (e == null) {
+                e = Element("keyParam-editor-color")
+                document!!.rootElement.addContent(e)
+            }
+            (e as Element).text = getHTMLColorString(value)
+        }
+
+    @JvmStatic
+    var operatorParamEditorColor:Color
+        get() {
+            var e: Element? = document!!.rootElement.getChild("operatorParam-editor-color")
+            if (e == null) {
+                e = Element("operatorParam-editor-color")
+                e.text = getHTMLColorString(Color.WHITE)
+                document!!.rootElement.addContent(e)
+            }
+            return getAWTColor(e.value)
+        }
+        set(value) {
+            var e: Element? = document!!.rootElement.getChild("operatorParam-editor-color")
+            if (e == null) {
+                e = Element("operatorParam-editor-color")
+                document!!.rootElement.addContent(e)
+            }
+            (e as Element).text = getHTMLColorString(value)
+        }
+
+    @JvmStatic
+    var valueParamEditorColor:Color
+        get() {
+            var e: Element? = document!!.rootElement.getChild("valueParam-editor-color")
+            if (e == null) {
+                e = Element("valueParam-editor-color")
+                e.text = "#669999"
+                document!!.rootElement.addContent(e)
+            }
+            return getAWTColor(e.value)
+        }
+        set(value) {
+            var e: Element? = document!!.rootElement.getChild("valueParam-editor-color")
+            if (e == null) {
+                e = Element("valueParam-editor-color")
+                document!!.rootElement.addContent(e)
+            }
+            (e as Element).text = getHTMLColorString(value)
+        }
+
+    @JvmStatic
+    var selectionColor: Color
+        get() {
+            var e: Element? = document!!.rootElement.getChild("selection-color")
+            if (e == null) {
+                e = Element("selection-color")
+                e.text = getHTMLColorString(Color.RED)
+                document!!.rootElement.addContent(e)
+            }
+            return getAWTColor(e.value)
+        }
+        set(value) {
+            var e: Element? = document!!.rootElement.getChild("selection-color")
+            if (e == null) {
+                e = Element("selection-color")
+                document!!.rootElement.addContent(e)
+            }
+            (e as Element).text = getHTMLColorString(value)
+        }
+
+    @JvmStatic
+    var selectionWidth: Int
+        get() {
+            var e: Element? = document!!.rootElement.getChild("selection-width")
+            if (e == null) {
+                e = Element("selection-width")
+                e.text = "1"
+                document!!.rootElement.addContent(e)
+            }
+            return e.value.toInt()
+        }
+        set(value) {
+            var e: Element? = document!!.rootElement.getChild("selection-width")
+            if (e == null) {
+                e = Element("selection-width")
+                document!!.rootElement.addContent(e)
+            }
+            (e as Element).text = "${value}"
+        }
 
     @JvmStatic
     fun getRnartistRelease(): String? {
