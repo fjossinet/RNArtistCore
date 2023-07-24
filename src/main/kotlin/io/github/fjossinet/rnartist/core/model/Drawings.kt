@@ -400,7 +400,7 @@ abstract class DrawingElement(
 
 class SecondaryStructureDrawing(
     val secondaryStructure: SecondaryStructure,
-    val workingSession: WorkingSession = WorkingSession()
+    val workingSession: WorkingSession = WorkingSession(), anchorX:Double=0.0, anchorY:Double=0.0
 ) {
 
     val phosphoBonds =
@@ -976,6 +976,8 @@ class SecondaryStructureDrawing(
         this.workingSession.singleStrandsDrawn.addAll(this.singleStrands)
         this.workingSession.phosphoBondsLinkingBranchesDrawn.addAll(this.phosphoBonds)
         this.workingSession.locationDrawn = Location(1, this.secondaryStructure.length)
+        this.workingSession.viewX = anchorX
+        this.workingSession.viewY = anchorY
     }
 
     fun fitViewTo(frame: Rectangle2D) {
@@ -1034,7 +1036,7 @@ class SecondaryStructureDrawing(
         val maxY = allStructuralDomains.flatMap { it.selectionPoints }.maxByOrNull { it.y }!!.y
         return listOf(
             Point2D.Double(minX, minY), Point2D.Double(maxX, minY),
-            Point2D.Double(maxX, minY), Point2D.Double(maxX, maxY)
+            Point2D.Double(maxX, maxY), Point2D.Double(minX, maxY)
         )
     }
 

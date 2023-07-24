@@ -15,9 +15,9 @@ class Jar() {
 fun main(args:Array<String>) {
     if (args.isEmpty()) {
         println("""
-Usage: java -jar rnartist_core.jar [-c] dsl_script_file
+Usage: java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [-c] path/to/your/plotting_script.kts
     Options:
-        -c : check the syntax of the script before to run it. Print issues found.
+        -c : check the syntax of the script before to run it. Print issues.
 """)
         System.exit(-1)
     }
@@ -33,7 +33,6 @@ Usage: java -jar rnartist_core.jar [-c] dsl_script_file
         elements.forEach {
             it.print(writer, "   ")
         }
-        //println(writer)
         val manager = ScriptEngineManager()
         val engine = manager.getEngineByExtension("kts")
         engine.eval(

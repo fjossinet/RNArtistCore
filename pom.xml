@@ -7,7 +7,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <kotlin.version>1.8.10</kotlin.version>
+        <kotlin.version>1.9.0</kotlin.version>
         <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <dokka.version>1.5.31</dokka.version>
@@ -18,7 +18,7 @@
 
     <groupId>io.github.fjossinet.rnartist</groupId>
     <artifactId>rnartistcore</artifactId>
-    <version>0.3.1-SNAPSHOT</version>
+    <version>0.3.2-SNAPSHOT</version>
 
     <name>RNArtist Core</name>
     <description>A Kotlin library to create and plot RNA 2D structures</description>

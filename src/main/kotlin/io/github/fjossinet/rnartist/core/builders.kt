@@ -8,9 +8,37 @@ import java.io.File
 import java.io.FileReader
 import java.io.IOException
 import java.lang.Exception
-import java.nio.file.FileSystems
 import java.nio.file.FileSystems.*
-import java.nio.file.Paths
+
+class DSLElement(val name:String) {
+    val children = mutableListOf<DSLElement>()
+    val properties = mutableMapOf<String,String?>()
+    fun dump(indent:String = "", buffer:StringBuffer) {
+        buffer.appendLine("$indent $name {")
+        val newIndent =  "$indent   "
+        properties.forEach { key, value ->
+            value?.let {
+                buffer.appendLine("$newIndent $key = $value")
+            }
+        }
+        children.forEach { child ->
+            child.dump(newIndent, buffer)
+        }
+        buffer.appendLine("$indent }")
+    }
+
+    fun getChild(name:String):DSLElement? {
+        if (this.name.equals(name))
+            return this
+        else
+            this.children.forEach { child ->
+                child.getChild(name)?.let {
+                    return it
+                }
+            }
+        return null
+    }
+}
 
 class RNABuilder {
     var name: String = "A"
@@ -202,13 +230,15 @@ class SecondaryStructureBuilder {
 }
 
 abstract class OutputFileBuilder {
+    abstract val dslElement:DSLElement
     var path: String? = null
     var name: String? = null
     var width: Double = 800.0
     var height: Double = 800.0
     var locationBuilder: LocationBuilder = LocationBuilder()
 
-    abstract fun build(drawing: SecondaryStructureDrawing)
+
+    abstract fun build(drawing: SecondaryStructureDrawing, rnartistElement: DSLElement)
 
     fun location(setup: LocationBuilder.() -> Unit) {
         this.locationBuilder.setup()
@@ -216,11 +246,27 @@ abstract class OutputFileBuilder {
 }
 
 class PNGBuilder : OutputFileBuilder() {
+    override val dslElement = DSLElement("png")
+        get() {
+            this.path?.let { path ->
+                val sep = getDefault().getSeparator()
+                field.properties["path"] = if (!path.startsWith(sep))
+                    "\"${Jar().path()}${sep}${path}\""
+                else
+                    "\"$path\""
+            }
+            this.name?.let {
+                field.properties["name"] = "\"$name\""
+            }
+            field.properties["width"] = "$width"
+            field.properties["height"] = "$width"
+            return field
+        }
 
-    override fun build(drawing: SecondaryStructureDrawing) {
+    override fun build(drawing: SecondaryStructureDrawing, rnartistElement: DSLElement) {
         path?.let { path ->
             val sep = getDefault().getSeparator()
-            val f = if (!path.startsWith(sep))
+            var f = if (!path.startsWith(sep))
                 File("${Jar().path()}${sep}${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.png")
             else
                 File("${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.png")
@@ -241,6 +287,17 @@ class PNGBuilder : OutputFileBuilder() {
                     outputFile = f
                 )
             }
+            //now the dsl script for this 2D, if not already there
+            f = if (!path.startsWith(sep))
+                File("${Jar().path()}${sep}${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.kts")
+            else
+                File("${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.kts")
+            if (!f.exists()) {
+                f.createNewFile()
+                val buff = StringBuffer()
+                rnartistElement.dump("", buff)
+                f.writeText(buff.toString())
+            }
         }
     }
 
@@ -248,7 +305,20 @@ class PNGBuilder : OutputFileBuilder() {
 
 class SVGBuilder : OutputFileBuilder() {
 
-    override fun build(drawing: SecondaryStructureDrawing) {
+    override val dslElement = DSLElement("svg")
+        get() {
+            this.path?.let {
+                field.properties["path"] = "\"$path\""
+            }
+            this.name?.let {
+                field.properties["name"] = "\"$name\""
+            }
+            field.properties["width"] = "$width"
+            field.properties["height"] = "$width"
+            return field
+        }
+
+    override fun build(drawing: SecondaryStructureDrawing, rnartistElement: DSLElement) {
         path?.let { path ->
             val sep = getDefault().getSeparator()
             val f = if (!path.startsWith(sep))
@@ -319,7 +389,9 @@ class BlenderBuilder {
 }
 
 abstract class InputFileBuilder {
+    abstract val dslElement:DSLElement
     var file: String? = null
+    var path: String? = null
 
     abstract fun build(): List<SecondaryStructure>
 }
@@ -364,6 +436,13 @@ class PDBBuilder {
 }
 
 class ViennaBuilder : InputFileBuilder() {
+    override val dslElement = DSLElement("vienna")
+        get() {
+            this.file?.let {
+                field.properties["file"] = "\"$file\""
+            }
+            return field
+        }
     override fun build(): List<SecondaryStructure> {
         this.file?.let { file ->
             val sep = getDefault().getSeparator()
@@ -375,11 +454,33 @@ class ViennaBuilder : InputFileBuilder() {
             ss.source = FileSource(file)
             return arrayListOf(ss)
         }
+        this.path?.let { path ->
+            val sep = getDefault().getSeparator()
+            val f = if (!path.startsWith(sep)) {
+                File("${Jar().path()}${sep}${path}")
+            }
+            else
+                File(path)
+            val structures = mutableListOf<SecondaryStructure>()
+            f.listFiles({ dir, name -> name.endsWith(".vienna")})?.forEach { viennaFile ->
+                val ss = parseVienna(FileReader(viennaFile))
+                ss.source = FileSource(viennaFile.absolutePath)
+                structures.add(ss)
+            }
+            return structures
+        }
         return listOf()
     }
 }
 
 class BPSeqBuilder : InputFileBuilder() {
+    override val dslElement = DSLElement("bpseq")
+        get() {
+            this.file?.let {
+                field.properties["file"] = "\"$file\""
+            }
+            return field
+        }
     override fun build(): List<SecondaryStructure> {
         this.file?.let { file ->
             val sep = getDefault().getSeparator()
@@ -396,6 +497,13 @@ class BPSeqBuilder : InputFileBuilder() {
 }
 
 class CTBuilder : InputFileBuilder() {
+    override val dslElement = DSLElement("ct")
+        get() {
+            this.file?.let {
+                field.properties["file"] = "\"$file\""
+            }
+            return field
+        }
     override fun build(): List<SecondaryStructure> {
         this.file?.let { file ->
             val sep = getDefault().getSeparator()
@@ -413,6 +521,13 @@ class CTBuilder : InputFileBuilder() {
 }
 
 class StockholmBuilder : InputFileBuilder() {
+    override val dslElement = DSLElement("stockholm")
+        get() {
+            this.file?.let {
+                field.properties["file"] = "\"$file\""
+            }
+            return field
+        }
     var name: String? = null
     val use = Use()
     private var useAlignmentNumbering = false
@@ -573,6 +688,7 @@ class BooquetBuilder {
 }
 
 class RNArtistBuilder {
+    val rnartistElement:DSLElement = DSLElement("rnartist")
     private var svgOutputBuilder: SVGBuilder? = null
     private var pngOutputBuilder: PNGBuilder? = null
     private var chimeraOutputBuilder: ChimeraBuilder? = null
@@ -592,17 +708,37 @@ class RNArtistBuilder {
             this.layout?.let { layout ->
                 drawing.applyLayout(layout)
             }
-            this.pngOutputBuilder?.name?.let { chainName ->
-                if (chainName.equals(ss.rna.name))
-                    this.pngOutputBuilder?.build(drawing)
-            } ?: run {
-                this.pngOutputBuilder?.build(drawing)
+            this.pngOutputBuilder?.let { pngOutputBuilder ->
+                ss.source?.getId()?.let { source ->
+                    if (source.endsWith(".vienna")) {
+                        this.rnartistElement.children.removeIf { it.name.equals("ss") }
+                        val ssElement = DSLElement("ss")
+                        val viennaElement = DSLElement("vienna")
+                        viennaElement.properties["file"] = "\"$source\""
+                        ssElement.children.add(viennaElement)
+                        this.rnartistElement.children.add(ssElement)
+                    }
+                }
+                this.rnartistElement.getChild("png")?.let {
+
+                } ?: run {
+                    this.rnartistElement.children.add(pngOutputBuilder.dslElement)
+                }
+                pngOutputBuilder.name?.let { chainName ->
+                    if (chainName.equals(ss.rna.name))
+                        pngOutputBuilder.build(drawing, rnartistElement)
+                } ?: run {
+                    pngOutputBuilder.build(drawing, rnartistElement)
+                }
             }
-            this.svgOutputBuilder?.name?.let { chainName ->
-                if (chainName.equals(ss.rna.name))
-                    this.svgOutputBuilder?.build(drawing)
-            } ?: run {
-                this.svgOutputBuilder?.build(drawing)
+            this.svgOutputBuilder?.let { svgOutputBuilder ->
+                this.rnartistElement.getChild("svg") ?: this.rnartistElement.children.add(svgOutputBuilder.dslElement)
+                svgOutputBuilder.name?.let { chainName ->
+                    if (chainName.equals(ss.rna.name))
+                        svgOutputBuilder.build(drawing, rnartistElement)
+                } ?: run {
+                    svgOutputBuilder.build(drawing, rnartistElement)
+                }
             }
             this.chimeraOutputBuilder?.name?.let { chainName ->
                 if (chainName.equals(ss.rna.name))
@@ -625,6 +761,7 @@ class RNArtistBuilder {
         val themeBuilder = ThemeBuilder(data)
         themeBuilder.setup()
         this.theme = themeBuilder.build()
+        this.rnartistElement.children.add(themeBuilder.dslElement)
     }
 
     fun layout(setup: LayoutBuilder.() -> Unit) {
@@ -855,6 +992,7 @@ class JunctionLayoutBuilder() {
 }
 
 class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
+    val dslElement = DSLElement("theme")
     private var details = mutableListOf<DetailsBuilder>()
     private val colors = mutableListOf<ColorBuilder>()
     private val shows = mutableListOf<ShowBuilder>()
@@ -866,6 +1004,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
         val detailsBuilder = DetailsBuilder()
         detailsBuilder.setup()
         this.details.add(detailsBuilder)
+        this.dslElement.children.add(detailsBuilder.dslElement)
     }
 
     fun show(setup: ShowBuilder.() -> Unit) {
@@ -2745,6 +2884,11 @@ open class ThemeConfigurationBuilder(data: MutableMap<String, Double>) {
 }
 
 class DetailsBuilder {
+    val dslElement = DSLElement("details")
+        get() {
+            field.properties["value"] = "$value"
+            return field
+        }
     val locationBuilder = LocationBuilder()
     var value: Int = 1
     var type: String? = null

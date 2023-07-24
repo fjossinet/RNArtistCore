@@ -3,13 +3,13 @@ RNArtistCore
 
 ![](media/rnartist_preview.png)
 
-![](media/booquet_from_pdb_0.png)
+RNArtistCore provides:
+* an easy language (a.k.a "Domain Specific Language") to describe in scripts how you would like to draw your RNA 2Ds 
+* a commandline tool to apply your drawing scripts on thousands of RNA 2Ds described in usual formats (CT, BPSEQ, VIENNA,....) or RNA 2Ds derived from 3Ds described in PDB format 
 
-RNArtistCore provides a language to automate the plotting for RNA secondary structures. It is also a component of the graphical tool named [RNArtist](https://github.com/fjossinet/RNArtist).
+RNArtistCore can also be used as a library. It leverages the development of graphical tools dedicated to the visualization and exploration of RNA 2Ds, like [RNArtist](https://github.com/fjossinet/RNArtist).
 
-While [RNArtist](https://github.com/fjossinet/RNArtist) is an interactive tool for RNA drawing and coloring, RNArtistCore can be used from the commandline to automate the drawing and highlight of specific regions for hundreds of RNA structures.
-
-The largest part of this documentation explains the [syntax to write your own plotting script](#dsl). But first, how to install and run RNArtistCore? 
+The largest part of this documentation explains the [syntax to write your own drawing script](#dsl). But first, how to install and run RNArtistCore? 
 
 ## Prerequisites and installation
 
@@ -17,17 +17,46 @@ You need to have java installed on your computer and executable in a terminal. T
 * download the last release available [here](https://github.com/fjossinet/RNArtistCore/releases) and unzip the zip file
 * download the source code from Github. You will need the tool [maven](https://maven.apache.org/) and a Java Development Kit to be installed. In the project directory, type: <pre>mvn clean package</pre> The zip file will be created in the target subdirectory. 
 
-## Usage
+## RNArtistCore from the commandline
 
-In the RNArtistCore directory, type: 
+From the RNArtistCore directory, type: 
 <pre>java -jar rnartistcore-X.X.X-jar-with-dependencies.jar path/to/your/plotting_script.kts</pre>
 
 From any directory, type:
 <pre>java -jar path/to/your/rnartistcore-X.X.X-jar-with-dependencies.jar path/to/plotting_script.kts</pre>
 
-# <a name="dsl"></a> How to write your plotting script
+# <a name="library"></a>RNArtistCore as a library
 
-RNArtistCore exposes a language to write your plotting instructions more easily. All the examples described in this README are available in the file [scripts/readme_plots.kts](scripts/readme_plots.kts). 
+RNArtistCore can be added as a dependency into your own projects. No stable release for now, only snapshots. To use RNArtistCore in your Java application, just add the below dependency in your file pom.xml:
+
+```xml
+    <repositories>
+  <repository>
+    <id>maven-snapshots</id>
+    <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+    <layout>default</layout>
+    <releases>
+      <enabled>false</enabled>
+    </releases>
+    <snapshots>
+      <enabled>true</enabled>
+    </snapshots>
+  </repository>
+</repositories>
+
+<dependencies>
+<dependency>
+  <groupId>io.github.fjossinet.rnartist</groupId>
+  <artifactId>rnartistcore</artifactId>
+  <version>0.2.7-SNAPSHOT</version>
+</dependency>
+</dependencies>
+```
+
+
+# <a name="dsl"></a>How to write your drawing script?
+
+RNArtistCore exposes a language to write your drawing instructions more easily. All the examples described in this README are available in the file [scripts/readme_plots.kts](scripts/readme_plots.kts). 
 
 Please note that this is still a work under development and that all instructions are not stable. You can take a look at the [changelog](Changelog.md) for details concerning the modifications. 
 
@@ -136,86 +165,6 @@ Two algorithms are available:
 * booquet
 
 Both algorithms need a secondary structure element. A drawing can be saved in an SVG or PNG file. The name of the RNA molecule will be used for the filename. Each algorithm has its own parameters to configure the drawing process and the final result.
-
-## <a name="booquet"></a> ***The **```booquet```** element***
-
-This algorithm has less options than the rnartist one. The parameters available are:
-* **```file```** (mandatory): the absolute path and the name of the SVG output file. The path needs to start with ```/project/```, corresponding to the root of your project.
-* **```ss```** (mandatory): a secondary structure element
-* **```width```**: the width of the view containing the drawing (default: 600)
-* **```height```**: the height of the view containing the drawingg (default: 600)
-* **```color```**: an HTML color code or color name
-* **```line```**: the width for the lines
-* **```junction_diameter```**: the diameter of the circles
-
-The drawing will be automatically zoomed to fit the view.
-
-```kotlin
-booquet {
-  file = "/project/media/booquet_from_rfam.svg"
-  junction_diameter = 15.0
-  color = "midnightblue"
-  line = 1.0
-  ss {
-    rfam {
-      id = "RF00072"
-      name = "AJ009730.1/1-133"
-    }
-  }
-}
-```
-
-![](media/booquet_from_rfam_AJ009730.1_1-133.png)
-
-```kotlin
-booquet {
-  file = "/project/media/booquet_from_vienna.svg"
-  junction_diameter = 15.0
-  color = "olive"
-  line = 3.0
-  ss {
-    vienna {
-      file = "/project/samples/rna.vienna"
-    }
-  }
-}
-```
-
-![](media/booquet_from_vienna_A.png)
-
-```kotlin
-booquet {
-  file = "/project/media/booquet_from_ct.svg"
-  junction_diameter = 15.0
-  color = "darkorchid"
-  ss {
-    ct {
-      file = "/project/samples/ASE_00010_from_RNA_STRAND_database.ct"
-    }
-  }
-}
-```
-
-![](media/booquet_from_ct_A.png)
-
-```kotlin
-booquet {
-  file = "/project/media/booquet_from_pdb.svg"
-  junction_diameter = 15.0
-  color = "darkmagenta"
-  width = 1200.0
-  height = 800.0
-  line = 0.5
-  ss {
-    pdb {
-      file = "/project/samples/1jj2.pdb"
-      name = "0"
-    }
-  }
-}
-```
-
-![](media/booquet_from_pdb_0.png)
 
 ## <a name="rnartist"></a> ***The **```rnartist```** element***
 
@@ -1696,33 +1645,85 @@ rnartist {
 
 ![](media/dataset.png)
 
-# <a name="library"></a>The RNArtistCore library
+## <a name="booquet"></a> ***The **```booquet```** element***
 
-RNArtistCore can be added as a dependency into your own projects. No stable release for now, only snapshots. To use RNArtistCore in a Java application, just add the below dependency in your file pom.xml:
+This algorithm has less options than the rnartist one. The parameters available are:
+* **```file```** (mandatory): the absolute path and the name of the SVG output file. The path needs to start with ```/project/```, corresponding to the root of your project.
+* **```ss```** (mandatory): a secondary structure element
+* **```width```**: the width of the view containing the drawing (default: 600)
+* **```height```**: the height of the view containing the drawingg (default: 600)
+* **```color```**: an HTML color code or color name
+* **```line```**: the width for the lines
+* **```junction_diameter```**: the diameter of the circles
 
-```xml
-    <repositories>
-  <repository>
-    <id>maven-snapshots</id>
-    <url>http://oss.sonatype.org/content/repositories/snapshots</url>
-    <layout>default</layout>
-    <releases>
-      <enabled>false</enabled>
-    </releases>
-    <snapshots>
-      <enabled>true</enabled>
-    </snapshots>
-  </repository>
-</repositories>
+The drawing will be automatically zoomed to fit the view.
 
-<dependencies>
-<dependency>
-  <groupId>io.github.fjossinet.rnartist</groupId>
-  <artifactId>rnartistcore</artifactId>
-  <version>0.2.7-SNAPSHOT</version>
-</dependency>
-</dependencies>
+```kotlin
+booquet {
+  file = "/project/media/booquet_from_rfam.svg"
+  junction_diameter = 15.0
+  color = "midnightblue"
+  line = 1.0
+  ss {
+    rfam {
+      id = "RF00072"
+      name = "AJ009730.1/1-133"
+    }
+  }
+}
 ```
+
+![](media/booquet_from_rfam_AJ009730.1_1-133.png)
+
+```kotlin
+booquet {
+  file = "/project/media/booquet_from_vienna.svg"
+  junction_diameter = 15.0
+  color = "olive"
+  line = 3.0
+  ss {
+    vienna {
+      file = "/project/samples/rna.vienna"
+    }
+  }
+}
+```
+
+![](media/booquet_from_vienna_A.png)
+
+```kotlin
+booquet {
+  file = "/project/media/booquet_from_ct.svg"
+  junction_diameter = 15.0
+  color = "darkorchid"
+  ss {
+    ct {
+      file = "/project/samples/ASE_00010_from_RNA_STRAND_database.ct"
+    }
+  }
+}
+```
+
+![](media/booquet_from_ct_A.png)
+
+```kotlin
+booquet {
+  file = "/project/media/booquet_from_pdb.svg"
+  junction_diameter = 15.0
+  color = "darkmagenta"
+  width = 1200.0
+  height = 800.0
+  line = 0.5
+  ss {
+    pdb {
+      file = "/project/samples/1jj2.pdb"
+      name = "0"
+    }
+  }
+}
+```
+
+![](media/booquet_from_pdb_0.png)
 
 # Notes
 
