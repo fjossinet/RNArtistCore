@@ -482,17 +482,17 @@ The element ```rfam``` can contain an attribute named ```use alignment numbering
 Using this element, you choose the rendering level for any object in the 2D drawing, from single residues to entire structural domains.
 Each object can be lowly or highly rendered. In general, an object 2D produces a simple shape when it is lowly rendered and it doesn't allow its children to be rendered.
 
-Object 2D | type<br/>(to be used with the elements ```show```/```hide```, see below) |                parent                |                   children                    | lowly rendered | highly rendered
---- |-----------------------------------------------------------------------|------------------------------------|---------------------------------------------|--------------|---------------
-Helix |                                  helix                                   |                  2D                  | Secondary Interaction<br/>Phosphodiester Bond |  single line   | children rendering
-Junction |                                 junction                                 |                  2D                  |     Residue Shape<br/>Phosphodiester Bond     |     circle     | children rendering
-Single Strand |                              single_strand                               |                  2D                  |     Residue Shape<br/>Phosphodiester Bond     |  single line   | children rendering
-Secondary Interaction |                          secondary_interaction                           |                Helix                 |     Residue Shape<br/>Interaction Symbol      |     | children rendering
-Tertiary Interaction |                           tertiary_interaction                           |                  2D                  |              Interaction Symbol               |  single line   | children rendering
-Phosphodiester Bond |                           phosphodiester_bond                            | Helix<br/>Junction<br/>Single Strand |                                               |                | single line
-Residue Shape |                         N, X, A, U, G, C, R or Y                         | Secondary Interaction<br/>Junction<br/>Single Strand |               Residue Character               |                | shape (circle) + children rendering
-Residue Character |                         n, x, a, u, g, c, r or y                         | Residue Shape|                                               |                |  character
-Interaction Symbol |                            interaction_symbol                            | Secondary Interaction<br/>Tertiary Interaction |                                               |  single line   | symbol (triangle, circle, square, double lines,...)
+Object 2D | Referenced as            |                parent                |                   children                    | lowly rendered | highly rendered
+--- |--------------------------|------------------------------------|---------------------------------------------|--------------|---------------
+Helix | helix                    |                  2D                  | Secondary Interaction<br/>Phosphodiester Bond |  single line   | children rendering
+Junction | junction                 |                  2D                  |     Residue Shape<br/>Phosphodiester Bond     |     circle     | children rendering
+Single Strand | single_strand            |                  2D                  |     Residue Shape<br/>Phosphodiester Bond     |  single line   | children rendering
+Secondary Interaction | secondary_interaction    |                Helix                 |     Residue Shape<br/>Interaction Symbol      |     | children rendering
+Tertiary Interaction | tertiary_interaction     |                  2D                  |              Interaction Symbol               |  single line   | children rendering
+Phosphodiester Bond | phosphodiester_bond      | Helix<br/>Junction<br/>Single Strand |                                               |                | single line
+Residue Shape | N, X, A, U, G, C, R or Y | Secondary Interaction<br/>Junction<br/>Single Strand |               Residue Character               |                | shape (circle) + children rendering
+Residue Character | n, x, a, u, g, c, r or y | Residue Shape|                                               |                |  character
+Interaction Symbol | interaction_symbol       | Secondary Interaction<br/>Tertiary Interaction |                                               |  single line   | symbol (triangle, circle, square, double lines,...)
 
 To quickly change the details level of an entire 2D, you can use the element named **```details```**. Five details levels are available:
 
@@ -765,7 +765,7 @@ Inside a **```theme```**, you can also add several times the following elements:
 Parameters:
 * **```value```**: an HTML color code or predefined [color names](https://en.wikipedia.org/wiki/Web_colors#//project/media/File:SVG_Recognized_color_keyword_names.svg). If the parameter **```to```** is defined, this parameter defines the first color for the gradient.
 * **```to```**: the last color in a gradient (HTML color code or predefined [color names](https://en.wikipedia.org/wiki/Web_colors#//project/media/File:SVG_Recognized_color_keyword_names.svg))
-* **```type```**: the type of objects 2D targeted (check this [table](theme) for details)
+* **```type```**: the type of objects 2D targeted (check this [table](#theme) for details)
 * **```location```**: the location of objects 2D targeted
 * **```data```**: selection based on the values linked to the residues  (see explanation for this element below)
 * **```scheme```**: the name of a color scheme to apply. It can be: 
