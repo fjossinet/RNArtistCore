@@ -2,11 +2,16 @@ package io.github.fjossinet.rnartist.core.model
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import io.github.fjossinet.rnartist.core.io.parseStockholm
+import io.github.fjossinet.rnartist.core.io.writeVienna
 import io.github.fjossinet.rnartist.core.ss
 import java.io.*
 import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URL
 import java.net.URLEncoder
+import java.nio.file.Files
+import java.nio.file.Paths
 import kotlin.collections.HashMap
 
 class NCBI {
@@ -217,5 +222,13 @@ class NDB {
 }
 
 class Rfam(var nameAsAccessionNumbers:Boolean = true) {
-    fun getEntry(rfamID:String) = StringReader(URL("https://rfam.org/family/$rfamID/alignment?acc=$rfamID&format=stockholm&download=0").readText())
+    fun getEntry(rfamID:String):StringReader? {
+        try {
+            val url = URI("https://rfam.org/family/$rfamID/alignment?acc=$rfamID&format=stockholm&download=0").toURL()
+            return StringReader(url.readText())
+        } catch (e:Exception) {
+            return null
+        }
+
+    }
 }

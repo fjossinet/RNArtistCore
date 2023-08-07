@@ -113,6 +113,16 @@ rnartist {
         details {
             value = 1
         }
+
+        color {
+            type = "helix"
+            value = "red"
+        }
+
+        color {
+            type = "junction"
+            value = "green"
+        }
     }
 }
 
@@ -126,10 +136,21 @@ rnartist {
                 "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
             name = "details_lvl2"
         }
+
     }
     theme {
         details {
             value = 2
+        }
+
+        color {
+            type = "helix"
+            value = "red"
+        }
+
+        color {
+            type = "junction"
+            value = "green"
         }
     }
 }
@@ -149,6 +170,10 @@ rnartist {
         details {
             value = 3
         }
+
+        color {
+            scheme = "Pumpkin Vegas"
+        }
     }
 }
 
@@ -166,6 +191,10 @@ rnartist {
     theme {
         details {
             value = 4
+        }
+
+        color {
+            scheme = "Pumpkin Vegas"
         }
     }
 }
@@ -185,116 +214,9 @@ rnartist {
         details {
             value = 5
         }
-    }
-}
 
-rnartist {
-
-    png {
-        path = "media/"
-    }
-
-    ss {
-        bn {
-            value = "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))"
-            name = "several_details_lvl"
-        }
-    }
-    theme {
-
-        details {
-            value = 1
-        }
-
-        details {
-            value = 3
-            location {
-                8 to 37
-                50 to 53
-            }
-        }
-
-        details {
-            value = 2
-            location {
-                37 to 50
-            }
-        }
-
-        details {
-            value = 2
-            location {
-                16 to 20
-                25 to 29
-            }
-        }
-
-    }
-}
-
-rnartist {
-    png {
-        path = "media/"
-    }
-    ss {
-        bn {
-            value = "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))"
-            name = "details_lvl_erased"
-        }
-    }
-    theme {
-
-        details {
-            value = 3
-            location {
-                8 to 37
-                50 to 53
-            }
-        }
-
-        details {
-            value = 2
-            location {
-                37 to 50
-            }
-        }
-
-        details {
-            value = 2
-            location {
-                16 to 20
-                25 to 29
-            }
-        }
-
-        details {
-            value = 1
-        }
-
-    }
-}
-
-rnartist {
-    png {
-        path = "media/"
-    }
-    ss {
-        bn {
-            value = "(((..(((....))).)))...(((..(((....))).)))...((((((..(((....))).)))..(((....))).)))(((..(((....))).)))"
-            name = "details_lvl_helices_junctions"
-        }
-    }
-    theme {
-        details {
-            value = 1
-        }
-        details {
-            value = 3
-            type = "helix"
-        }
-        details {
-            value = 2
-            type = "junction"
+        color {
+            scheme = "Pumpkin Vegas"
         }
     }
 }
@@ -361,7 +283,19 @@ rnartist {
 
     theme {
         details {
-            value = 1
+            value = 5
+        }
+
+        color {
+            scheme="Celeste Olivine"
+        }
+
+        hide {
+            type = "helix"
+            location {
+                7 to 10
+                15 to 18
+            }
         }
     }
 }
@@ -381,11 +315,15 @@ rnartist {
 
     theme {
         details {
-            value = 1
+            value = 5
         }
 
-        show {
-            type = "helix"
+        color {
+            scheme="Celeste Olivine"
+        }
+
+        hide {
+            type = "secondary_interaction"
             location {
                 7 to 10
                 15 to 18
@@ -409,11 +347,15 @@ rnartist {
 
     theme {
         details {
-            value = 1
+            value = 5
         }
 
-        show {
-            type = "helix secondary_interaction phosphodiester_bond"
+        color {
+            scheme="Celeste Olivine"
+        }
+
+        hide {
+            type = "N interaction_symbol"
             location {
                 7 to 10
                 15 to 18
@@ -437,11 +379,15 @@ rnartist {
 
     theme {
         details {
-            value = 1
+            value = 5
         }
 
-        show {
-            type = "helix secondary_interaction  phosphodiester_bond N"
+        color {
+            scheme="Celeste Olivine"
+        }
+
+        hide {
+            type = "n interaction_symbol"
             location {
                 7 to 10
                 15 to 18
@@ -465,11 +411,15 @@ rnartist {
 
     theme {
         details {
-            value = 1
+            value = 5
         }
 
-        show {
-            type = "helix secondary_interaction phosphodiester_bond N n"
+        color {
+            scheme="Celeste Olivine"
+        }
+
+        hide {
+            type = "interaction_symbol"
             location {
                 7 to 10
                 15 to 18
@@ -493,59 +443,11 @@ rnartist {
 
     theme {
         details {
-            value = 1
+            value = 5
         }
 
-        show {
-            type = "helix secondary_interaction phosphodiester_bond N n interaction_symbol"
-            location {
-                7 to 10
-                15 to 18
-            }
-        }
-    }
-}
-
-rnartist {
-    png {
-        path = "media/"
-    }
-
-    ss {
-        bn {
-            seq = "CUUACUCGAGUGACCUUGCUUG"
-            value = "..((..((((....))))..))"
-            name = "helix_mixed_lvl"
-        }
-    }
-
-    theme {
-        details {
-            value = 1
-        }
-
-        show {
-            type = "helix secondary_interaction phosphodiester_bond"
-            location {
-                7 to 10
-                15 to 18
-            }
-        }
-
-        show {
-            type = "N n"
-            location {
-                7 to 8
-                17 to 18
-            }
-        }
-
-        show {
-            type = "interaction_symbol"
-            location {
-                8 to 8
-                17 to 17
-            }
+        color {
+            scheme="Celeste Olivine"
         }
     }
 }
@@ -565,22 +467,27 @@ rnartist {
 
     theme {
         details {
-            value = 5
+            value = 2
         }
 
-        hide {
-            type = "n"
-            location {
-                9 to 9
-            }
+        color {
+            scheme = "African Lavender"
         }
 
-        hide {
-            type = "secondary_interaction"
+        show {
+            type = "helix phosphodiester_bond secondary_interaction"
             location {
                 7 to 8
                 10 to 10
                 15 to 15
+                17 to 18
+            }
+        }
+
+        show {
+            type = "N"
+            location {
+                7 to 8
                 17 to 18
             }
         }
@@ -772,7 +679,10 @@ rnartist {
     }
     theme {
         details {
-            value = 5
+            value = 3
+        }
+        color {
+            scheme = "Atomic Xanadu"
         }
     }
 
@@ -798,7 +708,10 @@ rnartist {
     }
     theme {
         details {
-            value = 5
+            value = 3
+        }
+        color {
+            scheme = "Atomic Xanadu"
         }
     }
     layout {
@@ -833,7 +746,7 @@ rnartist {
     }
     theme {
         details {
-            value = 5
+            value = 4
         }
         color {
             value = "#800080"

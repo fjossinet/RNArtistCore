@@ -25,7 +25,6 @@ val radiansToDegrees = 180 / Math.PI
 val degreesToRadians = Math.PI / 180
 
 enum class SecondaryStructureType {
-    Full2D,
     A {
         override fun toString(): String {
             return "a"
@@ -116,8 +115,7 @@ enum class SecondaryStructureType {
             return "single_strand"
         }
     },
-    LWSymbol,
-    Numbering
+    LWSymbol
 }
 
 enum class ThemeParameter {
@@ -216,17 +214,21 @@ class WorkingSession {
     }
 }
 
+class ThemeConfiguration(val selector:(DrawingElement) -> Boolean, val parameterName: String, val parameterValue: (DrawingElement) -> String) {
+
+}
+
 class Theme {
 
-    var configurations: MutableMap<(DrawingElement) -> Boolean, Pair<String, (DrawingElement) -> String>> =
-        mutableMapOf()
+    var configurations: MutableList<ThemeConfiguration> =
+        mutableListOf()
 
-    fun setConfigurationFor(
+    fun addConfiguration(
         selection: (DrawingElement) -> Boolean,
         parameter: ThemeParameter,
         parameterValue: (DrawingElement) -> String
     ) {
-        configurations[selection] = Pair(parameter.toString(), parameterValue)
+        configurations.add(ThemeConfiguration(selection, parameter.toString(), parameterValue))
     }
 
     fun clear() = this.configurations.clear()
@@ -312,9 +314,21 @@ abstract class DrawingElement(
     var type: SecondaryStructureType
 ) {
 
+    abstract val children:List<DrawingElement>
+
     var drawingConfiguration: DrawingConfiguration = DrawingConfiguration()
 
     open val selectionPoints: List<Point2D> = mutableListOf()
+
+    val allChildren:List<DrawingElement>
+        get() {
+            val allChildren = mutableListOf<DrawingElement>()
+            allChildren.addAll(this.children)
+            this.children.forEach {
+                allChildren.addAll(it.allChildren)
+            }
+            return allChildren
+        }
 
     val selectionFrame: Shape?
         get() {
@@ -383,15 +397,17 @@ abstract class DrawingElement(
     fun getSinglePositions() = this.location.positions.toIntArray()
 
     open fun applyTheme(theme: Theme) {
-        theme.configurations.entries.forEach { entry ->
-            if (entry.key(this)) {
-                this.drawingConfiguration.params[entry.value.first] = entry.value.second(this)
+        theme.configurations.forEach { configuration ->
+            if (configuration.selector(this)) {
+                this.drawingConfiguration.params[configuration.parameterName] = configuration.parameterValue(this)
             }
         }
+        this.children.map { it.applyTheme(theme) }
     }
 
     open fun clearTheme() {
         this.drawingConfiguration.clear()
+        this.children.map { it.clearTheme() }
     }
 
     open fun applyLayout(layout: Layout) {
@@ -1363,14 +1379,8 @@ class SecondaryStructureDrawing(
             ss.applyTheme(theme)
         for (h in this.allHelices)
             h.applyTheme(theme)
-        for (i in this.allSecondaryInteractions)
-            i.applyTheme(theme)
         for (i in this.tertiaryInteractions)
             i.applyTheme(theme)
-        for (r in this.residues)
-            r.applyTheme(theme)
-        for (phospho in this.phosphoBonds)
-            phospho.applyTheme(theme)
     }
 
     fun clearTheme() {
@@ -1382,14 +1392,8 @@ class SecondaryStructureDrawing(
             ss.clearTheme()
         for (h in this.allHelices)
             h.clearTheme()
-        for (i in this.allSecondaryInteractions)
-            i.clearTheme()
         for (i in this.tertiaryInteractions)
             i.clearTheme()
-        for (r in this.residues)
-            r.clearTheme()
-        for (phospho in this.phosphoBonds)
-            phospho.clearTheme()
     }
 
     fun applyLayout(layout: Layout) {
@@ -2631,6 +2635,9 @@ abstract class ResidueDrawing(
     type: SecondaryStructureType
 ) : DrawingElement(ssDrawing, parent, residueLetter.toString(), Location(absPos), type) {
 
+    override val children: List<DrawingElement>
+        get() = listOf(this.residueLetter)
+
     var updated = true //to force the recomputation of base-base interaction shapes
         set(value) {
             field = value
@@ -2639,6 +2646,15 @@ abstract class ResidueDrawing(
         }
     val absPos: Int
         get() = this.location.start
+
+    override fun applyTheme(theme: Theme) {
+        theme.configurations.forEach { configuration ->
+            if (configuration.selector(this)) {
+                this.drawingConfiguration.params[configuration.parameterName] = configuration.parameterValue(this)
+            }
+        }
+        this.children.map { it.applyTheme(theme) }
+    }
 
     override fun inside(location: Location) = if (ssDrawing.secondaryStructure.rna.useAlignmentNumberingSystem) {
         location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.location.start))
@@ -2675,6 +2691,12 @@ abstract class ResidueDrawing(
             )
         }
 
+
+    /**
+     * is full details if its own drawing configuration is true and if its parent (Secondary Interaction, Junction, SingleStrand) is full details
+     */
+    override fun isFullDetails() = this.parent!!.isFullDetails() && super.isFullDetails()
+
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         this.letterNumbering.clear()
         this.shapesNumbering.clear()
@@ -2693,9 +2715,8 @@ abstract class ResidueDrawing(
             g.stroke = previousStroke
             if ((absPos % 5 == 0 || absPos == 1 || absPos == ssDrawing.length) && g.font.size - 4 > 4 && this.getOpacity() > 0)
                 this.drawNumbering(g, at)
-        }
-        if (this.getOpacity() > 0) //the conditions to draw a letter
             this.residueLetter.draw(g, at, drawingArea)
+        }
     }
 
     fun asSVG(at: AffineTransform, frame: Rectangle2D): String {
@@ -2716,9 +2737,9 @@ abstract class ResidueDrawing(
                         this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                     }" fill="${getHTMLColorString(this.getColor())}"/>"""
                 )
-        }
-        if (this.getOpacity() > 0 && frame.contains(_c.bounds2D)) { //the conditions to draw a letter
-            buffer.append(this.residueLetter.asSVG(at))
+            if (this.getOpacity() > 0 && frame.contains(_c.bounds2D)) { //the conditions to draw a letter
+                buffer.append(this.residueLetter.asSVG(at))
+            }
         }
         buffer.append("</g>")
         letterNumbering.forEach {
@@ -2968,17 +2989,6 @@ abstract class ResidueDrawing(
         g.font = Font(g.font.fontName, g.font.style, g.font.size + 4)
 
     }
-
-    override fun applyTheme(theme: Theme) {
-        super.applyTheme(theme)
-        this.residueLetter.applyTheme(theme)
-    }
-
-    override fun clearTheme() {
-        super.clearTheme()
-        this.residueLetter.clearTheme()
-    }
-
 }
 
 class AShapeDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, absPos: Int) :
@@ -3023,6 +3033,9 @@ abstract class ResidueLetterDrawing(
     absPos: Int
 ) : DrawingElement(ssDrawing, parent, type.toString(), Location(absPos), type) {
 
+    override val children: List<DrawingElement>
+        get() = listOf()
+
     init {
         this.drawingConfiguration.params[ThemeParameter.color.toString()] = getHTMLColorString(Color.WHITE)
     }
@@ -3036,6 +3049,11 @@ abstract class ResidueLetterDrawing(
         location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.location.start))
     else
         location.contains(this.location.start)
+
+    /**
+     * is full details if its own drawing configuration is true and if its parent (ResidueDrawing) is full details
+     */
+    override fun isFullDetails() = this.parent!!.isFullDetails() && super.isFullDetails()
 }
 
 class A(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: Int) :
@@ -3218,6 +3236,9 @@ class X(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: In
 class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, private val pknot: Pknot) :
     DrawingElement(ssDrawing, null, pknot.name, pknot.location, SecondaryStructureType.PKnot) {
 
+    override val children: List<DrawingElement>
+        get() = listOf(this.helix, *this.tertiaryInteractions.toTypedArray())
+
     val tertiaryInteractions = mutableListOf<TertiaryInteractionDrawing>()
     lateinit var helix: HelixDrawing
 
@@ -3289,22 +3310,6 @@ class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, private val pknot: Pkno
             )
         }
     }
-
-    override fun applyTheme(theme: Theme) {
-        super.applyTheme(theme)
-        this.helix.applyTheme(theme)
-        this.tertiaryInteractions.forEach {
-            it.applyTheme(theme)
-        }
-    }
-
-    override fun clearTheme() {
-        super.clearTheme()
-        this.helix.clearTheme()
-        this.tertiaryInteractions.forEach {
-            it.clearTheme()
-        }
-    }
 }
 
 abstract class StructuralDomainDrawing(
@@ -3322,6 +3327,9 @@ class HelixDrawing(
     start: Point2D,
     end: Point2D
 ) : StructuralDomainDrawing(ssDrawing, parent, helix.name, helix.location, SecondaryStructureType.Helix) {
+
+    override val children: List<DrawingElement>
+        get() = listOf(*this.phosphoBonds.toTypedArray(), *this.secondaryInteractions.toTypedArray())
 
     var line: Line2D = Line2D.Double(start, end)
     var distanceBetweenPairedResidues =
@@ -3380,25 +3388,25 @@ class HelixDrawing(
     }
 
     override fun applyTheme(theme: Theme) {
-        theme.configurations.entries.forEach { entry ->
-            if (entry.key(this)) {
-                this.drawingConfiguration.params[entry.value.first] = entry.value.second(this)
+        theme.configurations.forEach { configuration ->
+            if (configuration.selector(this)) {
+                this.drawingConfiguration.params[configuration.parameterName] = configuration.parameterValue(this)
                 //an helix will forward color and lines to its children
-                when (entry.value.first) {
+                when (configuration.parameterName) {
                     ThemeParameter.color.toString(), ThemeParameter.linewidth.toString() -> {
                         var t = Theme()
-                        t.setConfigurationFor(
+                        t.addConfiguration(
                             { e -> e.type == SecondaryStructureType.PhosphodiesterBond },
-                            ThemeParameter.valueOf(entry.value.first),
-                            entry.value.second
+                            ThemeParameter.valueOf(configuration.parameterName),
+                            configuration.parameterValue
                         )
                         for (p in this.phosphoBonds)
                             p.applyTheme(t)
                         t = Theme()
-                        t.setConfigurationFor(
+                        t.addConfiguration(
                             { e -> e.type == SecondaryStructureType.SecondaryInteraction },
-                            ThemeParameter.valueOf(entry.value.first),
-                            entry.value.second
+                            ThemeParameter.valueOf(configuration.parameterName),
+                            configuration.parameterValue
                         )
                         for (i in this.secondaryInteractions)
                             i.applyTheme(t)
@@ -3406,20 +3414,7 @@ class HelixDrawing(
                 }
             }
         }
-        for (p in this.phosphoBonds)
-            p.applyTheme(theme)
-        for (i in this.secondaryInteractions) {
-            i.applyTheme(theme)
-        }
-    }
-
-    override fun clearTheme() {
-        super.clearTheme()
-        for (p in this.phosphoBonds)
-            p.clearTheme()
-        for (i in this.secondaryInteractions) {
-            i.clearTheme()
-        }
+        this.children.map { it.applyTheme(theme) }
     }
 
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
@@ -3485,6 +3480,9 @@ class HelixDrawing(
 
 class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleStrand, start: Point2D, end: Point2D) :
     StructuralDomainDrawing(ssDrawing, null, ss.name, ss.location, SecondaryStructureType.SingleStrand) {
+
+    override val children: List<DrawingElement>
+        get() = listOf(*this.phosphoBonds.toTypedArray(), *this.ssDrawing.getResiduesFromAbsPositions(*this.getSinglePositions()).toTypedArray())
 
     var line = Line2D.Double(start, end)
     val phosphoBonds = mutableListOf<PhosphodiesterBondDrawing>()
@@ -3569,23 +3567,19 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
                     if (lastResidue.parent!!.parent!!.isFullDetails()) lastResidue.center else (lastResidue.parent?.parent as HelixDrawing).line.p1
                     )
 
-            if (!firstResidue.isFullDetails() && !firstResidue.residueLetter.isFullDetails() && !lastResidue.isFullDetails() && !lastResidue.residueLetter.isFullDetails()) {
-                g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
-            } else {
-                val (p1, p2) = pointsFrom(
-                    center1,
-                    center2,
-                    radiusConst + deltaPhosphoShift
-                )
-                g.draw(
-                    at.createTransformedShape(
-                        Line2D.Double(
-                            if (firstResidue.isFullDetails() || firstResidue.residueLetter.isFullDetails()) p1 else center1,
-                            if (lastResidue.isFullDetails() || lastResidue.residueLetter.isFullDetails()) p2 else center2
-                        )
+            val (p1, p2) = pointsFrom(
+                center1,
+                center2,
+                radiusConst + deltaPhosphoShift
+            )
+            g.draw(
+                at.createTransformedShape(
+                    Line2D.Double(
+                        if (firstResidue.isFullDetails()) p1 else center1,
+                        if (lastResidue.isFullDetails()) p2 else center2
                     )
                 )
-            }
+            )
         } else {
             this.phosphoBonds.forEach {
                 it.draw(g, at, drawingArea)
@@ -3623,25 +3617,25 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
     }
 
     override fun applyTheme(theme: Theme) {
-        theme.configurations.entries.forEach { entry ->
-            if (entry.key(this)) {
-                this.drawingConfiguration.params[entry.value.first] = entry.value.second(this)
+        theme.configurations.forEach { configuration ->
+            if (configuration.selector(this)) {
+                this.drawingConfiguration.params[configuration.parameterName] = configuration.parameterValue(this)
                 //a single strand will forward color and lines to its children
-                when (entry.value.first) {
+                when (configuration.parameterName) {
                     ThemeParameter.color.toString(), ThemeParameter.linewidth.toString() -> {
                         var t = Theme()
-                        t.setConfigurationFor(
+                        t.addConfiguration(
                             { e -> e.type == SecondaryStructureType.PhosphodiesterBond },
-                            ThemeParameter.valueOf(entry.value.first),
-                            entry.value.second
+                            ThemeParameter.valueOf(configuration.parameterName),
+                            configuration.parameterValue
                         )
                         for (p in this.phosphoBonds)
                             p.applyTheme(t)
                         t = Theme()
-                        t.setConfigurationFor(
+                        t.addConfiguration(
                             { e -> e.type == SecondaryStructureType.AShape || e.type == SecondaryStructureType.UShape || e.type == SecondaryStructureType.GShape || e.type == SecondaryStructureType.CShape || e.type == SecondaryStructureType.XShape },
-                            ThemeParameter.valueOf(entry.value.first),
-                            entry.value.second
+                            ThemeParameter.valueOf(configuration.parameterName),
+                            configuration.parameterValue
                         )
                         for (r in this.ssDrawing.getResiduesFromAbsPositions(*this.getSinglePositions()))
                             r.applyTheme(t)
@@ -3649,20 +3643,10 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
                 }
             }
         }
-        for (p in this.phosphoBonds)
-            p.applyTheme(theme)
-        for (r in this.ssDrawing.getResiduesFromAbsPositions(*this.getSinglePositions()))
-            r.applyTheme(theme)
+        this.children.map { it.applyTheme(theme) }
 
     }
 
-    override fun clearTheme() {
-        super.clearTheme()
-        for (p in this.phosphoBonds)
-            p.clearTheme()
-        for (r in this.ssDrawing.getResiduesFromAbsPositions(*this.getSinglePositions()))
-            r.clearTheme()
-    }
 }
 
 open class JunctionDrawing(
@@ -3686,6 +3670,9 @@ open class JunctionDrawing(
         Array(ConnectorId.values().size, { Point2D.Float(0F, 0F) }) //the connector points on the circle
     private val residuesWithClosingBasePairs: List<ResidueDrawing> =
         this.ssDrawing.getResiduesFromAbsPositions(*this.junction.location.positions.toIntArray())
+
+    override val children: List<DrawingElement>
+        get() = listOf(*this.phosphoBonds.toTypedArray(), *this.residues.toTypedArray())
 
     /**
      * The absolute layout defined by the user or computed after the init. Each connector id is recomputed according to the position of the inId for this junction.
@@ -4235,25 +4222,25 @@ open class JunctionDrawing(
     }
 
     override fun applyTheme(theme: Theme) {
-        theme.configurations.entries.forEach { entry ->
-            if (entry.key(this)) {
-                this.drawingConfiguration.params[entry.value.first] = entry.value.second(this)
+        theme.configurations.forEach { configuration ->
+            if (configuration.selector(this)) {
+                this.drawingConfiguration.params[configuration.parameterName] = configuration.parameterValue(this)
                 //a junction will forward color and lines to its children
-                when (entry.value.first) {
+                when (configuration.parameterName) {
                     ThemeParameter.color.toString(), ThemeParameter.linewidth.toString() -> {
                         var t = Theme()
-                        t.setConfigurationFor(
+                        t.addConfiguration(
                             { e -> e.type == SecondaryStructureType.PhosphodiesterBond },
-                            ThemeParameter.valueOf(entry.value.first),
-                            entry.value.second
+                            ThemeParameter.valueOf(configuration.parameterName),
+                            configuration.parameterValue
                         )
                         for (p in this.phosphoBonds)
                             p.applyTheme(t)
                         t = Theme()
-                        t.setConfigurationFor(
+                        t.addConfiguration(
                             { e -> e.type == SecondaryStructureType.AShape || e.type == SecondaryStructureType.UShape || e.type == SecondaryStructureType.GShape || e.type == SecondaryStructureType.CShape || e.type == SecondaryStructureType.XShape },
-                            ThemeParameter.valueOf(entry.value.first),
-                            entry.value.second
+                            ThemeParameter.valueOf(configuration.parameterName),
+                            configuration.parameterValue
                         )
                         for (i in this.residues)
                             i.applyTheme(t)
@@ -4261,18 +4248,7 @@ open class JunctionDrawing(
                 }
             }
         }
-        for (p in this.phosphoBonds)
-            p.applyTheme(theme)
-        for (r in this.residues)
-            r.applyTheme(theme)
-    }
-
-    override fun clearTheme() {
-        super.clearTheme()
-        for (p in this.phosphoBonds)
-            p.clearTheme()
-        for (r in this.residues)
-            r.clearTheme()
+        this.children.map { it.applyTheme(theme) }
     }
 }
 
@@ -4306,6 +4282,9 @@ abstract class LWSymbolDrawing(
     location: Location,
     val inTertiaries: Boolean
 ) : DrawingElement(ssDrawing, parent, name, location, SecondaryStructureType.LWSymbol) {
+
+    override val children: List<DrawingElement>
+        get() = listOf()
 
     lateinit var shape: Shape
 
@@ -4752,6 +4731,9 @@ abstract class BaseBaseInteractionDrawing(
     type: SecondaryStructureType
 ) : DrawingElement(ssDrawing, parent, interaction.toString(), interaction.location, type) {
 
+    override val children: List<DrawingElement>
+        get() = listOf(this.residue, this.pairedResidue, this.interactionSymbol)
+
     protected var p1: Point2D? = null
     protected var p2: Point2D? = null
     var interactionSymbol = InteractionSymbolDrawing(this, interaction, ssDrawing)
@@ -4872,41 +4854,32 @@ abstract class BaseBaseInteractionDrawing(
     override fun toString() = this.interaction.toString()
 
     override fun applyTheme(theme: Theme) {
-        theme.configurations.entries.forEach { entry ->
-            if (entry.key(this)) {
-                this.drawingConfiguration.params[entry.value.first] = entry.value.second(this)
-                //an secondary interaction will forward color and lines to its children
-                when (entry.value.first) {
+        theme.configurations.forEach { configuration ->
+            if (configuration.selector(this)) {
+                this.drawingConfiguration.params[configuration.parameterName] = configuration.parameterValue(this)
+                //a secondary interaction will forward color and lines to its children
+                when (configuration.parameterName) {
                     ThemeParameter.color.toString(), ThemeParameter.linewidth.toString() -> {
                         var t = Theme()
-                        t.setConfigurationFor(
+                        t.addConfiguration(
                             { e -> e.type == SecondaryStructureType.AShape || e.type == SecondaryStructureType.UShape || e.type == SecondaryStructureType.GShape || e.type == SecondaryStructureType.CShape || e.type == SecondaryStructureType.XShape },
-                            ThemeParameter.valueOf(entry.value.first),
-                            entry.value.second
+                            ThemeParameter.valueOf(configuration.parameterName),
+                            configuration.parameterValue
                         )
                         this.residue.applyTheme(t)
                         this.pairedResidue.applyTheme(t)
                         t = Theme()
-                        t.setConfigurationFor(
+                        t.addConfiguration(
                             { e -> e.type == SecondaryStructureType.InteractionSymbol },
-                            ThemeParameter.valueOf(entry.value.first),
-                            entry.value.second
+                            ThemeParameter.valueOf(configuration.parameterName),
+                            configuration.parameterValue
                         )
                         this.interactionSymbol.applyTheme(t)
                     }
                 }
             }
         }
-        this.residue.applyTheme(theme)
-        this.pairedResidue.applyTheme(theme)
-        this.interactionSymbol.applyTheme(theme)
-    }
-
-    override fun clearTheme() {
-        super.clearTheme()
-        this.residue.clearTheme()
-        this.pairedResidue.clearTheme()
-        this.interactionSymbol.clearTheme()
+        this.children.map { it.applyTheme(theme) }
     }
 }
 
@@ -4931,8 +4904,8 @@ class SecondaryInteractionDrawing(
                     center2,
                     shift
                 )
-                this.p1 = points.first
-                this.p2 = points.second
+                this.p1 = if (this.residue.isFullDetails()) points.first else center1
+                this.p2 = if (this.pairedResidue.isFullDetails()) points.second else center2
                 this.interactionSymbol.defaultSymbol = LWLine(this, this.ssDrawing, this.location, false)
                 this.interactionSymbol.defaultSymbol!!.setShape(this.p1 as Point2D, this.p2 as Point2D)
 
@@ -5088,8 +5061,8 @@ class SecondaryInteractionDrawing(
                     center2,
                     shift
                 )
-                this.p1 = points.first
-                this.p2 = points.second
+                this.p1 = if (this.residue.isFullDetails()) points.first else center1
+                this.p2 = if (this.pairedResidue.isFullDetails()) points.second else center2
                 this.interactionSymbol.defaultSymbol = LWLine(this, this.ssDrawing, this.location, false)
                 this.interactionSymbol.defaultSymbol!!.setShape(this.p1 as Point2D, this.p2 as Point2D)
 
@@ -5203,6 +5176,11 @@ class SecondaryInteractionDrawing(
         }
         return buffer.toString()
     }
+
+    /**
+     * is full details if its own drawing configuration is true and if its parent (can be null, depending on the type of phosphobond) is full details
+     */
+    override fun isFullDetails() = this.parent?.isFullDetails() ?: true && super.isFullDetails()
 }
 
 class InteractionSymbolDrawing(
@@ -5216,6 +5194,9 @@ class InteractionSymbolDrawing(
     interaction.location,
     SecondaryStructureType.InteractionSymbol
 ) {
+
+    override val children: List<DrawingElement>
+        get() = this.defaultSymbol?.let { listOf(it, *this.lwSymbols.toTypedArray()) } ?: run {listOf(*this.lwSymbols.toTypedArray())}
 
     var defaultSymbol: LWLine? = null
     var lwSymbols = mutableListOf<LWSymbolDrawing>()
@@ -5293,22 +5274,6 @@ class InteractionSymbolDrawing(
             }
         }
         return buffer.toString()
-    }
-
-    override fun applyTheme(theme: Theme) {
-        super.applyTheme(theme)
-        this.defaultSymbol?.applyTheme(theme)
-        for (s in this.lwSymbols) {
-            s.applyTheme(theme)
-        }
-    }
-
-    override fun clearTheme() {
-        super.clearTheme()
-        this.defaultSymbol?.clearTheme()
-        for (s in this.lwSymbols) {
-            s.clearTheme()
-        }
     }
 
 }
@@ -5548,6 +5513,9 @@ open class PhosphodiesterBondDrawing(
     val residue: ResidueDrawing
     val nextResidue: ResidueDrawing
 
+    override val children: List<DrawingElement>
+        get() = listOf(residue, nextResidue)
+
     val start: Int
         get() {
             return this.location.start
@@ -5594,18 +5562,14 @@ open class PhosphodiesterBondDrawing(
             this.selectionPoints.addAll(getPerpendicular(p1, center1, center2, radiusConst * 1.1).toList())
             this.selectionPoints.addAll(getPerpendicular(p2, center1, center2, radiusConst * 1.1).toList().reversed())
 
-            if (!this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
-                g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
-            } else {
-                g.draw(
-                    at.createTransformedShape(
-                        Line2D.Double(
-                            if (residue.isFullDetails() || residue.residueLetter.isFullDetails()) p1 else center1,
-                            if (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails()) p2 else center2
-                        )
+            g.draw(
+                at.createTransformedShape(
+                    Line2D.Double(
+                        if (!residue.isFullDetails()) center1 else p1,
+                        if (!nextResidue.isFullDetails()) center2 else p2
                     )
                 )
-            }
+            )
             g.stroke = previousStroke
         }
     }
@@ -5615,42 +5579,36 @@ open class PhosphodiesterBondDrawing(
             val center1 = this.residue.center
             val center2 = this.nextResidue.center
 
-            if (!this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
-                val p1 = Point2D.Double()
-                val p2 = Point2D.Double()
-                at.transform(center1, p1)
-                at.transform(center2, p2)
-                if (frame.contains(p1) && frame.contains(p2)) return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${
-                    getHTMLColorString(
-                        this.getColor()
-                    )
-                }" stroke-width="${
-                    this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
-                }"/>"""
-            } else {
-                val _p1 = Point2D.Double()
-                val _p2 = Point2D.Double()
-                val (p1, p2) = pointsFrom(
-                    center1,
-                    center2,
-                    radiusConst + deltaPhosphoShift
+            val _p1 = Point2D.Double()
+            val _p2 = Point2D.Double()
+            val (p1, p2) = pointsFrom(
+                center1,
+                center2,
+                radiusConst + deltaPhosphoShift
+            )
+            at.transform(
+                if (!residue.isFullDetails()) center1 else p1,
+                _p1
+            )
+            at.transform(
+                if (!nextResidue.isFullDetails()) center2 else p2,
+                _p2
+            )
+            if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${
+                getHTMLColorString(
+                    this.getColor()
                 )
-                at.transform(if (residue.isFullDetails() || residue.residueLetter.isFullDetails()) p1 else center1, _p1)
-                at.transform(
-                    if (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails()) p2 else center2,
-                    _p2
-                )
-                if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${
-                    getHTMLColorString(
-                        this.getColor()
-                    )
-                }" stroke-width="${
-                    this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
-                }"/>"""
-            }
+            }" stroke-width="${
+                this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
+            }"/>"""
         }
         return ""
     }
+
+    /**
+     * is full details if its own drawing configuration is true and if its parent (Helix) is full details
+     */
+
 }
 
 class HelicalPhosphodiesterBondDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing, location: Location) :
@@ -5681,18 +5639,14 @@ class HelicalPhosphodiesterBondDrawing(parent: HelixDrawing, ssDrawing: Secondar
             this.selectionPoints.addAll(getPerpendicular(p1, center1, center2, radiusConst * 1.1).toList())
             this.selectionPoints.addAll(getPerpendicular(p2, center1, center2, radiusConst * 1.1).toList().reversed())
 
-            if (!this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
-                g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
-            } else {
-                g.draw(
-                    at.createTransformedShape(
-                        Line2D.Double(
-                            if (residue.parent!!.isFullDetails() && (residue.isFullDetails() || residue.residueLetter.isFullDetails())) p1 else center1,
-                            if (nextResidue.parent!!.isFullDetails() && (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails())) p2 else center2
-                        )
+            g.draw(
+                at.createTransformedShape(
+                    Line2D.Double(
+                        if (!residue.isFullDetails()) center1 else p1,
+                        if (!nextResidue.isFullDetails()) center2 else p2
                     )
                 )
-            }
+            )
             g.stroke = previousStroke
         }
     }
@@ -5702,42 +5656,28 @@ class HelicalPhosphodiesterBondDrawing(parent: HelixDrawing, ssDrawing: Secondar
             val center1 = this.residue.center
             val center2 = this.nextResidue.center
 
-            if (!this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
-                val p1 = Point2D.Double()
-                val p2 = Point2D.Double()
-                at.transform(center1, p1)
-                at.transform(center2, p2)
-                if (frame.contains(p1) && frame.contains(p2)) return """<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${
-                    getHTMLColorString(
-                        this.getColor()
-                    )
-                }" stroke-width="${
-                    this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
-                }"/>"""
-            } else {
-                val _p1 = Point2D.Double()
-                val _p2 = Point2D.Double()
-                val (p1, p2) = pointsFrom(
-                    center1,
-                    center2,
-                    radiusConst + deltaPhosphoShift
+            val _p1 = Point2D.Double()
+            val _p2 = Point2D.Double()
+            val (p1, p2) = pointsFrom(
+                center1,
+                center2,
+                radiusConst + deltaPhosphoShift
+            )
+            at.transform(
+                if (!residue.isFullDetails()) center1 else p1,
+                _p1
+            )
+            at.transform(
+                if (!nextResidue.isFullDetails()) center2 else p2,
+                _p2
+            )
+            if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${
+                getHTMLColorString(
+                    this.getColor()
                 )
-                at.transform(
-                    if (residue.parent!!.isFullDetails() && (residue.isFullDetails() || residue.residueLetter.isFullDetails())) p1 else center1,
-                    _p1
-                )
-                at.transform(
-                    if (nextResidue.parent!!.isFullDetails() && (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails())) p2 else center2,
-                    _p2
-                )
-                if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${
-                    getHTMLColorString(
-                        this.getColor()
-                    )
-                }" stroke-width="${
-                    this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
-                }"/>"""
-            }
+            }" stroke-width="${
+                this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
+            }"/>"""
         }
         return ""
     }
@@ -5767,7 +5707,7 @@ class InHelixClosingPhosphodiesterBondDrawing(
             val center2 =
                 if (this.posInhelix == this.nextResidue.absPos && !this.nextResidue.parent!!.parent!!.isFullDetails()) (this.nextResidue.parent?.parent as HelixDrawing).line.p2 else this.nextResidue.center
 
-            if (!this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
+            if (!this.residue.isFullDetails() && !this.nextResidue.isFullDetails()) {
                 g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
             } else {
                 val (p1, p2) = pointsFrom(
@@ -5778,8 +5718,8 @@ class InHelixClosingPhosphodiesterBondDrawing(
                 g.draw(
                     at.createTransformedShape(
                         Line2D.Double(
-                            if (this.residue.absPos != this.posInhelix && residue.isFullDetails() || this.residue.absPos != this.posInhelix && residue.residueLetter.isFullDetails()) p1 else center1,
-                            if (this.nextResidue.absPos != this.posInhelix && nextResidue.isFullDetails() || this.nextResidue.absPos != this.posInhelix && nextResidue.residueLetter.isFullDetails()) p2 else center2
+                            if (this.residue.absPos != this.posInhelix && residue.isFullDetails()) p1 else center1,
+                            if (this.nextResidue.absPos != this.posInhelix && nextResidue.isFullDetails()) p2 else center2
                         )
                     )
                 )
@@ -5795,7 +5735,7 @@ class InHelixClosingPhosphodiesterBondDrawing(
             val center2 =
                 if (this.posInhelix == this.nextResidue.absPos && !this.nextResidue.parent!!.parent!!.isFullDetails()) (this.nextResidue.parent?.parent as HelixDrawing).line.p2 else this.nextResidue.center
 
-            if (!this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
+            if (!this.residue.isFullDetails() && !this.nextResidue.isFullDetails()) {
                 val p1 = Point2D.Double()
                 val p2 = Point2D.Double()
                 at.transform(center1, p1)
@@ -5816,11 +5756,11 @@ class InHelixClosingPhosphodiesterBondDrawing(
                     radiusConst + deltaPhosphoShift
                 )
                 at.transform(
-                    if (this.residue.absPos != this.posInhelix && residue.isFullDetails() || this.residue.absPos != this.posInhelix && residue.residueLetter.isFullDetails()) p1 else center1,
+                    if (this.residue.absPos != this.posInhelix && residue.isFullDetails()) p1 else center1,
                     _p1
                 )
                 at.transform(
-                    if (this.nextResidue.absPos != this.posInhelix && nextResidue.isFullDetails() || this.nextResidue.absPos != this.posInhelix && nextResidue.residueLetter.isFullDetails()) p2 else center2,
+                    if (this.nextResidue.absPos != this.posInhelix && nextResidue.isFullDetails()) p2 else center2,
                     _p2
                 )
                 if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${
@@ -5861,7 +5801,7 @@ class OutHelixClosingPhosphodiesterBondDrawing(
             val center2 =
                 if (this.posInhelix == this.nextResidue.absPos && !this.nextResidue.parent!!.parent!!.isFullDetails()) (this.nextResidue.parent?.parent as HelixDrawing).line.p1 else this.nextResidue.center
 
-            if (!this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
+            if (!this.residue.isFullDetails() && !this.nextResidue.isFullDetails()) {
                 g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
             } else {
                 val (p1, p2) = pointsFrom(
@@ -5872,8 +5812,8 @@ class OutHelixClosingPhosphodiesterBondDrawing(
                 g.draw(
                     at.createTransformedShape(
                         Line2D.Double(
-                            if (this.residue.absPos != this.posInhelix && residue.isFullDetails() || this.residue.absPos != this.posInhelix && residue.residueLetter.isFullDetails()) p1 else center1,
-                            if (this.nextResidue.absPos != this.posInhelix && nextResidue.isFullDetails() || this.nextResidue.absPos != this.posInhelix && nextResidue.residueLetter.isFullDetails()) p2 else center2
+                            if (this.residue.absPos != this.posInhelix && residue.isFullDetails() ) p1 else center1,
+                            if (this.nextResidue.absPos != this.posInhelix && nextResidue.isFullDetails()) p2 else center2
                         )
                     )
                 )
@@ -5889,7 +5829,7 @@ class OutHelixClosingPhosphodiesterBondDrawing(
             val center2 =
                 if (this.posInhelix == this.nextResidue.absPos && !this.nextResidue.parent!!.parent!!.isFullDetails()) (this.nextResidue.parent?.parent as HelixDrawing).line.p1 else this.nextResidue.center
 
-            if (!this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
+            if (!this.residue.isFullDetails() && !this.nextResidue.isFullDetails()) {
                 val p1 = Point2D.Double()
                 val p2 = Point2D.Double()
                 at.transform(center1, p1)
@@ -5910,11 +5850,11 @@ class OutHelixClosingPhosphodiesterBondDrawing(
                     radiusConst + deltaPhosphoShift
                 )
                 at.transform(
-                    if (this.residue.absPos != this.posInhelix && residue.isFullDetails() || this.residue.absPos != this.posInhelix && residue.residueLetter.isFullDetails()) p1 else center1,
+                    if (this.residue.absPos != this.posInhelix && residue.isFullDetails()) p1 else center1,
                     _p1
                 )
                 at.transform(
-                    if (this.nextResidue.absPos != this.posInhelix && nextResidue.isFullDetails() || this.nextResidue.absPos != this.posInhelix && nextResidue.residueLetter.isFullDetails()) p2 else center2,
+                    if (this.nextResidue.absPos != this.posInhelix && nextResidue.isFullDetails()) p2 else center2,
                     _p2
                 )
                 if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${
@@ -5960,7 +5900,7 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(
                 else -> this.nextResidue.center
             }
 
-        if (!this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
+        if (!this.residue.isFullDetails() && !this.nextResidue.isFullDetails()) {
             g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
         } else {
             val (p1, p2) = pointsFrom(
@@ -5971,8 +5911,8 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(
             g.draw(
                 at.createTransformedShape(
                     Line2D.Double(
-                        if (this.residue.isFullDetails() || this.residue.residueLetter.isFullDetails()) p1 else center1,
-                        if (this.nextResidue.isFullDetails() || this.nextResidue.residueLetter.isFullDetails()) p2 else center2
+                        if (this.residue.isFullDetails()) p1 else center1,
+                        if (this.nextResidue.isFullDetails()) p2 else center2
                     )
                 )
             )
@@ -5992,7 +5932,7 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(
                     this.nextResidue.absPos == this.posInHelix && !this.nextResidue.parent!!.parent!!.isFullDetails() -> (this.nextResidue.parent!!.parent as HelixDrawing).line.p1
                     else -> this.nextResidue.center
                 }
-            if (!this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
+            if (!this.residue.isFullDetails() && !this.nextResidue.isFullDetails()) {
                 val p1 = Point2D.Double()
                 val p2 = Point2D.Double()
                 at.transform(center1, p1)
@@ -6013,11 +5953,11 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(
                     radiusConst + deltaPhosphoShift
                 )
                 at.transform(
-                    if (this.residue.isFullDetails() || this.residue.residueLetter.isFullDetails()) p1 else center1,
+                    if (this.residue.isFullDetails()) p1 else center1,
                     _p1
                 )
                 at.transform(
-                    if (this.nextResidue.isFullDetails() || this.nextResidue.residueLetter.isFullDetails()) p2 else center2,
+                    if (this.nextResidue.isFullDetails()) p2 else center2,
                     _p2
                 )
                 if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${
@@ -6145,7 +6085,7 @@ class HelicesDirectLinkPhosphodiesterBondDrawing(
             val center2 =
                 if (!this.nextResidue.parent!!.parent!!.isFullDetails()) (if (this.posForP2 == this.nextResidue.absPos) (this.nextResidue.parent?.parent as HelixDrawing).line.p2 else (this.nextResidue.parent?.parent as HelixDrawing).line.p1) else this.nextResidue.center
 
-            if (!this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
+            if (!(this.residue.isFullDetails() || !residue.parent!!.isFullDetails() || !residue.parent!!.parent!!.isFullDetails()) && (!this.nextResidue.isFullDetails() || !nextResidue.parent!!.isFullDetails()) || !nextResidue.parent!!.parent!!.isFullDetails()) {
                 g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
             } else {
                 val (p1, p2) = pointsFrom(
@@ -6156,8 +6096,8 @@ class HelicesDirectLinkPhosphodiesterBondDrawing(
                 g.draw(
                     at.createTransformedShape(
                         Line2D.Double(
-                            if (residue.isFullDetails() || residue.residueLetter.isFullDetails()) p1 else center1,
-                            if (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails()) p2 else center2
+                            if (!residue.isFullDetails()) center1 else p1,
+                            if (!nextResidue.isFullDetails()) center2 else p2
                         )
                     )
                 )
@@ -6173,7 +6113,7 @@ class HelicesDirectLinkPhosphodiesterBondDrawing(
             val center2 =
                 if (!this.nextResidue.parent!!.parent!!.isFullDetails()) (if (this.posForP2 == this.nextResidue.absPos) (this.nextResidue.parent?.parent as HelixDrawing).line.p2 else (this.nextResidue.parent?.parent as HelixDrawing).line.p1) else this.nextResidue.center
 
-            if (!this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
+            if (!(this.residue.isFullDetails() || !residue.parent!!.isFullDetails() || !residue.parent!!.parent!!.isFullDetails()) && (!this.nextResidue.isFullDetails() || !nextResidue.parent!!.isFullDetails()) || !nextResidue.parent!!.parent!!.isFullDetails()) {
                 val p1 = Point2D.Double()
                 val p2 = Point2D.Double()
                 at.transform(center1, p1)
@@ -6193,9 +6133,12 @@ class HelicesDirectLinkPhosphodiesterBondDrawing(
                     center2,
                     radiusConst + deltaPhosphoShift
                 )
-                at.transform(if (residue.isFullDetails() || residue.residueLetter.isFullDetails()) p1 else center1, _p1)
                 at.transform(
-                    if (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails()) p2 else center2,
+                    if (!residue.isFullDetails()) center1 else p1,
+                    _p1
+                )
+                at.transform(
+                    if (!nextResidue.isFullDetails()) center2 else p2,
                     _p2
                 )
                 if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${

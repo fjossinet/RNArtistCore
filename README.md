@@ -69,6 +69,7 @@ Please note that this is still a work under development and that all instruction
   * [The ```bpseq```, ```ct```, ```vienna```, ```pdb``` and ```stockholm``` elements](#file)
   * [The ```rfam``` and ```pdb``` elements](#database)
 * [The **```theme```** element](#theme)
+* * [The **```details```** element](#details)
   * [The **```color```** element](#color)
   * [The **```show```** element](#show)
   * [The **```hide```** element](#hide)
@@ -459,7 +460,6 @@ ss {
 
 ```kotlin
 ss {
-  
   pdb {
     id = "1EHZ"
   }
@@ -494,11 +494,45 @@ Residue Shape | N, X, A, U, G, C, R or Y | Secondary Interaction<br/>Junction<br
 Residue Character | n, x, a, u, g, c, r or y | Residue Shape|                                               |                |  character
 Interaction Symbol | interaction_symbol       | Secondary Interaction<br/>Tertiary Interaction |                                               |  single line   | symbol (triangle, circle, square, double lines,...)
 
-To quickly change the details level of an entire 2D, you can use the element named **```details```**. Five details levels are available:
+Concerning junctions, you can be more specific:
+
+Object 2D | Referenced as |
+--- |---------------|
+Apical Loops | apical_loop   |
+Inner Loops | inner_loop    |
+3-Way Junctions | 3_way         |
+4-Way Junctions | 4_way         |
+
+Concerning objects 2D that can have different types of parent (Phosphodiester Bond, Residue Shape), the character @ allows you to be more specific:
+
+Object 2D | Referenced as             |
+--- |---------------------------|
+Phosphodiester Bond in Helices | phosphodiester_bond@helix |
+Adenine Shapes in Junctions | A@junction                |
+Purine Characters in Inner loops | r@inner_loop              |
+and so on.... |                           |
+
+A **```theme```** element can contains a single **```details```** element (to quickly render the entire 2D) and one or several **```color```**, **```line```**, **```show```** and/or **```hide```** elements:
+* **```color```**: defines the color for objects 2D
+* **```show```**: highly render objects 2D
+* **```hide```**: lowly render objects 2D
+* **```line```**: set the line width for objects 2D
+
+The order of the elements ```color```, ```show```, ```hide``` and ```line``` is important. 
+
+### <a name="details"></a> The **```details```** element
+
+To quickly change the rendering level of an entire 2D, you can use the element named **```details```**. Five details levels are available:
+
+Details level | Helix | Junction | Single Strand | Phosphodiester Bond  | Secondary Interaction | Residue Shape | Residue Character | Interaction Symbol |
+---|-------|----------|---|---|-----------------------|---|---|---|
+1| Low   | Low      |Low |Low | Low                   |Low |Low |Low |
+2| High  | High      |High |High | High                  |Low |Low |Low |
+3| High   | High      |High |High | High                  |High |Low |Low |
+4| High   | High      |High |High | High                  |High |High |Low |
+5| High   | High      |High |High | High                  |High |High |High |
 
 _____Level 1_____
-
-The children of the 2D (helix, junction, single_strand) are lowly rendered
 
 ```kotlin
 rnartist {
@@ -516,6 +550,17 @@ rnartist {
     details {
       value = 1
     }
+
+    color {
+      type = "helix"
+      value = "red"
+    }
+
+    color {
+      type = "junction"
+      value = "green"
+    }
+    
   }
 }
 ```
@@ -523,8 +568,6 @@ rnartist {
 ![](media/details_lvl1.png)
 
 _____Level 2_____
-
-Those objets are highly rendered: helix, secondary_interaction, junction, single-strand, phosphodiester_bond
 
 ```kotlin
 rnartist {
@@ -542,6 +585,16 @@ rnartist {
     details {
       value = 2
     }
+    
+    color { 
+      type = "helix"
+      value = "red"
+    }
+
+    color {
+      type = "junction"
+      value = "green"
+    }
   }
 }
 ```
@@ -549,8 +602,6 @@ rnartist {
 ![](media/details_lvl2.png)
 
 _____Level 3_____
-
-In addition to level 2, those objets are highly rendered: N, X, A, U, G, C, R, Y
 
 ```kotlin
 rnartist {
@@ -568,6 +619,10 @@ rnartist {
     details {
       value = 3
     }
+
+    color {
+      scheme = "Pumpkin Vegas"
+    }
   }
 }
 ```
@@ -575,8 +630,6 @@ rnartist {
 ![](media/details_lvl3.png)
 
 _____Level 4_____
-
-In addition to level 3, those objets are highly rendered: n, x, a, u, g, c, r, y
 
 ```kotlin
 rnartist {
@@ -594,6 +647,10 @@ rnartist {
     details {
       value = 4
     }
+
+    color {
+      scheme = "Pumpkin Vegas"
+    }
   }
 }
 ```
@@ -601,8 +658,6 @@ rnartist {
 ![](media/details_lvl4.png)
 
 _____Level 5_____
-
-In addition to level 4, those objets are highly rendered: interaction_symbol
 
 ```kotlin
 rnartist {
@@ -620,145 +675,15 @@ rnartist {
     details {
       value = 5
     }
+
+    color {
+      scheme = "Pumpkin Vegas"
+    }
   }
 }
 ```
 
 ![](media/details_lvl5.png)
-
-You can have several times the element ```details``` in a theme. Using its attribute ```location```, you can link different levels of details to different parts of the 2D. Without this attribute, the level of details is applied to the full 2D.
-
-```kotlin
-rnartist {
-  png {
-    path = "media/"
-  }
-  
-  ss {
-    bn {
-      value = "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))"
-      name = "several_details_lvl"
-    }
-  }
-  theme {
-    
-    details {
-      value = 1
-    }
-    
-    details {
-      value = 3
-      location {
-        8 to 37
-        50 to 53
-      }
-    }
-    
-    details {
-      value = 2
-      location {
-        37 to 50
-      }
-    }
-    
-    details {
-      value = 2
-      location {
-        16 to 20
-        25 to 29
-      }
-    }
-    
-  }
-}
-```
-
-![](media/several_details_lvl.png)
-
-The details levels are applied one after other. If we take the previous example with the details level 1 at the end, since it is applied on the full 2D, this will erase the previous details element linked to specific elements.
-
-```kotlin
-rnartist {
-  png {
-    path = "media/"
-  }
-  ss {
-    bn {
-      value = "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...))"
-      name = "details_lvl_erased"
-    }
-  }
-  theme {
-    
-    details {
-      value = 3
-      location {
-        8 to 37
-        50 to 53
-      }
-    }
-    
-    details {
-      value = 2
-      location {
-        37 to 50
-      }
-    }
-    
-    details {
-      value = 2
-      location {
-        16 to 20
-        25 to 29
-      }
-    }
-
-    details {
-      value = 1
-    }
-    
-  }
-}
-```
-
-![](media/details_lvl_erased.png)
-
-Using the attribute ```type```, you can quickly apply details levels to all the helices, junctions and/or single-strands. If the attribute  ```type``` is used,  ```location``` is ignored (if any).
-
-```kotlin
-rnartist {
-  png {
-    path = "media/"
-  }
-  ss {
-    bn {
-      value = "(((..(((....))).)))...(((..(((....))).)))...((((((..(((....))).)))..(((....))).)))(((..(((....))).)))"
-      name = "details_lvl_helices_junctions"
-    }
-  }
-  theme {
-    details {
-      value = 1
-    }
-    details {
-      value = 3
-      type = "helix"
-    }
-    details {
-      value = 2
-      type = "junction"
-    }
-  }
-}
-```
-
-![](media/details_lvl_helices_junctions.png)
-
-Inside a **```theme```**, you can also add several times the following elements:
-* **```color```**: defines the color for objects 2D
-* **```show```**: highly render objects 2D
-* **```hide```**: lowly render objects 2D
-* **```line```**: set the line width for objects 2D
 
 ### <a name="color"></a> The **```color```** element
 
@@ -901,7 +826,30 @@ location {
 ```
 In this example, the location is made with absolute positions from 1 to 10 and 30 to 40 (inclusive). A 2D object is targeted if its own location is inside the one defined with this parameter.
 
-In the following examples, we start with the details level 1 for the full 2D (parameter ```details_lvl = 1```) and we increase the details level for some parts of a single helix defined by its location.
+### <a name="hide"></a> The **```hide```** element
+
+The ```hide``` element does the opposite of the ```show``` element.
+
+Parameters:
+* **```type```**: the type of objects 2D targeted (check this [table](theme) for details)
+* **```location```**: the location of objects 2D targeted
+* **```data```**: selection based on the values linked to the residues (see explanation for this element below)
+
+An empty ```hide``` element will do nothing.
+
+If the parameter **```type```** is not defined, all types are targeted. You can define several types in the same string using a space as separator: **```"single_strand R C interaction_symbol"```**
+
+The parameter **```location```** needs to have the following format:
+
+```kotlin
+location {
+    1 to 10
+    30 to 40
+}
+```
+In this example, the location is made with absolute positions from 1 to 10 and 30 to 40 (inclusive). A 2D object is targeted if its own location is inside the one defined with this parameter.
+
+Depending of the value of the ```details``` element, you will need to use elements ```show``` or  ```hide``` to get the result you want. In the following examples, we start with the details level 5 for the full 2D and we hide less and less children elements of a single helix defined by its location.
 
 ```kotlin
 rnartist {
@@ -919,7 +867,19 @@ rnartist {
 
   theme {
     details {
-      value = 1
+      value = 5
+    }
+
+    color {
+      scheme="Celeste Olivine"
+    }
+
+    hide {
+      type = "helix"
+      location {
+        7 to 10
+        15 to 18
+      }
     }
   }
 }
@@ -942,11 +902,15 @@ rnartist {
 
   theme {
     details {
-      value = 1
+      value = 5
     }
 
-    show {
-      type = "helix"
+    color {
+      scheme="Celeste Olivine"
+    }
+
+    hide {
+      type = "secondary_interaction"
       location {
         7 to 10
         15 to 18
@@ -956,8 +920,6 @@ rnartist {
 }
 ```
 ![](media/helix_lvl1.png)
-
-The helix is highly rendered, but not its children. This is a way to hide helices in order to reduce the complexity of an RNA secondary structure.
 
 ```kotlin
 rnartist {
@@ -975,11 +937,15 @@ rnartist {
 
   theme {
     details {
-      value = 1
+      value = 5
     }
 
-    show {
-      type = "helix secondary_interaction phosphodiester_bond"
+    color {
+      scheme="Celeste Olivine"
+    }
+
+    hide {
+      type = "N interaction_symbol"
       location {
         7 to 10
         15 to 18
@@ -1006,11 +972,15 @@ rnartist {
 
   theme {
     details {
-      value = 1
+      value = 5
     }
 
-    show {
-      type = "helix secondary_interaction phosphodiester_bond N"
+    color {
+      scheme="Celeste Olivine"
+    }
+
+    hide {
+      type = "n interaction_symbol"
       location {
         7 to 10
         15 to 18
@@ -1037,11 +1007,15 @@ rnartist {
 
   theme {
     details {
-      value = 1
+      value = 5
     }
 
-    show {
-      type = "helix secondary_interaction phosphodiester_bond N n"
+    color {
+      scheme="Celeste Olivine"
+    }
+
+    hide {
+      type = "interaction_symbol"
       location {
         7 to 10
         15 to 18
@@ -1068,93 +1042,18 @@ rnartist {
 
   theme {
     details {
-      value = 1
+      value = 5
     }
 
-    show {
-      type = "helix secondary_interaction phosphodiester_bond N n interaction_symbol"
-      location {
-        7 to 10
-        15 to 18
-      }
+    color {
+      scheme="Celeste Olivine"
     }
   }
 }
 ```
 ![](media/helix_lvl5.png)
 
-You can combine different details levels to fit your needs:
-
-```kotlin
-rnartist {
-    png {
-        path = "media/"
-    }
-
-    ss {
-        bn {
-            seq = "CUUACUCGAGUGACCUUGCUUG"
-            value = "..((..((((....))))..))"
-            name = "helix_mixed_lvl"
-        }
-    }
-
-    theme {
-        details {
-          value = 1
-        }
-
-        show {
-            type = "helix secondary_interaction phosphodiester_bond"
-            location {
-                7 to 10
-                15 to 18
-            }
-        }
-
-        show {
-            type = "N n"
-            location {
-                7 to 8
-                17 to 18
-            }
-        }
-
-        show {
-            type = "interaction_symbol"
-            location {
-                8 to 8
-                17 to 17
-            }
-        }
-    }
-}
-```
-
-![](media/helix_mixed_lvl.png)
-
-### <a name="hide"></a> The **```hide```** element
-
-The ```hide``` element does the opposite of the ```show``` element.
-
-Parameters:
-* **```type```**: the type of objects 2D targeted (check this [table](theme) for details)
-* **```location```**: the location of objects 2D targeted
-* **```data```**: selection based on the values linked to the residues (see explanation for this element below)
-
-An empty ```hide``` element will do nothing.
-
-If the parameter **```type```** is not defined, all types are targeted. You can define several types in the same string using a space as separator: **```"single_strand R C interaction_symbol"```**
-
-The parameter **```location```** needs to have the following format:
-
-```kotlin
-location {
-    1 to 10
-    30 to 40
-}
-```
-In this example, the location is made with absolute positions from 1 to 10 and 30 to 40 (inclusive). A 2D object is targeted if its own location is inside the one defined with this parameter.
+Now we set the 2D at details level 2 and we add new elements to be draw with ```show``` elements:
 
 ```kotlin
 rnartist {
@@ -1172,22 +1071,27 @@ rnartist {
 
   theme {
     details {
-      value = 5
+      value = 2
+    }
+    
+    color {
+        scheme = "African Lavender"
     }
 
-    hide {
-      type = "n"
-      location {
-        9 to 9
-      }
-    }
-
-    hide {
-      type = "secondary_interaction"
+    show {
+      type = "helix phosphodiester_bond secondary_interaction"
       location {
         7 to 8
         10 to 10
         15 to 15
+        17 to 18
+      }
+    }
+
+    show {
+      type = "N"
+      location {
+        7 to 8
         17 to 18
       }
     }
@@ -1448,7 +1352,10 @@ rnartist {
   }
   theme {
     details {
-      value = 5
+      value = 3
+    }
+    color {
+      scheme = "Atomic Xanadu"
     }
   }
 
@@ -1480,8 +1387,12 @@ rnartist {
   }
   theme {
     details {
-      value = 5
+      value = 3
     }
+    color {
+      scheme = "Atomic Xanadu"
+    }
+    
   }
   layout {
     junction {

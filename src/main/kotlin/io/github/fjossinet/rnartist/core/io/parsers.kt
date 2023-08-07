@@ -12,9 +12,12 @@ import java.util.stream.Collectors
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-class ScriptElement(var name:String, content:String, val start:Int, val end:Int, val children:MutableList<ScriptElement> = mutableListOf()) {
+/**
+ * An intermediate modeling step between the raw textual dsl script and the tree of io.github.fjossinet.rnartist.core.model.DSLElement
+ */
+private class DSLBlock(var name:String, content:String, val start:Int, val end:Int, val children:MutableList<DSLBlock> = mutableListOf()) {
 
-    var attributes = mutableListOf<String>()
+    var properties = mutableListOf<String>()
 
     init {
         var _content = content.removePrefix(name) //the same is in the content. its '{' will be a pb for the newt step.
@@ -29,24 +32,13 @@ class ScriptElement(var name:String, content:String, val start:Int, val end:Int,
         //we split the attributes. First we match the attributes with a value inside quotes (since we can have spaces inside the quotes). Then we match attributes whose value is without any spaces (then we match until we meet a space)
         regex = Regex("(\\S+\\s*(to|=|eq|gt|lt|alignment)\\s*\".+?\"|\\S+\\s*(to|=|eq|gt|lt|alignment)\\s*\\S+)")
         regex.findAll(_content).forEach {
-            attributes.add(it.value)
+            properties.add(it.value)
         }
-    }
-
-    fun print(writer:StringWriter, indent:String, indentLevel: Int = 0) {
-        writer.write(indent.repeat(indentLevel)+"${this.name} {${System.getProperty("line.separator")}")
-        attributes.forEach { attribute ->
-            writer.write((indent.repeat(indentLevel+1)+"$attribute${System.getProperty("line.separator")}"))
-        }
-        children.forEach {
-            it.print(writer, indent, indentLevel+1)
-        }
-        writer.write((indent.repeat(indentLevel)+"}${System.getProperty("line.separator")}"))
     }
 
     //function to check of a direct child can be a sub-child, or sub-sub-child...
     fun cleanChildren() {
-        val toRemove = mutableListOf<ScriptElement>()
+        val toRemove = mutableListOf<DSLBlock>()
         children.forEach { c ->
             children.forEach {
                 if (it.contains(c))
@@ -56,29 +48,22 @@ class ScriptElement(var name:String, content:String, val start:Int, val end:Int,
         children.removeAll(toRemove)
     }
 
-    fun contains(el:ScriptElement):Boolean {
+    fun contains(el:DSLBlock):Boolean {
         if (this.children.contains(el))
             return true
         else
             return this.children.map { it.children.contains(el) }.contains(true)
     }
 
-    fun getAllElements(elements:MutableList<ScriptElement>){
-        elements.add(this)
-        this.children.forEach {
-            it.getAllElements(elements)
-        }
-    }
-
 }
 
 /**
- * If issues during the parsing, returned as a list of String
+ * Parse a dsl script stored in a file and return a tree of DSLElement objects
  */
-fun parseDSLScript(reader: Reader): Pair<List<ScriptElement>, List<String>> {
+fun parseDSLScript(reader: Reader): RNArtistEl {
     val text = reader.readText().replace(System.getProperty("line.separator"), "")
     //println(text)
-    var elements = mutableListOf<ScriptElement>()
+    var blocks = mutableListOf<DSLBlock>()
     var regex = Regex("[a-z]+\\s+\\{") //this regexp matches "keyword {"
     val openBrackets = regex.findAll(text)
     regex = Regex("\\}")
@@ -91,7 +76,7 @@ fun parseDSLScript(reader: Reader): Pair<List<ScriptElement>, List<String>> {
     allMatches.forEach {
         if (it.value.trim().startsWith("}")) { //like a dot-bracket notation. a closing bracket match the last open bracket.
             var last = lastOpenBrackets.removeLast()
-            elements.add(ScriptElement(last.value, text.substring(last.range.start, it.range.start), last.range.start, it.range.start))
+            blocks.add(DSLBlock(last.value, text.substring(last.range.start, it.range.start), last.range.start, it.range.start))
         }
         if (it.value.trim().endsWith("{")) {
             lastOpenBrackets.add(it)
@@ -99,68 +84,134 @@ fun parseDSLScript(reader: Reader): Pair<List<ScriptElement>, List<String>> {
     }
 
     //now we want to know which element is inside another one according to their positions in the text
-    elements.forEach { element ->
-        elements.forEach {
+    blocks.forEach { element ->
+        blocks.forEach {
             if (it.start > element.start && it.end < element.end) {
                 element.children.add(it)
             }
         }
     }
 
-    //a child can have several parent according to the positions in the text, we clean that.
-    val toRemove = mutableListOf<ScriptElement>()
-    elements.forEach {
+    //a child can have several parent according to the positions in the text, we clean that
+    val toRemove = mutableListOf<DSLBlock>()
+    blocks.forEach {
         it.cleanChildren()
         it.children.forEach { c ->
-            if (elements.contains(c))
+            if (blocks.contains(c))
                 toRemove.add(c)
         }
 
     }
-    elements.removeAll(toRemove)
+    blocks.removeAll(toRemove)
 
-    //we check outdated syntax
-    val issues = mutableListOf<String>()
-
-    curateScript(elements, issues)
-
-    return Pair(elements, issues)
-
+    val rnArtistEl = RNArtistEl()
+    fromBlocksToElements(blocks, rnArtistEl)
+    val sb = StringBuffer()
+    rnArtistEl.dump(buffer=sb)
+    return rnArtistEl
 }
 
-/**
- * Curate means for example to search for outdated syntax
- * Returns a list of issues curated
- */
-fun curateScript(elements:List<ScriptElement>, issues:MutableList<String>):List<String> {
-    elements.forEach { element ->
-        if ("rnartist".equals(element.name)) {
-            element.attributes.forEach { attribute ->
-                //the bn is not anymore an attribute
-                if (attribute.startsWith("bracket_notation")) {
-                    issues.add("Attribute \"bracket_notation\" deprecated. Replaced with the element \"bn\"")
-                    val ss = ScriptElement("ss", "", element.start+1, element.end-1)
-                    val bn = ScriptElement("bn", "value = ${attribute.split("=").last().trim()}", element.start+2, element.end-2)
-                    ss.children.add(bn)
-                    element.children.add(ss)
+private fun fromBlocksToElements(blocks:List<DSLBlock>, rnArtistEl: RNArtistEl) {
+    blocks.forEach { dslBlock ->
+        when (dslBlock.name) {
+            "rnartist" -> {
+
+            }
+
+            "theme" -> {
+                val themeEl = rnArtistEl.addThemeEl()
+                dslBlock.properties.forEach { property ->
+                    if (property.contains("=")) {
+                        val tokens = property.split("=").map { it.removePrefix(" ") }.map { it.removeSuffix(" ") }.map { it.removeSurrounding("\"") }
+                        when (tokens.first()) {
+                        }
+                    }
                 }
             }
-            element.attributes.removeIf { it.startsWith("bracket_notation") }
-        }
-        if ("theme".equals(element.name)) {
-            element.attributes.forEach { attribute ->
-                //the details level is not anymore an attribute
-                if (attribute.startsWith("details_lvl")) {
-                    issues.add("Attribute \"details_lvl\" deprecated. Replaced with the element \"details\"")
-                    val el = ScriptElement("details", "value = ${attribute.split("=").last().trim()}", element.start+1, element.end-1)
-                    element.children.add(el)
+
+            "details" -> {
+                val themeEl = rnArtistEl.getThemeEl()
+                val detailsEl = themeEl.addDetailsEl()
+                dslBlock.properties.forEach { property ->
+                    if (property.contains("=")) {
+                        val tokens = property.split("=").map { it.removePrefix(" ") }.map { it.removeSuffix(" ") }.map { it.removeSurrounding("\"") }
+                        when (tokens.first()) {
+                            "value" -> detailsEl.setValue(tokens.last().toInt())
+                        }
+                    }
                 }
             }
-            element.attributes.removeIf { it.startsWith("details_lvl") }
+
+            "color" -> {
+                val themeEl = rnArtistEl.getThemeEl()
+                val colorEl = themeEl.addColorEl()
+                dslBlock.properties.forEach { property ->
+                    if (property.contains("=")) {
+                        val tokens = property.split("=").map { it.removePrefix(" ") }.map { it.removeSuffix(" ") }.map { it.removeSurrounding("\"") }
+                        when (tokens.first()) {
+                            "scheme" -> colorEl.setScheme(tokens.last())
+                            "value" -> colorEl.setValue(tokens.last())
+                            "type" -> colorEl.setType(tokens.last())
+                        }
+                    }
+                }
+            }
+
+            "line" -> {
+                val themeEl = rnArtistEl.getThemeEl()
+                val lineEl = themeEl.addLineEl()
+                dslBlock.properties.forEach { property ->
+                    if (property.contains("=")) {
+                        val tokens = property.split("=").map { it.removePrefix(" ") }.map { it.removeSuffix(" ") }.map { it.removeSurrounding("\"") }
+                        when (tokens.first()) {
+                            "value" -> lineEl.setValue(tokens.last().toDouble())
+                        }
+                    }
+                }
+            }
+
+            "ss" -> {
+                val ssEl = rnArtistEl.addSSEl()
+                dslBlock.properties.forEach { property ->
+                    if (property.contains("=")) {
+                        val tokens = property.split("=").map { it.removePrefix(" ") }.map { it.removeSuffix(" ") }.map { it.removeSurrounding("\"") }
+                        when (tokens.first()) {
+                        }
+                    }
+                }
+            }
+
+            "vienna" -> {
+                val ssEl = rnArtistEl.getSSEl()
+                val viennaEl = ssEl.addViennaEl()
+                dslBlock.properties.forEach { property ->
+                    if (property.contains("=")) {
+                        val tokens = property.split("=").map { it.removePrefix(" ") }.map { it.removeSuffix(" ") }.map { it.removeSurrounding("\"") }
+                        when (tokens.first()) {
+                            "file" -> viennaEl.setFile(tokens.last())
+                        }
+                    }
+                }
+            }
+
+            "png" -> {
+                val pngEl = rnArtistEl.addPNGEl()
+                dslBlock.properties.forEach { property ->
+                    if (property.contains("=")) {
+                        val tokens = property.split("=").map { it.removePrefix(" ") }.map { it.removeSuffix(" ") }.map { it.removeSurrounding("\"") }
+                        when (tokens.first()) {
+                            "path" -> pngEl.setPath(tokens.last())
+                            "width" -> pngEl.setWidth(tokens.last().toDouble())
+                            "height" -> pngEl.setHeight(tokens.last().toDouble())
+                        }
+                    }
+                }
+            }
+
         }
-        curateScript(element.children, issues)
+
+        fromBlocksToElements(dslBlock.children, rnArtistEl)
     }
-    return issues
 }
 
 @Throws(java.lang.Exception::class)
@@ -522,11 +573,12 @@ fun parseCT(reader: Reader): SecondaryStructure {
 /**
  * The first 2D is the consensus 2D with a fake seq
  */
-fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): Pair<Map<String, String>, List<SecondaryStructure>> {
+fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): Triple<Pair<String,String>, Map<String, String>, List<SecondaryStructure>> {
     var secondaryStructures = mutableListOf<SecondaryStructure>()
     val alignedMolecules: MutableMap<String, StringBuffer> = HashMap()
     val bn = StringBuffer()
-    var familyName: String? = null
+    lateinit var familyDescr: String
+    lateinit var familyType: String
     val `in` = BufferedReader(reader)
     var line: String?
     while (`in`.readLine().also { line = it } != null) {
@@ -542,7 +594,9 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): Pair<Map<St
                     .replace("_", ".")
             )
         else if (line!!.trim { it <= ' ' }.startsWith("#=GF DE"))
-            familyName = line!!.split("#=GF DE".toRegex()).toTypedArray()[1].trim { it <= ' ' }
+            familyDescr = line!!.split("#=GF DE".toRegex()).toTypedArray()[1].trim { it <= ' ' }
+        else if (line!!.trim { it <= ' ' }.startsWith("#=GF TP"))
+            familyType = line!!.split("#=GF TP".toRegex()).toTypedArray()[1].trim { it <= ' ' }
     }
     `in`.close()
     val rna = RNA(
@@ -718,7 +772,7 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): Pair<Map<St
 
     }
 
-    return Pair(alignedMolecules.map { (key, value) ->
+    return Triple(Pair(familyDescr,familyType), alignedMolecules.map { (key, value) ->
         key to value.toString()
     }.toMap(), secondaryStructures)
 }
@@ -751,6 +805,14 @@ fun parseBPSeq(reader: Reader): SecondaryStructure {
             sequence.toString()
         ), bn.toString(), null
     )
+}
+
+fun writeVienna(ss:SecondaryStructure, writer: Writer) {
+    val pw = PrintWriter(writer)
+    pw.println(">${ss.rna.name}")
+    pw.println("${ss.rna.seq}")
+    pw.println("${ss.toBracketNotation()}")
+    pw.close()
 }
 
 fun writePDB(ts: TertiaryStructure, exportNumberingSystem: Boolean, writer: Writer) {
