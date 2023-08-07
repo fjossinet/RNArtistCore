@@ -60,7 +60,6 @@ RNArtistCore exposes a language to write your drawing instructions more easily. 
 
 Please note that this is still a work under development and that all instructions are not stable. You can take a look at the [changelog](Changelog.md) for details concerning the modifications. 
 
-* [The **```booquet```** element](#booquet)
 * [The **```rnartist```** element](#rnartist)
 * [The **```svg```** and **```png```** elements](#output) 
 * [The **```ss```** element](#ss)
@@ -76,6 +75,7 @@ Please note that this is still a work under development and that all instruction
   * [The **```line```** element](#line)
 * [The **```layout```** element](#layout)
 * [The **```data```** element](#data)
+* [The **```booquet```** element](#booquet)
 
 Using pseudo-code, here is the structure that your instructions have to fit with:
 
