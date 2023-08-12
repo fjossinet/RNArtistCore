@@ -916,6 +916,7 @@ class LayoutBuilder {
         val layout = Layout()
         junctionLayoutBuilders.forEach { junctionLayoutBuilder ->
             if (!junctionLayoutBuilder.locationBuilder.isEmpty()) {
+                val type = junctionLayoutBuilder.type
                 val l = junctionLayoutBuilder.locationBuilder.build()
                 junctionLayoutBuilder.radius?.let { radius ->
                     val selection =
@@ -933,7 +934,7 @@ class LayoutBuilder {
                         { e: DrawingElement ->
                             val new_out_ids = StringBuilder()
                             (e as? JunctionDrawing)?.let { junctionDrawing ->
-                                if (e.inside(l) && l.blocks.size == e.location.blocks.size) {
+                                if (e.inside(l) && type == e.location.blocks.size) {
                                     new_out_ids.append(out_ids)
                                 } else if (e.inside(l)) {
                                     var i = 0
@@ -1003,11 +1004,17 @@ class LayoutBuilder {
                                 }
                             }
                             if (new_out_ids.isNotEmpty()) {
-                                Pair(
-                                    new_out_ids.toString().trim()
-                                        .split(" ").size == (e as JunctionDrawing).outHelices.size,
-                                    new_out_ids.toString().trim()
-                                )
+                                if (new_out_ids.trim().startsWith("+") || new_out_ids.trim().startsWith("-"))
+                                    Pair(
+                                        true,
+                                        new_out_ids.toString().trim()
+                                    )
+                                else
+                                    Pair(
+                                        new_out_ids.toString().trim()
+                                            .split(" ").size == (e as JunctionDrawing).outHelices.size,
+                                        new_out_ids.toString().trim()
+                                    )
                             } else
                                 Pair(false, null)
                         }

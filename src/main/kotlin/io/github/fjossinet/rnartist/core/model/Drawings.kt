@@ -2,6 +2,7 @@ package io.github.fjossinet.rnartist.core.model
 
 import io.github.fjossinet.rnartist.core.RnartistConfig
 import io.github.fjossinet.rnartist.core.RnartistConfig.defaultConfiguration
+import io.github.fjossinet.rnartist.core.layout
 import java.awt.*
 import java.awt.Color
 import java.awt.geom.*
@@ -123,7 +124,7 @@ enum class ThemeParameter {
 }
 
 enum class LayoutParameter {
-    radius, center, in_id, out_ids
+    radius, out_ids
 }
 
 fun helixDrawingLength(h: Helix) =
@@ -4121,22 +4122,45 @@ open class JunctionDrawing(
         layout.configurations.entries.forEach { entry ->
             if (entry.key(this).first) {
                 when (entry.value.first) {
-                    LayoutParameter.center.toString() -> {}
-                    LayoutParameter.in_id.toString() -> {}
                     LayoutParameter.out_ids.toString() -> {
-                        //if a new out_ids has been returned wy the selection fonction (for example for an orthologuous junction with less outids than the junction defined in the consensus 2D
+                        //if a new out_ids has been returned with the selection function (for example for an orthologuous junction with less outids than the junction defined in the consensus 2D
                         entry.key(this).second?.let { out_ids ->
-                            val connectors = out_ids.split(" ").map {
-                                ConnectorId.valueOf(it)
+                            var new_layout:String?
+                            if (out_ids.startsWith("+")) {
+                                var cycles = out_ids.split("+").last().toInt()
+                                new_layout = clockwise()
+                                while (cycles > 0)  {
+                                    new_layout?.let { layout ->
+                                        val connectors = layout.split(" ").map {
+                                            ConnectorId.valueOf(it)
+                                        }
+                                        currentLayout = connectors.toMutableList()
+                                        ssDrawing.computeResidues(this)
+                                        new_layout = clockwise()
+                                    }
+                                    cycles -= 1
+                                }
+                            } else if (out_ids.startsWith("-")) {
+                                var cycles = out_ids.split("-").last().toInt()
+                                new_layout = anticlockwise()
+                                while (cycles > 0)  {
+                                    new_layout?.let { layout ->
+                                        val connectors = layout.split(" ").map {
+                                            ConnectorId.valueOf(it)
+                                        }
+                                        currentLayout = connectors.toMutableList()
+                                        ssDrawing.computeResidues(this)
+                                        new_layout = anticlockwise()
+                                    }
+                                    cycles -= 1
+                                }
+                            } else {
+                                val connectors = out_ids.split(" ").map {
+                                    ConnectorId.valueOf(it)
+                                }
+                                currentLayout = connectors.toMutableList()
+                                ssDrawing.computeResidues(this)
                             }
-                            currentLayout = connectors.toMutableList()
-                            ssDrawing.computeResidues(this)
-                        } ?: run {
-                            val connectors = entry.value.second.split(" ").map {
-                                ConnectorId.valueOf(it)
-                            }
-                            currentLayout = connectors.toMutableList()
-                            ssDrawing.computeResidues(this)
                         }
 
                     }
@@ -4148,6 +4172,31 @@ open class JunctionDrawing(
             }
         }
     }
+
+    fun clockwise():String? {
+        val currentLayout = this.currentLayout
+        if (currentLayout.last() != ConnectorId.sse) {
+            val newLayout = mutableListOf<ConnectorId>()
+            currentLayout.forEach {
+                newLayout.add(getConnectorId(it.value+1))
+            }
+            return newLayout.map { it.toString() }.joinToString(separator = " ")
+        } else
+            return null
+    }
+
+    fun anticlockwise():String? {
+        val currentLayout = this.currentLayout
+        if (currentLayout.first() != ConnectorId.ssw) {
+            val newLayout = mutableListOf<ConnectorId>()
+            currentLayout.forEach {
+                newLayout.add(getConnectorId(it.value - 1))
+            }
+            return newLayout.map { it.toString() }.joinToString(separator = " ")
+        } else
+            return null
+    }
+
 
     //the previous JunctionCircle has modified its link with this one.
     private fun setEntryPoint(inId: ConnectorId, inPoint: Point2D) {
