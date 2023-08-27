@@ -68,7 +68,7 @@ Please note that this is still a work under development and that all instruction
   * [The ```bpseq```, ```ct```, ```vienna```, ```pdb``` and ```stockholm``` elements](#file)
   * [The ```rfam``` and ```pdb``` elements](#database)
 * [The **```theme```** element](#theme)
-* * [The **```details```** element](#details)
+  * [The **```details```** and **```scheme```** properties](#details)
   * [The **```color```** element](#color)
   * [The **```show```** element](#show)
   * [The **```hide```** element](#hide)
@@ -125,9 +125,7 @@ rnartist {
     }
   }
   theme {
-      details {
-        value = 5
-      }
+      details = 5
 
       color {
         type="A"
@@ -518,11 +516,31 @@ A **```theme```** element can contains a single **```details```** element (to qu
 * **```hide```**: lowly render objects 2D
 * **```line```**: set the line width for objects 2D
 
-The order of the elements ```color```, ```show```, ```hide``` and ```line``` is important. 
+The order of the elements ```color```, ```show```, ```hide``` and ```line``` is taken into account inside the element ```theme```. 
 
-### <a name="details"></a> The **```details```** element
+### <a name="details"></a> The **```details```** and **```scheme```** properties
 
-To quickly change the rendering level of an entire 2D, you can use the element named **```details```**. Five details levels are available:
+The **```scheme```** property allows to map a color scheme on the full 2D. It can be:
+* Persian Carolina
+* Snow Lavender
+* Fuzzy French
+* Chestnut Navajo
+* Irresistible Turquoise
+* Charm Jungle
+* Atomic Xanadu
+* Pale Coral
+* Maximum Salmon
+* Pacific Dream
+* New York Camel
+* Screamin' Olive
+* Baby Lilac
+* Celeste Olivine
+* Midnight Paradise
+* African Lavender
+* Charcoal Lazuli
+* Pumpkin Vegas
+
+To quickly change the rendering level of an entire 2D, you can use the property named **```details```**. Five details levels are available:
 
 Details level | Helix | Junction | Single Strand | Phosphodiester Bond  | Secondary Interaction | Residue Shape | Residue Character | Interaction Symbol |
 ---|-------|----------|---|---|-----------------------|---|---|---|
@@ -547,9 +565,7 @@ rnartist {
     }
   }
   theme {
-    details {
-      value = 1
-    }
+    details = 1
 
     color {
       type = "helix"
@@ -582,9 +598,7 @@ rnartist {
     }
   }
   theme {
-    details {
-      value = 2
-    }
+    details = 2
     
     color { 
       type = "helix"
@@ -616,13 +630,8 @@ rnartist {
     }
   }
   theme {
-    details {
-      value = 3
-    }
-
-    color {
-      scheme = "Pumpkin Vegas"
-    }
+    details = 3
+    scheme = "Pumpkin Vegas"
   }
 }
 ```
@@ -644,13 +653,8 @@ rnartist {
     }
   }
   theme {
-    details {
-      value = 4
-    }
-
-    color {
-      scheme = "Pumpkin Vegas"
-    }
+    details = 4
+    scheme = "Pumpkin Vegas"
   }
 }
 ```
@@ -671,14 +675,9 @@ rnartist {
       name = "details_lvl5"
     }
   }
-  theme {
-    details {
-      value = 5
-    }
-
-    color {
-      scheme = "Pumpkin Vegas"
-    }
+  theme { 
+    details = 5
+    scheme = "Pumpkin Vegas"
   }
 }
 ```
@@ -693,52 +692,6 @@ Parameters:
 * **```type```**: the type of objects 2D targeted (check this [table](#theme) for details)
 * **```location```**: the location of objects 2D targeted
 * **```data```**: selection based on the values linked to the residues  (see explanation for this element below)
-* **```scheme```**: the name of a color scheme to apply. It can be: 
-  * Persian Carolina
-  * Snow Lavender
-  * Fuzzy French
-  * Chestnut Navajo
-  * Irresistible Turquoise
-  * Charm Jungle
-  * Atomic Xanadu
-  * Pale Coral
-  * Maximum Salmon
-  * Pacific Dream
-  * New York Camel
-  * Screamin' Olive
-  * Baby Lilac
-  * Celeste Olivine
-  * Midnight Paradise
-  * African Lavender
-  * Charcoal Lazuli
-  * Pumpkin Vegas
-
-```kotlin
-rnartist {
-  png {
-    path = "media/"
-  }
-  ss {
-    bn {
-      seq = "CAGAUAAGAAGGUUCCCCGAUAUGUUGGGCAACCAAAGAAUUCAUGUUCUUCCUUUGUUUG"
-      value =
-        "(((..(((..(((..(((((....)))))..)))..(((((....)))))..)))...)))"
-      name = "atomic_xanadu"
-    }
-  }
-  theme {
-    details {
-      value = 5
-    }
-
-    color {
-      scheme = "Atomic Xanadu"
-    }
-  }
-}
-```
-
-![](media/atomic_xanadu.png)
   
 If the parameter **```type```** is not defined, all types are targeted. You can define several types in the same string using a space as separator: **```"single_strand R C interaction_symbol"```**
 
@@ -766,9 +719,7 @@ rnartist {
     }
   }
   theme {
-    details {
-      value = 5
-    }
+    details = 5
 
     color {
       type = "Y"
@@ -866,13 +817,8 @@ rnartist {
   }
 
   theme {
-    details {
-      value = 5
-    }
-
-    color {
-      scheme="Celeste Olivine"
-    }
+    details = 5
+    scheme = "Celeste Olivine"
 
     hide {
       type = "helix"
@@ -901,13 +847,8 @@ rnartist {
   }
 
   theme {
-    details {
-      value = 5
-    }
-
-    color {
-      scheme="Celeste Olivine"
-    }
+    details = 5
+    scheme = "Celeste Olivine"
 
     hide {
       type = "secondary_interaction"
@@ -936,13 +877,8 @@ rnartist {
   }
 
   theme {
-    details {
-      value = 5
-    }
-
-    color {
-      scheme="Celeste Olivine"
-    }
+    details = 5
+    scheme = "Celeste Olivine"
 
     hide {
       type = "N interaction_symbol"
@@ -971,13 +907,8 @@ rnartist {
   }
 
   theme {
-    details {
-      value = 5
-    }
-
-    color {
-      scheme="Celeste Olivine"
-    }
+    details = 5
+    scheme = "Celeste Olivine"
 
     hide {
       type = "n interaction_symbol"
@@ -1006,13 +937,8 @@ rnartist {
   }
 
   theme {
-    details {
-      value = 5
-    }
-
-    color {
-      scheme="Celeste Olivine"
-    }
+    details = 5
+    scheme = "Celeste Olivine"
 
     hide {
       type = "interaction_symbol"
@@ -1041,13 +967,8 @@ rnartist {
   }
 
   theme {
-    details {
-      value = 5
-    }
-
-    color {
-      scheme="Celeste Olivine"
-    }
+    details = 5
+    scheme = "Celeste Olivine"
   }
 }
 ```
@@ -1070,13 +991,8 @@ rnartist {
   }
 
   theme {
-    details {
-      value = 2
-    }
-    
-    color {
-        scheme = "African Lavender"
-    }
+    details  = 2
+    scheme = "African Lavender"
 
     show {
       type = "helix phosphodiester_bond secondary_interaction"
@@ -1148,9 +1064,7 @@ rnartist {
     }
   }
   theme {
-    details {
-      value = 1
-    }
+    details = 1
   }
 }
 ```
@@ -1169,9 +1083,7 @@ rnartist {
     }
   }
   theme {
-    details {
-      value = 1
-    }
+    details = 1
   }
 
   layout {
@@ -1199,9 +1111,7 @@ rnartist {
     }
   }
   theme {
-    details {
-      value = 1
-    }
+    details = 1
   }
 
   layout {
@@ -1229,9 +1139,7 @@ rnartist {
     }
   }
   theme {
-    details {
-      value = 1
-    }
+    details = 1
   }
 
   layout {
@@ -1259,9 +1167,7 @@ rnartist {
     }
   }
   theme {
-    details {
-      value = 1
-    }
+    details = 1
   }
 
   layout {
@@ -1289,9 +1195,7 @@ rnartist {
     }
   }
   theme {
-    details {
-      value = 1
-    }
+    details = 1
   }
 
   layout {
@@ -1319,9 +1223,7 @@ rnartist {
     }
   }
   theme {
-    details {
-      value = 1
-    }
+    details = 1
   }
 
   layout {
@@ -1351,12 +1253,8 @@ rnartist {
     }
   }
   theme {
-    details {
-      value = 3
-    }
-    color {
-      scheme = "Atomic Xanadu"
-    }
+    details = 3
+    scheme = "Atomic Xanadu"
   }
 
   layout {
@@ -1386,13 +1284,8 @@ rnartist {
     }
   }
   theme {
-    details {
-      value = 3
-    }
-    color {
-      scheme = "Atomic Xanadu"
-    }
-    
+    details = 3
+    scheme = "Atomic Xanadu"
   }
   layout {
     junction {
@@ -1471,9 +1364,7 @@ rnartist {
     }
   }
   theme {
-      details {
-        value = 5
-      }
+      details  = 5
 
       color {
         type = "R"
@@ -1525,9 +1416,8 @@ rnartist {
     "12" to 345.8
   }
   theme {
-    details {
-      value = 4
-    }
+    details = 4
+    
     color {
       type = "N"
       value = "lightyellow"

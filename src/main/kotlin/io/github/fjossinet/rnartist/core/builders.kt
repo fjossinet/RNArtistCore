@@ -1008,7 +1008,8 @@ class JunctionLayoutBuilder {
     var type: Int? = null
     var out_ids: String? = null
     var radius: Double? = null
-    var isGlobalLayout = this.locationBuilder.isEmpty() && this.name == null //if true, this layout targets all the junctions for this junction type, not specific ones
+    var isGlobalLayout = true
+        get() = this.locationBuilder.isEmpty() && this.name == null //if true, this layout targets all the junctions for this junction type, not specific ones
 
     fun location(setup: LocationBuilder.() -> Unit) {
         this.locationBuilder.setup()

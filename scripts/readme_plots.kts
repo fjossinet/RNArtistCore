@@ -11,9 +11,7 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 5
-        }
+        details = 5
 
         color {
             type="A"
@@ -70,9 +68,7 @@ rnartist {
         "12" to 345.8
     }
     theme {
-        details {
-            value = 4
-        }
+        details  = 4
         color {
             type = "N"
             value = "lightyellow"
@@ -110,9 +106,7 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 1
-        }
+        details = 1
 
         color {
             type = "helix"
@@ -139,9 +133,7 @@ rnartist {
 
     }
     theme {
-        details {
-            value = 2
-        }
+        details = 2
 
         color {
             type = "helix"
@@ -167,13 +159,8 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 3
-        }
-
-        color {
-            scheme = "Pumpkin Vegas"
-        }
+        details = 3
+        scheme = "Pumpkin Vegas"
     }
 }
 
@@ -189,11 +176,8 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 4
-        }
-
-        color {
+        theme {
+            details = 4
             scheme = "Pumpkin Vegas"
         }
     }
@@ -211,13 +195,8 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 5
-        }
-
-        color {
-            scheme = "Pumpkin Vegas"
-        }
+        details = 5
+        scheme = "Pumpkin Vegas"
     }
 }
 
@@ -234,9 +213,7 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 5
-        }
+        details = 5
 
         color {
             type = "Y"
@@ -282,13 +259,8 @@ rnartist {
     }
 
     theme {
-        details {
-            value = 5
-        }
-
-        color {
-            scheme="Celeste Olivine"
-        }
+        details = 5
+        scheme = "Celeste Olivine"
 
         hide {
             type = "helix"
@@ -314,13 +286,8 @@ rnartist {
     }
 
     theme {
-        details {
-            value = 5
-        }
-
-        color {
-            scheme="Celeste Olivine"
-        }
+        details = 5
+        scheme = "Celeste Olivine"
 
         hide {
             type = "secondary_interaction"
@@ -346,13 +313,8 @@ rnartist {
     }
 
     theme {
-        details {
-            value = 5
-        }
-
-        color {
-            scheme="Celeste Olivine"
-        }
+        details = 5
+        scheme = "Celeste Olivine"
 
         hide {
             type = "N interaction_symbol"
@@ -378,13 +340,8 @@ rnartist {
     }
 
     theme {
-        details {
-            value = 5
-        }
-
-        color {
-            scheme="Celeste Olivine"
-        }
+        details = 5
+        scheme = "Celeste Olivine"
 
         hide {
             type = "n interaction_symbol"
@@ -410,13 +367,8 @@ rnartist {
     }
 
     theme {
-        details {
-            value = 5
-        }
-
-        color {
-            scheme="Celeste Olivine"
-        }
+        details = 5
+        scheme = "Celeste Olivine"
 
         hide {
             type = "interaction_symbol"
@@ -442,13 +394,8 @@ rnartist {
     }
 
     theme {
-        details {
-            value = 5
-        }
-
-        color {
-            scheme="Celeste Olivine"
-        }
+        details = 5
+        scheme = "Celeste Olivine"
     }
 }
 
@@ -466,13 +413,8 @@ rnartist {
     }
 
     theme {
-        details {
-            value = 2
-        }
-
-        color {
-            scheme = "African Lavender"
-        }
+        details = 2
+        scheme = "African Lavender"
 
         show {
             type = "helix phosphodiester_bond secondary_interaction"
@@ -505,9 +447,7 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 1
-        }
+        details = 1
     }
 }
 
@@ -522,9 +462,7 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 1
-        }
+        details = 1
     }
 
     layout {
@@ -548,9 +486,7 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 1
-        }
+        details = 1
     }
 
     layout {
@@ -574,9 +510,7 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 1
-        }
+        details = 1
     }
 
     layout {
@@ -600,9 +534,7 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 1
-        }
+        details = 1
     }
 
     layout {
@@ -626,9 +558,7 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 1
-        }
+        details = 1
     }
 
     layout {
@@ -652,9 +582,7 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 1
-        }
+        details = 1
     }
 
     layout {
@@ -678,12 +606,8 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 3
-        }
-        color {
-            scheme = "Atomic Xanadu"
-        }
+        details  = 3
+        scheme = "Atomic Xanadu"
     }
 
     layout {
@@ -707,12 +631,8 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 3
-        }
-        color {
-            scheme = "Atomic Xanadu"
-        }
+        details  = 3
+        scheme = "Atomic Xanadu"
     }
     layout {
         junction {
@@ -745,9 +665,7 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 4
-        }
+        details = 4
         color {
             value = "#800080"
             type = "R"
@@ -926,9 +844,7 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 3
-        }
+        details = 3
     }
 }
 
@@ -945,13 +861,8 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 5
-        }
-
-        color {
-            scheme = "Atomic Xanadu"
-        }
+        details  = 5
+        scheme = "Atomic Xanadu"
     }
 }
 
