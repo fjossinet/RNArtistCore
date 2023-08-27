@@ -108,14 +108,13 @@ class LayoutEl:DSLElement("layout") {
 
 class ThemeEl:DSLElement("theme") {
 
-    fun addDetailsEl(detailsEl:DetailsLvlEl? = null):DetailsLvlEl {
-        this.children.removeIf { it.name.equals("details") } //only a single element allowed
-        val el = detailsEl ?: DetailsLvlEl()
-        this.children.add(el)
-        return el
+    fun setDetails(details:Int) {
+        this.properties["details"] = "$details"
     }
 
-    fun getDetailsEl() = this.getChild("details") as? DetailsLvlEl ?: addDetailsEl()
+    fun setScheme(scheme:String) {
+        this.properties["scheme"] = "\"$scheme\""
+    }
 
     fun addColorEl(colorEl: ColorEl? = null):ColorEl {
         val el = colorEl ?: ColorEl()
@@ -132,6 +131,22 @@ class ThemeEl:DSLElement("theme") {
     }
 
     fun getLineEl():List<LineEl>  = this.getChildren("line").map { it as LineEl }
+
+    fun addShowEl(showEl: ShowEl? = null):ShowEl {
+        val el = showEl ?: ShowEl()
+        this.children.add(el)
+        return el
+    }
+
+    fun getShowEl():List<ShowEl>  = this.getChildren("show").map { it as ShowEl }
+
+    fun addHideEl(hideEl: HideEl? = null):HideEl {
+        val el = hideEl ?: HideEl()
+        this.children.add(el)
+        return el
+    }
+
+    fun getHideEl():List<HideEl>  = this.getChildren("hide").map { it as HideEl }
 
 }
 
@@ -255,9 +270,19 @@ class SVGEl:DSLElement("svg") {
     }
 }
 
-class LineEl:DSLElement("line") {
-    fun setValue(value:Double) {
-        this.properties["value"] = "$value"
+class ShowEl:DSLElement("show") {
+    fun addLocationEl(locationEl:LocationEl? = null):LocationEl {
+        val el = locationEl ?: LocationEl()
+        this.children.add(el)
+        return el
+    }
+}
+
+class HideEl:DSLElement("hide") {
+    fun addLocationEl(locationEl:LocationEl? = null):LocationEl {
+        val el = locationEl ?: LocationEl()
+        this.children.add(el)
+        return el
     }
 }
 
@@ -274,6 +299,10 @@ class ColorEl:DSLElement("color") {
         this.properties["value"] = "\"$value\""
     }
 
+    fun setTo(to:String) {
+        this.properties["to"] = "\"$to\""
+    }
+
     fun addLocationEl(locationEl:LocationEl? = null):LocationEl {
         val el = locationEl ?: LocationEl()
         this.children.add(el)
@@ -282,9 +311,15 @@ class ColorEl:DSLElement("color") {
 
 }
 
-class DetailsLvlEl:DSLElement("details") {
-    fun setValue(value:Int) {
+class LineEl:DSLElement("line") {
+    fun setValue(value:Double) {
         this.properties["value"] = "$value"
+    }
+
+    fun addLocationEl(locationEl:LocationEl? = null):LocationEl {
+        val el = locationEl ?: LocationEl()
+        this.children.add(el)
+        return el
     }
 }
 

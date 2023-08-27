@@ -124,19 +124,8 @@ private fun fromBlocksToElements(blocks:List<DSLBlock>, rnArtistEl: RNArtistEl) 
                     if (property.contains("=")) {
                         val tokens = property.split("=").map { it.removePrefix(" ") }.map { it.removeSuffix(" ") }.map { it.removeSurrounding("\"") }
                         when (tokens.first()) {
-                        }
-                    }
-                }
-            }
-
-            "details" -> {
-                val themeEl = rnArtistEl.getThemeEl()
-                val detailsEl = themeEl.addDetailsEl()
-                dslBlock.properties.forEach { property ->
-                    if (property.contains("=")) {
-                        val tokens = property.split("=").map { it.removePrefix(" ") }.map { it.removeSuffix(" ") }.map { it.removeSurrounding("\"") }
-                        when (tokens.first()) {
-                            "value" -> detailsEl.setValue(tokens.last().toInt())
+                            "details" -> themeEl.setDetails(tokens.last().toInt())
+                            "scheme" -> themeEl.setScheme(tokens.last())
                         }
                     }
                 }
@@ -149,7 +138,6 @@ private fun fromBlocksToElements(blocks:List<DSLBlock>, rnArtistEl: RNArtistEl) 
                     if (property.contains("=")) {
                         val tokens = property.split("=").map { it.removePrefix(" ") }.map { it.removeSuffix(" ") }.map { it.removeSurrounding("\"") }
                         when (tokens.first()) {
-                            "scheme" -> colorEl.setScheme(tokens.last())
                             "value" -> colorEl.setValue(tokens.last())
                             "type" -> colorEl.setType(tokens.last())
                         }

@@ -2,7 +2,6 @@ package io.github.fjossinet.rnartist.core.model
 
 import io.github.fjossinet.rnartist.core.RnartistConfig
 import io.github.fjossinet.rnartist.core.RnartistConfig.defaultConfiguration
-import io.github.fjossinet.rnartist.core.layout
 import java.awt.*
 import java.awt.Color
 import java.awt.geom.*
@@ -20,7 +19,7 @@ val deltaHelixWidth: Double = 5.0
 val deltaPhosphoShift: Double = 0.0
 val deltaLWSymbols: Double = 1.2
 
-val minimalCircumference: Float = 360F / ((ConnectorId.values().size) * radiusConst * 3).toFloat()
+val minimalCircumference: Float = 360F / ((ConnectorId.entries.size) * radiusConst * 3).toFloat()
 val minimalRadius: Float = minimalCircumference / (2F * Math.PI).toFloat()
 val radiansToDegrees = 180 / Math.PI
 val degreesToRadians = Math.PI / 180
@@ -119,11 +118,11 @@ enum class SecondaryStructureType {
     LWSymbol
 }
 
-enum class ThemeParameter {
+enum class ThemeProperty {
     fulldetails, color, linewidth, lineshift, opacity
 }
 
-enum class LayoutParameter {
+enum class LayoutProperty {
     radius, out_ids
 }
 
@@ -215,9 +214,11 @@ class WorkingSession {
     }
 }
 
-class ThemeConfiguration(val selector:(DrawingElement) -> Boolean, val parameterName: String, val parameterValue: (DrawingElement) -> String) {
-
-}
+class ThemeConfiguration(
+    val selector: (DrawingElement) -> Boolean,
+    val propertyName: String,
+    val propertyValue: (DrawingElement) -> String
+)
 
 class Theme {
 
@@ -225,26 +226,32 @@ class Theme {
         mutableListOf()
 
     fun addConfiguration(
-        selection: (DrawingElement) -> Boolean,
-        parameter: ThemeParameter,
-        parameterValue: (DrawingElement) -> String
+        selector: (DrawingElement) -> Boolean,
+        property: ThemeProperty,
+        propertyValue: (DrawingElement) -> String
     ) {
-        configurations.add(ThemeConfiguration(selection, parameter.toString(), parameterValue))
+        configurations.add(ThemeConfiguration(selector, property.toString(), propertyValue))
     }
 
     fun clear() = this.configurations.clear()
 }
 
+class LayoutConfiguration(
+    val selector: (DrawingElement) -> Boolean,
+    val propertyName: String,
+    val propertyValue: String
+)
+
 class Layout {
 
-    var configurations: MutableMap<(DrawingElement) -> Pair<Boolean, String?>, Pair<String, String>> = mutableMapOf()
+    var configurations: MutableList<LayoutConfiguration> = mutableListOf()
 
-    fun setConfigurationFor(
-        selection: (DrawingElement) -> Pair<Boolean, String?>,
-        parameter: LayoutParameter,
-        parameterValue: String
+    fun addConfigurationFor(
+        selector: (DrawingElement) -> Boolean,
+        property: LayoutProperty,
+        propertyValue: String
     ) {
-        configurations[selection] = Pair(parameter.toString(), parameterValue)
+        configurations.add(LayoutConfiguration(selector, property.toString(), propertyValue))
     }
 
     fun clear() = this.configurations.clear()
@@ -255,35 +262,35 @@ class DrawingConfiguration(defaultParams: Map<String, String> = defaultConfigura
 
     val params: MutableMap<String, String> = mutableMapOf()
 
-    var opacity: Int = defaultConfiguration[ThemeParameter.opacity.toString()]!!.toInt()
+    var opacity: Int = defaultConfiguration[ThemeProperty.opacity.toString()]!!.toInt()
         get() = this.params.getOrDefault(
-            ThemeParameter.opacity.toString(),
-            defaultConfiguration[ThemeParameter.opacity.toString()]!!
+            ThemeProperty.opacity.toString(),
+            defaultConfiguration[ThemeProperty.opacity.toString()]!!
         ).toInt()
 
-    var fullDetails: Boolean = defaultConfiguration[ThemeParameter.fulldetails.toString()]!!.toBoolean()
+    var fullDetails: Boolean = defaultConfiguration[ThemeProperty.fulldetails.toString()]!!.toBoolean()
         get() = this.params.getOrDefault(
-            ThemeParameter.fulldetails.toString(),
-            defaultConfiguration[ThemeParameter.fulldetails.toString()]!!
+            ThemeProperty.fulldetails.toString(),
+            defaultConfiguration[ThemeProperty.fulldetails.toString()]!!
         ).toBoolean()
 
-    var lineShift: Double = defaultConfiguration[ThemeParameter.lineshift.toString()]!!.toDouble()
+    var lineShift: Double = defaultConfiguration[ThemeProperty.lineshift.toString()]!!.toDouble()
         get() = this.params.getOrDefault(
-            ThemeParameter.lineshift.toString(),
-            defaultConfiguration[ThemeParameter.lineshift.toString()]!!
+            ThemeProperty.lineshift.toString(),
+            defaultConfiguration[ThemeProperty.lineshift.toString()]!!
         ).toDouble()
 
-    var lineWidth: Double = defaultConfiguration[ThemeParameter.linewidth.toString()]!!.toDouble()
+    var lineWidth: Double = defaultConfiguration[ThemeProperty.linewidth.toString()]!!.toDouble()
         get() = this.params.getOrDefault(
-            ThemeParameter.linewidth.toString(),
-            defaultConfiguration[ThemeParameter.linewidth.toString()]!!
+            ThemeProperty.linewidth.toString(),
+            defaultConfiguration[ThemeProperty.linewidth.toString()]!!
         ).toDouble()
 
-    var color: Color = getAWTColor(defaultConfiguration[ThemeParameter.color.toString()]!!)
+    var color: Color = getAWTColor(defaultConfiguration[ThemeProperty.color.toString()]!!)
         get() = getAWTColor(
             this.params.getOrDefault(
-                ThemeParameter.color.toString(),
-                defaultConfiguration[ThemeParameter.color.toString()]!!
+                ThemeProperty.color.toString(),
+                defaultConfiguration[ThemeProperty.color.toString()]!!
             )
         )
 
@@ -315,13 +322,13 @@ abstract class DrawingElement(
     var type: SecondaryStructureType
 ) {
 
-    abstract val children:List<DrawingElement>
+    abstract val children: List<DrawingElement>
 
     var drawingConfiguration: DrawingConfiguration = DrawingConfiguration()
 
     open val selectionPoints: List<Point2D> = mutableListOf()
 
-    val allChildren:List<DrawingElement>
+    val allChildren: List<DrawingElement>
         get() {
             val allChildren = mutableListOf<DrawingElement>()
             allChildren.addAll(this.children)
@@ -400,7 +407,7 @@ abstract class DrawingElement(
     open fun applyTheme(theme: Theme) {
         theme.configurations.forEach { configuration ->
             if (configuration.selector(this)) {
-                this.drawingConfiguration.params[configuration.parameterName] = configuration.parameterValue(this)
+                this.drawingConfiguration.params[configuration.propertyName] = configuration.propertyValue(this)
             }
         }
         this.children.map { it.applyTheme(theme) }
@@ -417,7 +424,7 @@ abstract class DrawingElement(
 
 class SecondaryStructureDrawing(
     val secondaryStructure: SecondaryStructure,
-    val workingSession: WorkingSession = WorkingSession(), anchorX:Double=0.0, anchorY:Double=0.0
+    val workingSession: WorkingSession = WorkingSession(), anchorX: Double = 0.0, anchorY: Double = 0.0
 ) {
 
     val phosphoBonds =
@@ -587,8 +594,8 @@ class SecondaryStructureDrawing(
                     )
                 )
 
-                var circles = this.allJunctions.toMutableList()
-                var lines = this.allHelices.toMutableList()
+                val circles = this.allJunctions.toMutableList()
+                val lines = this.allHelices.toMutableList()
 
                 val h = HelixDrawing(
                     null,
@@ -652,7 +659,7 @@ class SecondaryStructureDrawing(
                 )
 
                 //first we want to find the maxX of the previous branches to avoid an overlap with the new branch
-                var lastJunctions = mutableListOf<JunctionDrawing>()
+                val lastJunctions = mutableListOf<JunctionDrawing>()
                 this.branches.forEach {
                     lastJunctions.addAll(it.junctionsFromBranch())
                 }
@@ -676,7 +683,7 @@ class SecondaryStructureDrawing(
                 allTransX.add(branches.last().maxX - bottom.x + 6.0 * radiusConst) //the minimal transX is half of the width of the previous branch
 
                 for (newJunction in newBranchConstructed.junctionsFromBranch()) {
-                    var circlesAtTheSameLevel = mutableListOf<JunctionDrawing>()
+                    val circlesAtTheSameLevel = mutableListOf<JunctionDrawing>()
                     for (lastC in lastJunctions) {
                         if (lastC.circle.bounds.maxY >= newJunction.circle.bounds.minY && lastC.circle.bounds.minY <= newJunction.circle.bounds.maxY) {
                             circlesAtTheSameLevel.add(lastC)
@@ -1003,7 +1010,7 @@ class SecondaryStructureDrawing(
         val heightRatio = (drawingFrame.bounds2D!!.height + 25) / frame.bounds2D.height
         this.workingSession.zoomLevel =
             if (widthRatio > heightRatio) 1.0 / widthRatio else 1.0 / heightRatio
-        var at = AffineTransform()
+        val at = AffineTransform()
         at.scale(this.zoomLevel, this.zoomLevel)
         val transformedBounds = at.createTransformedShape(drawingFrame)
         this.workingSession.viewX = frame.bounds2D.centerX - transformedBounds.bounds2D.centerX
@@ -1020,7 +1027,7 @@ class SecondaryStructureDrawing(
         val heightRatio = selectionFrame.bounds2D!!.height * ratio / frame.bounds2D.height
         this.workingSession.zoomLevel =
             if (widthRatio > heightRatio) 1.0 / widthRatio else 1.0 / heightRatio
-        var at = AffineTransform()
+        val at = AffineTransform()
         at.scale(this.zoomLevel, this.zoomLevel)
         val transformedBounds = at.createTransformedShape(selectionFrame)
         this.workingSession.viewX = frame.bounds2D.centerX - transformedBounds.bounds2D.centerX
@@ -1121,6 +1128,7 @@ class SecondaryStructureDrawing(
                             this.workingSession.branchesDrawn.add(branches.first())
                         }
                     }
+
                     is SingleStrandDrawing -> {
                         val ss = this.residues.first().parent as SingleStrandDrawing
                         at.transform(ss.line.p1, p)
@@ -1144,6 +1152,7 @@ class SecondaryStructureDrawing(
                             this.workingSession.branchesDrawn.add(branches.last())
                         }
                     }
+
                     is SingleStrandDrawing -> {
                         val ss = this.residues.last().parent as SingleStrandDrawing
                         at.transform(ss.line.p2, p)
@@ -1416,7 +1425,7 @@ class SecondaryStructureDrawing(
         at.translate(this.workingSession.viewX, this.workingSession.viewY)
         at.scale(this.workingSession.zoomLevel, this.workingSession.zoomLevel)
 
-        var bufferedImage: BufferedImage?
+        val bufferedImage: BufferedImage?
         bufferedImage = BufferedImage(
             frame.width.toInt(),
             frame.height.toInt(),
@@ -1458,7 +1467,7 @@ class SecondaryStructureDrawing(
         at.translate(this.workingSession.viewX, this.workingSession.viewY)
         at.scale(this.workingSession.zoomLevel, this.workingSession.zoomLevel)
 
-        var bufferedImage: BufferedImage?
+        val bufferedImage: BufferedImage?
         bufferedImage = BufferedImage(
             frame.width.toInt(),
             frame.height.toInt(),
@@ -1528,7 +1537,7 @@ class SecondaryStructureDrawing(
     fun asChimeraScript(outputFile: File) {
         val chainName: String = this.secondaryStructure.rna.name
         //if no numbering system, we generate a fake one to be able to generate the ChimeraX script
-        var numberingSystem: List<String> =
+        val numberingSystem: List<String> =
             this.secondaryStructure.rna.tertiary_structure_numbering_system?.values?.toList()
                 ?: (1..this.secondaryStructure.rna.length).map { it.toString() }
         val colors2residues = mutableMapOf<String, MutableList<ResidueDrawing>>()
@@ -1542,7 +1551,7 @@ class SecondaryStructureDrawing(
             is PDBSource -> {
                 var command =
                     StringBuffer("open \"https://files.rcsb.org/download/${(this.secondaryStructure.source as PDBSource).pdbId}.pdb\"${System.lineSeparator()}")
-                colors2residues.forEach { colorCode, residues ->
+                colors2residues.forEach { (colorCode, residues) ->
                     command.append("color /${chainName}:")
                     residues.forEach {
                         command.append("${numberingSystem[it.absPos - 1]},")
@@ -1553,11 +1562,12 @@ class SecondaryStructureDrawing(
                 }
                 outputFile.writeText(command.toString())
             }
+
             is FileSource -> {
                 if ((this.secondaryStructure.source as FileSource).fileName.endsWith("pdb")) {
                     var command =
                         StringBuffer("open \"${(this.secondaryStructure.source as FileSource).fileName}\"${System.lineSeparator()}")
-                    colors2residues.forEach { colorCode, residues ->
+                    colors2residues.forEach { (colorCode, residues) ->
                         command.append("color /${chainName}:")
                         residues.forEach {
                             command.append("${numberingSystem[it.absPos - 1]},")
@@ -1572,8 +1582,8 @@ class SecondaryStructureDrawing(
         }
         this.secondaryStructure.tertiaryStructure?.let { tertiaryStructure ->
             //we output the file with the geometric shapes simplifying the 3D structure
-            var bldFile = File(outputFile.parent, "${outputFile.name.split(".cxc").first()}.bld")
-            var bldInstructions = StringBuffer()
+            val bldFile = File(outputFile.parent, "${outputFile.name.split(".cxc").first()}.bld")
+            val bldInstructions = StringBuffer()
             val helices2Ends = mutableMapOf<String, Pair<Triple<Float, Float, Float>, Triple<Float, Float, Float>>>()
             this.secondaryStructure.helices.forEach { helix ->
                 val firstbp = helix.secondaryInteractions.first()
@@ -1593,45 +1603,45 @@ class SecondaryStructureDrawing(
 
                 when (r) {
                     is Adenine3D -> {
-                        atom1 = r.atoms.find { it.name.equals("N1") }
-                        atom2 = r.atoms.find { it.name.equals("N6") }
+                        atom1 = r.atoms.find { it.name == "N1" }
+                        atom2 = r.atoms.find { it.name == "N6" }
                     }
 
                     is Guanine3D -> {
-                        atom1 = r.atoms.find { it.name.equals("N1") }
-                        atom2 = r.atoms.find { it.name.equals("O6") }
+                        atom1 = r.atoms.find { it.name == "N1" }
+                        atom2 = r.atoms.find { it.name == "O6" }
                     }
 
                     is Cytosine3D -> {
-                        atom1 = r.atoms.find { it.name.equals("N3") }
-                        atom2 = r.atoms.find { it.name.equals("N4") }
+                        atom1 = r.atoms.find { it.name == "N3" }
+                        atom2 = r.atoms.find { it.name == "N4" }
                     }
 
                     is Uracil3D -> {
-                        atom1 = r.atoms.find { it.name.equals("N3") }
-                        atom2 = r.atoms.find { it.name.equals("O4") }
+                        atom1 = r.atoms.find { it.name == "N3" }
+                        atom2 = r.atoms.find { it.name == "O4" }
                     }
                 }
 
                 when (paired) {
                     is Adenine3D -> {
-                        pairedAtom1 = paired.atoms.find { it.name.equals("N1") }
-                        pairedAtom2 = paired.atoms.find { it.name.equals("N6") }
+                        pairedAtom1 = paired.atoms.find { it.name == "N1" }
+                        pairedAtom2 = paired.atoms.find { it.name == "N6" }
                     }
 
                     is Guanine3D -> {
-                        pairedAtom1 = paired.atoms.find { it.name.equals("N1") }
-                        pairedAtom2 = paired.atoms.find { it.name.equals("O6") }
+                        pairedAtom1 = paired.atoms.find { it.name == "N1" }
+                        pairedAtom2 = paired.atoms.find { it.name == "O6" }
                     }
 
                     is Cytosine3D -> {
-                        pairedAtom1 = paired.atoms.find { it.name.equals("N3") }
-                        pairedAtom2 = paired.atoms.find { it.name.equals("N4") }
+                        pairedAtom1 = paired.atoms.find { it.name == "N3" }
+                        pairedAtom2 = paired.atoms.find { it.name == "N4" }
                     }
 
                     is Uracil3D -> {
-                        pairedAtom1 = paired.atoms.find { it.name.equals("N3") }
-                        pairedAtom2 = paired.atoms.find { it.name.equals("O4") }
+                        pairedAtom1 = paired.atoms.find { it.name == "N3" }
+                        pairedAtom2 = paired.atoms.find { it.name == "O4" }
                     }
                 }
 
@@ -1639,12 +1649,12 @@ class SecondaryStructureDrawing(
                     atom2?.let { atom2 ->
                         pairedAtom1?.let { pairedAtom1 ->
                             pairedAtom2?.let { pairedAtom2 ->
-                                var middle1 = Triple(
+                                val middle1 = Triple(
                                     (atom1.x!! + pairedAtom1.x!!) / 2f,
                                     (atom1.y!! + pairedAtom1.y!!) / 2f,
                                     (atom1.z!! + pairedAtom1.z!!) / 2f
                                 )
-                                var middle2 = Triple(
+                                val middle2 = Triple(
                                     (atom2.x!! + pairedAtom2.x!!) / 2f,
                                     (atom2.y!! + pairedAtom2.y!!) / 2f,
                                     (atom2.z!! + pairedAtom2.z!!) / 2f
@@ -1664,45 +1674,45 @@ class SecondaryStructureDrawing(
 
                 when (_r) {
                     is Adenine3D -> {
-                        atom1 = _r.atoms.find { it.name.equals("N1") }
-                        atom2 = _r.atoms.find { it.name.equals("N6") }
+                        atom1 = _r.atoms.find { it.name == "N1" }
+                        atom2 = _r.atoms.find { it.name == "N6" }
                     }
 
                     is Guanine3D -> {
-                        atom1 = _r.atoms.find { it.name.equals("N1") }
-                        atom2 = _r.atoms.find { it.name.equals("O6") }
+                        atom1 = _r.atoms.find { it.name == "N1" }
+                        atom2 = _r.atoms.find { it.name == "O6" }
                     }
 
                     is Cytosine3D -> {
-                        atom1 = _r.atoms.find { it.name.equals("N3") }
-                        atom2 = _r.atoms.find { it.name.equals("N4") }
+                        atom1 = _r.atoms.find { it.name == "N3" }
+                        atom2 = _r.atoms.find { it.name == "N4" }
                     }
 
                     is Uracil3D -> {
-                        atom1 = _r.atoms.find { it.name.equals("N3") }
-                        atom2 = _r.atoms.find { it.name.equals("O4") }
+                        atom1 = _r.atoms.find { it.name == "N3" }
+                        atom2 = _r.atoms.find { it.name == "O4" }
                     }
                 }
 
                 when (_paired) {
                     is Adenine3D -> {
-                        pairedAtom1 = _paired.atoms.find { it.name.equals("N1") }
-                        pairedAtom2 = _paired.atoms.find { it.name.equals("N6") }
+                        pairedAtom1 = _paired.atoms.find { it.name == "N1" }
+                        pairedAtom2 = _paired.atoms.find { it.name == "N6" }
                     }
 
                     is Guanine3D -> {
-                        pairedAtom1 = _paired.atoms.find { it.name.equals("N1") }
-                        pairedAtom2 = _paired.atoms.find { it.name.equals("O6") }
+                        pairedAtom1 = _paired.atoms.find { it.name == "N1" }
+                        pairedAtom2 = _paired.atoms.find { it.name == "O6" }
                     }
 
                     is Cytosine3D -> {
-                        pairedAtom1 = _paired.atoms.find { it.name.equals("N3") }
-                        pairedAtom2 = _paired.atoms.find { it.name.equals("N4") }
+                        pairedAtom1 = _paired.atoms.find { it.name == "N3" }
+                        pairedAtom2 = _paired.atoms.find { it.name == "N4" }
                     }
 
                     is Uracil3D -> {
-                        pairedAtom1 = _paired.atoms.find { it.name.equals("N3") }
-                        pairedAtom2 = _paired.atoms.find { it.name.equals("O4") }
+                        pairedAtom1 = _paired.atoms.find { it.name == "N3" }
+                        pairedAtom2 = _paired.atoms.find { it.name == "O4" }
                     }
                 }
 
@@ -1710,12 +1720,12 @@ class SecondaryStructureDrawing(
                     atom2?.let {
                         pairedAtom1?.let {
                             pairedAtom2?.let {
-                                var middle1 = Triple(
+                                val middle1 = Triple(
                                     (atom1.x!! + pairedAtom1.x!!) / 2f,
                                     (atom1.y!! + pairedAtom1.y!!) / 2f,
                                     (atom1.z!! + pairedAtom1.z!!) / 2f
                                 )
-                                var middle2 = Triple(
+                                val middle2 = Triple(
                                     (atom2.x!! + pairedAtom2.x!!) / 2f,
                                     (atom2.y!! + pairedAtom2.y!!) / 2f,
                                     (atom2.z!! + pairedAtom2.z!!) / 2f
@@ -1747,13 +1757,13 @@ class SecondaryStructureDrawing(
 
             this.secondaryStructure.junctions.forEach { junction ->
 
-                var allX = mutableListOf<Float>()
-                var allY = mutableListOf<Float>()
-                var allZ = mutableListOf<Float>()
+                val allX = mutableListOf<Float>()
+                val allY = mutableListOf<Float>()
+                val allZ = mutableListOf<Float>()
 
                 junction.location.positions.forEach { pos ->
                     val r = tertiaryStructure.residues.filter { pos == it.absolutePosition }.first()
-                    val a = r.atoms.find { it.name.equals("C1'") }
+                    val a = r.atoms.find { it.name == "C1'" }
                     a?.let {
                         allX.add(a.x!!)
                         allY.add(a.y!!)
@@ -1765,7 +1775,8 @@ class SecondaryStructureDrawing(
                 val color = this.allJunctions.find { it.junction == junction }!!.getColor()
                 bldInstructions.append(".color ${color.red.toFloat() / 255f} ${color.green.toFloat() / 255f} ${color.blue.toFloat() / 255f}${System.lineSeparator()}")
                 bldInstructions.append(".sphere ${allX.average()} ${allY.average()} ${allZ.average()} 3${System.lineSeparator()}")
-                junctions2Center[junction.name] = Triple(allX.average().toFloat(), allY.average().toFloat(), allZ.average().toFloat())
+                junctions2Center[junction.name] =
+                    Triple(allX.average().toFloat(), allY.average().toFloat(), allZ.average().toFloat())
 
             }
 
@@ -1789,7 +1800,7 @@ class SecondaryStructureDrawing(
                                         currentHelix = h
                                         currentDomains.add(currentHelix)
                                         currentJunction =
-                                            if (currentJunction.equals(currentHelix.junctionsLinked.first)) currentHelix.junctionsLinked.second!! else currentHelix.junctionsLinked.first!!
+                                            if (currentJunction == currentHelix.junctionsLinked.first) currentHelix.junctionsLinked.second!! else currentHelix.junctionsLinked.first!!
                                     }
                                 }
                                 currentDomains.add(currentJunction)
@@ -1811,7 +1822,7 @@ class SecondaryStructureDrawing(
                                         currentHelix = h
                                         currentDomains.add(currentHelix)
                                         currentJunction =
-                                            if (currentJunction.equals(currentHelix.junctionsLinked.first)) currentHelix.junctionsLinked.second!! else currentHelix.junctionsLinked.first!!
+                                            if (currentJunction == currentHelix.junctionsLinked.first) currentHelix.junctionsLinked.second!! else currentHelix.junctionsLinked.first!!
                                     }
                                 }
                                 currentDomains.add(currentJunction)
@@ -1827,7 +1838,11 @@ class SecondaryStructureDrawing(
                             is Junction -> {
                                 this.allJunctions.find { it.junction == sd }?.let { junctionDrawing ->
                                     bldInstructions.append(".color 1.0 1.0 1.0${System.lineSeparator()}")
-                                    val newEnd = getPoint(helices2Ends[junctionDrawing.inHelix.name]!!.second, junctions2Center[sd.name]!!, -3.0f)
+                                    val newEnd = getPoint(
+                                        helices2Ends[junctionDrawing.inHelix.name]!!.second,
+                                        junctions2Center[sd.name]!!,
+                                        -3.0f
+                                    )
                                     bldInstructions.append(".arrow ${helices2Ends[junctionDrawing.inHelix.name]!!.second.first} ${helices2Ends[junctionDrawing.inHelix.name]!!.second.second} ${helices2Ends[junctionDrawing.inHelix.name]!!.second.third} ${newEnd.first} ${newEnd.second} ${newEnd.third} 0.5 1.0${System.lineSeparator()}")
                                     sd.helicesLinked.forEach {
                                         if (it != junctionDrawing.inHelix) {
@@ -1846,8 +1861,8 @@ class SecondaryStructureDrawing(
 
             secondaryStructure.singleStrands.filter { it.start != 1 && it.end != secondaryStructure.rna.length }
                 .forEach { single_strand ->
-                    var h1 = secondaryStructure.helices.find { it.ends.contains(single_strand.start - 1) }!!
-                    var h2 = secondaryStructure.helices.find { it.ends.contains(single_strand.end + 1) }!!
+                    val h1 = secondaryStructure.helices.find { it.ends.contains(single_strand.start - 1) }!!
+                    val h2 = secondaryStructure.helices.find { it.ends.contains(single_strand.end + 1) }!!
                     bldInstructions.append(".color 1.0 1.0 1.0${System.lineSeparator()}")
                     bldInstructions.append(".arrow ${helices2Ends[h1.name]!!.first.first} ${helices2Ends[h1.name]!!.first.second} ${helices2Ends[h1.name]!!.first.third} ${helices2Ends[h2.name]!!.first.first} ${helices2Ends[h2.name]!!.first.second} ${helices2Ends[h2.name]!!.first.third} 0.5 1.0${System.lineSeparator()}")
                 }
@@ -1868,7 +1883,11 @@ class SecondaryStructureDrawing(
 
     }
 
-    fun getPoint(p1: Triple<Float, Float, Float>, p2: Triple<Float, Float, Float>, distance: Float):Triple<Float,Float,Float> {
+    fun getPoint(
+        p1: Triple<Float, Float, Float>,
+        p2: Triple<Float, Float, Float>,
+        distance: Float
+    ): Triple<Float, Float, Float> {
         val distX = p2.first - p1.first
         val distY = p2.second - p1.second
         val distZ = p2.third - p1.third
@@ -1879,7 +1898,11 @@ class SecondaryStructureDrawing(
             distZ / sqrt(distX * distX + distY * distY + distZ * distZ)
         )
 
-        return Triple(p2.first+distance*normalizedVector.first, p2.second+distance*normalizedVector.second, p2.third+distance*normalizedVector.third)
+        return Triple(
+            p2.first + distance * normalizedVector.first,
+            p2.second + distance * normalizedVector.second,
+            p2.third + distance * normalizedVector.third
+        )
 
     }
 
@@ -2006,45 +2029,45 @@ h_residues.data.materials.append(mat)"""
 
                 when (r) {
                     is Adenine3D -> {
-                        atom1 = r.atoms.find { it.name.equals("N1") }
-                        atom2 = r.atoms.find { it.name.equals("N6") }
+                        atom1 = r.atoms.find { it.name == "N1" }
+                        atom2 = r.atoms.find { it.name == "N6" }
                     }
 
                     is Guanine3D -> {
-                        atom1 = r.atoms.find { it.name.equals("N1") }
-                        atom2 = r.atoms.find { it.name.equals("O6") }
+                        atom1 = r.atoms.find { it.name == "N1" }
+                        atom2 = r.atoms.find { it.name == "O6" }
                     }
 
                     is Cytosine3D -> {
-                        atom1 = r.atoms.find { it.name.equals("N3") }
-                        atom2 = r.atoms.find { it.name.equals("N4") }
+                        atom1 = r.atoms.find { it.name == "N3" }
+                        atom2 = r.atoms.find { it.name == "N4" }
                     }
 
                     is Uracil3D -> {
-                        atom1 = r.atoms.find { it.name.equals("N3") }
-                        atom2 = r.atoms.find { it.name.equals("O4") }
+                        atom1 = r.atoms.find { it.name == "N3" }
+                        atom2 = r.atoms.find { it.name == "O4" }
                     }
                 }
 
                 when (paired) {
                     is Adenine3D -> {
-                        pairedAtom1 = paired.atoms.find { it.name.equals("N1") }
-                        pairedAtom2 = paired.atoms.find { it.name.equals("N6") }
+                        pairedAtom1 = paired.atoms.find { it.name == "N1" }
+                        pairedAtom2 = paired.atoms.find { it.name == "N6" }
                     }
 
                     is Guanine3D -> {
-                        pairedAtom1 = paired.atoms.find { it.name.equals("N1") }
-                        pairedAtom2 = paired.atoms.find { it.name.equals("O6") }
+                        pairedAtom1 = paired.atoms.find { it.name == "N1" }
+                        pairedAtom2 = paired.atoms.find { it.name == "O6" }
                     }
 
                     is Cytosine3D -> {
-                        pairedAtom1 = paired.atoms.find { it.name.equals("N3") }
-                        pairedAtom2 = paired.atoms.find { it.name.equals("N4") }
+                        pairedAtom1 = paired.atoms.find { it.name == "N3" }
+                        pairedAtom2 = paired.atoms.find { it.name == "N4" }
                     }
 
                     is Uracil3D -> {
-                        pairedAtom1 = paired.atoms.find { it.name.equals("N3") }
-                        pairedAtom2 = paired.atoms.find { it.name.equals("O4") }
+                        pairedAtom1 = paired.atoms.find { it.name == "N3" }
+                        pairedAtom2 = paired.atoms.find { it.name == "O4" }
                     }
                 }
 
@@ -2052,12 +2075,12 @@ h_residues.data.materials.append(mat)"""
                     atom2?.let { atom2 ->
                         pairedAtom1?.let { pairedAtom1 ->
                             pairedAtom2?.let { pairedAtom2 ->
-                                var middle1 = Triple(
+                                val middle1 = Triple(
                                     (atom1.x!! + pairedAtom1.x!!) / 2f,
                                     (atom1.y!! + pairedAtom1.y!!) / 2f,
                                     (atom1.z!! + pairedAtom1.z!!) / 2f
                                 )
-                                var middle2 = Triple(
+                                val middle2 = Triple(
                                     (atom2.x!! + pairedAtom2.x!!) / 2f,
                                     (atom2.y!! + pairedAtom2.y!!) / 2f,
                                     (atom2.z!! + pairedAtom2.z!!) / 2f
@@ -2077,45 +2100,45 @@ h_residues.data.materials.append(mat)"""
 
                 when (_r) {
                     is Adenine3D -> {
-                        atom1 = _r.atoms.find { it.name.equals("N1") }
-                        atom2 = _r.atoms.find { it.name.equals("N6") }
+                        atom1 = _r.atoms.find { it.name == "N1" }
+                        atom2 = _r.atoms.find { it.name == "N6" }
                     }
 
                     is Guanine3D -> {
-                        atom1 = _r.atoms.find { it.name.equals("N1") }
-                        atom2 = _r.atoms.find { it.name.equals("O6") }
+                        atom1 = _r.atoms.find { it.name == "N1" }
+                        atom2 = _r.atoms.find { it.name == "O6" }
                     }
 
                     is Cytosine3D -> {
-                        atom1 = _r.atoms.find { it.name.equals("N3") }
-                        atom2 = _r.atoms.find { it.name.equals("N4") }
+                        atom1 = _r.atoms.find { it.name == "N3" }
+                        atom2 = _r.atoms.find { it.name == "N4" }
                     }
 
                     is Uracil3D -> {
-                        atom1 = _r.atoms.find { it.name.equals("N3") }
-                        atom2 = _r.atoms.find { it.name.equals("O4") }
+                        atom1 = _r.atoms.find { it.name == "N3" }
+                        atom2 = _r.atoms.find { it.name == "O4" }
                     }
                 }
 
                 when (_paired) {
                     is Adenine3D -> {
-                        pairedAtom1 = _paired.atoms.find { it.name.equals("N1") }
-                        pairedAtom2 = _paired.atoms.find { it.name.equals("N6") }
+                        pairedAtom1 = _paired.atoms.find { it.name == "N1" }
+                        pairedAtom2 = _paired.atoms.find { it.name == "N6" }
                     }
 
                     is Guanine3D -> {
-                        pairedAtom1 = _paired.atoms.find { it.name.equals("N1") }
-                        pairedAtom2 = _paired.atoms.find { it.name.equals("O6") }
+                        pairedAtom1 = _paired.atoms.find { it.name == "N1" }
+                        pairedAtom2 = _paired.atoms.find { it.name == "O6" }
                     }
 
                     is Cytosine3D -> {
-                        pairedAtom1 = _paired.atoms.find { it.name.equals("N3") }
-                        pairedAtom2 = _paired.atoms.find { it.name.equals("N4") }
+                        pairedAtom1 = _paired.atoms.find { it.name == "N3" }
+                        pairedAtom2 = _paired.atoms.find { it.name == "N4" }
                     }
 
                     is Uracil3D -> {
-                        pairedAtom1 = _paired.atoms.find { it.name.equals("N3") }
-                        pairedAtom2 = _paired.atoms.find { it.name.equals("O4") }
+                        pairedAtom1 = _paired.atoms.find { it.name == "N3" }
+                        pairedAtom2 = _paired.atoms.find { it.name == "O4" }
                     }
                 }
 
@@ -2123,12 +2146,12 @@ h_residues.data.materials.append(mat)"""
                     atom2?.let {
                         pairedAtom1?.let {
                             pairedAtom2?.let {
-                                var middle1 = Triple(
+                                val middle1 = Triple(
                                     (atom1.x!! + pairedAtom1.x!!) / 2f,
                                     (atom1.y!! + pairedAtom1.y!!) / 2f,
                                     (atom1.z!! + pairedAtom1.z!!) / 2f
                                 )
-                                var middle2 = Triple(
+                                val middle2 = Triple(
                                     (atom2.x!! + pairedAtom2.x!!) / 2f,
                                     (atom2.y!! + pairedAtom2.y!!) / 2f,
                                     (atom2.z!! + pairedAtom2.z!!) / 2f
@@ -2180,7 +2203,7 @@ backbone_spline.points.add(${strandLocation.length - 1})"""
                     tertiaryStructure.residues.filter { it.absolutePosition in strandLocation.start..strandLocation.end }
                         .forEach {
 
-                            it.atoms.find { it.name.equals("C4'") }?.let {
+                            it.atoms.find { it.name == "C4'" }?.let {
                                 allX.add(it.x!!)
                                 allY.add(it.y!!)
                                 allZ.add(it.z!!)
@@ -2199,7 +2222,7 @@ residue_spline.use_endpoint_u = True
 residue_spline.points.add(1)
 """
                                 )
-                                it.atoms.find { it.name.equals("C4'") }?.let {
+                                it.atoms.find { it.name == "C4'" }?.let {
                                     allX.add(it.x!!)
                                     allY.add(it.y!!)
                                     allZ.add(it.z!!)
@@ -2208,7 +2231,7 @@ residue_spline.points.add(1)
 residue_spline.points[0].co = (${it.x}, ${it.y}, ${it.z}, 1)"""
                                     )
                                 }
-                                it.atoms.find { it.name.equals("N1") }?.let {
+                                it.atoms.find { it.name == "N1" }?.let {
                                     script.append(
                                         """
 residue_spline.points[1].co = (${it.x}, ${it.y}, ${it.z}, 1)"""
@@ -2224,7 +2247,7 @@ residue_spline.use_endpoint_u = True
 residue_spline.points.add(1)
 """
                                 )
-                                it.atoms.find { it.name.equals("C4'") }?.let {
+                                it.atoms.find { it.name == "C4'" }?.let {
                                     allX.add(it.x!!)
                                     allY.add(it.y!!)
                                     allZ.add(it.z!!)
@@ -2233,7 +2256,7 @@ residue_spline.points.add(1)
 residue_spline.points[0].co = (${it.x}, ${it.y}, ${it.z}, 1)"""
                                     )
                                 }
-                                it.atoms.find { it.name.equals("N3") }?.let {
+                                it.atoms.find { it.name == "N3" }?.let {
                                     script.append(
                                         """
 residue_spline.points[1].co = (${it.x}, ${it.y}, ${it.z}, 1)"""
@@ -2290,7 +2313,7 @@ backbone_spline.points.add(${strandLocation.length - 1})"""
                     var residue_index = 0
                     tertiaryStructure.residues.filter { it.absolutePosition in strandLocation.start..strandLocation.end }
                         .forEach {
-                            it.atoms.find { it.name.equals("C4'") }?.let {
+                            it.atoms.find { it.name == "C4'" }?.let {
                                 allX.add(it.x!!)
                                 allY.add(it.y!!)
                                 allZ.add(it.z!!)
@@ -2307,7 +2330,7 @@ residue_spline = residues_curve.splines.new('NURBS')
 residue_spline.use_endpoint_u = True
 residue_spline.points.add(1)"""
                                 )
-                                it.atoms.find { it.name.equals("C4'") }?.let {
+                                it.atoms.find { it.name == "C4'" }?.let {
                                     allX.add(it.x!!)
                                     allY.add(it.y!!)
                                     allZ.add(it.z!!)
@@ -2316,7 +2339,7 @@ residue_spline.points.add(1)"""
 residue_spline.points[0].co = (${it.x}, ${it.y}, ${it.z}, 1)"""
                                     )
                                 }
-                                it.atoms.find { it.name.equals("N1") }?.let {
+                                it.atoms.find { it.name == "N1" }?.let {
                                     script.append(
                                         """
 residue_spline.points[1].co = (${it.x}, ${it.y}, ${it.z}, 1)"""
@@ -2331,7 +2354,7 @@ residue_spline = residues_curve.splines.new('NURBS')
 residue_spline.use_endpoint_u = True
 residue_spline.points.add(1)"""
                                 )
-                                it.atoms.find { it.name.equals("C4'") }?.let {
+                                it.atoms.find { it.name == "C4'" }?.let {
                                     allX.add(it.x!!)
                                     allY.add(it.y!!)
                                     allZ.add(it.z!!)
@@ -2340,7 +2363,7 @@ residue_spline.points.add(1)"""
 residue_spline.points[0].co = (${it.x}, ${it.y}, ${it.z}, 1)"""
                                     )
                                 }
-                                it.atoms.find { it.name.equals("N3") }?.let {
+                                it.atoms.find { it.name == "N3" }?.let {
                                     script.append(
                                         """
 residue_spline.points[1].co = (${it.x}, ${it.y}, ${it.z}, 1)"""
@@ -2425,7 +2448,7 @@ full_curve_spline.use_endpoint_u = True"""
                                     currentHelix = h
                                     currentDomains.add(currentHelix)
                                     currentJunction =
-                                        if (currentJunction.equals(currentHelix.junctionsLinked.first)) currentHelix.junctionsLinked.second!! else currentHelix.junctionsLinked.first!!
+                                        if (currentJunction == currentHelix.junctionsLinked.first) currentHelix.junctionsLinked.second!! else currentHelix.junctionsLinked.first!!
                                 }
                             }
                             currentDomains.add(currentJunction)
@@ -2447,7 +2470,7 @@ full_curve_spline.use_endpoint_u = True"""
                                     currentHelix = h
                                     currentDomains.add(currentHelix)
                                     currentJunction =
-                                        if (currentJunction.equals(currentHelix.junctionsLinked.first)) currentHelix.junctionsLinked.second!! else currentHelix.junctionsLinked.first!!
+                                        if (currentJunction == currentHelix.junctionsLinked.first) currentHelix.junctionsLinked.second!! else currentHelix.junctionsLinked.first!!
                                 }
                             }
                             currentDomains.add(currentJunction)
@@ -2476,6 +2499,7 @@ full_curve_index += 1"""
                             )
 
                         }
+
                         is Junction -> {
 
                             script.append(
@@ -2501,8 +2525,8 @@ full_curve_spline = full_curve.splines.new('NURBS')
 full_curve_spline.use_endpoint_u = True
 full_curve_spline.points.add(1)"""
                 )
-                var h1 = secondaryStructure.helices.find { it.ends.contains(single_strand.start - 1) }!!
-                var h2 = secondaryStructure.helices.find { it.ends.contains(single_strand.end + 1) }!!
+                val h1 = secondaryStructure.helices.find { it.ends.contains(single_strand.start - 1) }!!
+                val h2 = secondaryStructure.helices.find { it.ends.contains(single_strand.end + 1) }!!
                 script.append(
                     """
 #helix ${h1.name}
@@ -2651,7 +2675,7 @@ abstract class ResidueDrawing(
     override fun applyTheme(theme: Theme) {
         theme.configurations.forEach { configuration ->
             if (configuration.selector(this)) {
-                this.drawingConfiguration.params[configuration.parameterName] = configuration.parameterValue(this)
+                this.drawingConfiguration.params[configuration.propertyName] = configuration.propertyValue(this)
             }
         }
         this.children.map { it.applyTheme(theme) }
@@ -2902,7 +2926,7 @@ abstract class ResidueDrawing(
                 )
                 var i = 1
                 while (i < n) {
-                    var _p = pointsFrom(
+                    val _p = pointsFrom(
                         Point2D.Double(
                             (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
                             (p as Pair<Point2D, Point2D>).first.y
@@ -2950,7 +2974,7 @@ abstract class ResidueDrawing(
                 )
                 var i = 1
                 while (i < n) {
-                    var _p = pointsFrom(
+                    val _p = pointsFrom(
                         Point2D.Double(
                             (p as Pair<Point2D, Point2D>).first.x - numberDim.width / (2.0 * ssDrawing.zoomLevel),
                             (p as Pair<Point2D, Point2D>).first.y
@@ -3038,7 +3062,7 @@ abstract class ResidueLetterDrawing(
         get() = listOf()
 
     init {
-        this.drawingConfiguration.params[ThemeParameter.color.toString()] = getHTMLColorString(Color.WHITE)
+        this.drawingConfiguration.params[ThemeProperty.color.toString()] = getHTMLColorString(Color.WHITE)
     }
 
     override val selectionPoints: List<Point2D>
@@ -3295,7 +3319,7 @@ class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, private val pknot: Pkno
 
     init {
         for (h in ssDrawing.allHelices) {
-            if (h.helix.equals(pknot.helix)) {
+            if (h.helix == pknot.helix) {
                 this.helix = h
                 break
             }
@@ -3391,23 +3415,23 @@ class HelixDrawing(
     override fun applyTheme(theme: Theme) {
         theme.configurations.forEach { configuration ->
             if (configuration.selector(this)) {
-                this.drawingConfiguration.params[configuration.parameterName] = configuration.parameterValue(this)
+                this.drawingConfiguration.params[configuration.propertyName] = configuration.propertyValue(this)
                 //an helix will forward color and lines to its children
-                when (configuration.parameterName) {
-                    ThemeParameter.color.toString(), ThemeParameter.linewidth.toString() -> {
+                when (configuration.propertyName) {
+                    ThemeProperty.color.toString(), ThemeProperty.linewidth.toString() -> {
                         var t = Theme()
                         t.addConfiguration(
                             { e -> e.type == SecondaryStructureType.PhosphodiesterBond },
-                            ThemeParameter.valueOf(configuration.parameterName),
-                            configuration.parameterValue
+                            ThemeProperty.valueOf(configuration.propertyName),
+                            configuration.propertyValue
                         )
                         for (p in this.phosphoBonds)
                             p.applyTheme(t)
                         t = Theme()
                         t.addConfiguration(
                             { e -> e.type == SecondaryStructureType.SecondaryInteraction },
-                            ThemeParameter.valueOf(configuration.parameterName),
-                            configuration.parameterValue
+                            ThemeProperty.valueOf(configuration.propertyName),
+                            configuration.propertyValue
                         )
                         for (i in this.secondaryInteractions)
                             i.applyTheme(t)
@@ -3483,7 +3507,10 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
     StructuralDomainDrawing(ssDrawing, null, ss.name, ss.location, SecondaryStructureType.SingleStrand) {
 
     override val children: List<DrawingElement>
-        get() = listOf(*this.phosphoBonds.toTypedArray(), *this.ssDrawing.getResiduesFromAbsPositions(*this.getSinglePositions()).toTypedArray())
+        get() = listOf(
+            *this.phosphoBonds.toTypedArray(),
+            *this.ssDrawing.getResiduesFromAbsPositions(*this.getSinglePositions()).toTypedArray()
+        )
 
     var line = Line2D.Double(start, end)
     val phosphoBonds = mutableListOf<PhosphodiesterBondDrawing>()
@@ -3620,23 +3647,23 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
     override fun applyTheme(theme: Theme) {
         theme.configurations.forEach { configuration ->
             if (configuration.selector(this)) {
-                this.drawingConfiguration.params[configuration.parameterName] = configuration.parameterValue(this)
+                this.drawingConfiguration.params[configuration.propertyName] = configuration.propertyValue(this)
                 //a single strand will forward color and lines to its children
-                when (configuration.parameterName) {
-                    ThemeParameter.color.toString(), ThemeParameter.linewidth.toString() -> {
+                when (configuration.propertyName) {
+                    ThemeProperty.color.toString(), ThemeProperty.linewidth.toString() -> {
                         var t = Theme()
                         t.addConfiguration(
                             { e -> e.type == SecondaryStructureType.PhosphodiesterBond },
-                            ThemeParameter.valueOf(configuration.parameterName),
-                            configuration.parameterValue
+                            ThemeProperty.valueOf(configuration.propertyName),
+                            configuration.propertyValue
                         )
                         for (p in this.phosphoBonds)
                             p.applyTheme(t)
                         t = Theme()
                         t.addConfiguration(
                             { e -> e.type == SecondaryStructureType.AShape || e.type == SecondaryStructureType.UShape || e.type == SecondaryStructureType.GShape || e.type == SecondaryStructureType.CShape || e.type == SecondaryStructureType.XShape },
-                            ThemeParameter.valueOf(configuration.parameterName),
-                            configuration.parameterValue
+                            ThemeProperty.valueOf(configuration.propertyName),
+                            configuration.propertyValue
                         )
                         for (r in this.ssDrawing.getResiduesFromAbsPositions(*this.getSinglePositions()))
                             r.applyTheme(t)
@@ -3668,7 +3695,7 @@ open class JunctionDrawing(
     var connectedJunctions = mutableMapOf<ConnectorId, JunctionDrawing>()
     val phosphoBonds = mutableListOf<PhosphodiesterBondDrawing>()
     val connectors: Array<Point2D> =
-        Array(ConnectorId.values().size, { Point2D.Float(0F, 0F) }) //the connector points on the circle
+        Array(ConnectorId.entries.size, { Point2D.Float(0F, 0F) }) //the connector points on the circle
     private val residuesWithClosingBasePairs: List<ResidueDrawing> =
         this.ssDrawing.getResiduesFromAbsPositions(*this.junction.location.positions.toIntArray())
 
@@ -3796,35 +3823,35 @@ open class JunctionDrawing(
                 var to: ConnectorId
 
                 from = if (helixRank == 1) {
-                    getConnectorId((inId.value + 1) % ConnectorId.values().size)
+                    getConnectorId((inId.value + 1) % ConnectorId.entries.size)
                 } else {
                     getConnectorId(
                         (junctionsBehaviors[this.junctionType]!!(
                             this,
                             helixRank - 1
-                        )!!.value + 1) % ConnectorId.values().size
+                        )!!.value + 1) % ConnectorId.entries.size
                     )
                 }
 
                 to = if (helixRank == this.junction.helicesLinked.size - 1) {
-                    val newRawValue = if (inId.value - 1 < 0) ConnectorId.values().size - 1 else inId.value - 1
+                    val newRawValue = if (inId.value - 1 < 0) ConnectorId.entries.size - 1 else inId.value - 1
                     getConnectorId(newRawValue)
                 } else {
                     val newRawValue = if (junctionsBehaviors[this.junctionType]!!(
                             this,
                             helixRank + 1
                         )!!.value - 1 < 0
-                    ) ConnectorId.values().size - 1 else junctionsBehaviors[this.junctionType]!!(
+                    ) ConnectorId.entries.size - 1 else junctionsBehaviors[this.junctionType]!!(
                         this,
                         helixRank + 1
                     )!!.value - 1
                     getConnectorId(newRawValue)
                 }
 
-                var orientationsToTest =
+                val orientationsToTest =
                     mutableListOf(outId) //we test outId first before to check the remaining orientations in order to avoid any overlap (if possible)
 
-                var afterOrientations = mutableListOf<ConnectorId>()
+                val afterOrientations = mutableListOf<ConnectorId>()
                 if (to != outId) {
                     afterOrientations.add(nextConnectorId(outId))
                     while (afterOrientations.last() != to) {
@@ -3836,7 +3863,7 @@ open class JunctionDrawing(
                     }
                 }
 
-                var beforeOrientations = mutableListOf<ConnectorId>()
+                val beforeOrientations = mutableListOf<ConnectorId>()
                 if (from != outId) {
                     beforeOrientations.add(
                         previousConnectorId(
@@ -3885,7 +3912,7 @@ open class JunctionDrawing(
                         nextRadius * 2F
                     )
 
-                    var nextPoints = mutableListOf<Point2D>()
+                    val nextPoints = mutableListOf<Point2D>()
                     nextPoints.add(this.connectors[outId.value])
                     nextPoints.add(inPoint)
 
@@ -3895,13 +3922,13 @@ open class JunctionDrawing(
                                 fine = false
                                 break@outerloop
                             }
-                            var diameter1 = Line2D.Double(
+                            val diameter1 = Line2D.Double(
                                 junctionDrawing.center.x,
                                 junctionDrawing.center.y - junctionDrawing.radius,
                                 junctionDrawing.center.x,
                                 junctionDrawing.center.y + junctionDrawing.radius
                             )
-                            var diameter2 = Line2D.Double(
+                            val diameter2 = Line2D.Double(
                                 junctionDrawing.center.x - junctionDrawing.radius,
                                 junctionDrawing.center.y,
                                 junctionDrawing.center.x + junctionDrawing.radius,
@@ -3937,13 +3964,13 @@ open class JunctionDrawing(
                                 fine = false
                                 break@outerloop
                             }
-                            var diameter1 = Line2D.Double(
+                            val diameter1 = Line2D.Double(
                                 nextCenter.x,
                                 nextCenter.y - nextRadius,
                                 nextCenter.x,
                                 nextCenter.y + nextRadius
                             )
-                            var diameter2 = Line2D.Double(
+                            val diameter2 = Line2D.Double(
                                 nextCenter.x - nextRadius,
                                 nextCenter.y,
                                 nextCenter.x + nextRadius,
@@ -3981,18 +4008,18 @@ open class JunctionDrawing(
 
                 this.currentLayout.add(
                     if (outId!!.value < this.inId.value)
-                        ConnectorId.values()
-                            .first { it.value == outId!!.value + ConnectorId.values().size - this.inId.value }
+                        ConnectorId.entries
+                            .first { it.value == outId.value + ConnectorId.entries.size - this.inId.value }
                     else
-                        ConnectorId.values()
-                            .first { it.value == Math.abs(outId!!.value - this.inId.value) }
+                        ConnectorId.entries
+                            .first { it.value == Math.abs(outId.value - this.inId.value) }
                 )
 
                 val h = HelixDrawing(
                     this,
                     ssDrawing,
                     helix,
-                    this.connectors[outId!!.value],
+                    this.connectors[outId.value],
                     inPoint
                 )
                 this.outHelices.add(h)
@@ -4031,26 +4058,26 @@ open class JunctionDrawing(
             this.radius * 2.toDouble()
         )
         //the (x,y) coords for the connectors
-        for (i in 1 until ConnectorId.values().size) {
-            this.connectors[(this.inId.value + i) % ConnectorId.values().size] =
+        for (i in 1 until ConnectorId.entries.size) {
+            this.connectors[(this.inId.value + i) % ConnectorId.entries.size] =
                 rotatePoint(
                     this.connectors[this.inId.value],
                     this.center,
-                    i * 360.0 / ConnectorId.values().size.toDouble()
+                    i * 360.0 / ConnectorId.entries.size.toDouble()
                 )
         }
         if (currentLayout.isNotEmpty()) {
             val sortedHelix =
                 this.junction.helicesLinked.sortedBy { it.start - (this.parent as HelixDrawing).helix.start }
-            var newConnectedJunctions =
+            val newConnectedJunctions =
                 mutableMapOf<ConnectorId, JunctionDrawing>() //we need to store the new connections in a temp dict otherwise the update of a connection could remove an old connection stored and not already checked.
             var helixRank = 0
             for (helix in sortedHelix) {
                 if (helix != (this.parent as HelixDrawing).helix) {
                     helixRank += 1
                     var inPoint: Point2D?
-                    val outId = ConnectorId.values()
-                        .first { it.value == (this.inId.value + this.currentLayout[helixRank - 1].value) % ConnectorId.values().size }
+                    val outId = ConnectorId.entries
+                        .firstOrNull { it.value == (this.inId.value + this.currentLayout[helixRank - 1].value) % ConnectorId.entries.size }
 
                     if (outId != null) {
                         //we compute the inPoint (center - self.connectors[connectorId] -[length helix*offset]- inPoint)
@@ -4105,7 +4132,7 @@ open class JunctionDrawing(
 
                             connectedJunction.value.setEntryPoint(
                                 getConnectorId(
-                                    (outId.value + ConnectorId.values().size / 2) % ConnectorId.values().size
+                                    (outId.value + ConnectorId.entries.size / 2) % ConnectorId.entries.size
                                 ), inPoint
                             )
                         }
@@ -4119,53 +4146,52 @@ open class JunctionDrawing(
     }
 
     override fun applyLayout(layout: Layout) {
-        layout.configurations.entries.forEach { entry ->
-            if (entry.key(this).first) {
-                when (entry.value.first) {
-                    LayoutParameter.out_ids.toString() -> {
-                        //if a new out_ids has been returned with the selection function (for example for an orthologuous junction with less outids than the junction defined in the consensus 2D
-                        entry.key(this).second?.let { out_ids ->
-                            var new_layout:String?
-                            if (out_ids.startsWith("+")) {
-                                var cycles = out_ids.split("+").last().toInt()
-                                new_layout = clockwise()
-                                while (cycles > 0)  {
-                                    new_layout?.let { layout ->
-                                        val connectors = layout.split(" ").map {
-                                            ConnectorId.valueOf(it)
-                                        }
-                                        currentLayout = connectors.toMutableList()
-                                        ssDrawing.computeResidues(this)
-                                        new_layout = clockwise()
+        layout.configurations.forEach { configuration ->
+            if (configuration.selector(this)) {
+                when (configuration.propertyName) {
+                    LayoutProperty.out_ids.toString() -> {
+                        val out_ids = configuration.propertyValue
+                        var new_layout:String?
+                        if (out_ids.startsWith("+")) {
+                            var cycles = out_ids.split("+").last().toInt()
+                            new_layout = clockwise()
+                            while (cycles > 0) {
+                                new_layout?.let { layout ->
+                                    val connectors = layout.split(" ").map {
+                                        ConnectorId.valueOf(it)
                                     }
-                                    cycles -= 1
+                                    currentLayout = connectors.toMutableList()
+                                    ssDrawing.computeResidues(this)
+                                    new_layout = clockwise()
                                 }
-                            } else if (out_ids.startsWith("-")) {
-                                var cycles = out_ids.split("-").last().toInt()
-                                new_layout = anticlockwise()
-                                while (cycles > 0)  {
-                                    new_layout?.let { layout ->
-                                        val connectors = layout.split(" ").map {
-                                            ConnectorId.valueOf(it)
-                                        }
-                                        currentLayout = connectors.toMutableList()
-                                        ssDrawing.computeResidues(this)
-                                        new_layout = anticlockwise()
-                                    }
-                                    cycles -= 1
-                                }
-                            } else {
-                                val connectors = out_ids.split(" ").map {
-                                    ConnectorId.valueOf(it)
-                                }
-                                currentLayout = connectors.toMutableList()
-                                ssDrawing.computeResidues(this)
+                                cycles -= 1
                             }
+                        } else if (out_ids.startsWith("-")) {
+                            var cycles = out_ids.split("-").last().toInt()
+                            new_layout = anticlockwise()
+                            while (cycles > 0) {
+                                new_layout?.let { layout ->
+                                    val connectors = layout.split(" ").map {
+                                        ConnectorId.valueOf(it)
+                                    }
+                                    currentLayout = connectors.toMutableList()
+                                    ssDrawing.computeResidues(this)
+                                    new_layout = anticlockwise()
+                                }
+                                cycles -= 1
+                            }
+                        } else {
+                            val connectors = out_ids.split(" ").map {
+                                ConnectorId.valueOf(it)
+                            }
+                            currentLayout = connectors.toMutableList()
+                            ssDrawing.computeResidues(this)
                         }
 
                     }
-                    LayoutParameter.radius.toString() -> {
-                        radius = entry.value.second.toDouble()
+
+                    LayoutProperty.radius.toString() -> {
+                        radius = configuration.propertyValue.toDouble()
                         ssDrawing.computeResidues(this)
                     }
                 }
@@ -4173,19 +4199,19 @@ open class JunctionDrawing(
         }
     }
 
-    fun clockwise():String? {
+    fun clockwise(): String? {
         val currentLayout = this.currentLayout
         if (currentLayout.last() != ConnectorId.sse) {
             val newLayout = mutableListOf<ConnectorId>()
             currentLayout.forEach {
-                newLayout.add(getConnectorId(it.value+1))
+                newLayout.add(getConnectorId(it.value + 1))
             }
             return newLayout.map { it.toString() }.joinToString(separator = " ")
         } else
             return null
     }
 
-    fun anticlockwise():String? {
+    fun anticlockwise(): String? {
         val currentLayout = this.currentLayout
         if (currentLayout.first() != ConnectorId.ssw) {
             val newLayout = mutableListOf<ConnectorId>()
@@ -4215,7 +4241,7 @@ open class JunctionDrawing(
     }
 
     fun helicesFromBranch(): List<HelixDrawing> {
-        var helices = mutableSetOf<HelixDrawing>()
+        val helices = mutableSetOf<HelixDrawing>()
         helices.add(parent as HelixDrawing)
         helices.addAll(this.outHelices)
         for ((_, j) in this.connectedJunctions) {
@@ -4273,23 +4299,23 @@ open class JunctionDrawing(
     override fun applyTheme(theme: Theme) {
         theme.configurations.forEach { configuration ->
             if (configuration.selector(this)) {
-                this.drawingConfiguration.params[configuration.parameterName] = configuration.parameterValue(this)
+                this.drawingConfiguration.params[configuration.propertyName] = configuration.propertyValue(this)
                 //a junction will forward color and lines to its children
-                when (configuration.parameterName) {
-                    ThemeParameter.color.toString(), ThemeParameter.linewidth.toString() -> {
+                when (configuration.propertyName) {
+                    ThemeProperty.color.toString(), ThemeProperty.linewidth.toString() -> {
                         var t = Theme()
                         t.addConfiguration(
                             { e -> e.type == SecondaryStructureType.PhosphodiesterBond },
-                            ThemeParameter.valueOf(configuration.parameterName),
-                            configuration.parameterValue
+                            ThemeProperty.valueOf(configuration.propertyName),
+                            configuration.propertyValue
                         )
                         for (p in this.phosphoBonds)
                             p.applyTheme(t)
                         t = Theme()
                         t.addConfiguration(
                             { e -> e.type == SecondaryStructureType.AShape || e.type == SecondaryStructureType.UShape || e.type == SecondaryStructureType.GShape || e.type == SecondaryStructureType.CShape || e.type == SecondaryStructureType.XShape },
-                            ThemeParameter.valueOf(configuration.parameterName),
-                            configuration.parameterValue
+                            ThemeProperty.valueOf(configuration.propertyName),
+                            configuration.propertyValue
                         )
                         for (i in this.residues)
                             i.applyTheme(t)
@@ -4355,6 +4381,7 @@ abstract class LWSymbolDrawing(
                     PathIterator.SEG_LINETO -> {
                         points.add(Point2D.Double(coords[0].toDouble(), coords[1].toDouble()))
                     }
+
                     PathIterator.SEG_MOVETO -> {
                         points.add(Point2D.Double(coords[0].toDouble(), coords[1].toDouble()))
                     }
@@ -4745,11 +4772,13 @@ class LWLine(
                 val (p2_1, _) = getPerpendicular(p2, p1, p2, symbolWidth / 6.0)
                 this.shape = Line2D.Double(p1_1, p2_1)
             }
+
             VSymbolPos.BOTTOM -> {
                 val (_, p1_2) = getPerpendicular(p1, p1, p2, symbolWidth / 6.0)
                 val (_, p2_2) = getPerpendicular(p2, p1, p2, symbolWidth / 6.0)
                 this.shape = Line2D.Double(p1_2, p2_2)
             }
+
             else -> this.shape = Line2D.Double(p1, p2)
         }
 
@@ -4865,6 +4894,7 @@ abstract class BaseBaseInteractionDrawing(
                     else -> CisWC(this, this.ssDrawing, location, inTertiaries)
                 }
             }
+
             Edge.Hoogsteen -> {
                 when (orientation) {
                     Orientation.cis -> CisHoogsteen(this, this.ssDrawing, location, inTertiaries)
@@ -4872,6 +4902,7 @@ abstract class BaseBaseInteractionDrawing(
                     else -> CisHoogsteen(this, this.ssDrawing, location, inTertiaries)
                 }
             }
+
             Edge.Sugar -> {
                 when (orientation) {
                     Orientation.cis -> if (right) CisRightSugar(
@@ -4880,12 +4911,14 @@ abstract class BaseBaseInteractionDrawing(
                         location,
                         inTertiaries
                     ) else CisLeftSugar(this, this.ssDrawing, location, inTertiaries)
+
                     Orientation.trans -> if (right) TransRightSugar(
                         this,
                         this.ssDrawing,
                         location,
                         inTertiaries
                     ) else TransLeftSugar(this, this.ssDrawing, location, inTertiaries)
+
                     else -> if (right) CisRightSugar(this, this.ssDrawing, location, inTertiaries) else CisLeftSugar(
                         this,
                         this.ssDrawing,
@@ -4894,6 +4927,7 @@ abstract class BaseBaseInteractionDrawing(
                     )
                 }
             }
+
             else -> { //if edge unknown
                 LWLine(this, this.ssDrawing, location, inTertiaries)
             }
@@ -4905,23 +4939,23 @@ abstract class BaseBaseInteractionDrawing(
     override fun applyTheme(theme: Theme) {
         theme.configurations.forEach { configuration ->
             if (configuration.selector(this)) {
-                this.drawingConfiguration.params[configuration.parameterName] = configuration.parameterValue(this)
+                this.drawingConfiguration.params[configuration.propertyName] = configuration.propertyValue(this)
                 //a secondary interaction will forward color and lines to its children
-                when (configuration.parameterName) {
-                    ThemeParameter.color.toString(), ThemeParameter.linewidth.toString() -> {
+                when (configuration.propertyName) {
+                    ThemeProperty.color.toString(), ThemeProperty.linewidth.toString() -> {
                         var t = Theme()
                         t.addConfiguration(
                             { e -> e.type == SecondaryStructureType.AShape || e.type == SecondaryStructureType.UShape || e.type == SecondaryStructureType.GShape || e.type == SecondaryStructureType.CShape || e.type == SecondaryStructureType.XShape },
-                            ThemeParameter.valueOf(configuration.parameterName),
-                            configuration.parameterValue
+                            ThemeProperty.valueOf(configuration.propertyName),
+                            configuration.propertyValue
                         )
                         this.residue.applyTheme(t)
                         this.pairedResidue.applyTheme(t)
                         t = Theme()
                         t.addConfiguration(
                             { e -> e.type == SecondaryStructureType.InteractionSymbol },
-                            ThemeParameter.valueOf(configuration.parameterName),
-                            configuration.parameterValue
+                            ThemeProperty.valueOf(configuration.propertyName),
+                            configuration.propertyValue
                         )
                         this.interactionSymbol.applyTheme(t)
                     }
@@ -5245,7 +5279,8 @@ class InteractionSymbolDrawing(
 ) {
 
     override val children: List<DrawingElement>
-        get() = this.defaultSymbol?.let { listOf(it, *this.lwSymbols.toTypedArray()) } ?: run {listOf(*this.lwSymbols.toTypedArray())}
+        get() = this.defaultSymbol?.let { listOf(it, *this.lwSymbols.toTypedArray()) }
+            ?: run { listOf(*this.lwSymbols.toTypedArray()) }
 
     var defaultSymbol: LWLine? = null
     var lwSymbols = mutableListOf<LWSymbolDrawing>()
@@ -5861,7 +5896,7 @@ class OutHelixClosingPhosphodiesterBondDrawing(
                 g.draw(
                     at.createTransformedShape(
                         Line2D.Double(
-                            if (this.residue.absPos != this.posInhelix && residue.isFullDetails() ) p1 else center1,
+                            if (this.residue.absPos != this.posInhelix && residue.isFullDetails()) p1 else center1,
                             if (this.nextResidue.absPos != this.posInhelix && nextResidue.isFullDetails()) p2 else center2
                         )
                     )
@@ -6222,16 +6257,16 @@ enum class ConnectorId(val value: Int) {
     sse(15);
 }
 
-fun getConnectorId(value: Int) = ConnectorId.values().first { it.value == (value % ConnectorId.values().size) }
+fun getConnectorId(value: Int) = ConnectorId.entries.first { it.value == (value % ConnectorId.entries.size) }
 
 fun nextConnectorId(c: ConnectorId) =
-    ConnectorId.values().first { it.value == (c.value + 1) % ConnectorId.values().size }
+    ConnectorId.entries.first { it.value == (c.value + 1) % ConnectorId.entries.size }
 
-fun previousConnectorId(c: ConnectorId) = if (c.value - 1 < 0) ConnectorId.values()
-    .first { it.value == ConnectorId.values().size - 1 } else ConnectorId.values().first { it.value == c.value - 1 }
+fun previousConnectorId(c: ConnectorId) = if (c.value - 1 < 0) ConnectorId.entries
+    .first { it.value == ConnectorId.entries.size - 1 } else ConnectorId.entries.first { it.value == c.value - 1 }
 
 fun oppositeConnectorId(c: ConnectorId) =
-    ConnectorId.values().first { it.value == (c.value + ConnectorId.values().size / 2) % ConnectorId.values().size }
+    ConnectorId.entries.first { it.value == (c.value + ConnectorId.entries.size / 2) % ConnectorId.entries.size }
 
 //the different behaviors to compute the outId of an helix according to its rank for a given junction type
 val junctionsBehaviors = mutableMapOf(
@@ -6250,6 +6285,7 @@ val junctionsBehaviors = mutableMapOf(
                 } else {
                     ConnectorId.n
                 }
+
             ConnectorId.wnw -> ConnectorId.s
             ConnectorId.nw -> ConnectorId.s
             ConnectorId.nnw -> ConnectorId.s
@@ -6263,6 +6299,7 @@ val junctionsBehaviors = mutableMapOf(
                 } else {
                     ConnectorId.n
                 }
+
             ConnectorId.ese -> ConnectorId.n
             ConnectorId.se -> ConnectorId.n
             ConnectorId.sse -> ConnectorId.n
@@ -6273,9 +6310,9 @@ val junctionsBehaviors = mutableMapOf(
     Pair(JunctionType.ThreeWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
             var outIdForLongest = ConnectorId.n
-            var longest =
+            val longest =
                 junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
-            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            val longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
             var dist_InId_OutIdLongest =
                 if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value + outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value - 1
             val helicesBeforelongest = longestRank - 1
@@ -6301,9 +6338,9 @@ val junctionsBehaviors = mutableMapOf(
     Pair(JunctionType.FourWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
             var outIdForLongest = ConnectorId.n
-            var longest =
+            val longest =
                 junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
-            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            val longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
             var dist_InId_OutIdLongest =
                 if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value + outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value - 1
             val helicesBeforelongest = longestRank - 1
@@ -6329,9 +6366,9 @@ val junctionsBehaviors = mutableMapOf(
     Pair(JunctionType.FiveWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
             var outIdForLongest = ConnectorId.n
-            var longest =
+            val longest =
                 junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
-            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            val longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
             var dist_InId_OutIdLongest =
                 if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value + outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value - 1
             val helicesBeforelongest = longestRank - 1
@@ -6357,9 +6394,9 @@ val junctionsBehaviors = mutableMapOf(
     Pair(JunctionType.SixWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
             var outIdForLongest = ConnectorId.n
-            var longest =
+            val longest =
                 junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
-            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            val longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
             var dist_InId_OutIdLongest =
                 if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value + outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value - 1
             val helicesBeforelongest = longestRank - 1
@@ -6385,9 +6422,9 @@ val junctionsBehaviors = mutableMapOf(
     Pair(JunctionType.SevenWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
             var outIdForLongest = ConnectorId.n
-            var longest =
+            val longest =
                 junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
-            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            val longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
             var dist_InId_OutIdLongest =
                 if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value + outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value - 1
             val helicesBeforelongest = longestRank - 1
@@ -6413,9 +6450,9 @@ val junctionsBehaviors = mutableMapOf(
     Pair(JunctionType.EightWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
             var outIdForLongest = ConnectorId.n
-            var longest =
+            val longest =
                 junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
-            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            val longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
             var dist_InId_OutIdLongest =
                 if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value + outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value - 1
             val helicesBeforelongest = longestRank - 1
@@ -6441,9 +6478,9 @@ val junctionsBehaviors = mutableMapOf(
     Pair(JunctionType.NineWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
             var outIdForLongest = ConnectorId.n
-            var longest =
+            val longest =
                 junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
-            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            val longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
             var dist_InId_OutIdLongest =
                 if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value + outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value - 1
             val helicesBeforelongest = longestRank - 1
@@ -6469,9 +6506,9 @@ val junctionsBehaviors = mutableMapOf(
     Pair(JunctionType.TenWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
             var outIdForLongest = ConnectorId.n
-            var longest =
+            val longest =
                 junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
-            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            val longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
             var dist_InId_OutIdLongest =
                 if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value + outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value - 1
             val helicesBeforelongest = longestRank - 1
@@ -6497,9 +6534,9 @@ val junctionsBehaviors = mutableMapOf(
     Pair(JunctionType.ElevenWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
             var outIdForLongest = ConnectorId.n
-            var longest =
+            val longest =
                 junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
-            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            val longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
             var dist_InId_OutIdLongest =
                 if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value + outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value - 1
             val helicesBeforelongest = longestRank - 1
@@ -6525,9 +6562,9 @@ val junctionsBehaviors = mutableMapOf(
     Pair(JunctionType.TwelveWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
             var outIdForLongest = ConnectorId.n
-            var longest =
+            val longest =
                 junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
-            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            val longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
             var dist_InId_OutIdLongest =
                 if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value + outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value - 1
             val helicesBeforelongest = longestRank - 1
@@ -6553,9 +6590,9 @@ val junctionsBehaviors = mutableMapOf(
     Pair(JunctionType.ThirteenWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
             var outIdForLongest = ConnectorId.n
-            var longest =
+            val longest =
                 junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
-            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            val longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
             var dist_InId_OutIdLongest =
                 if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value + outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value - 1
             val helicesBeforelongest = longestRank - 1
@@ -6581,9 +6618,9 @@ val junctionsBehaviors = mutableMapOf(
     Pair(JunctionType.FourteenWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
             var outIdForLongest = ConnectorId.n
-            var longest =
+            val longest =
                 junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
-            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            val longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
             var dist_InId_OutIdLongest =
                 if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value + outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value - 1
             val helicesBeforelongest = longestRank - 1
@@ -6609,9 +6646,9 @@ val junctionsBehaviors = mutableMapOf(
     Pair(JunctionType.FifthteenWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
             var outIdForLongest = ConnectorId.n
-            var longest =
+            val longest =
                 junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
-            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            val longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
             var dist_InId_OutIdLongest =
                 if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value + outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value - 1
             val helicesBeforelongest = longestRank - 1
@@ -6637,9 +6674,9 @@ val junctionsBehaviors = mutableMapOf(
     Pair(JunctionType.SixteenWay,
         { junctionDrawing: JunctionDrawing, helixRank: Int ->
             var outIdForLongest = ConnectorId.n
-            var longest =
+            val longest =
                 junctionDrawing.junction.helicesLinked.sortedByDescending { it.maxBranchLength }[1] //the inHelix is the longest, so we want the second one once sorted
-            var longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
+            val longestRank = junctionDrawing.junction.helicesLinked.indexOf(longest)
             var dist_InId_OutIdLongest =
                 if (junctionDrawing.inId.value > outIdForLongest.value) 15 - junctionDrawing.inId.value + outIdForLongest.value else outIdForLongest.value - junctionDrawing.inId.value - 1
             val helicesBeforelongest = longestRank - 1
@@ -6675,112 +6712,123 @@ fun centerFrom(inId: ConnectorId, inPoint: Point2D, radius: Double): Point2D {
         ConnectorId.s -> return Point2D.Double(inPoint.x, inPoint.y - radius)
         ConnectorId.ssw -> return Point2D.Double(
             inPoint.x + adjacentSideFrom(
-                (-3 * 360 / ConnectorId.values().size).toDouble(),
+                (-3 * 360 / ConnectorId.entries.size).toDouble(),
                 radius
             ), inPoint.y + oppositeSideFrom(
-                (-3 * 360 / ConnectorId.values().size).toDouble(),
+                (-3 * 360 / ConnectorId.entries.size).toDouble(),
                 radius
             )
         )
+
         ConnectorId.sw -> return Point2D.Double(
             inPoint.x + adjacentSideFrom(
-                (-2 * 360 / ConnectorId.values().size).toDouble(),
+                (-2 * 360 / ConnectorId.entries.size).toDouble(),
                 radius
             ), inPoint.y + oppositeSideFrom(
-                (-2 * 360 / ConnectorId.values().size).toDouble(),
+                (-2 * 360 / ConnectorId.entries.size).toDouble(),
                 radius
             )
         )
+
         ConnectorId.wsw -> return Point2D.Double(
             inPoint.x + adjacentSideFrom(
-                (-360 / ConnectorId.values().size).toDouble(),
+                (-360 / ConnectorId.entries.size).toDouble(),
                 radius
             ), inPoint.y + oppositeSideFrom(
-                (-360 / ConnectorId.values().size).toDouble(),
+                (-360 / ConnectorId.entries.size).toDouble(),
                 radius
             )
         )
+
         ConnectorId.w -> return Point2D.Double(inPoint.x + radius, inPoint.y)
         ConnectorId.wnw -> return Point2D.Double(
             inPoint.x + adjacentSideFrom(
-                (360 / ConnectorId.values().size).toDouble(),
+                (360 / ConnectorId.entries.size).toDouble(),
                 radius
             ), inPoint.y + oppositeSideFrom(
-                (360 / ConnectorId.values().size).toDouble(),
+                (360 / ConnectorId.entries.size).toDouble(),
                 radius
             )
         )
+
         ConnectorId.nw -> return Point2D.Double(
             inPoint.x + adjacentSideFrom(
-                (2 * 360 / ConnectorId.values().size).toDouble(),
+                (2 * 360 / ConnectorId.entries.size).toDouble(),
                 radius
             ), inPoint.y + oppositeSideFrom(
-                (2 * 360 / ConnectorId.values().size).toDouble(),
+                (2 * 360 / ConnectorId.entries.size).toDouble(),
                 radius
             )
         )
+
         ConnectorId.nnw -> return Point2D.Double(
             inPoint.x + adjacentSideFrom(
-                (3 * 360 / ConnectorId.values().size).toDouble(),
+                (3 * 360 / ConnectorId.entries.size).toDouble(),
                 radius
             ), inPoint.y + oppositeSideFrom(
-                (3 * 360 / ConnectorId.values().size).toDouble(),
+                (3 * 360 / ConnectorId.entries.size).toDouble(),
                 radius
             )
         )
+
         ConnectorId.n -> return Point2D.Double(inPoint.x, inPoint.y + radius)
         ConnectorId.nne -> return Point2D.Double(
             inPoint.x - adjacentSideFrom(
-                (-3 * 360 / ConnectorId.values().size).toDouble(),
+                (-3 * 360 / ConnectorId.entries.size).toDouble(),
                 radius
             ), inPoint.y - oppositeSideFrom(
-                (-3 * 360 / ConnectorId.values().size).toDouble(),
+                (-3 * 360 / ConnectorId.entries.size).toDouble(),
                 radius
             )
         )
+
         ConnectorId.ne -> return Point2D.Double(
             inPoint.x - adjacentSideFrom(
-                (-2 * 360 / ConnectorId.values().size).toDouble(),
+                (-2 * 360 / ConnectorId.entries.size).toDouble(),
                 radius
             ), inPoint.y - oppositeSideFrom(
-                (-2 * 360 / ConnectorId.values().size).toDouble(),
+                (-2 * 360 / ConnectorId.entries.size).toDouble(),
                 radius
             )
         )
+
         ConnectorId.ene -> return Point2D.Double(
             inPoint.x - adjacentSideFrom(
-                (-360 / ConnectorId.values().size).toDouble(),
+                (-360 / ConnectorId.entries.size).toDouble(),
                 radius
             ), inPoint.y - oppositeSideFrom(
-                (-360 / ConnectorId.values().size).toDouble(),
+                (-360 / ConnectorId.entries.size).toDouble(),
                 radius
             )
         )
+
         ConnectorId.e -> return Point2D.Double(inPoint.x - radius, inPoint.y)
         ConnectorId.ese -> return Point2D.Double(
             inPoint.x - adjacentSideFrom(
-                (360 / ConnectorId.values().size).toDouble(),
+                (360 / ConnectorId.entries.size).toDouble(),
                 radius
             ), inPoint.y - oppositeSideFrom(
-                (360 / ConnectorId.values().size).toDouble(),
+                (360 / ConnectorId.entries.size).toDouble(),
                 radius
             )
         )
+
         ConnectorId.se -> return Point2D.Double(
             inPoint.x - adjacentSideFrom(
-                (2 * 360 / ConnectorId.values().size).toDouble(),
+                (2 * 360 / ConnectorId.entries.size).toDouble(),
                 radius
             ), inPoint.y - oppositeSideFrom(
-                (2 * 360 / ConnectorId.values().size).toDouble(),
+                (2 * 360 / ConnectorId.entries.size).toDouble(),
                 radius
             )
         )
+
         ConnectorId.sse -> return Point2D.Double(
             inPoint.x - adjacentSideFrom(
-                (3 * 360 / ConnectorId.values().size).toDouble(),
+                (3 * 360 / ConnectorId.entries.size).toDouble(),
                 radius
             ), inPoint.y - oppositeSideFrom(
-                (3 * 360 / ConnectorId.values().size).toDouble(),
+                (3 * 360 / ConnectorId.entries.size).toDouble(),
                 radius
             )
         )
@@ -7096,7 +7144,7 @@ fun Booquet(
     }
 
     //phospho bonds between two branches
-    var startOfBranches = ss.helices.filter { it.junctionsLinked.second == null }.sortedBy { it.start }
+    val startOfBranches = ss.helices.filter { it.junctionsLinked.second == null }.sortedBy { it.start }
 
     for (i in 0 until startOfBranches.size - 1) {
         if (startOfBranches[i].end + 1 == startOfBranches[i + 1].start) { // direct link

@@ -441,11 +441,11 @@ object RnartistConfig {
     private var document: Document? = null
 
     val defaultConfiguration = mutableMapOf(
-        ThemeParameter.color.toString() to getHTMLColorString(Color.DARK_GRAY),
-        ThemeParameter.linewidth.toString() to "1.0",
-        ThemeParameter.lineshift.toString() to "1.0",
-        ThemeParameter.opacity.toString() to "255", //alpha value goes from 0 to 255
-        ThemeParameter.fulldetails.toString() to "false"
+        ThemeProperty.color.toString() to getHTMLColorString(Color.DARK_GRAY),
+        ThemeProperty.linewidth.toString() to "1.0",
+        ThemeProperty.lineshift.toString() to "1.0",
+        ThemeProperty.opacity.toString() to "255", //alpha value goes from 0 to 255
+        ThemeProperty.fulldetails.toString() to "false"
     )
 
     @JvmStatic

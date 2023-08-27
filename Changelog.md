@@ -1,8 +1,19 @@
 To check and fix your script syntax, type the following command in your terminal:
 
-java -jar rnartist_core.jar -c dsl_script_file
+java -jar rnartist_core.jar dsl_script_file
 
-The option ```-c``` check the syntax of the script before to run it. It prints the issues found.
+### 0.3.3-SNAPSHOT
+
+- scheme and details level are now properties of the element ```theme```
+
+```kotlin
+rnartist {
+    theme {
+        details = 4
+        scheme = "Persian Carolina"
+    }
+}
+```
 
 ### 0.3.0-SNAPSHOT
 

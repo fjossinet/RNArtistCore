@@ -11,9 +11,7 @@ rnartist {
     }
 
     theme {
-        details {
-            value = 5
-        }
+        details = 5
 
         color {
             type = "A"
@@ -55,9 +53,7 @@ rnartist {
         }
     }
     theme {
-        details {
-            value = 5
-        }
+        details = 5
 
         color {
             type = "A"
@@ -99,9 +95,7 @@ rnartist {
     }
 
     theme {
-        details {
-            value = 3
-        }
+        details = 3
 
         color {
             type = "A"

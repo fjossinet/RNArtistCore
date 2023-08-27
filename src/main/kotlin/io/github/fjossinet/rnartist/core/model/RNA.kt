@@ -110,7 +110,7 @@ class Location : Serializable {
          * Returns the length of the Location
          */
         get() {
-            return this.blocks.sumBy { it.length }
+            return this.blocks.sumOf { it.length }
         }
 
     val description: String
