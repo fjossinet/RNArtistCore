@@ -4025,7 +4025,7 @@ open class JunctionDrawing(
                             //we search the circle already connected for this helix
                             lateinit var connectedJunction: MutableMap.MutableEntry<ConnectorId, JunctionDrawing>
                             for (c in this.connectedJunctions) {
-                                if (c.value.location == helix.junctionsLinked.first!!.location) {
+                                if (c.value.junction.location == helix.junctionsLinked.first!!.location) {
                                     connectedJunction = c
                                     break
                                 }
@@ -4049,7 +4049,7 @@ open class JunctionDrawing(
                             //we search the circle already connected for this helix
                             lateinit var connectedJunction: MutableMap.MutableEntry<ConnectorId, JunctionDrawing>
                             for (c in this.connectedJunctions) {
-                                if (c.value.location == helix.junctionsLinked.second!!.location) {
+                                if (c.value.junction.location == helix.junctionsLinked.second!!.location) {
                                     connectedJunction = c
                                     break
                                 }

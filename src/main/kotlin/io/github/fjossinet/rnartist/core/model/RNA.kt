@@ -612,6 +612,10 @@ class Junction(
             return JunctionType.values().first { it.value == this.location.blocks.size }
         }
 
+    /**
+     * the "basic" location contains the first secondary of each linked helix
+     * This location without secondaries is used as the "basic" location for the JunctionDrawing object wrapping this Junction object
+     */
     val locationWithoutSecondaries: Location
 
     init {
