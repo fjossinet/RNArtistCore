@@ -1381,6 +1381,8 @@ class SecondaryStructureDrawing(
     override fun toString() = this.secondaryStructure.toString()
 
     fun applyTheme(theme: Theme) {
+        for (phospho in this.phosphoBonds)
+            phospho.applyTheme(theme)
         for (pk in this.pknots)
             pk.applyTheme(theme)
         for (jc in this.allJunctions)
@@ -1394,6 +1396,8 @@ class SecondaryStructureDrawing(
     }
 
     fun clearTheme() {
+        for (phospho in this.phosphoBonds)
+            phospho.clearTheme()
         for (pk in this.pknots)
             pk.clearTheme()
         for (jc in this.allJunctions)
@@ -2672,15 +2676,6 @@ abstract class ResidueDrawing(
     val absPos: Int
         get() = this.location.start
 
-    override fun applyTheme(theme: Theme) {
-        theme.configurations.forEach { configuration ->
-            if (configuration.selector(this)) {
-                this.drawingConfiguration.params[configuration.propertyName] = configuration.propertyValue(this)
-            }
-        }
-        this.children.map { it.applyTheme(theme) }
-    }
-
     override fun inside(location: Location) = if (ssDrawing.secondaryStructure.rna.useAlignmentNumberingSystem) {
         location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.location.start))
     } else {
@@ -3412,36 +3407,6 @@ class HelixDrawing(
         }
     }
 
-    override fun applyTheme(theme: Theme) {
-        theme.configurations.forEach { configuration ->
-            if (configuration.selector(this)) {
-                this.drawingConfiguration.params[configuration.propertyName] = configuration.propertyValue(this)
-                //an helix will forward color and lines to its children
-                when (configuration.propertyName) {
-                    ThemeProperty.color.toString(), ThemeProperty.linewidth.toString() -> {
-                        var t = Theme()
-                        t.addConfiguration(
-                            { e -> e.type == SecondaryStructureType.PhosphodiesterBond },
-                            ThemeProperty.valueOf(configuration.propertyName),
-                            configuration.propertyValue
-                        )
-                        for (p in this.phosphoBonds)
-                            p.applyTheme(t)
-                        t = Theme()
-                        t.addConfiguration(
-                            { e -> e.type == SecondaryStructureType.SecondaryInteraction },
-                            ThemeProperty.valueOf(configuration.propertyName),
-                            configuration.propertyValue
-                        )
-                        for (i in this.secondaryInteractions)
-                            i.applyTheme(t)
-                    }
-                }
-            }
-        }
-        this.children.map { it.applyTheme(theme) }
-    }
-
     override fun draw(g: Graphics2D, at: AffineTransform, drawingArea: Rectangle2D) {
         val previousStroke = g.stroke
         g.stroke = BasicStroke(
@@ -3642,37 +3607,6 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
             }
         }
         return buffer.toString()
-    }
-
-    override fun applyTheme(theme: Theme) {
-        theme.configurations.forEach { configuration ->
-            if (configuration.selector(this)) {
-                this.drawingConfiguration.params[configuration.propertyName] = configuration.propertyValue(this)
-                //a single strand will forward color and lines to its children
-                when (configuration.propertyName) {
-                    ThemeProperty.color.toString(), ThemeProperty.linewidth.toString() -> {
-                        var t = Theme()
-                        t.addConfiguration(
-                            { e -> e.type == SecondaryStructureType.PhosphodiesterBond },
-                            ThemeProperty.valueOf(configuration.propertyName),
-                            configuration.propertyValue
-                        )
-                        for (p in this.phosphoBonds)
-                            p.applyTheme(t)
-                        t = Theme()
-                        t.addConfiguration(
-                            { e -> e.type == SecondaryStructureType.AShape || e.type == SecondaryStructureType.UShape || e.type == SecondaryStructureType.GShape || e.type == SecondaryStructureType.CShape || e.type == SecondaryStructureType.XShape },
-                            ThemeProperty.valueOf(configuration.propertyName),
-                            configuration.propertyValue
-                        )
-                        for (r in this.ssDrawing.getResiduesFromAbsPositions(*this.getSinglePositions()))
-                            r.applyTheme(t)
-                    }
-                }
-            }
-        }
-        this.children.map { it.applyTheme(theme) }
-
     }
 
 }
@@ -4296,35 +4230,6 @@ open class JunctionDrawing(
         return buffer.toString()
     }
 
-    override fun applyTheme(theme: Theme) {
-        theme.configurations.forEach { configuration ->
-            if (configuration.selector(this)) {
-                this.drawingConfiguration.params[configuration.propertyName] = configuration.propertyValue(this)
-                //a junction will forward color and lines to its children
-                when (configuration.propertyName) {
-                    ThemeProperty.color.toString(), ThemeProperty.linewidth.toString() -> {
-                        var t = Theme()
-                        t.addConfiguration(
-                            { e -> e.type == SecondaryStructureType.PhosphodiesterBond },
-                            ThemeProperty.valueOf(configuration.propertyName),
-                            configuration.propertyValue
-                        )
-                        for (p in this.phosphoBonds)
-                            p.applyTheme(t)
-                        t = Theme()
-                        t.addConfiguration(
-                            { e -> e.type == SecondaryStructureType.AShape || e.type == SecondaryStructureType.UShape || e.type == SecondaryStructureType.GShape || e.type == SecondaryStructureType.CShape || e.type == SecondaryStructureType.XShape },
-                            ThemeProperty.valueOf(configuration.propertyName),
-                            configuration.propertyValue
-                        )
-                        for (i in this.residues)
-                            i.applyTheme(t)
-                    }
-                }
-            }
-        }
-        this.children.map { it.applyTheme(theme) }
-    }
 }
 
 class Branch(
@@ -4935,35 +4840,6 @@ abstract class BaseBaseInteractionDrawing(
     }
 
     override fun toString() = this.interaction.toString()
-
-    override fun applyTheme(theme: Theme) {
-        theme.configurations.forEach { configuration ->
-            if (configuration.selector(this)) {
-                this.drawingConfiguration.params[configuration.propertyName] = configuration.propertyValue(this)
-                //a secondary interaction will forward color and lines to its children
-                when (configuration.propertyName) {
-                    ThemeProperty.color.toString(), ThemeProperty.linewidth.toString() -> {
-                        var t = Theme()
-                        t.addConfiguration(
-                            { e -> e.type == SecondaryStructureType.AShape || e.type == SecondaryStructureType.UShape || e.type == SecondaryStructureType.GShape || e.type == SecondaryStructureType.CShape || e.type == SecondaryStructureType.XShape },
-                            ThemeProperty.valueOf(configuration.propertyName),
-                            configuration.propertyValue
-                        )
-                        this.residue.applyTheme(t)
-                        this.pairedResidue.applyTheme(t)
-                        t = Theme()
-                        t.addConfiguration(
-                            { e -> e.type == SecondaryStructureType.InteractionSymbol },
-                            ThemeProperty.valueOf(configuration.propertyName),
-                            configuration.propertyValue
-                        )
-                        this.interactionSymbol.applyTheme(t)
-                    }
-                }
-            }
-        }
-        this.children.map { it.applyTheme(theme) }
-    }
 }
 
 class SecondaryInteractionDrawing(
@@ -5598,7 +5474,7 @@ open class PhosphodiesterBondDrawing(
     val nextResidue: ResidueDrawing
 
     override val children: List<DrawingElement>
-        get() = listOf(residue, nextResidue)
+        get() = listOf()
 
     val start: Int
         get() {
