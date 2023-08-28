@@ -484,7 +484,7 @@ fun parseProject(project: Project): SecondaryStructureDrawing {
         }
     }
     val singlestrands = theme["single-strands"]!!
-    for (ss in drawing.singleStrands) {
+    for (ss in drawing.allSingleStrands) {
         ss.drawingConfiguration = DrawingConfiguration(singlestrands["" + ss.start]!!)
         for (r in ss.residues) {
             r.drawingConfiguration = DrawingConfiguration(residueShapes["" + r.location.start]!!)

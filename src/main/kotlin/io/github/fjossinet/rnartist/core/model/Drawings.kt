@@ -440,7 +440,7 @@ class SecondaryStructureDrawing(
 
     val branches = mutableListOf<Branch>() //the first junctions in each branch
     val pknots = mutableListOf<PKnotDrawing>()
-    val singleStrands = mutableListOf<SingleStrandDrawing>() // the single-strands connecting the branches
+    val allSingleStrands = mutableListOf<SingleStrandDrawing>() // the single-strands connecting the branches
     val residues = mutableListOf<ResidueDrawing>()
     val tertiaryInteractions = mutableListOf<TertiaryInteractionDrawing>()
 
@@ -508,7 +508,7 @@ class SecondaryStructureDrawing(
                 allPhosphoBonds.addAll(h.phosphoBonds)
             for (j in this.allJunctions)
                 allPhosphoBonds.addAll(j.phosphoBonds)
-            for (ss in this.singleStrands)
+            for (ss in this.allSingleStrands)
                 allPhosphoBonds.addAll(ss.phosphoBonds)
             allPhosphoBonds.addAll(this.phosphoBonds)
             return allPhosphoBonds
@@ -565,7 +565,7 @@ class SecondaryStructureDrawing(
                 val remaining = this.secondaryStructure.length - currentPos + 1
                 if (remaining > 0) {
                     val ss = this.secondaryStructure.singleStrands.find { it.start == currentPos }!!
-                    this.singleStrands.add(
+                    this.allSingleStrands.add(
                         SingleStrandDrawing(
                             this,
                             ss,
@@ -618,7 +618,7 @@ class SecondaryStructureDrawing(
 
                 if (residuesBeforeHelix > 0) {
                     val ss = this.secondaryStructure.singleStrands.find { it.start == currentPos + 1 }!!
-                    this.singleStrands.add(
+                    this.allSingleStrands.add(
                         SingleStrandDrawing(
                             this,
                             ss,
@@ -706,7 +706,7 @@ class SecondaryStructureDrawing(
 
                 if (currentPos + 1 <= nextHelix.first - 1) {
                     val ss = this.secondaryStructure.singleStrands.find { it.start == currentPos + 1 }!!
-                    this.singleStrands.add(
+                    this.allSingleStrands.add(
                         SingleStrandDrawing(
                             this,
                             ss,
@@ -767,8 +767,8 @@ class SecondaryStructureDrawing(
             //inside a junction
             if (phosphoBond == null) {
                 for (j in this.allJunctions) {
-                    if (j.location.contains(i) && j.location.contains(i + 1)) {
-                        for (b in j.location.blocks)
+                    if (j.junction.location.contains(i) && j.junction.location.contains(i + 1)) {
+                        for (b in j.junction.location.blocks)
                             if (i == b.start && i + 1 == b.end) { //direct link between two helices
                                 phosphoBond = HelicesDirectLinkPhosphodiesterBondDrawing(
                                     j,
@@ -821,7 +821,7 @@ class SecondaryStructureDrawing(
             }
             //inside a single-strand
             if (phosphoBond == null) {
-                for (ss in this.singleStrands) {
+                for (ss in this.allSingleStrands) {
                     if (ss.location.contains(i) && ss.location.contains(i + 1)) {
                         phosphoBond = PhosphodiesterBondDrawing(ss, this, Location(Location(i), Location(i + 1)))
                         ss.phosphoBonds.add(phosphoBond)
@@ -831,7 +831,7 @@ class SecondaryStructureDrawing(
             }
             //linking a single-strand and an helix starting a branch
             if (phosphoBond == null) {
-                SINGLESTRANDS@ for (ss in this.singleStrands) {
+                SINGLESTRANDS@ for (ss in this.allSingleStrands) {
                     if (ss.location.contains(i)) {
                         for (j in this.branches)
                             if (j.inHelix.location.contains(i + 1)) {
@@ -899,15 +899,15 @@ class SecondaryStructureDrawing(
         for (branch in this.branches)
             this.computeResidues(branch)
 
-        if (this.singleStrands.size == 1 && this.allHelices.isEmpty()) { // an RNA made with a single single-strand.
-            val singleStrand = this.singleStrands.first()
+        if (this.allSingleStrands.size == 1 && this.allHelices.isEmpty()) { // an RNA made with a single single-strand.
+            val singleStrand = this.allSingleStrands.first()
             this.residues[0].center =
                 Point2D.Double(bottom.x - radiusConst * 2 * (singleStrand.length / 2.0 + 1), bottom.y)
             for (i in singleStrand.start + 1..singleStrand.end)
                 this.residues[i - 1].center =
                     Point2D.Double(this.residues[i - 2].center.x + radiusConst * 2.0, this.residues[i - 2].center.y)
         } else {
-            for (singleStrand in this.singleStrands) {
+            for (singleStrand in this.allSingleStrands) {
                 for ((i, branch) in this.branches.withIndex())
                     if (branch.inHelix.location.end == singleStrand.location.start - 1) {
                         singleStrand.previousBranch = branch
@@ -979,14 +979,14 @@ class SecondaryStructureDrawing(
             }
             if (r.parent == null) {
                 for (j in this.allJunctions) {
-                    if (j.junction.locationWithoutSecondaries.contains(r.absPos)) {
+                    if (j.location.contains(r.absPos)) {
                         r.parent = j
                         break
                     }
                 }
             }
             if (r.parent == null) {
-                for (ss in this.singleStrands) {
+                for (ss in this.allSingleStrands) {
                     if (ss.location.contains(r.absPos)) {
                         r.parent = ss
                         break
@@ -997,7 +997,7 @@ class SecondaryStructureDrawing(
         //we init the working session. This will be recomputed during the first draw. But we need to do it, if the draw() methods ae not called (for exemple for a drawing exported to an SVG on the server side)
         this.workingSession.junctionsDrawn.addAll(this.allJunctions)
         this.workingSession.helicesDrawn.addAll(this.allHelices)
-        this.workingSession.singleStrandsDrawn.addAll(this.singleStrands)
+        this.workingSession.singleStrandsDrawn.addAll(this.allSingleStrands)
         this.workingSession.phosphoBondsLinkingBranchesDrawn.addAll(this.phosphoBonds)
         this.workingSession.locationDrawn = Location(1, this.secondaryStructure.length)
         this.workingSession.viewX = anchorX
@@ -1053,7 +1053,7 @@ class SecondaryStructureDrawing(
         val allStructuralDomains = mutableListOf<StructuralDomainDrawing>()
         allStructuralDomains.addAll(this.allJunctions)
         allStructuralDomains.addAll(this.allHelices)
-        allStructuralDomains.addAll(this.singleStrands)
+        allStructuralDomains.addAll(this.allSingleStrands)
         val minX = allStructuralDomains.flatMap { it.selectionPoints }.minByOrNull { it.x }!!.x
         val minY = allStructuralDomains.flatMap { it.selectionPoints }.minByOrNull { it.y }!!.y
         val maxX = allStructuralDomains.flatMap { it.selectionPoints }.maxByOrNull { it.x }!!.x
@@ -1087,12 +1087,12 @@ class SecondaryStructureDrawing(
             locationDrawn = Location()
         }
 
-        if (this.singleStrands.isEmpty() && this.phosphoBonds.isEmpty() || this.branches.size == 1) { //if a single branch, always drawn, and single strands too
-            this.workingSession.singleStrandsDrawn.addAll(this.singleStrands)
+        if (this.allSingleStrands.isEmpty() && this.phosphoBonds.isEmpty() || this.branches.size == 1) { //if a single branch, always drawn, and single strands too
+            this.workingSession.singleStrandsDrawn.addAll(this.allSingleStrands)
             this.workingSession.branchesDrawn.addAll(this.branches)
         } else {
 
-            for (ss in this.singleStrands) {
+            for (ss in this.allSingleStrands) {
                 val s = Point2D.Double(0.0, 0.0)
                 val e = Point2D.Double(0.0, 0.0)
                 at.transform(ss.line.p1, s)
@@ -1387,7 +1387,7 @@ class SecondaryStructureDrawing(
             pk.applyTheme(theme)
         for (jc in this.allJunctions)
             jc.applyTheme(theme)
-        for (ss in this.singleStrands)
+        for (ss in this.allSingleStrands)
             ss.applyTheme(theme)
         for (h in this.allHelices)
             h.applyTheme(theme)
@@ -1402,7 +1402,7 @@ class SecondaryStructureDrawing(
             pk.clearTheme()
         for (jc in this.allJunctions)
             jc.clearTheme()
-        for (ss in this.singleStrands)
+        for (ss in this.allSingleStrands)
             ss.clearTheme()
         for (h in this.allHelices)
             h.clearTheme()
@@ -3621,7 +3621,7 @@ open class JunctionDrawing(
     inPoint: Point2D,
     val inHelix: Helix,
     val junction: Junction
-) : StructuralDomainDrawing(ssDrawing, parent, junction.name, junction.location, SecondaryStructureType.Junction) {
+) : StructuralDomainDrawing(ssDrawing, parent, junction.name, junction.locationWithoutSecondaries/*the location of the JunctionDrawing is the location without the secondaries, the real location*/, SecondaryStructureType.Junction) {
 
     private var noOverlapWithLines = true
     private var noOverlapWithCircles = true
@@ -3682,7 +3682,7 @@ open class JunctionDrawing(
     val junctionType = this.junction.junctionType
 
     override fun inside(location: Location) = if (ssDrawing.secondaryStructure.rna.useAlignmentNumberingSystem)
-        this.junction.locationWithoutSecondaries.ends.all {
+        this.location.ends.all {
             location.contains(
                 ssDrawing.secondaryStructure.rna.mapPosition(
                     it
@@ -3690,15 +3690,15 @@ open class JunctionDrawing(
             )
         }
     else
-        this.junction.locationWithoutSecondaries.ends.all { location.contains(it) }
+        this.location.ends.all { location.contains(it) }
 
     override val selectionPoints: List<Point2D>
         get() {
             return if (this.isFullDetails()) {
-                val minX = this.residuesWithClosingBasePairs.flatMap { it.selectionPoints }.minByOrNull { it.x }!!.x
-                val minY = this.residuesWithClosingBasePairs.flatMap { it.selectionPoints }.minByOrNull { it.y }!!.y
-                val maxX = this.residuesWithClosingBasePairs.flatMap { it.selectionPoints }.maxByOrNull { it.x }!!.x
-                val maxY = this.residuesWithClosingBasePairs.flatMap { it.selectionPoints }.maxByOrNull { it.y }!!.y
+                val minX = this.residues.flatMap { it.selectionPoints }.minByOrNull { it.x }!!.x
+                val minY = this.residues.flatMap { it.selectionPoints }.minByOrNull { it.y }!!.y
+                val maxX = this.residues.flatMap { it.selectionPoints }.maxByOrNull { it.x }!!.x
+                val maxY = this.residues.flatMap { it.selectionPoints }.maxByOrNull { it.y }!!.y
                 listOf(
                     Point2D.Double(minX, minY), Point2D.Double(maxX, minY),
                     Point2D.Double(maxX, maxY), Point2D.Double(minX, maxY)
