@@ -865,10 +865,10 @@ object RnartistConfig {
             var e: Element? = document!!.rootElement.getChild("selection-color")
             if (e == null) {
                 e = Element("selection-color")
-                e.text = getHTMLColorString(Color.RED)
+                e.text = getHTMLColorString(Color.ORANGE)
                 document!!.rootElement.addContent(e)
             }
-            return getAWTColor(e.value)
+            return getAWTColor(e.value, 120)
         }
         set(value) {
             var e: Element? = document!!.rootElement.getChild("selection-color")

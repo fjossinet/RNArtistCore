@@ -487,7 +487,7 @@ Junction | junction                 |                  2D                  |    
 Single Strand | single_strand            |                  2D                  |     Residue Shape<br/>Phosphodiester Bond     |  single line   | children rendering
 Secondary Interaction | secondary_interaction    |                Helix                 |     Residue Shape<br/>Interaction Symbol      |     | children rendering
 Tertiary Interaction | tertiary_interaction     |                  2D                  |              Interaction Symbol               |  single line   | children rendering
-Phosphodiester Bond | phosphodiester_bond      | Helix<br/>Junction<br/>Single Strand |                                               |                | single line
+Phosphodiester Bond | phosphodiester_bond      | Helix<br/>Junction<br/>Single Strand |                                               |      single line | single line
 Residue Shape | N, X, A, U, G, C, R or Y | Secondary Interaction<br/>Junction<br/>Single Strand |               Residue Character               |                | shape (circle) + children rendering
 Residue Character | n, x, a, u, g, c, r or y | Residue Shape|                                               |                |  character
 Interaction Symbol | interaction_symbol       | Secondary Interaction<br/>Tertiary Interaction |                                               |  single line   | symbol (triangle, circle, square, double lines,...)
