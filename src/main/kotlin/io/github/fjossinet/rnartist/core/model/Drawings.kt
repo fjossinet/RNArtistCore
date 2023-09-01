@@ -492,6 +492,13 @@ abstract class DrawingElement(
 
     open fun applyLayout(layout: Layout) {
     }
+
+    open fun select(selector:(DrawingElement) -> Boolean, selection:MutableList<DrawingElement> = mutableListOf()): List<DrawingElement>{
+        if (selector(this))
+            selection.add(this)
+        this.children.forEach { it.select(selector,selection) }
+        return selection
+    }
 }
 
 class SecondaryStructureDrawing(
@@ -1511,6 +1518,22 @@ class SecondaryStructureDrawing(
     fun applyLayout(layout: Layout) {
         for (jc in this.allJunctions)
             jc.applyLayout(layout)
+    }
+
+    fun select(selector:(DrawingElement) -> Boolean, selection:MutableList<DrawingElement> = mutableListOf()): List<DrawingElement>{
+        for (phospho in this.phosphoBonds)
+            phospho.select(selector, selection)
+        for (pk in this.pknots)
+            pk.select(selector, selection)
+        for (jc in this.allJunctions)
+            jc.select(selector, selection)
+        for (ss in this.allSingleStrands)
+            ss.select(selector, selection)
+        for (h in this.allHelices)
+            h.select(selector, selection)
+        for (i in this.tertiaryInteractions)
+            i.select(selector, selection)
+        return selection
     }
 
     fun asPNG(frame: Rectangle2D, selectionFrame: Rectangle2D? = null, outputFile: File) {
