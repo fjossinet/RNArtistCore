@@ -215,7 +215,7 @@ class WorkingSession {
             dimension = getStringBoundsRectangle2D(g, word2Fit, font)
         } while (dimension.width >= _c.bounds2D.width - _c.bounds2D.width * 0.5 + _c.bounds2D.width * deltafontsize / 20.0 && dimension.height >= _c.bounds2D.height - _c.bounds2D.height * 0.5 + _c.bounds2D.height * deltafontsize / 20.0)
 
-        this.fontSize = fontSize;
+        this.fontSize = fontSize
         g.font = Font(this.fontName, this.fontStyle, this.fontSize)
         var r2d = getStringBoundsRectangle2D(g, "A", g.font)
         this.ATransX = (_c.bounds2D.width - r2d.width).toFloat() / 2F
@@ -349,6 +349,18 @@ abstract class DrawingElement(
 
     open val bounds: List<Point2D> = mutableListOf()
 
+    open val selectionShape: Shape
+        get() {
+            val _bounds = bounds
+            val s = GeneralPath()
+            s.moveTo(_bounds.first().x, _bounds.first().y)
+            _bounds.subList(1, _bounds.size).forEach {
+                s.lineTo(it.x, it.y)
+            }
+            s.closePath()
+            return s
+        }
+
     val allChildren: List<DrawingElement>
         get() {
             val allChildren = mutableListOf<DrawingElement>()
@@ -357,21 +369,6 @@ abstract class DrawingElement(
                 allChildren.addAll(it.allChildren)
             }
             return allChildren
-        }
-
-    val selectionFrame: Shape?
-        get() {
-            return if (this.bounds.isEmpty())
-                null
-            else {
-                val s = GeneralPath()
-                s.moveTo(this.bounds.first().x, this.bounds.first().y)
-                this.bounds.subList(1, this.bounds.size).forEach {
-                    s.lineTo(it.x, it.y)
-                }
-                s.closePath()
-                s
-            }
         }
 
     /**
@@ -1106,20 +1103,22 @@ class SecondaryStructureDrawing(
 
     fun fitViewTo(frame: Rectangle2D) {
         val drawingFrame = this.getFrame()
-        val widthRatio = (drawingFrame.bounds2D!!.width + 25) / frame.bounds2D.width
-        val heightRatio = (drawingFrame.bounds2D!!.height + 25) / frame.bounds2D.height
-        this.workingSession.zoomLevel =
-            if (widthRatio > heightRatio) 1.0 / widthRatio else 1.0 / heightRatio
-        val at = AffineTransform()
-        at.scale(this.zoomLevel, this.zoomLevel)
-        val transformedBounds = at.createTransformedShape(drawingFrame)
-        this.workingSession.viewX = frame.bounds2D.centerX - transformedBounds.bounds2D.centerX
-        this.workingSession.viewY = frame.bounds2D.centerY - transformedBounds.bounds2D.centerY
+        drawingFrame?.let { drawingFrame ->
+            val widthRatio = (drawingFrame.bounds2D!!.width + 25) / frame.bounds2D.width
+            val heightRatio = (drawingFrame.bounds2D!!.height + 25) / frame.bounds2D.height
+            this.workingSession.zoomLevel =
+                if (widthRatio > heightRatio) 1.0 / widthRatio else 1.0 / heightRatio
+            val at = AffineTransform()
+            at.scale(this.zoomLevel, this.zoomLevel)
+            val transformedBounds = at.createTransformedShape(drawingFrame)
+            this.workingSession.viewX = frame.bounds2D.centerX - transformedBounds.bounds2D.centerX
+            this.workingSession.viewY = frame.bounds2D.centerY - transformedBounds.bounds2D.centerY
 
-        //We compute the new font parameters
-        val image = BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB)
-        val g = image.createGraphics()
-        this.workingSession.setFont(g, this.residues.first())
+            //We compute the new font parameters
+            val image = BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB)
+            val g = image.createGraphics()
+            this.workingSession.setFont(g, this.residues.first())
+        }
     }
 
     fun fitViewTo(frame: Rectangle2D, selectionFrame: Rectangle2D, ratio: Double = 1.0) {
@@ -1149,29 +1148,24 @@ class SecondaryStructureDrawing(
         return _residues
     }
 
-    fun getSelectionPoints(): List<Point2D> {
-        val allStructuralDomains = mutableListOf<StructuralDomainDrawing>()
-        allStructuralDomains.addAll(this.allJunctions)
-        allStructuralDomains.addAll(this.allHelices)
-        allStructuralDomains.addAll(this.allSingleStrands)
-        val minX = allStructuralDomains.flatMap { it.bounds }.minByOrNull { it.x }!!.x
-        val minY = allStructuralDomains.flatMap { it.bounds }.minByOrNull { it.y }!!.y
-        val maxX = allStructuralDomains.flatMap { it.bounds }.maxByOrNull { it.x }!!.x
-        val maxY = allStructuralDomains.flatMap { it.bounds }.maxByOrNull { it.y }!!.y
-        return listOf(
-            Point2D.Double(minX, minY), Point2D.Double(maxX, minY),
-            Point2D.Double(maxX, maxY), Point2D.Double(minX, maxY)
-        )
-    }
-
-    fun getFrame(): Rectangle2D {
-        val selectionPoints = this.getSelectionPoints()
-        return Rectangle2D.Double(
-            selectionPoints.first().x,
-            selectionPoints.first().y,
-            selectionPoints[1].x - selectionPoints.first().x,
-            selectionPoints[3].y - selectionPoints.first().y
-        )
+    fun getFrame(): Rectangle2D? {
+        val firstShape = allHelices.firstOrNull()?.selectionShape ?: run {
+            allSingleStrands.firstOrNull()?.selectionShape
+        }
+        firstShape?.let { firstShape ->
+            var frame = firstShape.bounds2D
+            this.allSingleStrands.forEach {
+                frame = frame.createUnion(it.selectionShape.bounds2D)
+            }
+            this.allHelices.forEach {
+                frame = frame.createUnion(it.selectionShape.bounds2D)
+            }
+            this.allJunctions.forEach {
+                frame = frame.createUnion(it.selectionShape.bounds2D)
+            }
+            return frame
+        }
+        return null
     }
 
     fun draw(
@@ -2760,16 +2754,14 @@ for n in range(nlast):
     }
 
     fun getFrame(location: Location): Rectangle2D? {
-        val allSelectionPoints =
-            this.getResiduesFromAbsPositions(*location.positions.toIntArray()).flatMap { it.bounds }
-        allSelectionPoints.minByOrNull { it.x }?.x?.let { minX ->
-            allSelectionPoints.minByOrNull { it.y }?.y?.let { minY ->
-                allSelectionPoints.maxByOrNull { it.x }?.x?.let { maxX ->
-                    allSelectionPoints.maxByOrNull { it.y }?.y?.let { maxY ->
-                        return Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY)
-                    }
-                }
+        val selectedResidues = this.getResiduesFromAbsPositions(*location.positions.toIntArray())
+        val firstShape = selectedResidues.firstOrNull()?.selectionShape
+        firstShape?.let { firstShape ->
+            var frame = firstShape.bounds2D
+            selectedResidues.forEach {
+                frame = frame.createUnion(it.selectionShape.bounds2D)
             }
+            return frame
         }
         return null
     }
@@ -2816,19 +2808,20 @@ abstract class ResidueDrawing(
             this.circle = Ellipse2D.Double(
                 value.x - radiusConst,
                 value.y - radiusConst,
-                (radiusConst * 2F).toDouble(),
-                (radiusConst * 2F).toDouble()
+                (radiusConst * 2F),
+                (radiusConst * 2F)
             )
         }
 
     override val bounds: List<Point2D>
         get() {
-            val b = this.circle.bounds
+            val b = this.circle.bounds.bounds2D
+            val shift = this.getLineWidth()+radiusConst*0.1
             return listOf(
-                Point2D.Double(b.minX - this.getLineWidth(), b.minY - this.getLineWidth()),
-                Point2D.Double(b.maxX + this.getLineWidth(), b.minY - this.getLineWidth()),
-                Point2D.Double(b.maxX + this.getLineWidth(), b.maxY + this.getLineWidth()),
-                Point2D.Double(b.minX - this.getLineWidth(), b.maxY + this.getLineWidth())
+                Point2D.Double(b.minX - shift, b.minY - shift),
+                Point2D.Double(b.maxX + shift, b.minY - shift),
+                Point2D.Double(b.maxX + shift, b.maxY + shift),
+                Point2D.Double(b.minX - shift, b.maxY + shift)
             )
         }
 
@@ -3209,7 +3202,7 @@ abstract class ResidueLetterDrawing(
     }
 
     override val bounds: List<Point2D>
-        get() = this.parent!!.bounds
+        get() = listOf<Point2D>()
 
     abstract fun asSVG(at: AffineTransform): String
 
@@ -3437,7 +3430,7 @@ class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, private val pknot: Pkno
 
     override val bounds: List<Point2D>
         get() {
-            return this.helix.bounds
+            return listOf<Point2D>()
         }
 
     override fun inside(location: Location) = helix.inside(location) && tertiaryInteractions.all { it.inside(location) }
@@ -3452,9 +3445,6 @@ class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, private val pknot: Pkno
             for (interaction in this.tertiaryInteractions)
                 interaction.draw(g, at, drawingArea, selectedDrawings)
         else {
-            for (interaction in this.tertiaryInteractions)
-                if (interaction.residue.absPos in ssDrawing.residuesUpdated || interaction.pairedResidue.absPos in ssDrawing.residuesUpdated) //to avoid to draw a non updated selection shape
-                    interaction.bounds.clear()
             val previousStroke = g.stroke
             g.stroke = BasicStroke(
                 this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
@@ -3556,21 +3546,28 @@ class HelixDrawing(
 
     override val bounds: List<Point2D>
         get() {
-            return if (this.isFullDetails()) {
-                val firstbp = this.secondaryInteractions.first()
-                val secondBp = this.secondaryInteractions[1]
-                val beforeLastbp = this.secondaryInteractions[this.length - 2]
-                val lastbp = this.secondaryInteractions.last()
-                val p1 = pointsFrom(firstbp.residue.center, secondBp.pairedResidue.center, -radiusConst * 2.0).first
-                val p2 = pointsFrom(firstbp.pairedResidue.center, secondBp.residue.center, -radiusConst * 2.0).first
-                val p3 = pointsFrom(beforeLastbp.residue.center, lastbp.pairedResidue.center, -radiusConst * 2.0).second
-                val p4 = pointsFrom(beforeLastbp.pairedResidue.center, lastbp.residue.center, -radiusConst * 2.0).second
-                listOf(p1, p2, p3, p4)
+            val l = mutableListOf<Point2D>()
+            if (this.isFullDetails()) {
+                val c = Point2D.Double((line.p1.x+line.p2.x)/2.0, (line.p1.y+line.p2.y)/2.0)
+
+                var bp = this.secondaryInteractions.first()
+                var outsidePoints = pointsFrom(bp.residue.center, bp.pairedResidue.center, -(bp.residue.getLineWidth()+radiusConst*1.1))
+                var p1 = getPerpendicular(outsidePoints.first, outsidePoints.first, outsidePoints.second, -(bp.residue.getLineWidth()+radiusConst*1.1))
+                var p2 = getPerpendicular(outsidePoints.second, outsidePoints.first, outsidePoints.second, -(bp.residue.getLineWidth()+radiusConst*1.1))
+                l.add(p1.toList().maxBy { distance(c,it) })
+                l.add(p2.toList().maxBy { distance(c,it) })
+
+                bp = this.secondaryInteractions.last()
+                outsidePoints = pointsFrom(bp.residue.center, bp.pairedResidue.center, -(bp.residue.getLineWidth()+radiusConst*1.1))
+                p1 = getPerpendicular(outsidePoints.first, outsidePoints.first, outsidePoints.second, -(bp.residue.getLineWidth()+radiusConst*1.1))
+                p2 = getPerpendicular(outsidePoints.second, outsidePoints.first, outsidePoints.second, -(bp.residue.getLineWidth()+radiusConst*1.1))
+                l.add(p2.toList().maxBy { distance(c,it) })
+                l.add(p1.toList().maxBy { distance(c,it) })
             } else {
-                val (p1, p2) = getPerpendicular(line.p1, line.p1, line.p2, radiusConst * 2.0)
-                val (p3, p4) = getPerpendicular(line.p2, line.p1, line.p2, radiusConst * 2.0)
-                listOf(p1, p2, p4, p3)
+                l.addAll(getPerpendicular(line.p1, line.p1, line.p2, radiusConst * 2.0).toList())
+                l.addAll(getPerpendicular(line.p1, line.p1, line.p2, radiusConst * 2.0).toList().reversed())
             }
+            return l
         }
 
     init {
@@ -3600,10 +3597,6 @@ class HelixDrawing(
 
         if (ssDrawing.quickDraw || !this.isFullDetails() && this.getLineWidth() > 0) {
             g.draw(at.createTransformedShape(this.line))
-            this.secondaryInteractions.forEach {
-                if (it.residue.updated) //to avoid to plot a non updated selection
-                    it.bounds.clear()
-            }
         } else {
             this.phosphoBonds.forEach {
                 it.draw(g, at, drawingArea, selectedDrawings)
@@ -3687,37 +3680,24 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
 
     override val bounds: List<Point2D>
         get() {
-            return if (this.isFullDetails()) {
-                val minX = this.residues.flatMap { it.bounds }.minByOrNull { it.x }!!.x
-                val minY = this.residues.flatMap { it.bounds }.minByOrNull { it.y }!!.y
-                val maxX = this.residues.flatMap { it.bounds }.maxByOrNull { it.x }!!.x
-                val maxY = this.residues.flatMap { it.bounds }.maxByOrNull { it.y }!!.y
-                return listOf(
-                    Point2D.Double(minX, minY), Point2D.Double(maxX, minY),
-                    Point2D.Double(maxX, maxY), Point2D.Double(minX, maxY)
-                )
+            val l = mutableListOf<Point2D>()
+            val firstResidue = this.residues.first()
+            val lastResidue = this.residues.last()
+            if (firstResidue == lastResidue) {
+                l.addAll(firstResidue.bounds)
             } else {
-                val first = this.residues.first().circle.bounds
-                val last = this.residues.last().circle.bounds
-                listOf(
-                    Point2D.Double(
-                        first.minX - this.residues.first().getLineWidth(),
-                        first.minY - this.residues.first().getLineWidth()
-                    ),
-                    Point2D.Double(
-                        last.maxX + this.residues.last().getLineWidth(),
-                        last.minY - this.residues.last().getLineWidth()
-                    ),
-                    Point2D.Double(
-                        last.maxX + this.residues.last().getLineWidth(),
-                        last.maxY + this.residues.last().getLineWidth()
-                    ),
-                    Point2D.Double(
-                        first.minX - this.residues.first().getLineWidth(),
-                        first.maxY + this.residues.first().getLineWidth()
-                    )
+                val center = Point2D.Double(
+                    (this.line.p1.x+this.line.p2.x)/2.0,
+                    (this.line.p1.y+this.line.p2.y)/2.0
+                )
+                l.addAll(
+                   firstResidue.bounds.sortedBy { distance(it,center) }.subList(2,4)
+                )
+                l.addAll(
+                    lastResidue.bounds.sortedBy { distance(it,center) }.subList(2,4)
                 )
             }
+            return l
         }
 
     override fun draw(
@@ -3889,11 +3869,35 @@ open class JunctionDrawing(
 
     override val bounds: List<Point2D>
         get() {
-                val b = this.circle.bounds2D
-            return listOf(
-                    Point2D.Double(b.minX, b.minY), Point2D.Double(b.maxX, b.minY),
-                    Point2D.Double(b.maxX, b.maxY), Point2D.Double(b.minX, b.maxY)
-                )
+            val l = mutableListOf<Point2D>()
+            this.children.sortedWith( compareBy( //we sort first according to the location and then the residues before the phospho bonds
+                {el -> el.location.start},
+                {el -> when(el) {
+                    is ResidueDrawing -> 0
+                    is PhosphodiesterBondDrawing -> 1
+                    else -> {
+                        Integer.MAX_VALUE
+                    }
+                } }
+            )).forEach { child ->
+                when (child) {
+                    is ResidueDrawing -> {
+                        l.add(pointsFrom(center, child.center, -radiusConst*2.0).second)
+                    }
+                    is PhosphodiesterBondDrawing -> {
+                        if (!this.location.contains(child.location.start) && !this.location.contains(child.location.end)) {
+                            l.add(child.residue.center)
+                            l.add(child.nextResidue.center)
+                        }
+                        else if (!this.location.contains(child.location.end))
+                            l.add(child.nextResidue.center)
+                        else if (!this.location.contains(child.location.start))
+                            l.add(child.residue.center)
+                    }
+                }
+            }
+
+            return l
         }
 
     val start: Int
@@ -5011,7 +5015,16 @@ abstract class BaseBaseInteractionDrawing(
         get() = this.interaction.edge5 == Edge.SingleHBond && this.interaction.edge3 == Edge.SingleHBond
 
 
-    override val bounds = mutableListOf<Point2D>()
+    override val bounds:List<Point2D>
+        get() {
+            val l = mutableListOf<Point2D>()
+            val outsidePoints = pointsFrom(this.residue.center, this.pairedResidue.center, -(this.residue.getLineWidth()+radiusConst*1.1))
+            val p1 = getPerpendicular(outsidePoints.first, outsidePoints.first, outsidePoints.second, -(this.residue.getLineWidth()+radiusConst*1.1))
+            val p2 = getPerpendicular(outsidePoints.second, outsidePoints.first, outsidePoints.second, -(this.residue.getLineWidth()+radiusConst*1.1))
+            l.addAll(p1.toList())
+            l.addAll(p2.toList().reversed())
+            return l
+        }
 
     init {
         this.residue = ssDrawing.getResiduesFromAbsPositions(this.start).first()
@@ -5089,8 +5102,6 @@ class SecondaryInteractionDrawing(
         selectedDrawings: List<DrawingElement>?
     ) {
         if (residue.updated) {//the paired residue is de facto updated too
-            bounds.clear()
-            this.interactionSymbol.bounds.clear()
             val center1 = this.residue.center
             val center2 = this.pairedResidue.center
 
@@ -5203,35 +5214,6 @@ class SecondaryInteractionDrawing(
                         this.interactionSymbol.lwSymbols[1].setShape(p1_inner, p2_inner)
                     }
                 }
-
-                //now the points for the bounds
-                this.interactionSymbol.bounds.addAll(
-                    getPerpendicular(
-                        points.first,
-                        center1,
-                        center2,
-                        radiusConst * 1.1
-                    ).toList()
-                )
-                this.interactionSymbol.bounds.addAll(
-                    getPerpendicular(
-                        points.second,
-                        center1,
-                        center2,
-                        radiusConst * 1.1
-                    ).toList().reversed()
-                )
-
-                points = pointsFrom(
-                    center1,
-                    center2,
-                    -shift
-                )
-
-                bounds.addAll(getPerpendicular(points.first, center1, center2, radiusConst * 1.1).toList())
-                bounds.addAll(
-                    getPerpendicular(points.second, center1, center2, radiusConst * 1.1).toList().reversed()
-                )
 
             }
             this.residue.updated = false
@@ -5382,7 +5364,7 @@ class SecondaryInteractionDrawing(
 }
 
 class InteractionSymbolDrawing(
-    parent: DrawingElement?,
+    parent: BaseBaseInteractionDrawing,
     val interaction: BasePair,
     ssDrawing: SecondaryStructureDrawing
 ) : DrawingElement(
@@ -5400,7 +5382,20 @@ class InteractionSymbolDrawing(
     var defaultSymbol: LWLine? = null
     var lwSymbols = mutableListOf<LWSymbolDrawing>()
 
-    override val bounds = mutableListOf<Point2D>()
+    override val bounds:List<Point2D>
+        get() {
+            val l = mutableListOf<Point2D>()
+            val center1 = (this.parent as BaseBaseInteractionDrawing).residue.center
+            val center2 = (this.parent as BaseBaseInteractionDrawing).pairedResidue.center
+            val (p1, p2) = pointsFrom(
+                center1,
+                center2,
+                radiusConst + deltaPhosphoShift
+            )
+            l.addAll(getPerpendicular(p1, center1, center2, radiusConst * 0.5).toList())
+            l.addAll(getPerpendicular(p2, center1, center2, radiusConst * 0.5).toList().reversed())
+            return l
+        }
 
     override fun inside(location: Location) = if (ssDrawing.secondaryStructure.rna.useAlignmentNumberingSystem)
         location.contains(ssDrawing.secondaryStructure.rna.mapPosition(interaction.start)) && location.contains(
@@ -5495,8 +5490,6 @@ class TertiaryInteractionDrawing(
         selectedDrawings: List<DrawingElement>?
     ) {
         if (this.residue.absPos in ssDrawing.residuesUpdated || this.pairedResidue.absPos in ssDrawing.residuesUpdated) {
-            bounds.clear()
-            this.interactionSymbol.bounds.clear()
             val center1 = this.residue.center
             val center2 = this.pairedResidue.center
             val shift = radiusConst + this.residue.getLineWidth().toDouble() / 2.0
@@ -5574,35 +5567,6 @@ class TertiaryInteractionDrawing(
 
                 //+++++ central line linking the two symbols
                 this.interactionSymbol.lwSymbols[1].setShape(forLine_1, forLine_2)
-
-                //now the points for the bounds
-                this.interactionSymbol.bounds.addAll(
-                    getPerpendicular(
-                        p1,
-                        center1,
-                        center2,
-                        radiusConst * 1.1
-                    ).toList()
-                )
-                this.interactionSymbol.bounds.addAll(
-                    getPerpendicular(
-                        p2,
-                        center1,
-                        center2,
-                        radiusConst * 1.1
-                    ).toList().reversed()
-                )
-
-                val points = pointsFrom(
-                    center1,
-                    center2,
-                    -shift
-                )
-
-                bounds.addAll(getPerpendicular(points.first, center1, center2, radiusConst * 1.1).toList())
-                bounds.addAll(
-                    getPerpendicular(points.second, center1, center2, radiusConst * 1.1).toList().reversed()
-                )
 
             }
 
@@ -5735,7 +5699,20 @@ open class PhosphodiesterBondDrawing(
             return this.location.end
         }
 
-    override val bounds = mutableListOf<Point2D>()
+    override val bounds: List<Point2D>
+        get() {
+            val l = mutableListOf<Point2D>()
+            val center1 = this.residue.center
+            val center2 = this.nextResidue.center
+            val (p1, p2) = pointsFrom(
+                center1,
+                center2,
+                radiusConst + deltaPhosphoShift
+            )
+            l.addAll(getPerpendicular(p1, center1, center2, radiusConst * 0.5).toList())
+            l.addAll(getPerpendicular(p2, center1, center2, radiusConst * 0.5).toList().reversed())
+            return l
+        }
 
     override fun inside(location: Location) = if (ssDrawing.secondaryStructure.rna.useAlignmentNumberingSystem)
         location.contains(ssDrawing.secondaryStructure.rna.mapPosition(this.start)) && location.contains(
@@ -5757,7 +5734,6 @@ open class PhosphodiesterBondDrawing(
         drawingArea: Rectangle2D,
         selectedDrawings: List<DrawingElement>?
     ) {
-            this.bounds.clear()
             val previousStroke = g.stroke
             g.stroke = BasicStroke(
                 this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
@@ -5771,9 +5747,6 @@ open class PhosphodiesterBondDrawing(
                 center2,
                 radiusConst + deltaPhosphoShift
             )
-
-            this.bounds.addAll(getPerpendicular(p1, center1, center2, radiusConst * 1.1).toList())
-            this.bounds.addAll(getPerpendicular(p2, center1, center2, radiusConst * 1.1).toList().reversed())
 
             g.draw(
                 at.createTransformedShape(
@@ -5832,7 +5805,6 @@ class HelicalPhosphodiesterBondDrawing(parent: HelixDrawing, ssDrawing: Secondar
         drawingArea: Rectangle2D,
         selectedDrawings: List<DrawingElement>?
     ) {
-        this.bounds.clear()
         val previousStroke = g.stroke
         g.stroke = BasicStroke(
             this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat(), BasicStroke.CAP_ROUND,
@@ -5847,9 +5819,6 @@ class HelicalPhosphodiesterBondDrawing(parent: HelixDrawing, ssDrawing: Secondar
             center2,
             radiusConst + deltaPhosphoShift
         )
-
-        this.bounds.addAll(getPerpendicular(p1, center1, center2, radiusConst * 1.1).toList())
-        this.bounds.addAll(getPerpendicular(p2, center1, center2, radiusConst * 1.1).toList().reversed())
 
         g.draw(
             at.createTransformedShape(
