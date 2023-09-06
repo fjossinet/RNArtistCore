@@ -9,6 +9,7 @@ import java.io.FileReader
 import java.io.IOException
 import java.lang.Exception
 import java.nio.file.FileSystems.*
+import kotlin.random.Random
 
 class RNABuilder {
     var name: String = "A"
@@ -773,16 +774,16 @@ class RNArtistBuilder {
                         is FileSource -> {
                             if (source.getId().endsWith(".vienna")) {
                                 val ssElement =
-                                    this.rnartistElement.addSSEl() //only a single ss element is allowed the previous one is removed
-                                val viennaElement = ssElement.addViennaEl()
+                                    this.rnartistElement.addSS() //only a single ss element is allowed the previous one is removed
+                                val viennaElement = ssElement.addVienna()
                                 viennaElement.setFile(source.getId())
                             }
                         }
 
                         is BracketNotation -> {
                             val ssElement =
-                                this.rnartistElement.addSSEl() //only a single ss element is allowed the previous one is removed
-                            val bnElement = ssElement.addBracketNotationEl()
+                                this.rnartistElement.addSS() //only a single ss element is allowed the previous one is removed
+                            val bnElement = ssElement.addBracketNotation()
                             bnElement.setSeq(ss.rna.seq)
                             bnElement.setValue(ss.toBracketNotation())
                             bnElement.setName(ss.name)
@@ -795,7 +796,7 @@ class RNArtistBuilder {
                     }
 
                 }
-                this.rnartistElement.addPNGEl(pngOutputBuilder.dslElement)
+                this.rnartistElement.addPNG(pngOutputBuilder.dslElement)
                 pngOutputBuilder.name?.let { chainName ->
                     if (chainName == ss.rna.name)
                         pngOutputBuilder.build(
@@ -815,16 +816,16 @@ class RNArtistBuilder {
                         is FileSource -> {
                             if (source.getId().endsWith(".vienna")) {
                                 val ssElement =
-                                    this.rnartistElement.addSSEl() //only a single ss element is allowed the previous one is removed
-                                val viennaElement = ssElement.addViennaEl()
+                                    this.rnartistElement.addSS() //only a single ss element is allowed the previous one is removed
+                                val viennaElement = ssElement.addVienna()
                                 viennaElement.setFile(source.getId())
                             }
                         }
 
                         is BracketNotation -> {
                             val ssElement =
-                                this.rnartistElement.addSSEl() //only a single ss element is allowed the previous one is removed
-                            val bnElement = ssElement.addBracketNotationEl()
+                                this.rnartistElement.addSS() //only a single ss element is allowed the previous one is removed
+                            val bnElement = ssElement.addBracketNotation()
                             bnElement.setSeq(ss.rna.seq)
                             bnElement.setValue(ss.toBracketNotation())
                             bnElement.setName(ss.name)
@@ -836,7 +837,7 @@ class RNArtistBuilder {
                     }
 
                 }
-                this.rnartistElement.addSVGEl(svgOutputBuilder.dslElement)
+                this.rnartistElement.addSVG(svgOutputBuilder.dslElement)
                 svgOutputBuilder.name?.let { chainName ->
                     if (chainName == ss.rna.name)
                         svgOutputBuilder.build(
@@ -1067,14 +1068,14 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
         val showBuilder = ShowBuilder(this.data)
         showBuilder.setup()
         this.themeConfigurationBuilders.add(showBuilder)
-        this.dslElement.addShowEl(showBuilder.dslElement)
+        this.dslElement.addShow(showBuilder.dslElement)
     }
 
     fun color(setup: ColorBuilder.() -> Unit) {
         val colorBuilder = ColorBuilder(this.data)
         colorBuilder.setup()
         this.themeConfigurationBuilders.add(colorBuilder)
-        this.dslElement.addColorEl(colorBuilder.dslElement)
+        this.dslElement.addColor(colorBuilder.dslElement)
     }
 
     fun line(setup: LineBuilder.() -> Unit) {
@@ -1088,7 +1089,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
         val hideBuilder = HideBuilder(this.data)
         hideBuilder.setup()
         this.themeConfigurationBuilders.add(hideBuilder)
-        this.dslElement.addHideEl(hideBuilder.dslElement)
+        this.dslElement.addHide(hideBuilder.dslElement)
     }
 
     fun build(): Theme {
@@ -1097,407 +1098,135 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
             when (details) {
                 1 -> {
                     t.addConfiguration(
-                        { true },
                         ThemeProperty.fulldetails,
-                        { "false" }
+                        { el -> "false" },
+                        SecondaryStructureType.entries
                     )
                 }
 
                 2 -> {
                     t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.Helix
-                        },
                         ThemeProperty.fulldetails,
-                        {"true" }
+                        { _ -> "true" },
+                        listOf(SecondaryStructureType.Helix,
+                            SecondaryStructureType.SecondaryInteraction,
+                            SecondaryStructureType.Junction,
+                            SecondaryStructureType.SingleStrand,
+                            SecondaryStructureType.PhosphodiesterBond)
                     )
+
                     t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.SecondaryInteraction
-                        },
                         ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.Junction
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.SingleStrand
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.PhosphodiesterBond
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.AShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"false" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.A
-                    }, ThemeProperty.fulldetails, {"false" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.UShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"false" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.U
-                    }, ThemeProperty.fulldetails, {"false" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.GShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"false" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.G
-                    }, ThemeProperty.fulldetails, {"false" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.CShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"false" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.C
-                    }, ThemeProperty.fulldetails, {"false" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.XShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"false" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.X
-                    }, ThemeProperty.fulldetails, {"false" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.InteractionSymbol
-                        },
-                        ThemeProperty.fulldetails,
-                        {"false" }
+                        { _ -> "false" },
+                        listOf(
+                            SecondaryStructureType.InteractionSymbol,
+                            SecondaryStructureType.AShape,
+                            SecondaryStructureType.UShape,
+                            SecondaryStructureType.GShape,
+                            SecondaryStructureType.CShape,
+                            SecondaryStructureType.XShape)
                     )
                 }
 
                 3 -> {
                     t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.Helix
-                        },
                         ThemeProperty.fulldetails,
-                        {"true" }
+                        { _ -> "true" },
+                        listOf(SecondaryStructureType.Helix,
+                            SecondaryStructureType.SecondaryInteraction,
+                            SecondaryStructureType.Junction,
+                            SecondaryStructureType.SingleStrand,
+                            SecondaryStructureType.PhosphodiesterBond,
+                            SecondaryStructureType.AShape,
+                            SecondaryStructureType.UShape,
+                            SecondaryStructureType.GShape,
+                            SecondaryStructureType.CShape,
+                            SecondaryStructureType.XShape)
                     )
+
                     t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.SecondaryInteraction
-                        },
                         ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.Junction
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.SingleStrand
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.PhosphodiesterBond
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.AShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.A
-                    }, ThemeProperty.fulldetails, {"false" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.UShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.U
-                    }, ThemeProperty.fulldetails, {"false" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.GShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.G
-                    }, ThemeProperty.fulldetails, {"false" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.CShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.C
-                    }, ThemeProperty.fulldetails, {"false" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.XShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.X
-                        },
-                        ThemeProperty.fulldetails,
-                        {"false" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.InteractionSymbol
-                        },
-                        ThemeProperty.fulldetails,
-                        {"false" }
+                        { _ -> "false" },
+                        listOf(SecondaryStructureType.InteractionSymbol,
+                            SecondaryStructureType.A,
+                            SecondaryStructureType.U,
+                            SecondaryStructureType.G,
+                            SecondaryStructureType.C,
+                            SecondaryStructureType.X)
                     )
                 }
 
                 4 -> {
                     t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.Helix
-                        },
                         ThemeProperty.fulldetails,
-                        {"true" }
+                        { _ -> "true" },
+                        listOf(SecondaryStructureType.Helix,
+                            SecondaryStructureType.SecondaryInteraction,
+                            SecondaryStructureType.Junction,
+                            SecondaryStructureType.SingleStrand,
+                            SecondaryStructureType.PhosphodiesterBond,
+                            SecondaryStructureType.AShape,
+                            SecondaryStructureType.UShape,
+                            SecondaryStructureType.GShape,
+                            SecondaryStructureType.CShape,
+                            SecondaryStructureType.XShape,
+                            SecondaryStructureType.A,
+                            SecondaryStructureType.U,
+                            SecondaryStructureType.G,
+                            SecondaryStructureType.C,
+                            SecondaryStructureType.X)
                     )
+
                     t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.SecondaryInteraction
-                        },
                         ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.Junction
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.SingleStrand
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.PhosphodiesterBond
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.AShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.A
-                    }, ThemeProperty.fulldetails, {"true" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.UShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.U
-                    }, ThemeProperty.fulldetails, {"true" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.GShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.G
-                    }, ThemeProperty.fulldetails, {"true" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.CShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.C
-                    }, ThemeProperty.fulldetails, {"true" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.XShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.X
-                    }, ThemeProperty.fulldetails, {"true" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.InteractionSymbol
-                        },
-                        ThemeProperty.fulldetails,
-                        {"false" }
+                        { _ -> "false" },
+                        listOf(SecondaryStructureType.InteractionSymbol)
                     )
                 }
 
                 else -> {
                     t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.Helix
-                        },
                         ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.SecondaryInteraction
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.Junction
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.SingleStrand
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.PhosphodiesterBond
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.AShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.A
-                    }, ThemeProperty.fulldetails, {"true" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.UShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.U
-                    }, ThemeProperty.fulldetails, {"true" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.GShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.G
-                    }, ThemeProperty.fulldetails, {"true" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.CShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.C
-                    }, ThemeProperty.fulldetails, {"true" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.XShape
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
-                    )
-                    t.addConfiguration({ el ->
-                        el.type == SecondaryStructureType.X
-                    }, ThemeProperty.fulldetails, {"true" })
-                    t.addConfiguration(
-                        { el ->
-                            el.type == SecondaryStructureType.InteractionSymbol
-                        },
-                        ThemeProperty.fulldetails,
-                        {"true" }
+                        { _ -> "true" },
+                        SecondaryStructureType.entries
                     )
                 }
             }
         }
         this.scheme?.let { schemeName ->
-            RnartistConfig.colorSchemes.get(schemeName)?.let { scheme ->
-                scheme.forEach { selection, color ->
-                    t.addConfiguration(
-                        selection,
-                        ThemeProperty.color,
-                        color
-                    )
+            if ("Structural Domains" == schemeName) {
+                val randomColors = (1..20).map { getHTMLColorString(randomColor()) }
+                t.addConfiguration(
+                    ThemeProperty.color,
+                    {el ->
+                        when (el) {
+                            is HelixDrawing -> randomColors.get(Random.nextInt(0,19))
+                            is JunctionDrawing -> randomColors.get(Random.nextInt(0,19))
+                            is SingleStrandDrawing -> randomColors.get(Random.nextInt(0,19))
+                            is SecondaryInteractionDrawing -> getHTMLColorString(el.parent!!.getColor())
+                            is InteractionSymbolDrawing -> getHTMLColorString(el.parent!!.getColor())
+                            is ResidueDrawing -> getHTMLColorString(el.parent!!.getColor())
+                            is PhosphodiesterBondDrawing -> el.parent?.let {
+                                getHTMLColorString(it.getColor())
+                            } ?: run {
+                                getHTMLColorString(el.getColor())
+                            }
+                            is ResidueLetterDrawing-> getHTMLColorString(Color.WHITE)
+                            else -> getHTMLColorString(Color.RED)
+                        }
+                    },
+                    SecondaryStructureType.entries
+                )
+            } else
+                RnartistConfig.colorSchemes.get(schemeName)?.let { scheme ->
+                    scheme.forEach { type, color ->
+                        t.addConfiguration(
+                            ThemeProperty.color,
+                            color,
+                            listOf(type)
+                        )
+                    }
                 }
-            }
         }
         this.themeConfigurationBuilders.forEach { configurationBuilder ->
             when (configurationBuilder) {
@@ -1520,27 +1249,27 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                                             if (loc.contains(position.toInt()))
                                                 t.addConfiguration(
                                                     configurationBuilder.buildSelection(Location(position)),
-                                                    ThemeProperty.color
-                                                ) { getHTMLColorString(Color(r.toInt(), g.toInt(), b.toInt())) }
+                                                    ThemeProperty.color,
+                                                { getHTMLColorString(Color(r.toInt(), g.toInt(), b.toInt())) })
                                         } ?: run {
                                             t.addConfiguration(
                                                 configurationBuilder.buildSelection(Location(position)),
-                                                ThemeProperty.color
-                                            ) { getHTMLColorString(Color(r.toInt(), g.toInt(), b.toInt())) }
+                                                ThemeProperty.color,
+                                            { getHTMLColorString(Color(r.toInt(), g.toInt(), b.toInt())) })
                                         }
                                     }
                                 } ?: run {
                                     t.addConfiguration(
                                         configurationBuilder.buildSelection(),
-                                        ThemeProperty.color
-                                    ) { configurationBuilder.value!! }
+                                        ThemeProperty.color,
+                                    { configurationBuilder.value!! })
                                 }
                             }
                         } else {
                             t.addConfiguration(
                                 configurationBuilder.buildSelection(),
-                                ThemeProperty.color
-                            ) { configurationBuilder.value!! }
+                                ThemeProperty.color,
+                            { configurationBuilder.value!! })
                         }
                     }
                 }
@@ -1548,23 +1277,23 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                 is ShowBuilder -> {
                     t.addConfiguration(
                         configurationBuilder.buildSelection(),
-                        ThemeProperty.fulldetails
-                    ) { "true" }
+                        ThemeProperty.fulldetails,
+                    { "true" })
                 }
 
                 is HideBuilder -> {
                     t.addConfiguration(
                         configurationBuilder.buildSelection(),
-                        ThemeProperty.fulldetails
-                    ) { "false" }
+                        ThemeProperty.fulldetails,
+                    { "false" })
                 }
 
                 is LineBuilder -> {
                     val lineBuilder = configurationBuilder
                     t.addConfiguration(
                         lineBuilder.buildSelection(),
-                        ThemeProperty.linewidth
-                    ) { lineBuilder.value.toString() }
+                        ThemeProperty.linewidth,
+                    { lineBuilder.value.toString() })
                 }
             }
 
@@ -2133,7 +1862,7 @@ class LocationBuilder {
             else {
                 val locationEl = LocationEl()
                 blocks.forEach { (start, end) ->
-                    locationEl.setBlock(start, end)
+                    locationEl.addBlock(start, end)
                 }
                 locationEl
             }

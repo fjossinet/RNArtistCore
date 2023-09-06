@@ -119,7 +119,7 @@ private fun fromBlocksToElements(blocks:List<DSLBlock>, rnArtistEl: RNArtistEl) 
             }
 
             "theme" -> {
-                val themeEl = rnArtistEl.addThemeEl()
+                val themeEl = rnArtistEl.addTheme()
                 dslBlock.properties.forEach { property ->
                     if (property.contains("=")) {
                         val tokens = property.split("=").map { it.removePrefix(" ") }.map { it.removeSuffix(" ") }.map { it.removeSurrounding("\"") }
@@ -132,8 +132,8 @@ private fun fromBlocksToElements(blocks:List<DSLBlock>, rnArtistEl: RNArtistEl) 
             }
 
             "color" -> {
-                val themeEl = rnArtistEl.getThemeEl()
-                val colorEl = themeEl.addColorEl()
+                val themeEl = rnArtistEl.getThemeOrNew()
+                val colorEl = themeEl.addColor()
                 dslBlock.properties.forEach { property ->
                     if (property.contains("=")) {
                         val tokens = property.split("=").map { it.removePrefix(" ") }.map { it.removeSuffix(" ") }.map { it.removeSurrounding("\"") }
@@ -143,11 +143,23 @@ private fun fromBlocksToElements(blocks:List<DSLBlock>, rnArtistEl: RNArtistEl) 
                         }
                     }
                 }
+                dslBlock.children.forEach { child ->
+                    when (child.name) {
+                        "location" -> with (colorEl.addLocation()) {
+                            child.properties.forEach { property ->
+                                if (property.contains("to")) {
+                                    val tokens = property.split("to").map { it.removePrefix(" ") }.map { it.removeSuffix(" ") }
+                                    this.addBlock(tokens.first().toInt(), tokens.last().toInt())
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             "line" -> {
-                val themeEl = rnArtistEl.getThemeEl()
-                val lineEl = themeEl.addLineEl()
+                val themeEl = rnArtistEl.getThemeOrNew()
+                val lineEl = themeEl.addLine()
                 dslBlock.properties.forEach { property ->
                     if (property.contains("=")) {
                         val tokens = property.split("=").map { it.removePrefix(" ") }.map { it.removeSuffix(" ") }.map { it.removeSurrounding("\"") }
@@ -159,7 +171,7 @@ private fun fromBlocksToElements(blocks:List<DSLBlock>, rnArtistEl: RNArtistEl) 
             }
 
             "ss" -> {
-                val ssEl = rnArtistEl.addSSEl()
+                val ssEl = rnArtistEl.addSS()
                 dslBlock.properties.forEach { property ->
                     if (property.contains("=")) {
                         val tokens = property.split("=").map { it.removePrefix(" ") }.map { it.removeSuffix(" ") }.map { it.removeSurrounding("\"") }
@@ -170,8 +182,8 @@ private fun fromBlocksToElements(blocks:List<DSLBlock>, rnArtistEl: RNArtistEl) 
             }
 
             "vienna" -> {
-                val ssEl = rnArtistEl.getSSEl()
-                val viennaEl = ssEl.addViennaEl()
+                val ssEl = rnArtistEl.getSSOrNew()
+                val viennaEl = ssEl.addVienna()
                 dslBlock.properties.forEach { property ->
                     if (property.contains("=")) {
                         val tokens = property.split("=").map { it.removePrefix(" ") }.map { it.removeSuffix(" ") }.map { it.removeSurrounding("\"") }
@@ -183,7 +195,7 @@ private fun fromBlocksToElements(blocks:List<DSLBlock>, rnArtistEl: RNArtistEl) 
             }
 
             "png" -> {
-                val pngEl = rnArtistEl.addPNGEl()
+                val pngEl = rnArtistEl.addPNG()
                 dslBlock.properties.forEach { property ->
                     if (property.contains("=")) {
                         val tokens = property.split("=").map { it.removePrefix(" ") }.map { it.removeSuffix(" ") }.map { it.removeSurrounding("\"") }

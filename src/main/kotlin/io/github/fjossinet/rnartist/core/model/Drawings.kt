@@ -3,14 +3,15 @@ package io.github.fjossinet.rnartist.core.model
 import io.github.fjossinet.rnartist.core.RnartistConfig
 import io.github.fjossinet.rnartist.core.RnartistConfig.defaultConfiguration
 import java.awt.*
-import java.awt.Color
 import java.awt.geom.*
 import java.awt.image.BufferedImage
 import java.io.File
 import java.io.PrintWriter
 import javax.imageio.ImageIO
 import kotlin.math.hypot
+import kotlin.math.pow
 import kotlin.math.sqrt
+
 
 //parameters that can be modified
 val radiusConst: Double = 7.0
@@ -235,11 +236,22 @@ class WorkingSession {
     }
 }
 
+/**
+ * If the (selector is true (true if null) AND (the drawing element type is at least one of the secondaryStructureTypesAllowed (true if null))
+ * then the drawing element is selected to record the theme configuration
+ */
 class ThemeConfiguration(
-    val selector: (DrawingElement) -> Boolean,
+    private val selector: ((DrawingElement) -> Boolean)? = null,
     val propertyName: String,
-    val propertyValue: (DrawingElement) -> String
-)
+    var propertyValue: (DrawingElement?) -> String,
+    val secondaryStructureTypesAllowed:List<SecondaryStructureType>? = null
+) {
+    fun select(el:DrawingElement):Boolean {
+        return this.secondaryStructureTypesAllowed?.any {
+            el.type == it
+        } ?: true && (this.selector?.invoke(el) ?: true)
+    }
+}
 
 class Theme {
 
@@ -247,11 +259,28 @@ class Theme {
         mutableListOf()
 
     fun addConfiguration(
-        selector: (DrawingElement) -> Boolean,
         property: ThemeProperty,
-        propertyValue: (DrawingElement) -> String
+        propertyValue: (DrawingElement?) -> String,
+        secondaryStructureTypesAllowed:List<SecondaryStructureType>? = null
     ) {
-        configurations.add(ThemeConfiguration(selector, property.toString(), propertyValue))
+        this.addConfiguration(null, property, propertyValue, secondaryStructureTypesAllowed)
+    }
+
+    fun addConfiguration(
+        selector: ((DrawingElement) -> Boolean),
+        property: ThemeProperty,
+        propertyValue: (DrawingElement?) -> String
+    ) {
+        this.addConfiguration(selector, property, propertyValue, null)
+    }
+
+    fun addConfiguration(
+        selector: ((DrawingElement) -> Boolean)? = null,
+        property: ThemeProperty,
+        propertyValue: (DrawingElement?) -> String,
+        secondaryStructureTypesAllowed:List<SecondaryStructureType>? = null
+    ) {
+        configurations.add(ThemeConfiguration(selector, property.toString(), propertyValue, secondaryStructureTypesAllowed))
     }
 
     fun clear() = this.configurations.clear()
@@ -351,14 +380,7 @@ abstract class DrawingElement(
 
     open val selectionShape: Shape
         get() {
-            val _bounds = bounds
-            val s = GeneralPath()
-            s.moveTo(_bounds.first().x, _bounds.first().y)
-            _bounds.subList(1, _bounds.size).forEach {
-                s.lineTo(it.x, it.y)
-            }
-            s.closePath()
-            return s
+            return getRoundedGeneralPath(bounds.toMutableList())
         }
 
     val allChildren: List<DrawingElement>
@@ -469,9 +491,8 @@ abstract class DrawingElement(
             false
         }
         theme.configurations.forEach { configuration ->
-            if (configuration.selector(this)) {
+            if (configuration.select(this))
                 this.drawingConfiguration.params[configuration.propertyName] = configuration.propertyValue(this)
-            }
         }
         val stop2 = checkStopAfter?.let {
             it(this)
@@ -3456,14 +3477,8 @@ class PKnotDrawing(ssDrawing: SecondaryStructureDrawing, private val pknot: Pkno
             if (tertiaryInteractions.size % 2 == 0) {
                 val middleInteraction1 = tertiaryInteractions[tertiaryInteractions.size / 2 - 1]
                 val middleInteraction2 = tertiaryInteractions[tertiaryInteractions.size / 2]
-                middlePoint1 = Point2D.Double(
-                    (middleInteraction1.residue.center.x + middleInteraction2.residue.center.x) / 2.0,
-                    (middleInteraction1.residue.center.y + middleInteraction2.residue.center.y) / 2.0
-                )
-                middlePoint2 = Point2D.Double(
-                    (middleInteraction1.pairedResidue.center.x + middleInteraction2.pairedResidue.center.x) / 2.0,
-                    (middleInteraction1.pairedResidue.center.y + middleInteraction2.pairedResidue.center.y) / 2.0
-                )
+                middlePoint1 = centerFrom(middleInteraction1.residue.center, middleInteraction2.residue.center)
+                middlePoint2 = centerFrom(middleInteraction1.pairedResidue.center, middleInteraction2.pairedResidue.center)
             } else {
                 val middleInteraction = tertiaryInteractions[tertiaryInteractions.size / 2]
                 middlePoint1 = middleInteraction.residue.center
@@ -3548,7 +3563,7 @@ class HelixDrawing(
         get() {
             val l = mutableListOf<Point2D>()
             if (this.isFullDetails()) {
-                val c = Point2D.Double((line.p1.x+line.p2.x)/2.0, (line.p1.y+line.p2.y)/2.0)
+                val c = centerFrom(line.p1, line.p2)
 
                 var bp = this.secondaryInteractions.first()
                 var outsidePoints = pointsFrom(bp.residue.center, bp.pairedResidue.center, -(bp.residue.getLineWidth()+radiusConst*1.1))
@@ -3564,8 +3579,11 @@ class HelixDrawing(
                 l.add(p2.toList().maxBy { distance(c,it) })
                 l.add(p1.toList().maxBy { distance(c,it) })
             } else {
-                l.addAll(getPerpendicular(line.p1, line.p1, line.p2, radiusConst * 2.0).toList())
-                l.addAll(getPerpendicular(line.p1, line.p1, line.p2, radiusConst * 2.0).toList().reversed())
+                val outsidePoints = pointsFrom(line.p1, line.p2, -(radiusConst+this.getLineWidth()))
+                val p1 = getPerpendicular(outsidePoints.first, outsidePoints.first, line.p1, radiusConst+this.getLineWidth())
+                val p2 = getPerpendicular(outsidePoints.second, outsidePoints.second, line.p2, radiusConst+this.getLineWidth())
+                l.addAll(p1.toList())
+                l.addAll(p2.toList().reversed())
             }
             return l
         }
@@ -3686,10 +3704,7 @@ class SingleStrandDrawing(ssDrawing: SecondaryStructureDrawing, val ss: SingleSt
             if (firstResidue == lastResidue) {
                 l.addAll(firstResidue.bounds)
             } else {
-                val center = Point2D.Double(
-                    (this.line.p1.x+this.line.p2.x)/2.0,
-                    (this.line.p1.y+this.line.p2.y)/2.0
-                )
+                val center = centerFrom(this.line.p1, this.line.p2)
                 l.addAll(
                    firstResidue.bounds.sortedBy { distance(it,center) }.subList(2,4)
                 )
@@ -3870,36 +3885,52 @@ open class JunctionDrawing(
     override val bounds: List<Point2D>
         get() {
             val l = mutableListOf<Point2D>()
-            this.children.sortedWith( compareBy( //we sort first according to the location and then the residues before the phospho bonds
-                {el -> el.location.start},
-                {el -> when(el) {
-                    is ResidueDrawing -> 0
-                    is PhosphodiesterBondDrawing -> 1
-                    else -> {
-                        Integer.MAX_VALUE
-                    }
-                } }
-            )).forEach { child ->
-                when (child) {
-                    is ResidueDrawing -> {
-                        l.add(pointsFrom(center, child.center, -radiusConst*2.0).second)
-                    }
-                    is PhosphodiesterBondDrawing -> {
-                        if (!this.location.contains(child.location.start) && !this.location.contains(child.location.end)) {
-                            l.add(child.residue.center)
-                            l.add(child.nextResidue.center)
+            if (this.isFullDetails()) {
+                this.children.sortedWith(compareBy( //we sort first according to the location and then the residues before the phospho bonds
+                    { el -> el.location.start },
+                    { el ->
+                        when (el) {
+                            is ResidueDrawing -> 0
+                            is PhosphodiesterBondDrawing -> 1
+                            else -> {
+                                Integer.MAX_VALUE
+                            }
                         }
-                        else if (!this.location.contains(child.location.end))
-                            l.add(child.nextResidue.center)
-                        else if (!this.location.contains(child.location.start))
-                            l.add(child.residue.center)
+                    }
+                )).forEach { child ->
+                    when (child) {
+                        is ResidueDrawing -> {
+                            l.add(pointsFrom(center, child.center, -radiusConst * 2.0).second)
+                        }
+
+                        is PhosphodiesterBondDrawing -> {
+                            if (!this.location.contains(child.location.start) && !this.location.contains(child.location.end)) {
+                                l.add(child.residue.center)
+                                l.add(child.nextResidue.center)
+                            } else if (!this.location.contains(child.location.end))
+                                l.add(child.nextResidue.center)
+                            else if (!this.location.contains(child.location.start))
+                                l.add(child.residue.center)
+                        }
                     }
                 }
             }
-
             return l
         }
 
+    override val selectionShape: Shape
+        get() {
+            return if (this.isFullDetails())
+                super.selectionShape
+            else {
+                Ellipse2D.Double(
+                    this.center.x - this.radius - radiusConst,
+                    this.center.y - this.radius - radiusConst,
+                    (this.radius+ radiusConst) * 2.toDouble(),
+                    (this.radius+ radiusConst) * 2.toDouble()
+                )
+            }
+        }
     val start: Int
         get() = this.junction.start
 
@@ -6353,6 +6384,10 @@ class HelicesDirectLinkPhosphodiesterBondDrawing(
     }
 }
 
+/***********************************************
+ *              Junctions stuff                *
+ ***********************************************/
+
 enum class ConnectorId(val value: Int) {
     s(0),
     ssw(1),
@@ -6819,6 +6854,12 @@ val junctionsBehaviors = mutableMapOf(
 
 val currentJunctionBehaviors = mutableMapOf<JunctionType, (JunctionDrawing, Int) -> ConnectorId?>()
 
+/***********************************************
+ *              Geometry stuff                 *
+ ***********************************************/
+
+fun centerFrom(p1:Point2D, p2:Point2D):Point2D = Point2D.Double((p1.x+p2.x)/2.0, (p1.y+p2.y)/2.0)
+
 /**
 Compute the center of a circle according to the entry point
  **/
@@ -7025,11 +7066,7 @@ fun pointsFrom(p1: Point2D, p2: Point2D, dist: Double): Pair<Point2D, Point2D> {
     return Pair(Point2D.Double(newX1, newY1), Point2D.Double(newX2, newY2))
 }
 
-fun distance(p1: Point2D, p2: Point2D): Double {
-    val h = p2.x - p1.x
-    val v = p2.y - p1.y
-    return Math.sqrt(h * h + v * v)
-}
+fun distance(p1: Point2D, p2: Point2D): Double = sqrt((p1.x - p2.x).pow(2.0) + (p1.y - p2.y).pow(2.0))
 
 fun angleFrom(oppositeSide: Double, adjacentSide: Double) = Math.atan(oppositeSide / adjacentSide) * radiansToDegrees
 
@@ -7085,6 +7122,32 @@ fun getPerpendicular(p0: Point2D, p1: Point2D, p2: Point2D, distance: Double): P
     }
 }
 
+fun getRoundedGeneralPath(l: MutableList<Point2D>): GeneralPath {
+    l.add(l[0])
+    l.add(l[1])
+    val calculatePoint = { p1: Point2D, p2: Point2D ->
+        val d_x = (p1.x - p2.x) * 0.1
+        val d_y = (p1.y - p2.y) * 0.1
+        Point2D.Double(p2.x + d_x, p2.y + d_y)
+    }
+    val p = GeneralPath()
+    val firstPoint = calculatePoint(l[l.size - 1], l[l.size - 2])
+    p.moveTo(firstPoint.x, firstPoint.y)
+    for (i in 1 until l.size - 1) {
+        val p1 = l[i - 1]
+        val p2 = l[i]
+        val p3 = l[i + 1]
+        var mPoint = calculatePoint(p1, p2)
+        p.lineTo(mPoint.x, mPoint.y)
+        mPoint = calculatePoint(p3, p2)
+        p.curveTo(
+            p2.x, p2.y, p2.x, p2.y, mPoint.x,
+            mPoint.y
+        )
+    }
+    return p
+}
+
 fun getAWTColor(htmlColor: String, alpha: Int = 255): Color {
     val r: Int
     val g: Int
@@ -7104,6 +7167,28 @@ fun getHTMLColorString(color: Color): String {
             (if (red.length == 1) "0$red" else red) +
             (if (green.length == 1) "0$green" else green) +
             if (blue.length == 1) "0$blue" else blue
+}
+
+fun secondaryStructureTypesToString(type:List<SecondaryStructureType>):String {
+    val s = StringBuilder()
+    s.append(type.map { secondaryStructure ->
+        when (secondaryStructure) {
+            SecondaryStructureType.Helix -> "helix"
+            SecondaryStructureType.SecondaryInteraction -> "secondary_interaction"
+            SecondaryStructureType.InteractionSymbol -> "interaction_symbol"
+            SecondaryStructureType.PhosphodiesterBond -> "phosphodiester_bond"
+            SecondaryStructureType.AShape -> "A"
+            SecondaryStructureType.UShape -> "U"
+            SecondaryStructureType.GShape -> "G"
+            SecondaryStructureType.CShape -> "C"
+            SecondaryStructureType.A -> "a"
+            SecondaryStructureType.U -> "u"
+            SecondaryStructureType.G -> "g"
+            SecondaryStructureType.C -> "c"
+            else -> ""
+        }
+    }.joinToString(separator = " "))
+    return s.toString()
 }
 
 fun Booquet(
@@ -7341,14 +7426,14 @@ fun Booquet(
                                     if (helixCoords[1] != junctionCoords[1]) {
                                         val (_, p2) = pointsFrom(
                                             Point2D.Double(
-                                                helixCoords[0].toDouble(),
-                                                helixCoords[1].toDouble()
+                                                helixCoords[0],
+                                                helixCoords[1]
                                             ),
                                             Point2D.Double(
-                                                junctionCoords[0].toDouble(),
-                                                junctionCoords[1].toDouble()
+                                                junctionCoords[0],
+                                                junctionCoords[1]
                                             ),
-                                            (1.5 * junction_diameter.toDouble()) / 2.0
+                                            (1.5 * junction_diameter) / 2.0
                                         )
                                         svgBuffer.append(
                                             """<line x1="${helixCoords[0] * ratio - minX}" y1="${helixCoords[1] * ratio - minY}" x2="${p2.x * ratio - minX}" y2="${p2.y * ratio - minY}" stroke="${
