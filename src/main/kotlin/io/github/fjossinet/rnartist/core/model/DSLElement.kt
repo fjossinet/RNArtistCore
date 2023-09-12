@@ -296,7 +296,7 @@ class RNArtistEl : DSLElement("rnartist") {
 
     fun getSVGOrNew(): SVGEl = this.getChild("svg") as? SVGEl ?: addSVG()
 
-    fun getSVGOrNull(): PNGEl? = this.getChild("svg") as? PNGEl
+    fun getSVGOrNull(): SVGEl? = this.getChild("svg") as? SVGEl
 
     fun removeSVG() = this.getSVGOrNull()?.let { this.removeChild(it) }
 

@@ -361,7 +361,7 @@ class SVGBuilder : OutputFileBuilder() {
     override fun build(drawing: SecondaryStructureDrawing, rnartistElement: DSLElement?) {
         path?.let { path ->
             val sep = getDefault().separator
-            val fileName =
+            val fileName = this.name ?:
                 drawing.secondaryStructure.source?.let { source ->
                     when (source) {
                         is FileSource -> {
@@ -895,18 +895,10 @@ class RNArtistBuilder {
 
                 }
                 this.rnartistElement.addPNG(pngOutputBuilder.dslElement)
-                pngOutputBuilder.name?.let { chainName ->
-                    if (chainName == ss.rna.name)
-                        pngOutputBuilder.build(
-                            drawing,
-                            rnartistElement
-                        ) //if several secondary structures computed, we will generate a script dedicated to each 2D. Then we need to send the rnartistElement to the function
-                } ?: run {
-                    pngOutputBuilder.build(
-                        drawing,
-                        rnartistElement
-                    ) //if several secondary structures computed, we will generate a script dedicated to each 2D. Then we need to send the rnartistElement to the function
-                }
+                pngOutputBuilder.build(
+                    drawing,
+                    rnartistElement
+                )
             }
             this.svgOutputBuilder?.let { svgOutputBuilder ->
                 ss.source?.let { source ->
@@ -936,18 +928,10 @@ class RNArtistBuilder {
 
                 }
                 this.rnartistElement.addSVG(svgOutputBuilder.dslElement)
-                svgOutputBuilder.name?.let { chainName ->
-                    if (chainName == ss.rna.name)
-                        svgOutputBuilder.build(
-                            drawing,
-                            rnartistElement
-                        )
-                } ?: run {
-                    svgOutputBuilder.build(
-                        drawing,
-                        rnartistElement
-                    )
-                }
+                svgOutputBuilder.build(
+                    drawing,
+                    rnartistElement
+                )
             }
             this.chimeraOutputBuilder?.name?.let { chainName ->
                 if (chainName == ss.rna.name)
