@@ -298,6 +298,8 @@ class RNArtistEl : DSLElement("rnartist") {
 
     fun getSVGOrNull(): PNGEl? = this.getChild("svg") as? PNGEl
 
+    fun removeSVG() = this.getSVGOrNull()?.let { this.removeChild(it) }
+
     override fun dump(indent: String, buffer: StringBuffer): StringBuffer {
         buffer.appendLine("$indent $name {")
         val newIndent = "$indent   "

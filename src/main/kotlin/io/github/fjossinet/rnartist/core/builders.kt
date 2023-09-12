@@ -333,9 +333,7 @@ class PNGBuilder : OutputFileBuilder() {
                         )
                     if (!f.exists()) {
                         f.createNewFile()
-                        val buff = StringBuffer()
-                        rnartistElement.dump("", buff)
-                        f.writeText(buff.toString())
+                        f.writeText( rnartistElement.dump().toString())
                     }
                 }
             }
@@ -446,9 +444,7 @@ class SVGBuilder : OutputFileBuilder() {
                         )
                     if (!f.exists()) {
                         f.createNewFile()
-                        val buff = StringBuffer()
-                        rnartistElement.dump("", buff)
-                        f.writeText(buff.toString())
+                        f.writeText(rnartistElement.dump().toString())
                     }
                 }
             }
@@ -574,9 +570,13 @@ class ViennaBuilder : InputFileBuilder() {
                 File(path)
             val structures = mutableListOf<SecondaryStructure>()
             f.listFiles { _, name -> name.endsWith(".vienna") }?.forEach { viennaFile ->
-                val ss = parseVienna(FileReader(viennaFile))
-                ss.source = FileSource(viennaFile.absolutePath)
-                structures.add(ss)
+                val tokens = viennaFile.absolutePath.split(".")
+                val ktsFile = File("${tokens.subList(0,tokens.size-1).joinToString(".")}.kts")
+                if (!ktsFile.exists()) {
+                    val ss = parseVienna(FileReader(viennaFile))
+                    ss.source = FileSource(viennaFile.absolutePath)
+                    structures.add(ss)
+                }
             }
             return structures
         }
@@ -604,6 +604,24 @@ class BPSeqBuilder : InputFileBuilder() {
             ss.source = FileSource(file)
             return arrayListOf(ss)
         }
+        this.path?.let { path ->
+            val sep = getDefault().separator
+            val f = if (!path.startsWith(sep)) {
+                File("${Jar().path()}${sep}${path}")
+            } else
+                File(path)
+            val structures = mutableListOf<SecondaryStructure>()
+            f.listFiles { _, name -> name.endsWith(".bpseq") }?.forEach { bpseqFile ->
+                val tokens = bpseqFile.absolutePath.split(".")
+                val ktsFile = File("${tokens.subList(0,tokens.size-1).joinToString(".")}.kts")
+                if (!ktsFile.exists()) {
+                    val ss = parseBPSeq(FileReader(bpseqFile))
+                    ss.source = FileSource(bpseqFile.absolutePath)
+                    structures.add(ss)
+                }
+            }
+            return structures
+        }
         return listOf()
     }
 }
@@ -627,7 +645,24 @@ class CTBuilder : InputFileBuilder() {
             val ss = parseCT(FileReader(f))
             ss.source = FileSource(file)
             return arrayListOf(ss)
-
+        }
+        this.path?.let { path ->
+            val sep = getDefault().separator
+            val f = if (!path.startsWith(sep)) {
+                File("${Jar().path()}${sep}${path}")
+            } else
+                File(path)
+            val structures = mutableListOf<SecondaryStructure>()
+            f.listFiles { _, name -> name.endsWith(".ct") }?.forEach { ctFile ->
+                val tokens = ctFile.absolutePath.split(".")
+                val ktsFile = File("${tokens.subList(0,tokens.size-1).joinToString(".")}.kts")
+                if (!ktsFile.exists()) {
+                    val ss = parseCT(FileReader(ctFile))
+                    ss.source = FileSource(ctFile.absolutePath)
+                    structures.add(ss)
+                }
+            }
+            return structures
         }
         return listOf()
     }
