@@ -25,7 +25,7 @@ fun setDetailsLvlForFull2D(rnArtistEl: RNArtistEl, lvl: Int) {
     theme.addDetails(lvl)
 }
 
-fun setDetailsLvl(rnArtistEl: RNArtistEl, isfullDetails: Boolean, rnaLength:Int, location: Location? = null, types: String? = null) {
+fun setDetailsLvl(rnArtistEl: RNArtistEl, isfullDetails: Boolean, location: Location? = null, types: String? = null, step:Int?=null) {
     val theme = rnArtistEl.getThemeOrNew()
     if (isfullDetails) {
         with(theme.addShow()) {
@@ -34,6 +34,9 @@ fun setDetailsLvl(rnArtistEl: RNArtistEl, isfullDetails: Boolean, rnaLength:Int,
             }
             types?.let {
                 this.setType(it)
+            }
+            step?.let {
+                this.setStep(it)
             }
             this
         }
@@ -45,6 +48,9 @@ fun setDetailsLvl(rnArtistEl: RNArtistEl, isfullDetails: Boolean, rnaLength:Int,
             types?.let {
                 this.setType(it)
             }
+            step?.let {
+                this.setStep(it)
+            }
             this
         }
     }
@@ -55,19 +61,25 @@ fun setSchemeForFull2D(rnArtistEl: RNArtistEl, scheme: String) {
     theme.addScheme(scheme)
 }
 
-fun setColorForFull2D(rnArtistEl: RNArtistEl, onFont: Boolean = false, color: Color) {
+fun setColorForFull2D(rnArtistEl: RNArtistEl, onFont: Boolean = false, color: Color, step:Int?=null) {
     val theme = rnArtistEl.getThemeOrNew()
     if (onFont) {
         val types = "n"
         val colorEl = theme.addColor()
         colorEl.setValue(getHTMLColorString(color))
         colorEl.setType(types)
+        step?.let {
+            colorEl.setStep(it)
+        }
     } else {
         val types =
             "helix secondary_interaction single_strand junction phosphodiester_bond interaction_symbol N tertiary_interaction"
         val colorEl = theme.addColor()
         colorEl.setValue(getHTMLColorString(color))
         colorEl.setType(types)
+        step?.let {
+            colorEl.setStep(it)
+        }
     }
 }
 
@@ -75,7 +87,8 @@ fun setColor(
     rnArtistEl: RNArtistEl,
     color: Color,
     location: Location? = null,
-    types: String? = null
+    types: String? = null,
+    step:Int?=null
 ) {
     val theme = rnArtistEl.getThemeOrNew() 
     with(theme.addColor()) {
@@ -88,18 +101,26 @@ fun setColor(
         types?.let {
             this.setType(it)
         }
+        step?.let {
+            this.setStep(it)
+        }
     }
 }
 
 /**
  * Remove all the line elements and create a new one.
  */
-fun setLineWidthForFull2D(rnArtistEl: RNArtistEl, width: Double) {
+fun setLineWidthForFull2D(rnArtistEl: RNArtistEl, width: Double, step:Int?=null) {
     val theme = rnArtistEl.getThemeOrNew()
-    theme.addLine().setValue(width)
+    with (theme.addLine()) {
+        this.setValue(width)
+        step?.let {
+            this.setStep(it)
+        }
+    }
 }
 
-fun setLineWidth(rnArtistEl: RNArtistEl, width: Double, location: Location? = null, types: String? = null) {
+fun setLineWidth(rnArtistEl: RNArtistEl, width: Double, location: Location? = null, types: String? = null, step:Int?=null) {
     val theme = rnArtistEl.getThemeOrNew()
     with(theme.addLine()) {
         this.setValue(width)
@@ -108,6 +129,9 @@ fun setLineWidth(rnArtistEl: RNArtistEl, width: Double, location: Location? = nu
         }
         types?.let {
             this.setType(it)
+        }
+        step?.let {
+            this.setStep(it)
         }
     }
 }
@@ -134,6 +158,8 @@ abstract class DSLElement(name: String):DSLNode(name) {
     val children = mutableListOf<DSLNode>()
 
     fun getProperties():List<Property> = this.children.filterIsInstance<Property>()
+
+    fun getStep():Int? =  this.getProperties().firstOrNull { it.name.equals("step") }?.value?.toIntOrNull()
 
     override fun dump(indent: String, buffer: StringBuffer): StringBuffer {
         buffer.appendLine("$indent $name {")
@@ -314,12 +340,33 @@ class RNArtistEl : DSLElement("rnartist") {
 }
 
 abstract class UndoRedoDSLElement(name:String):DSLElement(name) {
-    var undoRedoStep = 0
+    var undoRedoCursor = 0 //the number of children we keep during dump
+
+    fun decreaseUndoRedoCursor() {
+        (this.children.get(undoRedoCursor-1) as? DSLElement)?.getStep()?.let { s ->
+            undoRedoCursor -= this.children.filterIsInstance<DSLElement>().count { it.getStep() == s }
+        } ?: run {
+            undoRedoCursor--
+        }
+
+    }
+
+    fun increaseUndoRedoCursor() {
+        (this.children.get(undoRedoCursor) as? DSLElement)?.getStep()?.let { s ->
+            undoRedoCursor += this.children.filterIsInstance<DSLElement>().count { it.getStep() == s }
+        } ?: run {
+            undoRedoCursor++
+        }
+
+    }
+
+    var lastStep = 0
+        get() = this.children.filterIsInstance<DSLElement>().filter { it.getStep() != null }.lastOrNull()?.getStep() ?: 0
 
     override fun dump(indent: String, buffer: StringBuffer): StringBuffer {
         buffer.appendLine("$indent $name {")
         val newIndent = "$indent   "
-        children.subList(0, undoRedoStep).forEach { child ->
+        children.subList(0, undoRedoCursor).forEach { child ->
             child.dump(newIndent, buffer)
         }
         buffer.appendLine("$indent }")
@@ -327,13 +374,12 @@ abstract class UndoRedoDSLElement(name:String):DSLElement(name) {
     }
 
     fun addChild(child:DSLNode) {
-        if (undoRedoStep <= this.children.size-1) {// this means that the user add a new step from here and is not intesrested in the next steps stored
-            this.children.removeAll(this.children.subList(undoRedoStep, this.children.size))
-            undoRedoStep = this.children.size
+        if (undoRedoCursor <= this.children.size-1) {// this means that the user add a new step from here and is not intesrested in the next steps stored
+            this.children.removeAll(this.children.subList(undoRedoCursor, this.children.size))
+            undoRedoCursor = this.children.size
         }
         this.children.add(child)
-        undoRedoStep++
-
+        undoRedoCursor++
     }
 }
 
@@ -530,11 +576,19 @@ class ShowEl : DSLElement("show") {
     fun setType(type: String) {
         this.children.add(StringProperty("type", type))
     }
+
+    fun setStep(step: Int) {
+        this.children.add(Property("step", "$step"))
+    }
 }
 
 class HideEl : DSLElement("hide") {
     fun setType(type: String) {
         this.children.add(StringProperty("type", type))
+    }
+
+    fun setStep(step: Int) {
+        this.children.add(Property("step", "$step"))
     }
 
 }
@@ -556,6 +610,10 @@ class ColorEl : DSLElement("color") {
         this.children.add(StringProperty("to", to))
     }
 
+    fun setStep(step: Int) {
+        this.children.add(Property("step", "$step"))
+    }
+
 }
 
 class LineEl : DSLElement("line") {
@@ -565,6 +623,10 @@ class LineEl : DSLElement("line") {
 
     fun setType(type: String) {
         this.children.add(StringProperty("type", type))
+    }
+
+    fun setStep(step: Int) {
+        this.children.add(Property("step", "$step"))
     }
 }
 

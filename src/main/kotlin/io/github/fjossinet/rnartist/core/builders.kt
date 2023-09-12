@@ -1428,6 +1428,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
 open class ThemeConfigurationBuilder(data: MutableMap<String, Double>) {
     val locationBuilder = LocationBuilder()
     var type: String? = null
+    var step:Int? = null
     val data = data.toMutableMap()
     var filtered = false
 
@@ -1934,6 +1935,9 @@ class ColorBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder
             this.locationBuilder.dslElement?.let {
                 field.children.add(it)
             }
+            step?.let {
+                field.setStep(it)
+            }
             return field
         }
     var value: String? = null
@@ -1956,6 +1960,14 @@ class LineBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(
         get() {
             field.setValue(value)
 
+            type?.let {
+                field.setType(it)
+            }
+
+            step?.let {
+                field.setStep(it)
+            }
+
             this.locationBuilder.dslElement?.let {
                 field.children.add(it)
             }
@@ -1967,6 +1979,13 @@ class LineBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(
 class ShowBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(data) {
     val dslElement = ShowEl()
         get() {
+            type?.let {
+                field.setType(it)
+            }
+
+            step?.let {
+                field.setStep(it)
+            }
             this.locationBuilder.dslElement?.let {
                 field.children.add(it)
             }
@@ -1979,6 +1998,14 @@ class HideBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(
         get() {
             this.locationBuilder.dslElement?.let {
                 field.children.add(it)
+            }
+
+            type?.let {
+                field.setType(it)
+            }
+
+            step?.let {
+                field.setStep(it)
             }
             return field
         }
