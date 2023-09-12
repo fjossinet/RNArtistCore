@@ -1356,7 +1356,10 @@ fun toBlocks(positions: IntArray): MutableList<Block> {
     var start = sortedPositions.first()
 
     while (i < sortedPositions.size - 1) {
-        if (sortedPositions[i] + 1 == sortedPositions[i + 1]) {
+        if (sortedPositions[i] == sortedPositions[i + 1]) {
+            //this can happens for example by gathering locations of contiguous phosphobonds : 2-3, 3-4, 4-5 -> 2,3,3,4,4,5
+        }
+        else if (sortedPositions[i] + 1 == sortedPositions[i + 1]) {
             length += 1
         } else {
             blocks.add(Block(start, start + length))

@@ -243,14 +243,47 @@ class WorkingSession {
 class ThemeConfiguration(
     private val selector: ((DrawingElement) -> Boolean)? = null,
     val propertyName: String,
-    var propertyValue: (DrawingElement?) -> String,
+    var propertyValue: (DrawingElement) -> String,
     val secondaryStructureTypesAllowed:List<SecondaryStructureType>? = null
 ) {
+    //store the drawing elements themed with this configuration
+    var themedElements:MutableList<DrawingElement>? = null
+    var gatherThemedSelements:Boolean = false
+        set(value) {
+            field = value
+            if (field)
+                themedElements = mutableListOf()
+            else
+                themedElements = null
+        }
     fun select(el:DrawingElement):Boolean {
         return this.secondaryStructureTypesAllowed?.any {
             el.type == it
         } ?: true && (this.selector?.invoke(el) ?: true)
     }
+
+    fun themedTypesAsString():String {
+        val selectedTypes = mutableSetOf<String>()
+        themedElements?.let { elements ->
+            elements.forEach { element ->
+                selectedTypes.add(
+                    when (element) {
+                        is HelixDrawing -> "helix"
+                        is JunctionDrawing -> "junction"
+                        is SingleStrandDrawing -> "single_strand"
+                        is SecondaryInteractionDrawing -> "secondary_interaction"
+                        is PhosphodiesterBondDrawing -> "phosphodiester_bond"
+                        is ResidueDrawing -> "N"
+                        is ResidueLetterDrawing -> "n"
+                        is InteractionSymbolDrawing -> "interaction_symbol"
+                        else -> ""
+                    }
+                )
+            }
+        }
+        return selectedTypes.toList().sorted().joinToString(separator = " ")
+    }
+
 }
 
 class Theme {
@@ -260,27 +293,36 @@ class Theme {
 
     fun addConfiguration(
         property: ThemeProperty,
-        propertyValue: (DrawingElement?) -> String,
+        propertyValue: (DrawingElement) -> String
+    ):ThemeConfiguration {
+        return this.addConfiguration(null, property, propertyValue, null)
+    }
+
+    fun addConfiguration(
+        property: ThemeProperty,
+        propertyValue: (DrawingElement) -> String,
         secondaryStructureTypesAllowed:List<SecondaryStructureType>? = null
-    ) {
-        this.addConfiguration(null, property, propertyValue, secondaryStructureTypesAllowed)
+    ):ThemeConfiguration {
+        return this.addConfiguration(null, property, propertyValue, secondaryStructureTypesAllowed)
     }
 
     fun addConfiguration(
         selector: ((DrawingElement) -> Boolean),
         property: ThemeProperty,
-        propertyValue: (DrawingElement?) -> String
-    ) {
-        this.addConfiguration(selector, property, propertyValue, null)
+        propertyValue: (DrawingElement) -> String
+    ):ThemeConfiguration {
+        return this.addConfiguration(selector, property, propertyValue, null)
     }
 
     fun addConfiguration(
         selector: ((DrawingElement) -> Boolean)? = null,
         property: ThemeProperty,
-        propertyValue: (DrawingElement?) -> String,
+        propertyValue: (DrawingElement) -> String,
         secondaryStructureTypesAllowed:List<SecondaryStructureType>? = null
-    ) {
-        configurations.add(ThemeConfiguration(selector, property.toString(), propertyValue, secondaryStructureTypesAllowed))
+    ):ThemeConfiguration {
+        val c = ThemeConfiguration(selector, property.toString(), propertyValue, secondaryStructureTypesAllowed)
+        configurations.add(c)
+        return c
     }
 
     fun clear() = this.configurations.clear()
@@ -434,31 +476,20 @@ abstract class DrawingElement(
         return l
     }
 
-    open fun show() {
+    /**
+     * The element become fully detailed and so all its parents
+     */
+    open fun show():List<DrawingElement>? {
+        var l = mutableListOf<DrawingElement>()
         this.pathToStructuralDomain().forEach {
-            if (it != this)
-                it.drawingConfiguration.params[ThemeProperty.fulldetails.toString()] = "true"
+            if (it != this && !it.drawingConfiguration.fullDetails) {
+                l.add(it)
+                val t = Theme()
+                t.addConfiguration(ThemeProperty.fulldetails, {_ -> "true"})
+                it.applyTheme(t,{true}, {true})
+            }
         }
-    }
-
-    open fun showNextChildrenLevel() {
-        val t = Theme()
-        t.addConfiguration(
-            { true },
-            ThemeProperty.fulldetails,
-            { el -> "true" }
-        )
-        this.applyTheme(t, checkStopBefore = {el -> !el.isFullDetails()})
-    }
-
-    open fun hideNextChildrenLevel() {
-        val t = Theme()
-        t.addConfiguration(
-            { el -> el.children.isEmpty() || el.children.all { !it.isFullDetails() } },
-            ThemeProperty.fulldetails,
-            { el -> "false" }
-        )
-        this.applyTheme(t)
+        return if (l.isEmpty()) null else l.toList()
     }
 
     fun getColor(selectedDrawings: List<DrawingElement>? = null): Color {
@@ -484,6 +515,50 @@ abstract class DrawingElement(
 
     fun getSinglePositions() = this.location.positions.toIntArray()
 
+    fun showUntilNextLevel():List<DrawingElement> {
+        val themesElements = mutableListOf<DrawingElement>()
+        if (!this.isFullDetails()) {
+            val t = Theme()
+            t.addConfiguration(ThemeProperty.fulldetails, {el -> "true"})
+            this.applyTheme(t, {true}, null)
+            //this.drawingConfiguration.params[ThemeProperty.fulldetails.toString()] = "true"
+            themesElements.add(this)
+        }
+        else if (this.children.any { !it.isFullDetails() }) {
+            this.children.forEach {
+                if (!it.isFullDetails()) {
+                    val t = Theme()
+                    t.addConfiguration(ThemeProperty.fulldetails, {el -> "true"})
+                    it.applyTheme(t, {true}, null)
+                    //it.drawingConfiguration.params[ThemeProperty.fulldetails.toString()] = "true"
+                    themesElements.add(it)
+                }
+            }
+        }
+        else
+            this.children.forEach {
+                themesElements.addAll(it.showUntilNextLevel())
+            }
+        return themesElements
+    }
+
+    fun hideDetailsUntilNextLevel():List<DrawingElement> {
+        val themesElements = mutableListOf<DrawingElement>()
+        if (this.children.any { it.isFullDetails() }) {
+            this.children.forEach {
+                if (it.isFullDetails())
+                    themesElements.addAll(it.hideDetailsUntilNextLevel())
+            }
+        } else if (this.isFullDetails()) {
+            themesElements.add(this)
+            val t = Theme()
+            t.addConfiguration(ThemeProperty.fulldetails, {el -> "false"})
+            this.applyTheme(t, {true}, null)
+            //this.drawingConfiguration.params[ThemeProperty.fulldetails.toString()] = "false"
+        }
+        return themesElements
+    }
+
     open fun applyTheme(theme: Theme, checkStopBefore:((DrawingElement) -> Boolean)? = null, checkStopAfter:((DrawingElement) -> Boolean)? = null) {
         val stop1 = checkStopBefore?.let {
           it(this)
@@ -491,8 +566,11 @@ abstract class DrawingElement(
             false
         }
         theme.configurations.forEach { configuration ->
-            if (configuration.select(this))
+            if (configuration.select(this)) {
                 this.drawingConfiguration.params[configuration.propertyName] = configuration.propertyValue(this)
+                if (configuration.gatherThemedSelements)
+                    configuration.themedElements?.add(this)
+            }
         }
         val stop2 = checkStopAfter?.let {
             it(this)
@@ -506,9 +584,6 @@ abstract class DrawingElement(
     open fun clearTheme() {
         this.drawingConfiguration.clear()
         this.children.map { it.clearTheme() }
-    }
-
-    open fun applyLayout(layout: Layout) {
     }
 
     open fun select(selector:(DrawingElement) -> Boolean, selection:MutableList<DrawingElement> = mutableListOf()): List<DrawingElement>{
@@ -1500,19 +1575,19 @@ class SecondaryStructureDrawing(
 
     override fun toString() = this.secondaryStructure.toString()
 
-    fun applyTheme(theme: Theme) {
+    fun applyTheme(theme: Theme, checkStopBefore:((DrawingElement) -> Boolean)? = null, checkStopAfter:((DrawingElement) -> Boolean)? = null) {
         for (phospho in this.phosphoBonds)
-            phospho.applyTheme(theme)
+            phospho.applyTheme(theme, checkStopBefore, checkStopAfter)
         for (pk in this.pknots)
-            pk.applyTheme(theme)
+            pk.applyTheme(theme, checkStopBefore, checkStopAfter)
         for (jc in this.allJunctions)
-            jc.applyTheme(theme)
+            jc.applyTheme(theme, checkStopBefore, checkStopAfter)
         for (ss in this.allSingleStrands)
-            ss.applyTheme(theme)
+            ss.applyTheme(theme, checkStopBefore, checkStopAfter)
         for (h in this.allHelices)
-            h.applyTheme(theme)
+            h.applyTheme(theme, checkStopBefore, checkStopAfter)
         for (i in this.tertiaryInteractions)
-            i.applyTheme(theme)
+            i.applyTheme(theme, checkStopBefore, checkStopAfter)
     }
 
     fun clearTheme() {
@@ -1533,6 +1608,11 @@ class SecondaryStructureDrawing(
     fun applyLayout(layout: Layout) {
         for (jc in this.allJunctions)
             jc.applyLayout(layout)
+    }
+
+    fun clearLayout() {
+        for (jc in this.allJunctions)
+            jc.clearLayout()
     }
 
     fun select(selector:(DrawingElement) -> Boolean, selection:MutableList<DrawingElement> = mutableListOf()): List<DrawingElement>{
@@ -2850,7 +2930,7 @@ abstract class ResidueDrawing(
     /**
      * is full details if its own drawing configuration is true and if its parent (Secondary Interaction, Junction, SingleStrand) is full details
      */
-    override fun isFullDetails() = this.parent!!.isFullDetails() && super.isFullDetails()
+    //override fun isFullDetails() = this.parent!!.isFullDetails() && super.isFullDetails()
 
     override fun draw(
         g: Graphics2D,
@@ -2876,10 +2956,17 @@ abstract class ResidueDrawing(
         }
     }
 
-    override fun show() {
+    override fun show():List<DrawingElement> {
+        var l = mutableListOf<DrawingElement>()
         this.pathToStructuralDomain().forEach {
-            it.drawingConfiguration.params[ThemeProperty.fulldetails.toString()] = "true"
+            if (!it.drawingConfiguration.fullDetails) {
+                l.add(it)
+                val t = Theme()
+                t.addConfiguration(ThemeProperty.fulldetails, { _ -> "true" })
+                it.applyTheme(t, { true }, { true })
+            }
         }
+        return l
     }
 
     fun getLineColor(selectedDrawings: List<DrawingElement>? = null): Color {
@@ -3171,6 +3258,15 @@ abstract class ResidueDrawing(
         g.font = Font(g.font.fontName, g.font.style, g.font.size + 4)
 
     }
+
+    override fun applyTheme(theme: Theme, checkStopBefore:((DrawingElement) -> Boolean)?, checkStopAfter:((DrawingElement) -> Boolean)?) {
+        theme.configurations.forEach { configuration ->
+            if (configuration.select(this) && configuration.propertyName.equals(ThemeProperty.fulldetails.toString()) && !configuration.propertyValue(this).equals(this.isFullDetails().toString()))
+                //if the parameter fullDetails is modified, the residue becomes updated to force the recomputation of the  interaction symbol
+                this.updated = true
+        }
+        super.applyTheme(theme, checkStopBefore, checkStopAfter)
+    }
 }
 
 class AShapeDrawing(parent: DrawingElement?, ssDrawing: SecondaryStructureDrawing, absPos: Int) :
@@ -3223,7 +3319,13 @@ abstract class ResidueLetterDrawing(
     }
 
     override val bounds: List<Point2D>
-        get() = listOf<Point2D>()
+        get() {
+            return this.parent!!.bounds
+        }
+    override val selectionShape: Shape
+        get() {
+            return (this.parent as ResidueDrawing).circle
+        }
 
     abstract fun asSVG(at: AffineTransform): String
 
@@ -3235,7 +3337,7 @@ abstract class ResidueLetterDrawing(
     /**
      * is full details if its own drawing configuration is true and if its parent (ResidueDrawing) is full details
      */
-    override fun isFullDetails() = this.parent!!.isFullDetails() && super.isFullDetails()
+    //override fun isFullDetails() = this.parent!!.isFullDetails() && super.isFullDetails()
 }
 
 class A(parent: ResidueDrawing, ssDrawing: SecondaryStructureDrawing, absPos: Int) :
@@ -3835,6 +3937,8 @@ open class JunctionDrawing(
             this.update()
         }
 
+    var initialLayout =  mutableListOf<ConnectorId>()
+
     var radius: Double = 0.0
         set(value) {
             field = value
@@ -4193,6 +4297,7 @@ open class JunctionDrawing(
                 )
             }
         }
+        this.initialLayout.addAll(this.currentLayout)
     }
 
     /**
@@ -4298,7 +4403,7 @@ open class JunctionDrawing(
         }
     }
 
-    override fun applyLayout(layout: Layout) {
+    fun applyLayout(layout: Layout) {
         layout.configurations.forEach { configuration ->
             if (configuration.selector(this)) {
                 when (configuration.propertyName) {
@@ -4349,6 +4454,14 @@ open class JunctionDrawing(
                     }
                 }
             }
+        }
+    }
+
+    fun clearLayout() {
+        if (radius != this.initialRadius || !currentLayout.containsAll(this.initialLayout)) {
+            radius = this.initialRadius
+            currentLayout = this.initialLayout.toMutableList()
+            ssDrawing.computeResidues(this)
         }
     }
 
@@ -5391,7 +5504,7 @@ class SecondaryInteractionDrawing(
     /**
      * is full details if its own drawing configuration is true and if its parent (can be null, depending on the type of phosphobond) is full details
      */
-    override fun isFullDetails() = this.parent?.isFullDetails() ?: true && super.isFullDetails()
+    //override fun isFullDetails() = this.parent?.isFullDetails() ?: true && super.isFullDetails()
 }
 
 class InteractionSymbolDrawing(
@@ -7167,28 +7280,6 @@ fun getHTMLColorString(color: Color): String {
             (if (red.length == 1) "0$red" else red) +
             (if (green.length == 1) "0$green" else green) +
             if (blue.length == 1) "0$blue" else blue
-}
-
-fun secondaryStructureTypesToString(type:List<SecondaryStructureType>):String {
-    val s = StringBuilder()
-    s.append(type.map { secondaryStructure ->
-        when (secondaryStructure) {
-            SecondaryStructureType.Helix -> "helix"
-            SecondaryStructureType.SecondaryInteraction -> "secondary_interaction"
-            SecondaryStructureType.InteractionSymbol -> "interaction_symbol"
-            SecondaryStructureType.PhosphodiesterBond -> "phosphodiester_bond"
-            SecondaryStructureType.AShape -> "A"
-            SecondaryStructureType.UShape -> "U"
-            SecondaryStructureType.GShape -> "G"
-            SecondaryStructureType.CShape -> "C"
-            SecondaryStructureType.A -> "a"
-            SecondaryStructureType.U -> "u"
-            SecondaryStructureType.G -> "g"
-            SecondaryStructureType.C -> "c"
-            else -> ""
-        }
-    }.joinToString(separator = " "))
-    return s.toString()
 }
 
 fun Booquet(

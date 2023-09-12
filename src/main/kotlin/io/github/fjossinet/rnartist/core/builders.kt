@@ -135,6 +135,10 @@ class HelixBuilder {
 class SecondaryStructureBuilder {
 
     private var secondaryStructures = mutableListOf<SecondaryStructure>()
+    val dslElement = SSEl()
+        get() {
+            return field
+        }
 
     fun build(): List<SecondaryStructure> {
         return secondaryStructures
@@ -166,6 +170,7 @@ class SecondaryStructureBuilder {
         val viennaBuilder = ViennaBuilder()
         viennaBuilder.setup()
         secondaryStructures.addAll(viennaBuilder.build())
+        this.dslElement.addVienna(viennaBuilder.dslElement)
     }
 
     fun bpseq(setup: BPSeqBuilder.() -> Unit) {
@@ -224,6 +229,7 @@ abstract class OutputFileBuilder {
 class PNGBuilder : OutputFileBuilder() {
     override val dslElement = PNGEl()
         get() {
+            field.children.clear()
             this.path?.let { path ->
                 val sep = getDefault().separator
                 field.setPath(
@@ -248,8 +254,32 @@ class PNGBuilder : OutputFileBuilder() {
                 drawing.secondaryStructure.source?.let { source ->
                     when (source) {
                         is FileSource -> {
-                            //a file name can contains a dot
+                            //a file name can contain a dot
                             val tokens = drawing.secondaryStructure.source?.getId()?.split(sep)?.last()?.split(".")
+                            tokens?.let {
+                                tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
+                            } ?: run {
+                                null
+                            }
+                        }
+
+                        is BracketNotation -> {
+                            drawing.secondaryStructure.name
+                        }
+
+                        else -> {
+                            null
+                        }
+
+                    }
+
+                }
+            val dataPath =
+                drawing.secondaryStructure.source?.let { source ->
+                    when (source) {
+                        is FileSource -> {
+                            //a file name can contains a dot
+                            val tokens = drawing.secondaryStructure.source?.getId()?.split(".")
                             tokens?.let {
                                 tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
                             } ?: run {
@@ -289,22 +319,24 @@ class PNGBuilder : OutputFileBuilder() {
                     outputFile = f
                 )
             }
-            //if rnartistElement is not null, this means that several 2Ds have been drawn and for each 2D, we generate a dedicated script
-            rnartistElement?.let { rnartistElement ->
-                //now the dsl script for this 2D, if not already there
-                f = if (!path.startsWith(sep))
-                    File(
-                        "${Jar().path()}${sep}${path}${sep}${fileName}.kts"
-                    )
-                else
-                    File(
-                        "${path}${sep}${fileName}.kts"
-                    )
-                if (!f.exists()) {
-                    f.createNewFile()
-                    val buff = StringBuffer()
-                    rnartistElement.dump("", buff)
-                    f.writeText(buff.toString())
+            dataPath?.let { dataPath ->
+                //if rnartistElement is not null, this means that several 2Ds have been drawn and for each 2D, we generate a dedicated script
+                rnartistElement?.let { rnartistElement ->
+                    //now the dsl script for this 2D, if not already there
+                    f = if (!dataPath.startsWith(sep))
+                        File(
+                            "${Jar().path()}${sep}${dataPath}.kts"
+                        )
+                    else
+                        File(
+                            "${dataPath}.kts"
+                        )
+                    if (!f.exists()) {
+                        f.createNewFile()
+                        val buff = StringBuffer()
+                        rnartistElement.dump("", buff)
+                        f.writeText(buff.toString())
+                    }
                 }
             }
         }
@@ -316,6 +348,7 @@ class SVGBuilder : OutputFileBuilder() {
 
     override val dslElement = SVGEl()
         get() {
+            field.children.clear()
             this.path?.let {
                 field.setPath(it)
             }
@@ -336,6 +369,30 @@ class SVGBuilder : OutputFileBuilder() {
                         is FileSource -> {
                             //a file name can contains a dot
                             val tokens = drawing.secondaryStructure.source?.getId()?.split(sep)?.last()?.split(".")
+                            tokens?.let {
+                                tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
+                            } ?: run {
+                                null
+                            }
+                        }
+
+                        is BracketNotation -> {
+                            drawing.secondaryStructure.name
+                        }
+
+                        else -> {
+                            null
+                        }
+
+                    }
+
+                }
+            val dataPath =
+                drawing.secondaryStructure.source?.let { source ->
+                    when (source) {
+                        is FileSource -> {
+                            //a file name can contains a dot
+                            val tokens = drawing.secondaryStructure.source?.getId()?.split(".")
                             tokens?.let {
                                 tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
                             } ?: run {
@@ -375,22 +432,24 @@ class SVGBuilder : OutputFileBuilder() {
                     outputFile = f
                 )
             }
-            //if rnartistElement is not null, this means that several 2Ds have been drawn and for each 2D, we generate a dedicated script
-            rnartistElement?.let { rnartistElement ->
-                //now the dsl script for this 2D, if not already there
-                f = if (!path.startsWith(sep))
-                    File(
-                        "${Jar().path()}${sep}${path}${sep}${fileName}.kts"
-                    )
-                else
-                    File(
-                        "${path}${sep}${fileName}.kts"
-                    )
-                if (!f.exists()) {
-                    f.createNewFile()
-                    val buff = StringBuffer()
-                    rnartistElement.dump("", buff)
-                    f.writeText(buff.toString())
+            dataPath?.let { dataPath ->
+                //if rnartistElement is not null, this means that several 2Ds have been drawn and for each 2D, we generate a dedicated script
+                rnartistElement?.let { rnartistElement ->
+                    //now the dsl script for this 2D, if not already there
+                    f = if (!dataPath.startsWith(sep))
+                        File(
+                            "${Jar().path()}${sep}${dataPath}.kts"
+                        )
+                    else
+                        File(
+                            "${dataPath}.kts"
+                        )
+                    if (!f.exists()) {
+                        f.createNewFile()
+                        val buff = StringBuffer()
+                        rnartistElement.dump("", buff)
+                        f.writeText(buff.toString())
+                    }
                 }
             }
         }
@@ -758,10 +817,14 @@ class RNArtistBuilder {
     var data: MutableMap<String, Double> = mutableMapOf()
     private var layout: Layout? = null
 
-    fun build(): List<SecondaryStructureDrawing> {
+    fun build(): Pair<List<SecondaryStructureDrawing>, RNArtistEl> {
         val drawings = mutableListOf<SecondaryStructureDrawing>()
         this.secondaryStructures.forEachIndexed { _, ss ->
             val drawing = SecondaryStructureDrawing(ss, WorkingSession())
+            //at this point all the junctions have found their layout. We can store them DSLELement tree in order to not recompute them during the next loads
+            /*drawing.allJunctions.forEach {
+
+            }*/
             this.theme?.let { theme ->
                 drawing.applyTheme(theme)
             }
@@ -801,12 +864,12 @@ class RNArtistBuilder {
                     if (chainName == ss.rna.name)
                         pngOutputBuilder.build(
                             drawing,
-                            if (this.secondaryStructures.size > 1) rnartistElement else null
+                            rnartistElement
                         ) //if several secondary structures computed, we will generate a script dedicated to each 2D. Then we need to send the rnartistElement to the function
                 } ?: run {
                     pngOutputBuilder.build(
                         drawing,
-                        if (this.secondaryStructures.size > 1) rnartistElement else null
+                        rnartistElement
                     ) //if several secondary structures computed, we will generate a script dedicated to each 2D. Then we need to send the rnartistElement to the function
                 }
             }
@@ -842,13 +905,13 @@ class RNArtistBuilder {
                     if (chainName == ss.rna.name)
                         svgOutputBuilder.build(
                             drawing,
-                            if (this.secondaryStructures.size > 1) rnartistElement else null
-                        ) //if several secondary structures computed, we will generate a script dedicated to each 2D. Then we need to send the rnartistElement to the function
+                            rnartistElement
+                        )
                 } ?: run {
                     svgOutputBuilder.build(
                         drawing,
-                        if (this.secondaryStructures.size > 1) rnartistElement else null
-                    ) //if several secondary structures computed, we will generate a script dedicated to each 2D. Then we need to send the rnartistElement to the function
+                        rnartistElement
+                    )
                 }
             }
             this.chimeraOutputBuilder?.name?.let { chainName ->
@@ -859,26 +922,28 @@ class RNArtistBuilder {
             }
             drawings.add(drawing)
         }
-        return drawings
+        return Pair(drawings, rnartistElement)
     }
 
     fun ss(setup: SecondaryStructureBuilder.() -> Unit) {
         val secondaryStructureBuilder = SecondaryStructureBuilder()
         secondaryStructureBuilder.setup()
         secondaryStructures.addAll(secondaryStructureBuilder.build())
+        this.rnartistElement.children.add(secondaryStructureBuilder.dslElement)
     }
 
     fun theme(setup: ThemeBuilder.() -> Unit) {
         val themeBuilder = ThemeBuilder(data)
         themeBuilder.setup()
         this.theme = themeBuilder.build()
-        this.rnartistElement.children.add(themeBuilder.dslElement)
+        this.rnartistElement.addTheme(themeBuilder.dslElement)
     }
 
     fun layout(setup: LayoutBuilder.() -> Unit) {
         val layoutBuilder = LayoutBuilder()
         layoutBuilder.setup()
         this.layout = layoutBuilder.build()
+        this.rnartistElement.addLayout(layoutBuilder.dslElement)
     }
 
     fun data(setup: DataBuilder.() -> Unit) {
@@ -889,22 +954,27 @@ class RNArtistBuilder {
 
     fun svg(setup: SVGBuilder.() -> Unit) {
         this.svgOutputBuilder = SVGBuilder()
-        this.svgOutputBuilder?.setup()
+        this.svgOutputBuilder!!.setup()
     }
 
     fun png(setup: PNGBuilder.() -> Unit) {
         this.pngOutputBuilder = PNGBuilder()
-        this.pngOutputBuilder?.setup()
+        this.pngOutputBuilder!!.setup()
+    }
+
+    fun output(setup: PNGBuilder.() -> Unit) {
+        this.pngOutputBuilder = PNGBuilder()
+        this.pngOutputBuilder!!.setup()
     }
 
     fun chimera(setup: ChimeraBuilder.() -> Unit) {
         this.chimeraOutputBuilder = ChimeraBuilder()
-        this.chimeraOutputBuilder?.setup()
+        this.chimeraOutputBuilder!!.setup()
     }
 
     fun blender(setup: BlenderBuilder.() -> Unit) {
         this.blenderOutputBuilder = BlenderBuilder()
-        this.blenderOutputBuilder?.setup()
+        this.blenderOutputBuilder!!.setup()
     }
 
 }
@@ -928,10 +998,15 @@ class DataBuilder {
 
 class LayoutBuilder {
     private val junctionLayoutBuilders = mutableListOf<JunctionLayoutBuilder>()
+    val dslElement = LayoutEl()
+        get() {
+            return field
+        }
 
     fun junction(setup: JunctionLayoutBuilder.() -> Unit) {
         val junctionLayoutBuilder = JunctionLayoutBuilder()
         junctionLayoutBuilder.setup()
+        this.dslElement.addJunction(junctionLayoutBuilder.dslElement)
         this.junctionLayoutBuilders.add(junctionLayoutBuilder)
     }
 
@@ -1004,6 +1079,26 @@ if ("X69982.1/45-449".equals(junctionDrawing.ssDrawing.secondaryStructure.rna.na
 }
 
 class JunctionLayoutBuilder {
+    val dslElement = JunctionEl()
+        get() {
+            name?.let {
+                field.setName(it)
+            }
+            radius?.let {
+                field.setRadius(it)
+            }
+            out_ids?.let {
+                field.setOutIds(it)
+            }
+            type?.let {
+                field.setType(it)
+            }
+            this.locationBuilder.dslElement?.let {
+                field.children.add(it)
+            }
+            return field
+        }
+
     var name: String? = null
     private val locationBuilder = LocationBuilder()
     var type: Int? = null
@@ -1052,15 +1147,23 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
     private val themeConfigurationBuilders = mutableListOf<ThemeConfigurationBuilder>()
     private val data = data.toMutableMap()
     var details: Int? = null
+        set(value) {
+            value?.let {
+                val db = DetailsBuilder(this.data, it)
+                this.themeConfigurationBuilders.add(db)
+                this.dslElement.addDetails(it)
+            }
+        }
     var scheme: String? = null
+        set(value) {
+            value?.let {
+                val sb = SchemeBuilder(this.data, it)
+                this.themeConfigurationBuilders.add(sb)
+                this.dslElement.addScheme(it)
+            }
+        }
     val dslElement = ThemeEl()
         get() {
-            details?.let {
-                field.setDetails(it)
-            }
-            scheme?.let {
-                field.setScheme(it)
-            }
             return field
         }
 
@@ -1094,142 +1197,142 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
 
     fun build(): Theme {
         val t = Theme()
-        this.details?.let { details ->
-            when (details) {
-                1 -> {
-                    t.addConfiguration(
-                        ThemeProperty.fulldetails,
-                        { el -> "false" },
-                        SecondaryStructureType.entries
-                    )
-                }
-
-                2 -> {
-                    t.addConfiguration(
-                        ThemeProperty.fulldetails,
-                        { _ -> "true" },
-                        listOf(SecondaryStructureType.Helix,
-                            SecondaryStructureType.SecondaryInteraction,
-                            SecondaryStructureType.Junction,
-                            SecondaryStructureType.SingleStrand,
-                            SecondaryStructureType.PhosphodiesterBond)
-                    )
-
-                    t.addConfiguration(
-                        ThemeProperty.fulldetails,
-                        { _ -> "false" },
-                        listOf(
-                            SecondaryStructureType.InteractionSymbol,
-                            SecondaryStructureType.AShape,
-                            SecondaryStructureType.UShape,
-                            SecondaryStructureType.GShape,
-                            SecondaryStructureType.CShape,
-                            SecondaryStructureType.XShape)
-                    )
-                }
-
-                3 -> {
-                    t.addConfiguration(
-                        ThemeProperty.fulldetails,
-                        { _ -> "true" },
-                        listOf(SecondaryStructureType.Helix,
-                            SecondaryStructureType.SecondaryInteraction,
-                            SecondaryStructureType.Junction,
-                            SecondaryStructureType.SingleStrand,
-                            SecondaryStructureType.PhosphodiesterBond,
-                            SecondaryStructureType.AShape,
-                            SecondaryStructureType.UShape,
-                            SecondaryStructureType.GShape,
-                            SecondaryStructureType.CShape,
-                            SecondaryStructureType.XShape)
-                    )
-
-                    t.addConfiguration(
-                        ThemeProperty.fulldetails,
-                        { _ -> "false" },
-                        listOf(SecondaryStructureType.InteractionSymbol,
-                            SecondaryStructureType.A,
-                            SecondaryStructureType.U,
-                            SecondaryStructureType.G,
-                            SecondaryStructureType.C,
-                            SecondaryStructureType.X)
-                    )
-                }
-
-                4 -> {
-                    t.addConfiguration(
-                        ThemeProperty.fulldetails,
-                        { _ -> "true" },
-                        listOf(SecondaryStructureType.Helix,
-                            SecondaryStructureType.SecondaryInteraction,
-                            SecondaryStructureType.Junction,
-                            SecondaryStructureType.SingleStrand,
-                            SecondaryStructureType.PhosphodiesterBond,
-                            SecondaryStructureType.AShape,
-                            SecondaryStructureType.UShape,
-                            SecondaryStructureType.GShape,
-                            SecondaryStructureType.CShape,
-                            SecondaryStructureType.XShape,
-                            SecondaryStructureType.A,
-                            SecondaryStructureType.U,
-                            SecondaryStructureType.G,
-                            SecondaryStructureType.C,
-                            SecondaryStructureType.X)
-                    )
-
-                    t.addConfiguration(
-                        ThemeProperty.fulldetails,
-                        { _ -> "false" },
-                        listOf(SecondaryStructureType.InteractionSymbol)
-                    )
-                }
-
-                else -> {
-                    t.addConfiguration(
-                        ThemeProperty.fulldetails,
-                        { _ -> "true" },
-                        SecondaryStructureType.entries
-                    )
-                }
-            }
-        }
-        this.scheme?.let { schemeName ->
-            if ("Structural Domains" == schemeName) {
-                val randomColors = (1..20).map { getHTMLColorString(randomColor()) }
-                t.addConfiguration(
-                    ThemeProperty.color,
-                    {el ->
-                        when (el) {
-                            is HelixDrawing -> randomColors.get(Random.nextInt(0,19))
-                            is JunctionDrawing -> randomColors.get(Random.nextInt(0,19))
-                            is SingleStrandDrawing -> randomColors.get(Random.nextInt(0,19))
-                            is SecondaryInteractionDrawing -> getHTMLColorString(el.parent!!.getColor())
-                            is InteractionSymbolDrawing -> getHTMLColorString(el.parent!!.getColor())
-                            is ResidueDrawing -> getHTMLColorString(el.parent!!.getColor())
-                            is PhosphodiesterBondDrawing -> el.parent?.let {
-                                getHTMLColorString(it.getColor())
-                            } ?: run {
-                                getHTMLColorString(el.getColor())
-                            }
-                            is ResidueLetterDrawing-> getHTMLColorString(Color.WHITE)
-                            else -> getHTMLColorString(Color.RED)
-                        }
-                    },
-                    SecondaryStructureType.entries
-                )
-            } else
-                RnartistConfig.colorSchemes.get(schemeName)?.let { scheme ->
-                    scheme.forEach { type, color ->
-                        t.addConfiguration(
-                            ThemeProperty.color,
-                            color,
-                            listOf(type)
-                        )
-                    }
-                }
-        }
         this.themeConfigurationBuilders.forEach { configurationBuilder ->
             when (configurationBuilder) {
+                is DetailsBuilder -> {
+                    when (configurationBuilder.dslProperty.value.toInt()) {
+                        1 -> {
+                            t.addConfiguration(
+                                ThemeProperty.fulldetails,
+                                { el -> "false" },
+                                SecondaryStructureType.entries
+                            )
+                        }
+
+                        2 -> {
+                            t.addConfiguration(
+                                ThemeProperty.fulldetails,
+                                { _ -> "true" },
+                                listOf(SecondaryStructureType.Helix,
+                                    SecondaryStructureType.SecondaryInteraction,
+                                    SecondaryStructureType.Junction,
+                                    SecondaryStructureType.SingleStrand,
+                                    SecondaryStructureType.PhosphodiesterBond)
+                            )
+
+                            t.addConfiguration(
+                                ThemeProperty.fulldetails,
+                                { _ -> "false" },
+                                listOf(
+                                    SecondaryStructureType.InteractionSymbol,
+                                    SecondaryStructureType.AShape,
+                                    SecondaryStructureType.UShape,
+                                    SecondaryStructureType.GShape,
+                                    SecondaryStructureType.CShape,
+                                    SecondaryStructureType.XShape)
+                            )
+                        }
+
+                        3 -> {
+                            t.addConfiguration(
+                                ThemeProperty.fulldetails,
+                                { _ -> "true" },
+                                listOf(SecondaryStructureType.Helix,
+                                    SecondaryStructureType.SecondaryInteraction,
+                                    SecondaryStructureType.Junction,
+                                    SecondaryStructureType.SingleStrand,
+                                    SecondaryStructureType.PhosphodiesterBond,
+                                    SecondaryStructureType.AShape,
+                                    SecondaryStructureType.UShape,
+                                    SecondaryStructureType.GShape,
+                                    SecondaryStructureType.CShape,
+                                    SecondaryStructureType.XShape)
+                            )
+
+                            t.addConfiguration(
+                                ThemeProperty.fulldetails,
+                                { _ -> "false" },
+                                listOf(SecondaryStructureType.InteractionSymbol,
+                                    SecondaryStructureType.A,
+                                    SecondaryStructureType.U,
+                                    SecondaryStructureType.G,
+                                    SecondaryStructureType.C,
+                                    SecondaryStructureType.X)
+                            )
+                        }
+
+                        4 -> {
+                            t.addConfiguration(
+                                ThemeProperty.fulldetails,
+                                { _ -> "true" },
+                                listOf(SecondaryStructureType.Helix,
+                                    SecondaryStructureType.SecondaryInteraction,
+                                    SecondaryStructureType.Junction,
+                                    SecondaryStructureType.SingleStrand,
+                                    SecondaryStructureType.PhosphodiesterBond,
+                                    SecondaryStructureType.AShape,
+                                    SecondaryStructureType.UShape,
+                                    SecondaryStructureType.GShape,
+                                    SecondaryStructureType.CShape,
+                                    SecondaryStructureType.XShape,
+                                    SecondaryStructureType.A,
+                                    SecondaryStructureType.U,
+                                    SecondaryStructureType.G,
+                                    SecondaryStructureType.C,
+                                    SecondaryStructureType.X)
+                            )
+
+                            t.addConfiguration(
+                                ThemeProperty.fulldetails,
+                                { _ -> "false" },
+                                listOf(SecondaryStructureType.InteractionSymbol)
+                            )
+                        }
+
+                        else -> {
+                            t.addConfiguration(
+                                ThemeProperty.fulldetails,
+                                { _ -> "true" },
+                                SecondaryStructureType.entries
+                            )
+                        }
+                    }
+                }
+                is SchemeBuilder -> {
+                    if ("Structural Domains" == configurationBuilder.dslProperty.value) {
+                        val randomColors = (1..20).map { getHTMLColorString(randomColor()) }
+                        t.addConfiguration(
+                            ThemeProperty.color,
+                            {el ->
+                                when (el) {
+                                    is HelixDrawing -> randomColors.get(Random.nextInt(0,19))
+                                    is JunctionDrawing -> randomColors.get(Random.nextInt(0,19))
+                                    is SingleStrandDrawing -> randomColors.get(Random.nextInt(0,19))
+                                    is SecondaryInteractionDrawing -> getHTMLColorString(el.parent!!.getColor())
+                                    is InteractionSymbolDrawing -> getHTMLColorString(el.parent!!.getColor())
+                                    is ResidueDrawing -> getHTMLColorString(el.parent!!.getColor())
+                                    is PhosphodiesterBondDrawing -> el.parent?.let {
+                                        getHTMLColorString(it.getColor())
+                                    } ?: run {
+                                        getHTMLColorString(el.getColor())
+                                    }
+                                    is ResidueLetterDrawing-> getHTMLColorString(Color.WHITE)
+                                    else -> getHTMLColorString(Color.RED)
+                                }
+                            },
+                            SecondaryStructureType.entries
+                        )
+                    } else
+                        RnartistConfig.colorSchemes.get(configurationBuilder.dslProperty.value)?.let { scheme ->
+                            scheme.forEach { type, color ->
+                                t.addConfiguration(
+                                    ThemeProperty.color,
+                                    color,
+                                    listOf(type)
+                                )
+                            }
+                        }
+                }
                 is ColorBuilder -> {
                     configurationBuilder.value?.let {
                         if (data.isNotEmpty() && (configurationBuilder.filtered || configurationBuilder.to != null)) { //if we have some data and the user filtered them OR the color to has been set
@@ -1787,6 +1890,16 @@ open class ThemeConfigurationBuilder(data: MutableMap<String, Double>) {
 
 }
 
+class SchemeBuilder(data: MutableMap<String, Double>, schemeName:String) : ThemeConfigurationBuilder(data) {
+    val dslProperty = StringProperty("scheme",schemeName)
+
+}
+
+class DetailsBuilder(data: MutableMap<String, Double>, detailsLvl:Int) : ThemeConfigurationBuilder(data) {
+    val dslProperty = Property("details", "$detailsLvl")
+
+}
+
 class ColorBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(data) {
     val dslElement = ColorEl()
         get() {
@@ -1851,7 +1964,6 @@ class HideBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(
             return field
         }
 }
-
 
 class LocationBuilder {
 
