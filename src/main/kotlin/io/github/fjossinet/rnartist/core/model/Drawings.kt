@@ -2,6 +2,7 @@ package io.github.fjossinet.rnartist.core.model
 
 import io.github.fjossinet.rnartist.core.RnartistConfig
 import io.github.fjossinet.rnartist.core.RnartistConfig.defaultConfiguration
+import io.github.fjossinet.rnartist.core.RnartistConfig.defaultResidueLetterConfiguration
 import java.awt.*
 import java.awt.geom.*
 import java.awt.image.BufferedImage
@@ -350,47 +351,41 @@ class Layout {
 }
 
 
-class DrawingConfiguration(defaultParams: Map<String, String> = defaultConfiguration.toMutableMap()) {
+class DrawingConfiguration(val defaultParams: Map<String, String>) {
 
     val params: MutableMap<String, String> = mutableMapOf()
 
-    var opacity: Int = defaultConfiguration[ThemeProperty.opacity.toString()]!!.toInt()
+    var opacity: Int = defaultParams[ThemeProperty.opacity.toString()]!!.toInt()
         get() = this.params.getOrDefault(
             ThemeProperty.opacity.toString(),
-            defaultConfiguration[ThemeProperty.opacity.toString()]!!
+            defaultParams[ThemeProperty.opacity.toString()]!!
         ).toInt()
 
-    var fullDetails: Boolean = defaultConfiguration[ThemeProperty.fulldetails.toString()]!!.toBoolean()
+    var fullDetails: Boolean = defaultParams[ThemeProperty.fulldetails.toString()]!!.toBoolean()
         get() = this.params.getOrDefault(
             ThemeProperty.fulldetails.toString(),
-            defaultConfiguration[ThemeProperty.fulldetails.toString()]!!
+            defaultParams[ThemeProperty.fulldetails.toString()]!!
         ).toBoolean()
 
-    var lineShift: Double = defaultConfiguration[ThemeProperty.lineshift.toString()]!!.toDouble()
+    var lineShift: Double = defaultParams[ThemeProperty.lineshift.toString()]!!.toDouble()
         get() = this.params.getOrDefault(
             ThemeProperty.lineshift.toString(),
-            defaultConfiguration[ThemeProperty.lineshift.toString()]!!
+            defaultParams[ThemeProperty.lineshift.toString()]!!
         ).toDouble()
 
-    var lineWidth: Double = defaultConfiguration[ThemeProperty.linewidth.toString()]!!.toDouble()
+    var lineWidth: Double = defaultParams[ThemeProperty.linewidth.toString()]!!.toDouble()
         get() = this.params.getOrDefault(
             ThemeProperty.linewidth.toString(),
-            defaultConfiguration[ThemeProperty.linewidth.toString()]!!
+            defaultParams[ThemeProperty.linewidth.toString()]!!
         ).toDouble()
 
-    var color: Color = getAWTColor(defaultConfiguration[ThemeProperty.color.toString()]!!)
+    var color: Color = getAWTColor(defaultParams[ThemeProperty.color.toString()]!!)
         get() = getAWTColor(
             this.params.getOrDefault(
                 ThemeProperty.color.toString(),
-                defaultConfiguration[ThemeProperty.color.toString()]!!
+                defaultParams[ThemeProperty.color.toString()]!!
             )
         )
-
-    init {
-        defaultParams.forEach { (k, v) ->
-            this.params[k] = v
-        }
-    }
 
     fun clear() {
         this.params.clear()
@@ -416,7 +411,7 @@ abstract class DrawingElement(
 
     abstract val children: List<DrawingElement>
 
-    var drawingConfiguration: DrawingConfiguration = DrawingConfiguration()
+    var drawingConfiguration: DrawingConfiguration = DrawingConfiguration((this as? ResidueLetterDrawing)?.let { defaultResidueLetterConfiguration } ?: run { defaultConfiguration})
 
     open val bounds: List<Point2D> = mutableListOf()
 
@@ -616,7 +611,6 @@ class SecondaryStructureDrawing(
     val residues = mutableListOf<ResidueDrawing>()
     val tertiaryInteractions = mutableListOf<TertiaryInteractionDrawing>()
 
-    var drawingConfiguration = DrawingConfiguration()
     private var fitToResiduesBetweenBranches = true
     var quickDraw = false
 
@@ -4459,9 +4453,10 @@ open class JunctionDrawing(
 
     fun clearLayout() {
         if (radius != this.initialRadius || !currentLayout.containsAll(this.initialLayout)) {
-            radius = this.initialRadius
-            currentLayout = this.initialLayout.toMutableList()
-            ssDrawing.computeResidues(this)
+            this.radius = this.initialRadius
+            this.radiusRatio = 1.0
+            this.currentLayout = this.initialLayout.toMutableList()
+            this.ssDrawing.computeResidues(this)
         }
     }
 

@@ -432,6 +432,14 @@ object RnartistConfig {
         ThemeProperty.fulldetails.toString() to "false"
     )
 
+    val defaultResidueLetterConfiguration = mutableMapOf(
+        ThemeProperty.color.toString() to getHTMLColorString(Color.WHITE),
+        ThemeProperty.linewidth.toString() to "1.0",
+        ThemeProperty.lineshift.toString() to "1.0",
+        ThemeProperty.opacity.toString() to "255", //alpha value goes from 0 to 255
+        ThemeProperty.fulldetails.toString() to "false"
+    )
+
     @JvmStatic
     fun load() {
         if (document != null) return
