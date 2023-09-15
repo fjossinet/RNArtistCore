@@ -229,7 +229,6 @@ abstract class OutputFileBuilder {
 class PNGBuilder : OutputFileBuilder() {
     override val dslElement = PNGEl()
         get() {
-            field.children.clear()
             this.path?.let { path ->
                 val sep = getDefault().separator
                 field.setPath(
@@ -352,7 +351,6 @@ class SVGBuilder : OutputFileBuilder() {
 
     override val dslElement = SVGEl()
         get() {
-            field.children.clear()
             this.path?.let {
                 field.setPath(it)
             }
@@ -954,7 +952,7 @@ class RNArtistBuilder {
         val secondaryStructureBuilder = SecondaryStructureBuilder()
         secondaryStructureBuilder.setup()
         secondaryStructures.addAll(secondaryStructureBuilder.build())
-        this.rnartistElement.children.add(secondaryStructureBuilder.dslElement)
+        this.rnartistElement.addSS(secondaryStructureBuilder.dslElement)
     }
 
     fun theme(setup: ThemeBuilder.() -> Unit) {
@@ -1056,13 +1054,19 @@ if ("X69982.1/45-449".equals(junctionDrawing.ssDrawing.secondaryStructure.rna.na
         val layout = Layout()
         junctionLayoutBuilders.forEach { junctionLayoutBuilder ->
             val selection = junctionLayoutBuilder.buildSelection()
-            if (!junctionLayoutBuilder.isGlobalLayout) { //the layout targets specific junctions
-                junctionLayoutBuilder.radius?.let { radius ->
-                    layout.addConfigurationFor(selection, LayoutProperty.radius, radius.toString())
+            if (!junctionLayoutBuilder.isGlobalLayout) {
+                //we can have no parameters to set (radius, out_ids), this will indicate to the drawing engine to come back to the initial values for this junction
+                if (junctionLayoutBuilder.radius == null && junctionLayoutBuilder.out_ids == null)
+                    layout.addConfigurationFor(selection, LayoutProperty.rollBack, null)
+                else {//the layout targets specific junctions
+                    junctionLayoutBuilder.radius?.let { radius ->
+                        layout.addConfigurationFor(selection, LayoutProperty.radius, radius.toString())
+                    }
+                    junctionLayoutBuilder.out_ids?.let { out_ids ->
+                        layout.addConfigurationFor(selection, LayoutProperty.out_ids, out_ids)
+                    }
                 }
-                junctionLayoutBuilder.out_ids?.let { out_ids ->
-                    layout.addConfigurationFor(selection, LayoutProperty.out_ids, out_ids)
-                }
+
             } else { //we change the default behavior for all junctions in this type before to plot 2D
                 junctionLayoutBuilder.type?.let { type ->
                     val junctionType = when (type) {
@@ -1119,7 +1123,7 @@ class JunctionLayoutBuilder {
                 field.setType(it)
             }
             this.locationBuilder.dslElement?.let {
-                field.children.add(it)
+                field.addLocation(it)
             }
             return field
         }
@@ -1210,7 +1214,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
         val lineBuilder = LineBuilder(this.data)
         lineBuilder.setup()
         this.themeConfigurationBuilders.add(lineBuilder)
-        this.dslElement.children.add(lineBuilder.dslElement)
+        this.dslElement.addLine(lineBuilder.dslElement)
     }
 
     fun hide(setup: HideBuilder.() -> Unit) {
@@ -1938,11 +1942,13 @@ class ColorBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder
             type?.let {
                 field.setType(it)
             }
-            this.locationBuilder.dslElement?.let {
-                field.children.add(it)
-            }
+
             step?.let {
                 field.setStep(it)
+            }
+
+            this.locationBuilder.dslElement?.let {
+                field.addLocation(it)
             }
             return field
         }
@@ -1975,7 +1981,7 @@ class LineBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(
             }
 
             this.locationBuilder.dslElement?.let {
-                field.children.add(it)
+                field.addLocation(it)
             }
             return field
         }
@@ -1993,7 +1999,7 @@ class ShowBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(
                 field.setStep(it)
             }
             this.locationBuilder.dslElement?.let {
-                field.children.add(it)
+                field.addLocation(it)
             }
             return field
         }
@@ -2002,9 +2008,6 @@ class ShowBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(
 class HideBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(data) {
     val dslElement = HideEl()
         get() {
-            this.locationBuilder.dslElement?.let {
-                field.children.add(it)
-            }
 
             type?.let {
                 field.setType(it)
@@ -2012,6 +2015,10 @@ class HideBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(
 
             step?.let {
                 field.setStep(it)
+            }
+
+            this.locationBuilder.dslElement?.let {
+                field.addLocation(it)
             }
             return field
         }
@@ -2060,7 +2067,6 @@ fun rnartist(setup: RNArtistBuilder.() -> Unit) = RNArtistBuilder().apply { setu
 fun theme(setup: ThemeBuilder.() -> Unit) = ThemeBuilder().apply { setup() }.build()
 
 fun layout(setup: LayoutBuilder.() -> Unit) = LayoutBuilder().apply { setup() }.build()
-
 private fun getColorCode(name: String): String {
     return when (name) {
         "white" -> "#FFFFFF"

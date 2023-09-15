@@ -125,7 +125,7 @@ enum class ThemeProperty {
 }
 
 enum class LayoutProperty {
-    radius, out_ids
+    radius, out_ids, rollBack
 }
 
 fun helixDrawingLength(h: Helix) =
@@ -332,7 +332,7 @@ class Theme {
 class LayoutConfiguration(
     val selector: (DrawingElement) -> Boolean,
     val propertyName: String,
-    val propertyValue: String
+    val propertyValue: String?
 )
 
 class Layout {
@@ -342,7 +342,7 @@ class Layout {
     fun addConfigurationFor(
         selector: (DrawingElement) -> Boolean,
         property: LayoutProperty,
-        propertyValue: String
+        propertyValue: String?
     ) {
         configurations.add(LayoutConfiguration(selector, property.toString(), propertyValue))
     }
@@ -4402,7 +4402,7 @@ open class JunctionDrawing(
             if (configuration.selector(this)) {
                 when (configuration.propertyName) {
                     LayoutProperty.out_ids.toString() -> {
-                        val out_ids = configuration.propertyValue
+                        val out_ids = configuration.propertyValue!!
                         var new_layout: String?
                         if (out_ids.startsWith("+")) {
                             var cycles = out_ids.split("+").last().toInt()
@@ -4443,8 +4443,12 @@ open class JunctionDrawing(
                     }
 
                     LayoutProperty.radius.toString() -> {
-                        radius = configuration.propertyValue.toDouble()
+                        radius = configuration.propertyValue!!.toDouble()
                         ssDrawing.computeResidues(this)
+                    }
+
+                    LayoutProperty.rollBack.toString() -> { // no parameters means
+                        this.clearLayout()
                     }
                 }
             }

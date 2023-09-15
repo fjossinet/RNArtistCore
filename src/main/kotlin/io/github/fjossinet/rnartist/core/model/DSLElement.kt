@@ -1,8 +1,15 @@
 package io.github.fjossinet.rnartist.core.model
 
+import io.github.fjossinet.rnartist.core.layout
 import java.awt.Color
 
-fun setJunction(rnArtistEl: RNArtistEl, radius: Double? = null, outIds:String? = null, type:Int? = null, location: Location? = null) {
+fun setJunction(
+    rnArtistEl: RNArtistEl,
+    radius: Double? = null,
+    outIds: String? = null,
+    type: Int? = null,
+    location: Location? = null
+) {
     val layout = rnArtistEl.getLayoutOrNew()
     with(layout.addJunction()) {
         radius?.let {
@@ -25,7 +32,13 @@ fun setDetailsLvlForFull2D(rnArtistEl: RNArtistEl, lvl: Int) {
     theme.addDetails(lvl)
 }
 
-fun setDetailsLvl(rnArtistEl: RNArtistEl, isfullDetails: Boolean, location: Location? = null, types: String? = null, step:Int?=null) {
+fun setDetailsLvl(
+    rnArtistEl: RNArtistEl,
+    isfullDetails: Boolean,
+    location: Location? = null,
+    types: String? = null,
+    step: Int? = null
+) {
     val theme = rnArtistEl.getThemeOrNew()
     if (isfullDetails) {
         with(theme.addShow()) {
@@ -61,7 +74,7 @@ fun setSchemeForFull2D(rnArtistEl: RNArtistEl, scheme: String) {
     theme.addScheme(scheme)
 }
 
-fun setColorForFull2D(rnArtistEl: RNArtistEl, onFont: Boolean = false, color: Color, step:Int?=null) {
+fun setColorForFull2D(rnArtistEl: RNArtistEl, onFont: Boolean = false, color: Color, step: Int? = null) {
     val theme = rnArtistEl.getThemeOrNew()
     if (onFont) {
         val types = "n"
@@ -88,9 +101,9 @@ fun setColor(
     color: Color,
     location: Location? = null,
     types: String? = null,
-    step:Int?=null
+    step: Int? = null
 ) {
-    val theme = rnArtistEl.getThemeOrNew() 
+    val theme = rnArtistEl.getThemeOrNew()
     with(theme.addColor()) {
         this.setValue(getHTMLColorString(color))
         location?.let { l ->
@@ -110,9 +123,9 @@ fun setColor(
 /**
  * Remove all the line elements and create a new one.
  */
-fun setLineWidthForFull2D(rnArtistEl: RNArtistEl, width: Double, step:Int?=null) {
+fun setLineWidthForFull2D(rnArtistEl: RNArtistEl, width: Double, step: Int? = null) {
     val theme = rnArtistEl.getThemeOrNew()
-    with (theme.addLine()) {
+    with(theme.addLine()) {
         this.setValue(width)
         step?.let {
             this.setStep(it)
@@ -120,7 +133,13 @@ fun setLineWidthForFull2D(rnArtistEl: RNArtistEl, width: Double, step:Int?=null)
     }
 }
 
-fun setLineWidth(rnArtistEl: RNArtistEl, width: Double, location: Location? = null, types: String? = null, step:Int?=null) {
+fun setLineWidth(
+    rnArtistEl: RNArtistEl,
+    width: Double,
+    location: Location? = null,
+    types: String? = null,
+    step: Int? = null
+) {
     val theme = rnArtistEl.getThemeOrNew()
     with(theme.addLine()) {
         this.setValue(width)
@@ -140,26 +159,26 @@ abstract class DSLNode(val name: String) {
     abstract fun dump(indent: String = "", buffer: StringBuffer = StringBuffer()): StringBuffer
 }
 
-open class Property(name:String, val value:String, val operator:String = "="):DSLNode(name) {
+open class Property(name: String, var value: String, val operator: String = "=") : DSLNode(name) {
     override fun dump(indent: String, buffer: StringBuffer): StringBuffer {
         buffer.appendLine("$indent ${this.name} ${this.operator} ${this.value}")
         return buffer
     }
 }
 
-class StringProperty(name:String, value:String, operator:String = "="):Property(name, value, operator) {
+class StringProperty(name: String, value: String, operator: String = "=") : Property(name, value, operator) {
     override fun dump(indent: String, buffer: StringBuffer): StringBuffer {
         buffer.appendLine("$indent ${this.name} ${this.operator} \"${this.value}\"")
         return buffer
     }
 }
 
-abstract class DSLElement(name: String):DSLNode(name) {
-    val children = mutableListOf<DSLNode>()
+abstract class DSLElement(name: String) : DSLNode(name) {
+    protected val children = mutableListOf<DSLNode>()
 
-    fun getProperties():List<Property> = this.children.filterIsInstance<Property>()
+    fun getProperties(): List<Property> = this.children.filterIsInstance<Property>()
 
-    fun getStep():Int? =  this.getProperties().firstOrNull { it.name.equals("step") }?.value?.toIntOrNull()
+    fun getStep(): Int? = this.getProperties().firstOrNull { it.name.equals("step") }?.value?.toIntOrNull()
 
     override fun dump(indent: String, buffer: StringBuffer): StringBuffer {
         buffer.appendLine("$indent $name {")
@@ -214,7 +233,10 @@ abstract class DSLElement(name: String):DSLNode(name) {
     /**
      * Return the first child using its name as criteria
      */
-    protected fun getChild(name: String) = this.children.filter { it.name.equals(name) }.firstOrNull()
+    protected fun getChildOrNull(name: String) = this.children.filter { it.name.equals(name) }.firstOrNull()
+
+    protected fun getPropertyOrNull(name: String) =
+        this.children.filterIsInstance<Property>().filter { it.name.equals(name) }.firstOrNull()
 
     /**
      * Return children using their name as criteria
@@ -257,19 +279,23 @@ abstract class DSLElement(name: String):DSLNode(name) {
     }
 
     fun removeLocation() {
-        this.getChild("location")?.let {
+        this.getChildOrNull("location")?.let {
             this.removeChild(it)
         }
     }
 
-    fun getLocationOrNew(): LocationEl = this.getChild("location") as? LocationEl ?: addLocation()
+    fun getLocationOrNew(): LocationEl = this.getChildOrNull("location") as? LocationEl ?: addLocation()
 
-    fun getLocationOrNUll(): LocationEl? = this.getChild("location") as LocationEl?
+    fun getLocationOrNull(): LocationEl? = this.getChildOrNull("location") as LocationEl?
 
-    fun addStringProperty(name:String, value:String, operator: String="=") = this.children.add(StringProperty(name,value, operator))
+    fun addStringProperty(name: String, value: String, operator: String = "=") =
+        this.children.add(StringProperty(name, value, operator))
 
-    fun addProperty(name:String, value:Double, operator: String="=") = this.children.add(Property(name,"$value", operator))
-    fun addProperty(name:String, value:Int, operator: String="=") = this.children.add(Property(name,"$value", operator))
+    fun addProperty(name: String, value: Double, operator: String = "=") =
+        this.children.add(Property(name, "$value", operator))
+
+    fun addProperty(name: String, value: Int, operator: String = "=") =
+        this.children.add(Property(name, "$value", operator))
 
 }
 
@@ -282,7 +308,7 @@ class RNArtistEl : DSLElement("rnartist") {
         return el
     }
 
-    fun getLayoutOrNew(): LayoutEl = this.getChild("layout") as? LayoutEl ?: addLayout()
+    fun getLayoutOrNew(): LayoutEl = this.getChildOrNull("layout") as? LayoutEl ?: addLayout()
 
     fun addTheme(themeEl: ThemeEl? = null): ThemeEl {
         this.children.removeIf { it.name.equals("theme") } //only a single element allowed
@@ -291,7 +317,7 @@ class RNArtistEl : DSLElement("rnartist") {
         return el
     }
 
-    fun getThemeOrNew(): ThemeEl = this.getChild("theme") as? ThemeEl ?: addTheme()
+    fun getThemeOrNew(): ThemeEl = this.getChildOrNull("theme") as? ThemeEl ?: addTheme()
 
     fun addSS(ssEl: SSEl? = null): SSEl {
         this.children.removeIf { it.name.equals("ss") } //only a single element allowed
@@ -300,7 +326,7 @@ class RNArtistEl : DSLElement("rnartist") {
         return el
     }
 
-    fun getSSOrNew(): SSEl = this.getChild("ss") as? SSEl ?: addSS()
+    fun getSSOrNew(): SSEl = this.getChildOrNull("ss") as? SSEl ?: addSS()
 
     fun addPNG(pngEl: PNGEl? = null): PNGEl {
         this.children.removeIf { it.name.equals("png") } //only a single element allowed
@@ -309,9 +335,9 @@ class RNArtistEl : DSLElement("rnartist") {
         return el
     }
 
-    fun getPNGOrNew(): PNGEl = this.getChild("png") as? PNGEl ?: addPNG()
+    fun getPNGOrNew(): PNGEl = this.getChildOrNull("png") as? PNGEl ?: addPNG()
 
-    fun getPNGOrNull(): PNGEl? = this.getChild("png") as? PNGEl
+    fun getPNGOrNull(): PNGEl? = this.getChildOrNull("png") as? PNGEl
 
     fun addSVG(svgEl: SVGEl? = null): SVGEl {
         this.children.removeIf { it.name.equals("svg") } //only a single element allowed
@@ -320,13 +346,15 @@ class RNArtistEl : DSLElement("rnartist") {
         return el
     }
 
-    fun getSVGOrNew(): SVGEl = this.getChild("svg") as? SVGEl ?: addSVG()
+    fun getSVGOrNew(): SVGEl = this.getChildOrNull("svg") as? SVGEl ?: addSVG()
 
-    fun getSVGOrNull(): SVGEl? = this.getChild("svg") as? SVGEl
+    fun getSVGOrNull(): SVGEl? = this.getChildOrNull("svg") as? SVGEl
 
     fun removeSVG() = this.getSVGOrNull()?.let { this.removeChild(it) }
 
     override fun dump(indent: String, buffer: StringBuffer): StringBuffer {
+        buffer.appendLine("import io.github.fjossinet.rnartist.core.*")
+        buffer.appendLine()
         buffer.appendLine("$indent $name {")
         val newIndent = "$indent   "
         this.getSSOrNew().dump(newIndent, buffer)
@@ -339,11 +367,13 @@ class RNArtistEl : DSLElement("rnartist") {
     }
 }
 
-abstract class UndoRedoDSLElement(name:String):DSLElement(name) {
+abstract class UndoRedoDSLElement(name: String) : DSLElement(name) {
     var undoRedoCursor = 0 //the number of children we keep during dump
+    var historyLength:Int = this.children.size
+            get() = this.children.size
 
     fun decreaseUndoRedoCursor() {
-        (this.children.get(undoRedoCursor-1) as? DSLElement)?.getStep()?.let { s ->
+        (this.children.get(undoRedoCursor - 1) as? DSLElement)?.getStep()?.let { s ->
             undoRedoCursor -= this.children.filterIsInstance<DSLElement>().count { it.getStep() == s }
         } ?: run {
             undoRedoCursor--
@@ -361,7 +391,8 @@ abstract class UndoRedoDSLElement(name:String):DSLElement(name) {
     }
 
     var lastStep = 0
-        get() = this.children.filterIsInstance<DSLElement>().filter { it.getStep() != null }.lastOrNull()?.getStep() ?: 0
+        get() = this.children.filterIsInstance<DSLElement>().filter { it.getStep() != null }.lastOrNull()?.getStep()
+            ?: 0
 
     override fun dump(indent: String, buffer: StringBuffer): StringBuffer {
         buffer.appendLine("$indent $name {")
@@ -373,8 +404,8 @@ abstract class UndoRedoDSLElement(name:String):DSLElement(name) {
         return buffer
     }
 
-    fun addChild(child:DSLNode) {
-        if (undoRedoCursor <= this.children.size-1) {// this means that the user add a new step from here and is not intesrested in the next steps stored
+    fun addChild(child: DSLNode) {
+        if (undoRedoCursor <= this.children.size - 1) {// this means that the user add a new step from here and is not intesrested in the next steps stored
             this.children.removeAll(this.children.subList(undoRedoCursor, this.children.size))
             undoRedoCursor = this.children.size
         }
@@ -389,6 +420,167 @@ class LayoutEl : UndoRedoDSLElement("layout") {
         this.addChild(el)
         return el
     }
+
+    fun getJunctionLayoutInHistoryFromNextToEnd(): Layout? {
+        if (this.undoRedoCursor < this.children.size) {
+            this.undoRedoCursor++
+            val layout = layout {
+                children.subList(undoRedoCursor - 1, children.size).filterIsInstance<JunctionEl>().forEach { j ->
+                    junction {
+                        j.getLocationOrNull()?.let {
+                            location {
+                                it.toLocation().blocks.forEach {
+                                    it.start to it.end
+                                }
+                            }
+                        }
+                        j.getNameOrNull()?.let {
+                            name = it.value
+                        }
+                        j.getTypeOrNull()?.let {
+                            type = it.value.toInt()
+                        }
+                        j.getOutIdsOrNull()?.let {
+                            out_ids = it.value
+                        }
+                        j.getRadiusOrNull()?.let {
+                            radius = it.value.toDouble()
+                        }
+                    }
+
+                }
+            }
+            this.undoRedoCursor = this.children.size
+            return layout
+        }
+        return null
+    }
+
+    fun rollbackToPreviousJunctionLayoutInHistory(): Layout? {
+        if (this.undoRedoCursor > 0) {
+            //first we get from history the current junction layout we want to erase
+            (children.get(undoRedoCursor - 1) as? JunctionEl)?.let { j ->
+                //now we search if this junction has already been modified before in the history
+                children.subList(0, undoRedoCursor - 1).filterIsInstance<JunctionEl>().filter {
+                    it.getNameOrNull()?.value?.equals(j.getNameOrNull()?.value) ?: (j.getNameOrNull() == null) &&
+                            it.getLocationOrNull()?.toLocation()
+                                ?.equals(j.getLocationOrNull()?.toLocation()) ?: (j.getLocationOrNull() == null) &&
+                            it.getTypeOrNull()?.value?.equals(j.getTypeOrNull()?.value) ?: (j.getTypeOrNull() == null)
+
+                }.lastOrNull()?.let { j ->
+                    this.undoRedoCursor--
+                    //We got the previous layout for this junction, we apply it to erase the current one
+                    return layout {
+                        junction {
+                            j.getLocationOrNull()?.let {
+                                location {
+                                    it.toLocation().blocks.forEach {
+                                        it.start to it.end
+                                    }
+                                }
+                            }
+                            j.getNameOrNull()?.let {
+                                name = it.value
+                            }
+                            j.getTypeOrNull()?.let {
+                                type = it.value.toInt()
+                            }
+                            j.getOutIdsOrNull()?.let {
+                                out_ids = it.value
+                            }
+                            j.getRadiusOrNull()?.let {
+                                radius = it.value.toDouble()
+                            }
+                        }
+                    }
+                } ?: run {
+                    this.undoRedoCursor--
+                    //if no previous layout for this junction, its layout is set back to its initial parameters
+                    //by applying a layout with empty parameters, the RNArtistCore drawing engine will know to come back to initial parameters for this junction
+                    return layout {
+                        junction {
+                            j.getLocationOrNull()?.let {
+                                location {
+                                    it.toLocation().blocks.forEach {
+                                        it.start to it.end
+                                    }
+                                }
+                            }
+                            j.getNameOrNull()?.let {
+                                name = it.value
+                            }
+                            j.getTypeOrNull()?.let {
+                                type = it.value.toInt()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null
+    }
+
+    fun getNextJunctionLayoutInHistory(): Layout? {
+        if (this.undoRedoCursor < this.children.size) {
+            this.undoRedoCursor++
+            return layout {
+                (children.get(undoRedoCursor - 1) as? JunctionEl)?.let { j ->
+                    junction {
+                        j.getLocationOrNull()?.let {
+                            location {
+                                it.toLocation().blocks.forEach {
+                                    it.start to it.end
+                                }
+                            }
+                        }
+                        j.getNameOrNull()?.let {
+                            name = it.value
+                        }
+                        j.getTypeOrNull()?.let {
+                            type = it.value.toInt()
+                        }
+                        j.getOutIdsOrNull()?.let {
+                            out_ids = it.value
+                        }
+                        j.getRadiusOrNull()?.let {
+                            radius = it.value.toDouble()
+                        }
+                    }
+                }
+            }
+        }
+        return null
+    }
+
+    fun toLayout(): Layout {
+        return layout {
+            children.subList(0, undoRedoCursor).filterIsInstance<JunctionEl>().forEach { j ->
+                junction {
+                    j.getLocationOrNull()?.let {
+                        location {
+                            it.toLocation().blocks.forEach {
+                                it.start to it.end
+                            }
+                        }
+                    }
+                    j.getNameOrNull()?.let {
+                        name = it.value
+                    }
+                    j.getTypeOrNull()?.let {
+                        type = it.value.toInt()
+                    }
+                    j.getOutIdsOrNull()?.let {
+                        out_ids = it.value
+                    }
+                    j.getRadiusOrNull()?.let {
+                        radius = it.value.toDouble()
+                    }
+                }
+
+            }
+
+        }
+    }
 }
 
 class JunctionEl : DSLElement("junction") {
@@ -397,17 +589,25 @@ class JunctionEl : DSLElement("junction") {
         this.children.add(StringProperty("name", name))
     }
 
+    fun getNameOrNull() = this.getPropertyOrNull("name")
+
     fun setRadius(radius: Double) {
         this.children.add(Property("radius", "$radius"))
     }
+
+    fun getRadiusOrNull() = this.getPropertyOrNull("radius")
 
     fun setType(type: Int) {
         this.children.add(Property("type", "$type"))
     }
 
+    fun getTypeOrNull() = this.getPropertyOrNull("type")
+
     fun setOutIds(value: String) {
         this.children.add(StringProperty("out_ids", value))
     }
+
+    fun getOutIdsOrNull() = this.getPropertyOrNull("out_ids")
 }
 
 class ThemeEl() : UndoRedoDSLElement("theme") {
@@ -479,7 +679,7 @@ class SSEl : DSLElement("ss") {
         return el
     }
 
-    fun getViennaOrNew(): ViennaEl = this.getChild("vienna") as? ViennaEl ?: addVienna()
+    fun getViennaOrNew(): ViennaEl = this.getChildOrNull("vienna") as? ViennaEl ?: addVienna()
 
     fun addBPSeq(bpSeqEl: BPSeqEl? = null): BPSeqEl {
         val el = bpSeqEl ?: BPSeqEl()
@@ -487,84 +687,130 @@ class SSEl : DSLElement("ss") {
         return el
     }
 
+    fun getBPSeqOrNew(): BPSeqEl = this.getChildOrNull("bpseq") as? BPSeqEl ?: addBPSeq()
+
     fun addCT(ctEl: CTEl? = null): CTEl {
         val el = ctEl ?: CTEl()
         this.children.add(el)
         return el
     }
 
+    fun getCTOrNew(): CTEl = this.getChildOrNull("ct") as? CTEl ?: addCT()
+
+    fun addPDB(pdbEl: PDBEl? = null): PDBEl {
+        val el = pdbEl ?: PDBEl()
+        this.children.add(el)
+        return el
+    }
+
+    fun getPDBOrNew(): PDBEl = this.getChildOrNull("pdb") as? PDBEl ?: addPDB()
+
 }
 
 class BracketNotationEl : DSLElement("bn") {
     fun setSeq(seq: String) {
-        this.children.add(StringProperty("seq", seq))
+        this.getPropertyOrNull("seq")?.let {
+            it.value = seq
+        } ?: run {
+            this.children.add(StringProperty("seq", seq))
+        }
     }
 
     fun setValue(value: String) {
-        this.children.add(StringProperty("value", value))
+        this.getPropertyOrNull("value")?.let {
+            it.value = value
+        } ?: run {
+            this.children.add(StringProperty("seq", value))
+        }
     }
 
     fun setName(name: String) {
-        this.children.add(StringProperty("name", name))
+        this.getPropertyOrNull("name")?.let {
+            it.value = name
+        } ?: run {
+            this.children.add(StringProperty("name", name))
+        }
     }
 }
 
-class ViennaEl : DSLElement("vienna") {
+abstract class InputEl(name:String): DSLElement(name) {
     fun setFile(file: String) {
-        this.children.add(StringProperty("file", file))
+        this.getPropertyOrNull("file")?.let {
+            it.value = file
+        } ?: run {
+            this.children.add(StringProperty("file", file))
+        }
     }
 
     fun setPath(path: String) {
-        this.children.add(StringProperty("path", path))
+        this.getPropertyOrNull("path")?.let {
+            it.value = path
+        } ?: run {
+            this.children.add(StringProperty("path", path))
+        }
     }
+
+    fun getFile() = this.getPropertyOrNull("file")
 }
 
-class StockholmEl : DSLElement("stockholm") {
-    fun setFile(file: String) {
-        this.children.add(StringProperty("file", file))
-    }
+class ViennaEl : InputEl("vienna")
 
-    fun setPath(path: String) {
-        this.children.add(StringProperty("path", path))
-    }
-}
+class StockholmEl : InputEl("stockholm")
 
-class CTEl : DSLElement("ct") {
-    fun setFile(file: String) {
-        this.children.add(StringProperty("file", file))
-    }
+class CTEl : InputEl("ct")
 
-    fun setPath(path: String) {
-        this.children.add(StringProperty("path", path))
-    }
-}
+class BPSeqEl : InputEl("bpseq")
 
-class BPSeqEl : DSLElement("ct") {
-    fun setFile(file: String) {
-        this.children.add(StringProperty("file", file))
-    }
-
-    fun setPath(path: String) {
-        this.children.add(StringProperty("path", path))
-    }
-}
-
-abstract class OutputFileEl(name:String) : DSLElement(name) {
-
-    fun setPath(path: String) {
-        this.children.add(StringProperty("path", path))
+class PDBEl : InputEl("pdb") {
+    fun setId(id: String) {
+        this.getPropertyOrNull("id")?.let {
+            it.value = id
+        } ?: run {
+            this.children.add(StringProperty("id", id))
+        }
     }
 
     fun setName(name: String) {
-        this.children.add(StringProperty("name", name))
+        this.getPropertyOrNull("name")?.let {
+            it.value = name
+        } ?: run {
+            this.children.add(StringProperty("name", name))
+        }
+    }
+}
+
+abstract class OutputFileEl(name: String) : DSLElement(name) {
+
+    fun setPath(path: String) {
+        this.getPropertyOrNull("path")?.let {
+            it.value = path
+        } ?: run {
+            this.children.add(StringProperty("path", path))
+        }
+    }
+
+    fun setName(name: String) {
+        this.getPropertyOrNull("name")?.let {
+            it.value = name
+        } ?: run {
+            this.children.add(StringProperty("name", name))
+        }
     }
 
     fun setWidth(width: Double) {
-        this.children.add(Property("width", "$width"))
+        this.getPropertyOrNull("width")?.let {
+            it.value = "$width"
+        } ?: run {
+            this.children.add(Property("width", "$width"))
+        }
     }
 
     fun setHeight(height: Double) {
-        this.children.add(Property("height", "$height"))
+        this.getPropertyOrNull("height")?.let {
+            it.value = "$height"
+        } ?: run {
+            this.children.add(Property("height", "$height"))
+        }
     }
 }
 
@@ -572,61 +818,62 @@ class PNGEl : OutputFileEl("png")
 
 class SVGEl : OutputFileEl("svg")
 
-class ShowEl : DSLElement("show") {
+abstract class ThemeConfigurationEl(name:String):DSLElement(name) {
     fun setType(type: String) {
-        this.children.add(StringProperty("type", type))
+        this.getPropertyOrNull("type")?.let {
+            it.value = type
+        } ?: run {
+            this.children.add(StringProperty("type", type))
+        }
     }
 
     fun setStep(step: Int) {
-        this.children.add(Property("step", "$step"))
+        this.getPropertyOrNull("step")?.let {
+            it.value = "$step"
+        } ?: run {
+            this.children.add(Property("step", "$step"))
+        }
     }
 }
 
-class HideEl : DSLElement("hide") {
-    fun setType(type: String) {
-        this.children.add(StringProperty("type", type))
-    }
+class ShowEl : ThemeConfigurationEl("show")
 
-    fun setStep(step: Int) {
-        this.children.add(Property("step", "$step"))
-    }
+class HideEl : ThemeConfigurationEl("hide")
 
-}
-
-class ColorEl : DSLElement("color") {
+class ColorEl : ThemeConfigurationEl("color") {
     fun setScheme(scheme: String) {
-        this.children.add(StringProperty("scheme", scheme))
-    }
-
-    fun setType(type: String) {
-        this.children.add(StringProperty("type", type))
+        this.getPropertyOrNull("scheme")?.let {
+            it.value = scheme
+        } ?: run {
+            this.children.add(StringProperty("scheme", scheme))
+        }
     }
 
     fun setValue(value: String) {
-        this.children.add(StringProperty("value", value))
+        this.getPropertyOrNull("value")?.let {
+            it.value = value
+        } ?: run {
+            this.children.add(StringProperty("value", value))
+        }
     }
 
     fun setTo(to: String) {
-        this.children.add(StringProperty("to", to))
-    }
-
-    fun setStep(step: Int) {
-        this.children.add(Property("step", "$step"))
+        this.getPropertyOrNull("to")?.let {
+            it.value = to
+        } ?: run {
+            this.children.add(StringProperty("to", to))
+        }
     }
 
 }
 
-class LineEl : DSLElement("line") {
+class LineEl : ThemeConfigurationEl("line") {
     fun setValue(value: Double) {
-        this.children.add(Property("value", "$value"))
-    }
-
-    fun setType(type: String) {
-        this.children.add(StringProperty("type", type))
-    }
-
-    fun setStep(step: Int) {
-        this.children.add(Property("step", "$step"))
+        this.getPropertyOrNull("value")?.let {
+            it.value = "$value"
+        } ?: run {
+            this.children.add(Property("value", "$value"))
+        }
     }
 }
 
@@ -636,7 +883,7 @@ class LocationEl : DSLElement("location") {
         this.children.add(Property("$start", "$end", operator = "to"))
     }
 
-    fun setLocation(l:Location) = l.blocks.forEach{  this.addBlock(it.start, it.end) }
+    fun setLocation(l: Location) = l.blocks.forEach { this.addBlock(it.start, it.end) }
 
     fun toLocation(): Location =
         Location(this.getProperties().map {
@@ -679,7 +926,8 @@ fun dumpIntoTypeAndLocation(
 
             if (element.junctionType == JunctionType.ApicalLoop) {
                 if (!typesDone.contains("apical_loop")) {
-                    val drawingElements = elements.filter { it is JunctionDrawing && it.junctionType == JunctionType.ApicalLoop }
+                    val drawingElements =
+                        elements.filter { it is JunctionDrawing && it.junctionType == JunctionType.ApicalLoop }
                     if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.ApicalLoop }.size)
                         selectedTypes.add(Pair("apical_loop", null))
                     else
@@ -692,7 +940,8 @@ fun dumpIntoTypeAndLocation(
                 }
             } else if (element.junctionType == JunctionType.InnerLoop) {
                 if (!typesDone.contains("inner_loop")) {
-                    val drawingElements = elements.filter { it is JunctionDrawing && it.junctionType == JunctionType.InnerLoop }
+                    val drawingElements =
+                        elements.filter { it is JunctionDrawing && it.junctionType == JunctionType.InnerLoop }
                     if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.InnerLoop }.size)
                         selectedTypes.add(Pair("inner_loop", null))
                     else
@@ -705,7 +954,8 @@ fun dumpIntoTypeAndLocation(
                 }
             } else if (element.junctionType == JunctionType.ThreeWay) {
                 if (!typesDone.contains("3_way")) {
-                    val drawingElements = elements.filter { it is JunctionDrawing && it.junctionType == JunctionType.ThreeWay }
+                    val drawingElements =
+                        elements.filter { it is JunctionDrawing && it.junctionType == JunctionType.ThreeWay }
                     if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.ThreeWay }.size)
                         selectedTypes.add(Pair("3_way", null))
                     else
@@ -718,7 +968,8 @@ fun dumpIntoTypeAndLocation(
                 }
             } else if (element.junctionType == JunctionType.FourWay) {
                 if (!typesDone.contains("4_way")) {
-                    val drawingElements = elements.filter { it is JunctionDrawing && it.junctionType == JunctionType.FourWay }
+                    val drawingElements =
+                        elements.filter { it is JunctionDrawing && it.junctionType == JunctionType.FourWay }
                     if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.FourWay }.size)
                         selectedTypes.add(Pair("4_way", null))
                     else
@@ -761,8 +1012,10 @@ fun dumpIntoTypeAndLocation(
             if (element.parent is JunctionDrawing) {
                 if ((element.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop) {
                     if (!typesDone.contains("phosphodiester_bond@apical_loop")) {
-                        val drawingElements = elements.filter { it is PhosphodiesterBondDrawing && (it.parent as?  JunctionDrawing)?.junctionType == JunctionType.ApicalLoop }
-                        if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.ApicalLoop }.sumOf{it.phosphoBonds.size})
+                        val drawingElements =
+                            elements.filter { it is PhosphodiesterBondDrawing && (it.parent as? JunctionDrawing)?.junctionType == JunctionType.ApicalLoop }
+                        if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.ApicalLoop }
+                                .sumOf { it.phosphoBonds.size })
                             selectedTypes.add(Pair("phosphodiester_bond@apical_loop", null))
                         else
                             selectedTypes.add(Pair(
@@ -774,8 +1027,10 @@ fun dumpIntoTypeAndLocation(
                     }
                 } else if ((element.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop) {
                     if (!typesDone.contains("phosphodiester_bond@inner_loop")) {
-                        val drawingElements = elements.filter { it is PhosphodiesterBondDrawing && (it.parent as?  JunctionDrawing)?.junctionType == JunctionType.InnerLoop }
-                        if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.InnerLoop }.sumOf{it.phosphoBonds.size})
+                        val drawingElements =
+                            elements.filter { it is PhosphodiesterBondDrawing && (it.parent as? JunctionDrawing)?.junctionType == JunctionType.InnerLoop }
+                        if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.InnerLoop }
+                                .sumOf { it.phosphoBonds.size })
                             selectedTypes.add(Pair("phosphodiester_bond@inner_loop", null))
                         else
                             selectedTypes.add(Pair(
@@ -787,8 +1042,10 @@ fun dumpIntoTypeAndLocation(
                     }
                 } else if ((element.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay) {
                     if (!typesDone.contains("phosphodiester_bond@3_way")) {
-                        val drawingElements = elements.filter { it is PhosphodiesterBondDrawing && (it.parent as?  JunctionDrawing)?.junctionType == JunctionType.ThreeWay }
-                        if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.ThreeWay }.sumOf{it.phosphoBonds.size})
+                        val drawingElements =
+                            elements.filter { it is PhosphodiesterBondDrawing && (it.parent as? JunctionDrawing)?.junctionType == JunctionType.ThreeWay }
+                        if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.ThreeWay }
+                                .sumOf { it.phosphoBonds.size })
                             selectedTypes.add(Pair("phosphodiester_bond@3_way", null))
                         else
                             selectedTypes.add(Pair(
@@ -800,8 +1057,10 @@ fun dumpIntoTypeAndLocation(
                     }
                 } else if ((element.parent as JunctionDrawing).junctionType == JunctionType.FourWay) {
                     if (!typesDone.contains("phosphodiester_bond@4_way")) {
-                        val drawingElements = elements.filter { it is PhosphodiesterBondDrawing && (it.parent as?  JunctionDrawing)?.junctionType == JunctionType.FourWay }
-                        if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.FourWay }.sumOf{it.phosphoBonds.size})
+                        val drawingElements =
+                            elements.filter { it is PhosphodiesterBondDrawing && (it.parent as? JunctionDrawing)?.junctionType == JunctionType.FourWay }
+                        if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.FourWay }
+                                .sumOf { it.phosphoBonds.size })
                             selectedTypes.add(Pair("phosphodiester_bond@4_way", null))
                         else
                             selectedTypes.add(Pair(
@@ -813,7 +1072,8 @@ fun dumpIntoTypeAndLocation(
                     }
                 } else {
                     if (!typesDone.contains("N@junction")) {
-                        val drawingElements = elements.filter { it is PhosphodiesterBondDrawing && it.parent is JunctionDrawing }
+                        val drawingElements =
+                            elements.filter { it is PhosphodiesterBondDrawing && it.parent is JunctionDrawing }
                         if (drawingElements.size == secondaryStructureDrawing.allJunctions.sumOf { it.phosphoBonds.size }) {
                             selectedTypes.add(Pair("phosphodiester_bond@junction", null))
                         } else
@@ -827,7 +1087,8 @@ fun dumpIntoTypeAndLocation(
                 }
             } else if (element.parent is HelixDrawing) {
                 if (!typesDone.contains("phosphodiester_bond@helix")) {
-                    val drawingElements = elements.filter { it is PhosphodiesterBondDrawing && element.parent is HelixDrawing}
+                    val drawingElements =
+                        elements.filter { it is PhosphodiesterBondDrawing && element.parent is HelixDrawing }
                     if (drawingElements.size == secondaryStructureDrawing.allHelices.sumOf { it.phosphoBonds.size }) {
                         selectedTypes.add(Pair("phosphodiester_bond@helix", null))
                     } else
@@ -840,7 +1101,8 @@ fun dumpIntoTypeAndLocation(
                 }
             } else if (element.parent is SingleStrandDrawing) {
                 if (!typesDone.contains("phosphodiester_bond@single_strand")) {
-                    val drawingElements = elements.filter { it is PhosphodiesterBondDrawing && element.parent is SingleStrandDrawing}
+                    val drawingElements =
+                        elements.filter { it is PhosphodiesterBondDrawing && element.parent is SingleStrandDrawing }
                     if (drawingElements.size == secondaryStructureDrawing.allSingleStrands.sumOf { it.phosphoBonds.size }) {
                         selectedTypes.add(Pair("phosphodiester_bond@single_strand", null))
                     } else
@@ -851,8 +1113,7 @@ fun dumpIntoTypeAndLocation(
                         ))
                     typesDone.add("phosphodiester_bond@single_strand")
                 }
-            }
-            else {
+            } else {
                 if (!typesDone.contains("phosphodiester_bond")) {
                     val drawingElements = elements.filter { it is PhosphodiesterBondDrawing }
                     if (drawingElements.size == secondaryStructureDrawing.allPhosphoBonds.size)
@@ -895,7 +1156,8 @@ fun dumpIntoTypeAndLocation(
         } else if (element is ResidueDrawing) {
             if (element.parent is SecondaryInteractionDrawing) {
                 if (!typesDone.contains("N@helix")) {
-                    val drawingElements = elements.filter { it is ResidueDrawing && it.parent is SecondaryInteractionDrawing}
+                    val drawingElements =
+                        elements.filter { it is ResidueDrawing && it.parent is SecondaryInteractionDrawing }
                     if (drawingElements.size == secondaryStructureDrawing.allHelices.sumOf { it.length * 2 }) {
                         selectedTypes.add(Pair("N@helix", null))
                     } else
@@ -909,8 +1171,10 @@ fun dumpIntoTypeAndLocation(
             } else if (element.parent is JunctionDrawing) {
                 if ((element.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop) {
                     if (!typesDone.contains("N@apical_loop")) {
-                        val drawingElements = elements.filter { it is ResidueDrawing && (it.parent as? JunctionDrawing)?.junctionType == JunctionType.ApicalLoop }
-                        if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.ApicalLoop }.sumOf{it.location.length})
+                        val drawingElements =
+                            elements.filter { it is ResidueDrawing && (it.parent as? JunctionDrawing)?.junctionType == JunctionType.ApicalLoop }
+                        if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.ApicalLoop }
+                                .sumOf { it.location.length })
                             selectedTypes.add(Pair("N@apical_loop", null))
                         else
                             selectedTypes.add(Pair(
@@ -922,8 +1186,10 @@ fun dumpIntoTypeAndLocation(
                     }
                 } else if ((element.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop) {
                     if (!typesDone.contains("N@inner_loop")) {
-                        val drawingElements = elements.filter { it is ResidueDrawing && (it.parent as? JunctionDrawing)?.junctionType == JunctionType.InnerLoop }
-                        if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.InnerLoop }.sumOf{it.location.length})
+                        val drawingElements =
+                            elements.filter { it is ResidueDrawing && (it.parent as? JunctionDrawing)?.junctionType == JunctionType.InnerLoop }
+                        if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.InnerLoop }
+                                .sumOf { it.location.length })
                             selectedTypes.add(Pair("N@inner_loop", null))
                         else
                             selectedTypes.add(Pair(
@@ -935,8 +1201,10 @@ fun dumpIntoTypeAndLocation(
                     }
                 } else if ((element.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay) {
                     if (!typesDone.contains("N@3_way")) {
-                        val drawingElements = elements.filter { it is ResidueDrawing && (it.parent as?  JunctionDrawing)?.junctionType == JunctionType.ThreeWay }
-                        if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.ThreeWay }.sumOf{it.location.length})
+                        val drawingElements =
+                            elements.filter { it is ResidueDrawing && (it.parent as? JunctionDrawing)?.junctionType == JunctionType.ThreeWay }
+                        if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.ThreeWay }
+                                .sumOf { it.location.length })
                             selectedTypes.add(Pair("N@3_way", null))
                         else
                             selectedTypes.add(Pair(
@@ -948,8 +1216,10 @@ fun dumpIntoTypeAndLocation(
                     }
                 } else if ((element.parent as JunctionDrawing).junctionType == JunctionType.FourWay) {
                     if (!typesDone.contains("N@4_way")) {
-                        val drawingElements = elements.filter { it is ResidueDrawing && (it.parent as? JunctionDrawing)?.junctionType == JunctionType.FourWay }
-                        if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.FourWay }.sumOf{it.location.length})
+                        val drawingElements =
+                            elements.filter { it is ResidueDrawing && (it.parent as? JunctionDrawing)?.junctionType == JunctionType.FourWay }
+                        if (drawingElements.size == secondaryStructureDrawing.allJunctions.filter { it.junctionType == JunctionType.FourWay }
+                                .sumOf { it.location.length })
                             selectedTypes.add(Pair("N@4_way", null))
                         else
                             selectedTypes.add(Pair(
@@ -1021,7 +1291,7 @@ fun dumpIntoTypeAndLocation(
 /**
  * This function removes the unecessary types to show according to the details level in the script
  */
-fun clearToBeShown(lvl:Int?, element:DSLElement): String? {
+fun clearToBeShown(lvl: Int?, element: DSLElement): String? {
     /*val detailsLvl = lvl ?: 1
     val types = element.getTypeOrNull()?.split(" ")
     val typesDisplayedAtThisLevel = when(detailsLvl) {
