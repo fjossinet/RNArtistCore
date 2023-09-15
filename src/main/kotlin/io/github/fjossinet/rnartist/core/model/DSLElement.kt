@@ -328,6 +328,8 @@ class RNArtistEl : DSLElement("rnartist") {
 
     fun getSSOrNew(): SSEl = this.getChildOrNull("ss") as? SSEl ?: addSS()
 
+    fun getSSOrNull(): SSEl? = this.getChildOrNull("ss") as? SSEl
+
     fun addPNG(pngEl: PNGEl? = null): PNGEl {
         this.children.removeIf { it.name.equals("png") } //only a single element allowed
         val el = pngEl ?: PNGEl()
@@ -681,6 +683,8 @@ class SSEl : DSLElement("ss") {
 
     fun getViennaOrNew(): ViennaEl = this.getChildOrNull("vienna") as? ViennaEl ?: addVienna()
 
+    fun getViennaOrNull(): ViennaEl? = this.getChildOrNull("vienna") as? ViennaEl
+
     fun addBPSeq(bpSeqEl: BPSeqEl? = null): BPSeqEl {
         val el = bpSeqEl ?: BPSeqEl()
         this.children.add(el)
@@ -688,6 +692,8 @@ class SSEl : DSLElement("ss") {
     }
 
     fun getBPSeqOrNew(): BPSeqEl = this.getChildOrNull("bpseq") as? BPSeqEl ?: addBPSeq()
+
+    fun getBPSeqOrNull(): BPSeqEl? = this.getChildOrNull("bpseq") as? BPSeqEl
 
     fun addCT(ctEl: CTEl? = null): CTEl {
         val el = ctEl ?: CTEl()
@@ -697,6 +703,8 @@ class SSEl : DSLElement("ss") {
 
     fun getCTOrNew(): CTEl = this.getChildOrNull("ct") as? CTEl ?: addCT()
 
+    fun getCTOrNull(): CTEl? = this.getChildOrNull("ct") as? CTEl
+
     fun addPDB(pdbEl: PDBEl? = null): PDBEl {
         val el = pdbEl ?: PDBEl()
         this.children.add(el)
@@ -704,6 +712,8 @@ class SSEl : DSLElement("ss") {
     }
 
     fun getPDBOrNew(): PDBEl = this.getChildOrNull("pdb") as? PDBEl ?: addPDB()
+
+    fun getPDBOrNull(): PDBEl? = this.getChildOrNull("pdb") as? PDBEl
 
 }
 
