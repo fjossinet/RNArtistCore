@@ -1,6 +1,7 @@
 package io.github.fjossinet.rnartist.core.model
 
 import io.github.fjossinet.rnartist.core.layout
+import io.github.fjossinet.rnartist.core.theme
 import java.awt.Color
 
 fun setJunction(
@@ -159,14 +160,14 @@ abstract class DSLNode(val name: String) {
     abstract fun dump(indent: String = "", buffer: StringBuffer = StringBuffer()): StringBuffer
 }
 
-open class Property(name: String, var value: String, val operator: String = "=") : DSLNode(name) {
+open class DSLProperty(name: String, var value: String, val operator: String = "=") : DSLNode(name) {
     override fun dump(indent: String, buffer: StringBuffer): StringBuffer {
         buffer.appendLine("$indent ${this.name} ${this.operator} ${this.value}")
         return buffer
     }
 }
 
-class StringProperty(name: String, value: String, operator: String = "=") : Property(name, value, operator) {
+class StringDSLProperty(name: String, value: String, operator: String = "=") : DSLProperty(name, value, operator) {
     override fun dump(indent: String, buffer: StringBuffer): StringBuffer {
         buffer.appendLine("$indent ${this.name} ${this.operator} \"${this.value}\"")
         return buffer
@@ -176,7 +177,7 @@ class StringProperty(name: String, value: String, operator: String = "=") : Prop
 abstract class DSLElement(name: String) : DSLNode(name) {
     protected val children = mutableListOf<DSLNode>()
 
-    fun getProperties(): List<Property> = this.children.filterIsInstance<Property>()
+    fun getProperties(): List<DSLProperty> = this.children.filterIsInstance<DSLProperty>()
 
     fun getStep(): Int? = this.getProperties().firstOrNull { it.name.equals("step") }?.value?.toIntOrNull()
 
@@ -236,7 +237,7 @@ abstract class DSLElement(name: String) : DSLNode(name) {
     protected fun getChildOrNull(name: String) = this.children.filter { it.name.equals(name) }.firstOrNull()
 
     protected fun getPropertyOrNull(name: String) =
-        this.children.filterIsInstance<Property>().filter { it.name.equals(name) }.firstOrNull()
+        this.children.filterIsInstance<DSLProperty>().filter { it.name.equals(name) }.firstOrNull()
 
     /**
      * Return children using their name as criteria
@@ -289,13 +290,13 @@ abstract class DSLElement(name: String) : DSLNode(name) {
     fun getLocationOrNull(): LocationEl? = this.getChildOrNull("location") as LocationEl?
 
     fun addStringProperty(name: String, value: String, operator: String = "=") =
-        this.children.add(StringProperty(name, value, operator))
+        this.children.add(StringDSLProperty(name, value, operator))
 
     fun addProperty(name: String, value: Double, operator: String = "=") =
-        this.children.add(Property(name, "$value", operator))
+        this.children.add(DSLProperty(name, "$value", operator))
 
     fun addProperty(name: String, value: Int, operator: String = "=") =
-        this.children.add(Property(name, "$value", operator))
+        this.children.add(DSLProperty(name, "$value", operator))
 
 }
 
@@ -425,7 +426,7 @@ class LayoutEl : UndoRedoDSLElement("layout") {
 
     fun getJunctionLayoutInHistoryFromNextToEnd(): Layout? {
         if (this.undoRedoCursor < this.children.size) {
-            this.undoRedoCursor++
+            this.increaseUndoRedoCursor()
             val layout = layout {
                 children.subList(undoRedoCursor - 1, children.size).filterIsInstance<JunctionEl>().forEach { j ->
                     junction {
@@ -470,7 +471,7 @@ class LayoutEl : UndoRedoDSLElement("layout") {
                             it.getTypeOrNull()?.value?.equals(j.getTypeOrNull()?.value) ?: (j.getTypeOrNull() == null)
 
                 }.lastOrNull()?.let { j ->
-                    this.undoRedoCursor--
+                    this.decreaseUndoRedoCursor()
                     //We got the previous layout for this junction, we apply it to erase the current one
                     return layout {
                         junction {
@@ -496,7 +497,7 @@ class LayoutEl : UndoRedoDSLElement("layout") {
                         }
                     }
                 } ?: run {
-                    this.undoRedoCursor--
+                    this.decreaseUndoRedoCursor()
                     //if no previous layout for this junction, its layout is set back to its initial parameters
                     //by applying a layout with empty parameters, the RNArtistCore drawing engine will know to come back to initial parameters for this junction
                     return layout {
@@ -524,7 +525,7 @@ class LayoutEl : UndoRedoDSLElement("layout") {
 
     fun getNextJunctionLayoutInHistory(): Layout? {
         if (this.undoRedoCursor < this.children.size) {
-            this.undoRedoCursor++
+            this.increaseUndoRedoCursor()
             return layout {
                 (children.get(undoRedoCursor - 1) as? JunctionEl)?.let { j ->
                     junction {
@@ -588,25 +589,25 @@ class LayoutEl : UndoRedoDSLElement("layout") {
 class JunctionEl : DSLElement("junction") {
 
     fun setName(name: String) {
-        this.children.add(StringProperty("name", name))
+        this.children.add(StringDSLProperty("name", name))
     }
 
     fun getNameOrNull() = this.getPropertyOrNull("name")
 
     fun setRadius(radius: Double) {
-        this.children.add(Property("radius", "$radius"))
+        this.children.add(DSLProperty("radius", "$radius"))
     }
 
     fun getRadiusOrNull() = this.getPropertyOrNull("radius")
 
     fun setType(type: Int) {
-        this.children.add(Property("type", "$type"))
+        this.children.add(DSLProperty("type", "$type"))
     }
 
     fun getTypeOrNull() = this.getPropertyOrNull("type")
 
     fun setOutIds(value: String) {
-        this.children.add(StringProperty("out_ids", value))
+        this.children.add(StringDSLProperty("out_ids", value))
     }
 
     fun getOutIdsOrNull() = this.getPropertyOrNull("out_ids")
@@ -615,11 +616,11 @@ class JunctionEl : DSLElement("junction") {
 class ThemeEl() : UndoRedoDSLElement("theme") {
 
     fun addDetails(details: Int) {
-        this.addChild(Property("details", "$details"))
+        this.addChild(DSLProperty("details", "$details"))
     }
 
     fun addScheme(scheme: String) {
-        this.addChild(Property("scheme", "\"$scheme\""))
+        this.addChild(DSLProperty("scheme", "\"$scheme\""))
     }
 
     fun addColor(colorEl: ColorEl? = null): ColorEl {
@@ -662,6 +663,121 @@ class ThemeEl() : UndoRedoDSLElement("theme") {
     }
 
     fun getHides() = this.getChildren("hide")
+
+    fun getPreviousThemeInHistory(): Theme? {
+        return if (this.undoRedoCursor > 1) { // if at 1, then we will return null, meaning clear theme
+            this.decreaseUndoRedoCursor()
+            this.toTheme()
+        } else {
+            this.undoRedoCursor = 0
+            null
+        }
+    }
+
+    fun getNextThemeInHistory(): Theme? {
+        if (this.undoRedoCursor < this.children.size) {
+            this.increaseUndoRedoCursor()
+            return this.toTheme()
+        }
+        return null
+    }
+
+    fun getThemeInHistoryFromNextToEnd(): Theme? {
+        if (this.undoRedoCursor < this.children.size) {
+            this.undoRedoCursor = this.children.size
+            return this.toTheme()
+        }
+        return null
+    }
+
+
+    fun toTheme(): Theme {
+        return theme {
+            children.subList(0, undoRedoCursor).forEach {
+                when (it) {
+                    is DSLProperty -> {
+                        when( it.name) {
+                            "scheme" -> {
+                                scheme = it.value
+                            }
+
+                            "details" -> {
+                                details = it.value.toInt()
+                            }
+                        }
+                    }
+                    is ColorEl -> {
+                        color {
+                            it.getLocationOrNull()?.let {
+                                location {
+                                    it.toLocation().blocks.forEach {
+                                        it.start to it.end
+                                    }
+                                }
+                            }
+                            it.getTypeOrNull()?.let {
+                                type = it.value
+                            }
+                            it.getValueOrNull()?.let {
+                                value = it.value
+                            }
+                            it.getStepOrNull()?.let {
+                                step = it.value.toInt()
+                            }
+                            it.getToOrNull()?.let {
+                                to = it.value
+                            }
+                        }
+                    }
+                    is LineEl -> {
+                        line {
+                            it.getLocationOrNull()?.let {
+                                location {
+                                    it.toLocation().blocks.forEach {
+                                        it.start to it.end
+                                    }
+                                }
+                            }
+                            it.getTypeOrNull()?.let {
+                                type = it.value
+                            }
+                            it.getValueOrNull()?.let {
+                                value = it.value.toDouble()
+                            }
+                        }
+                    }
+                    is ShowEl -> {
+                        show {
+                            it.getLocationOrNull()?.let {
+                                location {
+                                    it.toLocation().blocks.forEach {
+                                        it.start to it.end
+                                    }
+                                }
+                            }
+                            it.getTypeOrNull()?.let {
+                                type = it.value
+                            }
+                        }
+                    }
+                    is HideEl -> {
+                        hide {
+                            it.getLocationOrNull()?.let {
+                                location {
+                                    it.toLocation().blocks.forEach {
+                                        it.start to it.end
+                                    }
+                                }
+                            }
+                            it.getTypeOrNull()?.let {
+                                type = it.value
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     /*fun getHidesByLocationAndTypes(location: Location? = null, types: String? = null): List<HideEl> =
         this.getChildrenByLocationAndTypes("hide", location, types).map { it as HideEl }*/
@@ -722,7 +838,7 @@ class BracketNotationEl : DSLElement("bn") {
         this.getPropertyOrNull("seq")?.let {
             it.value = seq
         } ?: run {
-            this.children.add(StringProperty("seq", seq))
+            this.children.add(StringDSLProperty("seq", seq))
         }
     }
 
@@ -730,7 +846,7 @@ class BracketNotationEl : DSLElement("bn") {
         this.getPropertyOrNull("value")?.let {
             it.value = value
         } ?: run {
-            this.children.add(StringProperty("seq", value))
+            this.children.add(StringDSLProperty("seq", value))
         }
     }
 
@@ -738,7 +854,7 @@ class BracketNotationEl : DSLElement("bn") {
         this.getPropertyOrNull("name")?.let {
             it.value = name
         } ?: run {
-            this.children.add(StringProperty("name", name))
+            this.children.add(StringDSLProperty("name", name))
         }
     }
 }
@@ -748,7 +864,7 @@ abstract class InputEl(name:String): DSLElement(name) {
         this.getPropertyOrNull("file")?.let {
             it.value = file
         } ?: run {
-            this.children.add(StringProperty("file", file))
+            this.children.add(StringDSLProperty("file", file))
         }
     }
 
@@ -756,7 +872,7 @@ abstract class InputEl(name:String): DSLElement(name) {
         this.getPropertyOrNull("path")?.let {
             it.value = path
         } ?: run {
-            this.children.add(StringProperty("path", path))
+            this.children.add(StringDSLProperty("path", path))
         }
     }
 
@@ -776,7 +892,7 @@ class PDBEl : InputEl("pdb") {
         this.getPropertyOrNull("id")?.let {
             it.value = id
         } ?: run {
-            this.children.add(StringProperty("id", id))
+            this.children.add(StringDSLProperty("id", id))
         }
     }
 
@@ -784,7 +900,7 @@ class PDBEl : InputEl("pdb") {
         this.getPropertyOrNull("name")?.let {
             it.value = name
         } ?: run {
-            this.children.add(StringProperty("name", name))
+            this.children.add(StringDSLProperty("name", name))
         }
     }
 }
@@ -795,7 +911,7 @@ abstract class OutputFileEl(name: String) : DSLElement(name) {
         this.getPropertyOrNull("path")?.let {
             it.value = path
         } ?: run {
-            this.children.add(StringProperty("path", path))
+            this.children.add(StringDSLProperty("path", path))
         }
     }
 
@@ -803,7 +919,7 @@ abstract class OutputFileEl(name: String) : DSLElement(name) {
         this.getPropertyOrNull("name")?.let {
             it.value = name
         } ?: run {
-            this.children.add(StringProperty("name", name))
+            this.children.add(StringDSLProperty("name", name))
         }
     }
 
@@ -811,7 +927,7 @@ abstract class OutputFileEl(name: String) : DSLElement(name) {
         this.getPropertyOrNull("width")?.let {
             it.value = "$width"
         } ?: run {
-            this.children.add(Property("width", "$width"))
+            this.children.add(DSLProperty("width", "$width"))
         }
     }
 
@@ -819,7 +935,7 @@ abstract class OutputFileEl(name: String) : DSLElement(name) {
         this.getPropertyOrNull("height")?.let {
             it.value = "$height"
         } ?: run {
-            this.children.add(Property("height", "$height"))
+            this.children.add(DSLProperty("height", "$height"))
         }
     }
 }
@@ -833,17 +949,21 @@ abstract class ThemeConfigurationEl(name:String):DSLElement(name) {
         this.getPropertyOrNull("type")?.let {
             it.value = type
         } ?: run {
-            this.children.add(StringProperty("type", type))
+            this.children.add(StringDSLProperty("type", type))
         }
     }
+
+    fun getTypeOrNull() = this.getPropertyOrNull("type")
 
     fun setStep(step: Int) {
         this.getPropertyOrNull("step")?.let {
             it.value = "$step"
         } ?: run {
-            this.children.add(Property("step", "$step"))
+            this.children.add(DSLProperty("step", "$step"))
         }
     }
+
+    fun getStepOrNull() = this.getPropertyOrNull("step")
 }
 
 class ShowEl : ThemeConfigurationEl("show")
@@ -851,29 +971,26 @@ class ShowEl : ThemeConfigurationEl("show")
 class HideEl : ThemeConfigurationEl("hide")
 
 class ColorEl : ThemeConfigurationEl("color") {
-    fun setScheme(scheme: String) {
-        this.getPropertyOrNull("scheme")?.let {
-            it.value = scheme
-        } ?: run {
-            this.children.add(StringProperty("scheme", scheme))
-        }
-    }
 
     fun setValue(value: String) {
         this.getPropertyOrNull("value")?.let {
             it.value = value
         } ?: run {
-            this.children.add(StringProperty("value", value))
+            this.children.add(StringDSLProperty("value", value))
         }
     }
+
+    fun getValueOrNull() = this.getPropertyOrNull("value")
 
     fun setTo(to: String) {
         this.getPropertyOrNull("to")?.let {
             it.value = to
         } ?: run {
-            this.children.add(StringProperty("to", to))
+            this.children.add(StringDSLProperty("to", to))
         }
     }
+
+    fun getToOrNull() = this.getPropertyOrNull("to")
 
 }
 
@@ -882,15 +999,18 @@ class LineEl : ThemeConfigurationEl("line") {
         this.getPropertyOrNull("value")?.let {
             it.value = "$value"
         } ?: run {
-            this.children.add(Property("value", "$value"))
+            this.children.add(DSLProperty("value", "$value"))
         }
     }
+
+    fun getValueOrNull() = this.getPropertyOrNull("value")
+
 }
 
 class LocationEl : DSLElement("location") {
 
     fun addBlock(start: Int, end: Int) {
-        this.children.add(Property("$start", "$end", operator = "to"))
+        this.children.add(DSLProperty("$start", "$end", operator = "to"))
     }
 
     fun setLocation(l: Location) = l.blocks.forEach { this.addBlock(it.start, it.end) }

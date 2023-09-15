@@ -1921,12 +1921,12 @@ open class ThemeConfigurationBuilder(data: MutableMap<String, Double>) {
 }
 
 class SchemeBuilder(data: MutableMap<String, Double>, schemeName:String) : ThemeConfigurationBuilder(data) {
-    val dslProperty = StringProperty("scheme",schemeName)
+    val dslProperty = StringDSLProperty("scheme",schemeName)
 
 }
 
 class DetailsBuilder(data: MutableMap<String, Double>, detailsLvl:Int) : ThemeConfigurationBuilder(data) {
-    val dslProperty = Property("details", "$detailsLvl")
+    val dslProperty = DSLProperty("details", "$detailsLvl")
 
 }
 
