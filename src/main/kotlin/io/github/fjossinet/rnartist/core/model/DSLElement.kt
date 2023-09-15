@@ -620,7 +620,7 @@ class ThemeEl() : UndoRedoDSLElement("theme") {
     }
 
     fun addScheme(scheme: String) {
-        this.addChild(DSLProperty("scheme", "\"$scheme\""))
+        this.addChild(StringDSLProperty("scheme", scheme))
     }
 
     fun addColor(colorEl: ColorEl? = null): ColorEl {
@@ -696,7 +696,7 @@ class ThemeEl() : UndoRedoDSLElement("theme") {
             children.subList(0, undoRedoCursor).forEach {
                 when (it) {
                     is DSLProperty -> {
-                        when( it.name) {
+                        when(it.name) {
                             "scheme" -> {
                                 scheme = it.value
                             }

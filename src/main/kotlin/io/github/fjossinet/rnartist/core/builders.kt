@@ -1921,7 +1921,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<String, Double>) {
 }
 
 class SchemeBuilder(data: MutableMap<String, Double>, schemeName:String) : ThemeConfigurationBuilder(data) {
-    val dslProperty = StringDSLProperty("scheme",schemeName)
+    val dslProperty = StringDSLProperty("scheme", schemeName)
 
 }
 
