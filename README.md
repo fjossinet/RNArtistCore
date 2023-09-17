@@ -48,7 +48,7 @@ RNArtistCore can be added as a dependency into your own projects. No stable rele
 <dependency>
   <groupId>io.github.fjossinet.rnartist</groupId>
   <artifactId>rnartistcore</artifactId>
-  <version>0.2.7-SNAPSHOT</version>
+  <version>0.3.4-SNAPSHOT</version>
 </dependency>
 </dependencies>
 ```
@@ -518,9 +518,9 @@ A **```theme```** element can contains a single **```details```** element (to qu
 
 The order of the elements ```color```, ```show```, ```hide``` and ```line``` is taken into account inside the element ```theme```. 
 
-### <a name="details"></a> The **```details```** and **```scheme```** properties
+### <a name="details"></a> The **```details```** and **```scheme```** elements
 
-The **```scheme```** property allows to map a color scheme on the full 2D. It can be:
+The **```scheme```** element allows to map a color scheme on the full 2D. It can be:
 * Persian Carolina
 * Snow Lavender
 * Fuzzy French
@@ -540,7 +540,7 @@ The **```scheme```** property allows to map a color scheme on the full 2D. It ca
 * Charcoal Lazuli
 * Pumpkin Vegas
 
-To quickly change the rendering level of an entire 2D, you can use the property named **```details```**. Five details levels are available:
+To quickly change the rendering level of an entire 2D, you can use the element named **```details```**. Five details levels are available:
 
 Details level | Helix | Junction | Single Strand | Phosphodiester Bond  | Secondary Interaction | Residue Shape | Residue Character | Interaction Symbol |
 ---|-------|----------|---|---|-----------------------|---|---|---|
@@ -565,7 +565,9 @@ rnartist {
     }
   }
   theme {
-    details = 1
+    details {
+        value = 1
+    }
 
     color {
       type = "helix"
@@ -598,7 +600,9 @@ rnartist {
     }
   }
   theme {
-    details = 2
+    details {
+      value = 2
+    }
     
     color { 
       type = "helix"
@@ -630,8 +634,12 @@ rnartist {
     }
   }
   theme {
-    details = 3
-    scheme = "Pumpkin Vegas"
+    details {
+      value = 3
+    }
+    scheme {
+        value = "Pumpkin Vegas"
+    }
   }
 }
 ```
@@ -653,8 +661,12 @@ rnartist {
     }
   }
   theme {
-    details = 4
-    scheme = "Pumpkin Vegas"
+    details {
+      value = 4
+    }
+    scheme {
+      value = "Pumpkin Vegas"
+    }
   }
 }
 ```
@@ -675,9 +687,13 @@ rnartist {
       name = "details_lvl5"
     }
   }
-  theme { 
-    details = 5
-    scheme = "Pumpkin Vegas"
+  theme {
+    details {
+      value = 5
+    }
+    scheme {
+      value = "Pumpkin Vegas"
+    }
   }
 }
 ```
@@ -719,7 +735,9 @@ rnartist {
     }
   }
   theme {
-    details = 5
+    details {
+        value = 5
+    }
 
     color {
       type = "Y"
@@ -817,8 +835,13 @@ rnartist {
   }
 
   theme {
-    details = 5
-    scheme = "Celeste Olivine"
+    details {
+      value = 5
+    }
+
+    scheme {
+      value = "Celeste Olivine"
+    }
 
     hide {
       type = "helix"
@@ -847,8 +870,13 @@ rnartist {
   }
 
   theme {
-    details = 5
-    scheme = "Celeste Olivine"
+    details {
+      value = 5
+    }
+
+    scheme {
+      value = "Celeste Olivine"
+    }
 
     hide {
       type = "secondary_interaction"
@@ -877,8 +905,13 @@ rnartist {
   }
 
   theme {
-    details = 5
-    scheme = "Celeste Olivine"
+    details {
+      value = 5
+    }
+
+    scheme {
+      value = "Celeste Olivine"
+    }
 
     hide {
       type = "N interaction_symbol"
@@ -907,8 +940,13 @@ rnartist {
   }
 
   theme {
-    details = 5
-    scheme = "Celeste Olivine"
+    details {
+      value = 5
+    }
+
+    scheme {
+      value = "Celeste Olivine"
+    }
 
     hide {
       type = "n interaction_symbol"
@@ -937,8 +975,13 @@ rnartist {
   }
 
   theme {
-    details = 5
-    scheme = "Celeste Olivine"
+    details {
+      value = 5
+    }
+
+    scheme {
+      value = "Celeste Olivine"
+    }
 
     hide {
       type = "interaction_symbol"
@@ -967,8 +1010,13 @@ rnartist {
   }
 
   theme {
-    details = 5
-    scheme = "Celeste Olivine"
+    details {
+      value = 5
+    }
+
+    scheme {
+      value = "Celeste Olivine"
+    }
   }
 }
 ```
@@ -991,8 +1039,13 @@ rnartist {
   }
 
   theme {
-    details  = 2
-    scheme = "African Lavender"
+    details {
+      value = 2
+    }
+
+    scheme {
+      value = "African Lavender"
+    }
 
     show {
       type = "helix phosphodiester_bond secondary_interaction"
@@ -1064,7 +1117,9 @@ rnartist {
     }
   }
   theme {
-    details = 1
+    details {
+      value = 1
+    }
   }
 }
 ```
@@ -1083,7 +1138,9 @@ rnartist {
     }
   }
   theme {
-    details = 1
+    details {
+      value = 1
+    }
   }
 
   layout {
@@ -1111,7 +1168,9 @@ rnartist {
     }
   }
   theme {
-    details = 1
+    details {
+      value = 1
+    }
   }
 
   layout {
@@ -1139,7 +1198,9 @@ rnartist {
     }
   }
   theme {
-    details = 1
+    details {
+      value = 1
+    }
   }
 
   layout {
@@ -1167,7 +1228,9 @@ rnartist {
     }
   }
   theme {
-    details = 1
+    details {
+      value = 1
+    }
   }
 
   layout {
@@ -1195,7 +1258,9 @@ rnartist {
     }
   }
   theme {
-    details = 1
+    details {
+      value = 1
+    }
   }
 
   layout {
@@ -1223,7 +1288,9 @@ rnartist {
     }
   }
   theme {
-    details = 1
+    details {
+      value = 1
+    }
   }
 
   layout {
@@ -1253,8 +1320,13 @@ rnartist {
     }
   }
   theme {
-    details = 3
-    scheme = "Atomic Xanadu"
+    details {
+      value = 3
+    }
+
+    scheme {
+      value = "Atomic Xanadu"
+    }
   }
 
   layout {
@@ -1284,8 +1356,13 @@ rnartist {
     }
   }
   theme {
-    details = 3
-    scheme = "Atomic Xanadu"
+    details {
+      value = 3
+    }
+
+    scheme {
+      value = "Atomic Xanadu"
+    }
   }
   layout {
     junction {
@@ -1364,7 +1441,9 @@ rnartist {
     }
   }
   theme {
-      details  = 5
+      details {
+        value = 5
+      }
 
       color {
         type = "R"
@@ -1416,7 +1495,9 @@ rnartist {
     "12" to 345.8
   }
   theme {
-    details = 4
+    details {
+      value = 4
+    }
     
     color {
       type = "N"

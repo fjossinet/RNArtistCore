@@ -1125,6 +1125,9 @@ class JunctionLayoutBuilder {
             this.locationBuilder.dslElement?.let {
                 field.addLocation(it)
             }
+            step?.let {
+                field.setStep(it)
+            }
             return field
         }
 
@@ -1133,6 +1136,7 @@ class JunctionLayoutBuilder {
     var type: Int? = null
     var out_ids: String? = null
     var radius: Double? = null
+    var step:Int? = null
     var isGlobalLayout = true
         get() = this.locationBuilder.isEmpty() && this.name == null //if true, this layout targets all the junctions for this junction type, not specific ones
 
@@ -1175,26 +1179,24 @@ class JunctionLayoutBuilder {
 class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
     private val themeConfigurationBuilders = mutableListOf<ThemeConfigurationBuilder>()
     private val data = data.toMutableMap()
-    var details: Int? = null
-        set(value) {
-            value?.let {
-                val db = DetailsBuilder(this.data, it)
-                this.themeConfigurationBuilders.add(db)
-                this.dslElement.addDetails(it)
-            }
-        }
-    var scheme: String? = null
-        set(value) {
-            value?.let {
-                val sb = SchemeBuilder(this.data, it)
-                this.themeConfigurationBuilders.add(sb)
-                this.dslElement.addScheme(it)
-            }
-        }
     val dslElement = ThemeEl()
         get() {
             return field
         }
+
+    fun details(setup: DetailsBuilder.() -> Unit) {
+        val detailsBuilder = DetailsBuilder(this.data)
+        detailsBuilder.setup()
+        this.themeConfigurationBuilders.add(detailsBuilder)
+        this.dslElement.addDetails(detailsBuilder.dslElement)
+    }
+
+    fun scheme(setup: SchemeBuilder.() -> Unit) {
+        val schemeBuilder = SchemeBuilder(this.data)
+        schemeBuilder.setup()
+        this.themeConfigurationBuilders.add(schemeBuilder)
+        this.dslElement.addScheme(schemeBuilder.dslElement)
+    }
 
     fun show(setup: ShowBuilder.() -> Unit) {
         val showBuilder = ShowBuilder(this.data)
@@ -1229,7 +1231,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
         this.themeConfigurationBuilders.forEach { configurationBuilder ->
             when (configurationBuilder) {
                 is DetailsBuilder -> {
-                    when (configurationBuilder.dslProperty.value.toInt()) {
+                    when (configurationBuilder.value?.toInt()) {
                         1 -> {
                             t.addConfiguration(
                                 ThemeProperty.fulldetails,
@@ -1328,7 +1330,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                     }
                 }
                 is SchemeBuilder -> {
-                    if ("Structural Domains" == configurationBuilder.dslProperty.value) {
+                    if ("Structural Domains" == configurationBuilder.value) {
                         val randomColors = (1..20).map { getHTMLColorString(randomColor()) }
                         t.addConfiguration(
                             ThemeProperty.color,
@@ -1352,7 +1354,7 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
                             SecondaryStructureType.entries
                         )
                     } else
-                        RnartistConfig.colorSchemes.get(configurationBuilder.dslProperty.value)?.let { scheme ->
+                        RnartistConfig.colorSchemes.get(configurationBuilder.value)?.let { scheme ->
                             scheme.forEach { type, color ->
                                 t.addConfiguration(
                                     ThemeProperty.color,
@@ -1920,13 +1922,42 @@ open class ThemeConfigurationBuilder(data: MutableMap<String, Double>) {
 
 }
 
-class SchemeBuilder(data: MutableMap<String, Double>, schemeName:String) : ThemeConfigurationBuilder(data) {
-    val dslProperty = StringDSLProperty("scheme", schemeName)
+class SchemeBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(data) {
+    var value: String? = null
+    val dslElement = SchemeEl()
+        get() {
+            value?.let {
+                field.setValue(it)
+            }
+            type?.let {
+                field.setType(it)
+            }
 
+            step?.let {
+                field.setStep(it)
+            }
+
+            return field
+        }
 }
 
-class DetailsBuilder(data: MutableMap<String, Double>, detailsLvl:Int) : ThemeConfigurationBuilder(data) {
-    val dslProperty = DSLProperty("details", "$detailsLvl")
+class DetailsBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(data) {
+    var value: Int? = null
+    val dslElement = DetailsEl()
+        get() {
+            value?.let {
+                field.setValue(it)
+            }
+            type?.let {
+                field.setType(it)
+            }
+
+            step?.let {
+                field.setStep(it)
+            }
+
+            return field
+        }
 
 }
 

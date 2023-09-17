@@ -9,7 +9,8 @@ fun setJunction(
     radius: Double? = null,
     outIds: String? = null,
     type: Int? = null,
-    location: Location? = null
+    location: Location? = null,
+    step: Int? = null
 ) {
     val layout = rnArtistEl.getLayoutOrNew()
     with(layout.addJunction()) {
@@ -25,12 +26,15 @@ fun setJunction(
         outIds?.let {
             this.setOutIds(outIds)
         }
+        step?.let {
+            this.setStep(step)
+        }
     }
 }
 
 fun setDetailsLvlForFull2D(rnArtistEl: RNArtistEl, lvl: Int) {
     val theme = rnArtistEl.getThemeOrNew()
-    theme.addDetails(lvl)
+    theme.addDetails().setValue(lvl)
 }
 
 fun setDetailsLvl(
@@ -72,7 +76,7 @@ fun setDetailsLvl(
 
 fun setSchemeForFull2D(rnArtistEl: RNArtistEl, scheme: String) {
     val theme = rnArtistEl.getThemeOrNew()
-    theme.addScheme(scheme)
+    theme.addScheme().setValue(scheme)
 }
 
 fun setColorForFull2D(rnArtistEl: RNArtistEl, onFont: Boolean = false, color: Color, step: Int? = null) {
@@ -195,19 +199,19 @@ abstract class DSLElement(name: String) : DSLNode(name) {
      * Test if the location (if any) and the 2D types (if any) for this element are inside into those given as arguments
      * No location (null, meaning any location or no types (null, meaning any types) contain any location or types.
      */
-    /*fun inside(location:Location?, types:String?):Boolean {
+    fun inside(location: Location?, types: String?): Boolean {
         var sameLocation = inside(location)
-        val sameTypes =  inside(types)
-        //if sametypes but the new location is null (meaning we target all the types whatever the location) and the location in child not null, it is inside
+        val sameTypes = inside(types)
+        //if sametypes, if the parameter location is null (meaning we target all the types whatever the location) and the location of this not null, it is inside
         if (sameTypes && location == null)
             sameLocation = true
         return sameLocation && sameTypes
     }
 
-    fun inside(location:Location?):Boolean {
-        var sameLocation = location == null && this.getLocationOrNUll() == null
+    fun inside(location: Location?): Boolean {
+        var sameLocation = location == null && this.getLocationOrNull() == null
         location?.let { l1 ->
-            this.getLocationOrNUll()?.let { l2 ->
+            this.getLocationOrNull()?.let { l2 ->
                 sameLocation =
                     l1 == l2.toLocation() || l1.contains(l2.toLocation()) //it is the same element if the location is the same, or if the new location contains the current location stored in this element
             } ?: run {
@@ -219,16 +223,16 @@ abstract class DSLElement(name: String) : DSLNode(name) {
         return sameLocation
     }
 
-    fun inside(types:String?):Boolean {
-        var sameTypes = types == null && this.getTypeOrNull() == null
+    fun inside(types: String?): Boolean {
+        var sameTypes = types == null && this.getTypesOrNull() == null
         types?.let { t1 ->
-            this.getTypeOrNull()?.let { t2 ->
-                sameTypes = (t2.split(" ")
+            this.getTypesOrNull()?.let { t2 ->
+                sameTypes = (t2.value.split(" ")
                     .all { it in t1.split(" ") }) //if all the types of the current element are described in the new element, same element that will be needed to be replaced
             }
         }
         return sameTypes
-    }*/
+    }
 
 
     /**
@@ -243,31 +247,6 @@ abstract class DSLElement(name: String) : DSLNode(name) {
      * Return children using their name as criteria
      */
     protected fun getChildren(name: String) = this.children.filter { it.name == name }
-
-    /**
-     * Return children with the same name and :
-     * - same location: if the location given as argument is same or larger than the location in the child, they are is the same
-     * - same types: if the types given as argument is contains all the types in the child (and perhaps more), they are the same
-     * If location as argument AND in the child are both null, they are the same
-     * If types as argument AND in the child are both null, they are the same
-     * If types are the same and location as argument is null, they are the same. Location null means all the elements of these types whatever their location (so whatever the location in the child, the null location larger)
-     */
-    /*protected fun getChildrenByLocationAndTypes(
-        name: String,
-        location: Location? = null,
-        types: String? = null,
-        children: MutableList<DSLElement> = mutableListOf(),
-    ): List<DSLElement> {
-        //first we get all the children with that name
-        this.children.forEach { child ->
-            if (child.name.equals(name)) {
-                children.add(child)
-                if (!child.inside(location, types))
-                    children.removeLastOrNull()
-            }
-        }
-        return children
-    }*/
 
     fun removeChild(child: DSLNode) {
         this.children.remove(child)
@@ -288,6 +267,8 @@ abstract class DSLElement(name: String) : DSLNode(name) {
     fun getLocationOrNew(): LocationEl = this.getChildOrNull("location") as? LocationEl ?: addLocation()
 
     fun getLocationOrNull(): LocationEl? = this.getChildOrNull("location") as LocationEl?
+
+    fun getTypesOrNull() = this.getPropertyOrNull("type")
 
     fun addStringProperty(name: String, value: String, operator: String = "=") =
         this.children.add(StringDSLProperty(name, value, operator))
@@ -370,10 +351,22 @@ class RNArtistEl : DSLElement("rnartist") {
     }
 }
 
+abstract class StepableDSLElement(name: String) : DSLElement(name) {
+    fun setStep(step: Int) {
+        this.getPropertyOrNull("step")?.let {
+            it.value = "$step"
+        } ?: run {
+            this.children.add(DSLProperty("step", "$step"))
+        }
+    }
+
+    fun getStepOrNull() = this.getPropertyOrNull("step")
+}
+
 abstract class UndoRedoDSLElement(name: String) : DSLElement(name) {
     var undoRedoCursor = 0 //the number of children we keep during dump
-    var historyLength:Int = this.children.size
-            get() = this.children.size
+    var historyLength: Int = this.children.size
+        get() = this.children.size
 
     fun decreaseUndoRedoCursor() {
         (this.children.get(undoRedoCursor - 1) as? DSLElement)?.getStep()?.let { s ->
@@ -415,6 +408,42 @@ abstract class UndoRedoDSLElement(name: String) : DSLElement(name) {
         this.children.add(child)
         undoRedoCursor++
     }
+
+    /**
+     * Remove former children with the same name, location and types
+     */
+    fun cleanHistory() {
+        this.children.removeIf { this.children.indexOf(it) + 1 > undoRedoCursor } //we remove the children after the current position of the undoRedoCursor as chosen by the user
+        val childrenCopy = this.children.subList(0, this.children.size)
+        childrenCopy.reversed().forEach { childCopy ->
+            if (this.children.contains(childCopy)) {
+                val children2Remove =
+                    this.children.subList(0, this.children.indexOf(childCopy)).reversed().filter { formerChild ->
+                        when (formerChild) {
+                            is DSLElement -> when (childCopy) {
+                                is DSLElement -> formerChild.name.equals(childCopy.name) && formerChild.inside(
+                                    childCopy.getLocationOrNull()?.toLocation(),
+                                    childCopy.getTypesOrNull()?.value
+                                )
+
+                                else -> false
+                            }
+
+                            else -> when (childCopy) {
+                                is DSLElement -> false
+                                else -> formerChild.name.equals(childCopy.name)
+                            }
+                        }
+                    }
+                this.children.removeIf { children2Remove.contains(it) }
+            }
+        }
+        this.undoRedoCursor = this.children.size
+        //all the remaining children will correspond to the step 1 now
+        this.children.filterIsInstance<StepableDSLElement>().forEach {
+            it.setStep(1)
+        }
+    }
 }
 
 class LayoutEl : UndoRedoDSLElement("layout") {
@@ -424,11 +453,134 @@ class LayoutEl : UndoRedoDSLElement("layout") {
         return el
     }
 
-    fun getJunctionLayoutInHistoryFromNextToEnd(): Layout? {
+    fun getFormerLayoutInHistory(): List<Layout> {
+        val layouts = mutableListOf<Layout>()
+        if (this.undoRedoCursor > 0) {
+            val formerCursorPosition = this.undoRedoCursor
+            this.decreaseUndoRedoCursor()
+            children.filterIsInstance<JunctionEl>()
+                .subList(formerCursorPosition - (formerCursorPosition - undoRedoCursor), formerCursorPosition)
+                .forEach { j ->
+                    //we search if this junction has already been modified before in the history
+                    if (undoRedoCursor == 0) { //nothing before, default layout
+                        layouts.add(layout {
+                            junction {
+                                j.getLocationOrNull()?.let {
+                                    location {
+                                        it.toLocation().blocks.forEach {
+                                            it.start to it.end
+                                        }
+                                    }
+                                }
+                                j.getNameOrNull()?.let {
+                                    name = it.value
+                                }
+                                j.getTypeOrNull()?.let {
+                                    type = it.value.toInt()
+                                }
+                            }
+                        })
+                    } else {
+                        children.subList(0, undoRedoCursor).filterIsInstance<JunctionEl>().filter {
+                            it.getNameOrNull()?.value?.equals(j.getNameOrNull()?.value) ?: (j.getNameOrNull() == null) &&
+                                    it.getLocationOrNull()?.toLocation()
+                                        ?.equals(
+                                            j.getLocationOrNull()?.toLocation()
+                                        ) ?: (j.getLocationOrNull() == null) &&
+                                    it.getTypeOrNull()?.value?.equals(j.getTypeOrNull()?.value) ?: (j.getTypeOrNull() == null)
+
+                        }.lastOrNull()?.let { j ->
+                            //We got the previous layout for this junction, we apply it to erase the current one
+                            layouts.add(layout {
+                                junction {
+                                    j.getLocationOrNull()?.let {
+                                        location {
+                                            it.toLocation().blocks.forEach {
+                                                it.start to it.end
+                                            }
+                                        }
+                                    }
+                                    j.getNameOrNull()?.let {
+                                        name = it.value
+                                    }
+                                    j.getTypeOrNull()?.let {
+                                        type = it.value.toInt()
+                                    }
+                                    j.getOutIdsOrNull()?.let {
+                                        out_ids = it.value
+                                    }
+                                    j.getRadiusOrNull()?.let {
+                                        radius = it.value.toDouble()
+                                    }
+                                }
+                            })
+                        } ?: run {
+                            //if no previous layout for this junction, its layout is set back to its initial parameters
+                            //by applying a layout with empty parameters, the RNArtistCore drawing engine will know to come back to initial parameters for this junction
+                            layouts.add(layout {
+                                junction {
+                                    j.getLocationOrNull()?.let {
+                                        location {
+                                            it.toLocation().blocks.forEach {
+                                                it.start to it.end
+                                            }
+                                        }
+                                    }
+                                    j.getNameOrNull()?.let {
+                                        name = it.value
+                                    }
+                                    j.getTypeOrNull()?.let {
+                                        type = it.value.toInt()
+                                    }
+                                }
+                            })
+                        }
+                    }
+                }
+        }
+        return layouts
+    }
+
+    fun getNextLayoutInHistory(): Layout? {
         if (this.undoRedoCursor < this.children.size) {
+            val formerCursorPosition = this.undoRedoCursor
             this.increaseUndoRedoCursor()
             val layout = layout {
-                children.subList(undoRedoCursor - 1, children.size).filterIsInstance<JunctionEl>().forEach { j ->
+                children.subList(undoRedoCursor - (undoRedoCursor - formerCursorPosition), undoRedoCursor)
+                    .filterIsInstance<JunctionEl>().forEach { j ->
+                    junction {
+                        j.getLocationOrNull()?.let {
+                            location {
+                                it.toLocation().blocks.forEach {
+                                    it.start to it.end
+                                }
+                            }
+                        }
+                        j.getNameOrNull()?.let {
+                            name = it.value
+                        }
+                        j.getTypeOrNull()?.let {
+                            type = it.value.toInt()
+                        }
+                        j.getOutIdsOrNull()?.let {
+                            out_ids = it.value
+                        }
+                        j.getRadiusOrNull()?.let {
+                            radius = it.value.toDouble()
+                        }
+                    }
+
+                }
+            }
+            return layout
+        }
+        return null
+    }
+
+    fun getLayoutInHistoryFromNextToEnd(): Layout? {
+        if (this.undoRedoCursor < this.children.size) {
+            val layout = layout {
+                children.subList(undoRedoCursor, children.size).filterIsInstance<JunctionEl>().forEach { j ->
                     junction {
                         j.getLocationOrNull()?.let {
                             location {
@@ -455,102 +607,6 @@ class LayoutEl : UndoRedoDSLElement("layout") {
             }
             this.undoRedoCursor = this.children.size
             return layout
-        }
-        return null
-    }
-
-    fun rollbackToPreviousJunctionLayoutInHistory(): Layout? {
-        if (this.undoRedoCursor > 0) {
-            //first we get from history the current junction layout we want to erase
-            (children.get(undoRedoCursor - 1) as? JunctionEl)?.let { j ->
-                //now we search if this junction has already been modified before in the history
-                children.subList(0, undoRedoCursor - 1).filterIsInstance<JunctionEl>().filter {
-                    it.getNameOrNull()?.value?.equals(j.getNameOrNull()?.value) ?: (j.getNameOrNull() == null) &&
-                            it.getLocationOrNull()?.toLocation()
-                                ?.equals(j.getLocationOrNull()?.toLocation()) ?: (j.getLocationOrNull() == null) &&
-                            it.getTypeOrNull()?.value?.equals(j.getTypeOrNull()?.value) ?: (j.getTypeOrNull() == null)
-
-                }.lastOrNull()?.let { j ->
-                    this.decreaseUndoRedoCursor()
-                    //We got the previous layout for this junction, we apply it to erase the current one
-                    return layout {
-                        junction {
-                            j.getLocationOrNull()?.let {
-                                location {
-                                    it.toLocation().blocks.forEach {
-                                        it.start to it.end
-                                    }
-                                }
-                            }
-                            j.getNameOrNull()?.let {
-                                name = it.value
-                            }
-                            j.getTypeOrNull()?.let {
-                                type = it.value.toInt()
-                            }
-                            j.getOutIdsOrNull()?.let {
-                                out_ids = it.value
-                            }
-                            j.getRadiusOrNull()?.let {
-                                radius = it.value.toDouble()
-                            }
-                        }
-                    }
-                } ?: run {
-                    this.decreaseUndoRedoCursor()
-                    //if no previous layout for this junction, its layout is set back to its initial parameters
-                    //by applying a layout with empty parameters, the RNArtistCore drawing engine will know to come back to initial parameters for this junction
-                    return layout {
-                        junction {
-                            j.getLocationOrNull()?.let {
-                                location {
-                                    it.toLocation().blocks.forEach {
-                                        it.start to it.end
-                                    }
-                                }
-                            }
-                            j.getNameOrNull()?.let {
-                                name = it.value
-                            }
-                            j.getTypeOrNull()?.let {
-                                type = it.value.toInt()
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return null
-    }
-
-    fun getNextJunctionLayoutInHistory(): Layout? {
-        if (this.undoRedoCursor < this.children.size) {
-            this.increaseUndoRedoCursor()
-            return layout {
-                (children.get(undoRedoCursor - 1) as? JunctionEl)?.let { j ->
-                    junction {
-                        j.getLocationOrNull()?.let {
-                            location {
-                                it.toLocation().blocks.forEach {
-                                    it.start to it.end
-                                }
-                            }
-                        }
-                        j.getNameOrNull()?.let {
-                            name = it.value
-                        }
-                        j.getTypeOrNull()?.let {
-                            type = it.value.toInt()
-                        }
-                        j.getOutIdsOrNull()?.let {
-                            out_ids = it.value
-                        }
-                        j.getRadiusOrNull()?.let {
-                            radius = it.value.toDouble()
-                        }
-                    }
-                }
-            }
         }
         return null
     }
@@ -586,7 +642,7 @@ class LayoutEl : UndoRedoDSLElement("layout") {
     }
 }
 
-class JunctionEl : DSLElement("junction") {
+class JunctionEl : StepableDSLElement("junction") {
 
     fun setName(name: String) {
         this.children.add(StringDSLProperty("name", name))
@@ -615,12 +671,16 @@ class JunctionEl : DSLElement("junction") {
 
 class ThemeEl() : UndoRedoDSLElement("theme") {
 
-    fun addDetails(details: Int) {
-        this.addChild(DSLProperty("details", "$details"))
+    fun addDetails(detailsEl: DetailsEl? = null): DetailsEl {
+        val el = detailsEl ?: DetailsEl()
+        this.addChild(el)
+        return el
     }
 
-    fun addScheme(scheme: String) {
-        this.addChild(StringDSLProperty("scheme", scheme))
+    fun addScheme(schemeEl: SchemeEl? = null): SchemeEl {
+        val el = schemeEl ?: SchemeEl()
+        this.addChild(el)
+        return el
     }
 
     fun addColor(colorEl: ColorEl? = null): ColorEl {
@@ -664,7 +724,7 @@ class ThemeEl() : UndoRedoDSLElement("theme") {
 
     fun getHides() = this.getChildren("hide")
 
-    fun getPreviousThemeInHistory(): Theme? {
+    fun getFormerThemeInHistory(): Theme? {
         return if (this.undoRedoCursor > 1) { // if at 1, then we will return null, meaning clear theme
             this.decreaseUndoRedoCursor()
             this.toTheme()
@@ -695,17 +755,29 @@ class ThemeEl() : UndoRedoDSLElement("theme") {
         return theme {
             children.subList(0, undoRedoCursor).forEach {
                 when (it) {
-                    is DSLProperty -> {
-                        when(it.name) {
-                            "scheme" -> {
-                                scheme = it.value
-                            }
 
-                            "details" -> {
-                                details = it.value.toInt()
+                    is DetailsEl -> {
+                        details {
+                            it.getValueOrNull()?.let {
+                                value = it.value.toInt()
+                            }
+                            it.getStepOrNull()?.let {
+                                step = it.value.toInt()
                             }
                         }
                     }
+
+                    is SchemeEl -> {
+                        scheme {
+                            it.getValueOrNull()?.let {
+                                value = it.value
+                            }
+                            it.getStepOrNull()?.let {
+                                step = it.value.toInt()
+                            }
+                        }
+                    }
+
                     is ColorEl -> {
                         color {
                             it.getLocationOrNull()?.let {
@@ -729,6 +801,7 @@ class ThemeEl() : UndoRedoDSLElement("theme") {
                             }
                         }
                     }
+
                     is LineEl -> {
                         line {
                             it.getLocationOrNull()?.let {
@@ -746,6 +819,7 @@ class ThemeEl() : UndoRedoDSLElement("theme") {
                             }
                         }
                     }
+
                     is ShowEl -> {
                         show {
                             it.getLocationOrNull()?.let {
@@ -760,6 +834,7 @@ class ThemeEl() : UndoRedoDSLElement("theme") {
                             }
                         }
                     }
+
                     is HideEl -> {
                         hide {
                             it.getLocationOrNull()?.let {
@@ -859,7 +934,7 @@ class BracketNotationEl : DSLElement("bn") {
     }
 }
 
-abstract class InputEl(name:String): DSLElement(name) {
+abstract class InputEl(name: String) : DSLElement(name) {
     fun setFile(file: String) {
         this.getPropertyOrNull("file")?.let {
             it.value = file
@@ -944,7 +1019,7 @@ class PNGEl : OutputFileEl("png")
 
 class SVGEl : OutputFileEl("svg")
 
-abstract class ThemeConfigurationEl(name:String):DSLElement(name) {
+abstract class ThemeConfigurationEl(name: String) : StepableDSLElement(name) {
     fun setType(type: String) {
         this.getPropertyOrNull("type")?.let {
             it.value = type
@@ -954,16 +1029,30 @@ abstract class ThemeConfigurationEl(name:String):DSLElement(name) {
     }
 
     fun getTypeOrNull() = this.getPropertyOrNull("type")
+}
 
-    fun setStep(step: Int) {
-        this.getPropertyOrNull("step")?.let {
-            it.value = "$step"
+class SchemeEl : ThemeConfigurationEl("scheme") {
+    fun setValue(value: String) {
+        this.getPropertyOrNull("value")?.let {
+            it.value = value
         } ?: run {
-            this.children.add(DSLProperty("step", "$step"))
+            this.children.add(StringDSLProperty("value", value))
         }
     }
 
-    fun getStepOrNull() = this.getPropertyOrNull("step")
+    fun getValueOrNull() = this.getPropertyOrNull("value")
+}
+
+class DetailsEl : ThemeConfigurationEl("details") {
+    fun setValue(value: Int) {
+        this.getPropertyOrNull("value")?.let {
+            it.value = "$value"
+        } ?: run {
+            this.children.add(DSLProperty("value", "$value"))
+        }
+    }
+
+    fun getValueOrNull() = this.getPropertyOrNull("value")
 }
 
 class ShowEl : ThemeConfigurationEl("show")

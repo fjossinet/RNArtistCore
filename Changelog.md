@@ -2,6 +2,23 @@ To check and fix your script syntax, type the following command in your terminal
 
 java -jar rnartist_core.jar dsl_script_file
 
+### 0.3.4-SNAPSHOT
+
+- scheme and details level are back as elements. That was necessary to be able to define a step parameter (used for the undo/redo feature).
+
+```kotlin
+rnartist {
+    theme {
+        details {
+            value = 4
+        }
+        scheme {
+            value = "Persian Carolina"
+        }
+    }
+}
+```
+
 ### 0.3.3-SNAPSHOT
 
 - scheme and details level are now properties of the element ```theme```
