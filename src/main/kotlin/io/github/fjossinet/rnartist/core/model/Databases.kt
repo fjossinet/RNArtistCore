@@ -2,7 +2,6 @@ package io.github.fjossinet.rnartist.core.model
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import io.github.fjossinet.rnartist.core.io.parseStockholm
 import io.github.fjossinet.rnartist.core.io.writeVienna
 import io.github.fjossinet.rnartist.core.ss
 import java.io.*
@@ -11,8 +10,130 @@ import java.net.URI
 import java.net.URL
 import java.net.URLEncoder
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.collections.HashMap
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.name
+
+class RNArtistDB(val rootAbsolutePath:String) {
+    val indexedDirs = mutableListOf<String>()
+    private val drawingsDirName = "drawings"
+    val indexFile: File
+        get() {
+            val f = File(File(this.rootAbsolutePath), ".rnartist_db_index")
+            if (!f.exists())
+                f.createNewFile()
+            else {
+                f.readLines().forEach {
+                    if (!this.indexedDirs.contains(it))
+                        this.indexedDirs.add(it)
+                }
+            }
+            return f
+        }
+
+    fun createNewFolder(uri:URI) {
+        val dataDir = File(uri)
+        dataDir.mkdir()
+        val fw = FileWriter(this.indexFile, true)
+        fw.appendLine(uri.path)
+        fw.close()
+
+        val rnartistEl = initScript()
+        val pngOutputDir = getDrawingsDirForDataDir(dataDir)
+        with (rnartistEl.addPNG()) {
+            this.setPath(pngOutputDir.absolutePath)
+            this.setWidth(250.0)
+            this.setHeight(250.0)
+        }
+
+        rnartistEl.addSS().addVienna().setPath(uri.path)
+
+        val script = File(dataDir.parent, "${dataDir.name}.kts")
+        script.createNewFile()
+        script.writeText(rnartistEl.dump().toString())
+    }
+
+    fun addAndPlotViennaFile(fileName:String, dataDir:File, ss:SecondaryStructure):File {
+
+        val viennaFile = File(dataDir, "$fileName.vienna")
+        writeVienna(
+            ss,
+            PrintWriter(viennaFile)
+        )
+
+        val rnartistEl = initScript()
+
+        with (rnartistEl.addPNG()) {
+            this.setPath(getDrawingsDirForDataDir(dataDir).absolutePath)
+            this.setWidth(250.0)
+            this.setHeight(250.0)
+        }
+
+        val viennaEl = rnartistEl.addSS().addVienna()
+        viennaEl.setFile(viennaFile.toPath().toAbsolutePath().toString())
+
+        val scriptContent = rnartistEl.dump().toString()
+
+        val script = File(dataDir, "${fileName}.kts")
+        script.createNewFile()
+        script.writeText(scriptContent)
+        return script
+    }
+
+    fun getDrawingsDirForDataDir(dataDir:File) = File(Paths.get(
+        this.rootAbsolutePath,
+        this.drawingsDirName,
+        *dataDir.absolutePath.split(this.rootAbsolutePath).last().removePrefix("/")
+            .removeSuffix("/").split("/").toTypedArray()
+    ).toUri())
+
+    fun getScriptFileForDataDir(dataDir:File) = File(dataDir.parent, "${dataDir.name}.kts")
+
+    fun containsStructuralData(path: Path): Boolean {
+        var containsStructuralData = false
+        path.toFile().listFiles(FileFilter {
+            it.name.endsWith(".vienna") || it.name.endsWith(".bpseq") || it.name.endsWith(".ct") || it.name.endsWith(
+                ".pdb"
+            )
+        })?.let {
+            containsStructuralData = it.isNotEmpty()
+        }
+        return containsStructuralData
+    }
+
+    fun searchForNonIndexedDirs(dirs: MutableList<File> = mutableListOf<File>(), dir: Path = File(this.rootAbsolutePath).toPath()): MutableList<File> {
+        try {
+            Files.newDirectoryStream(dir).use { stream ->
+                for (path in stream) {
+                    if (path.toFile().isDirectory() && path.name != drawingsDirName) {
+                        val containsStructuralData = containsStructuralData(path)
+                        if (containsStructuralData && !indexedDirs.contains(
+                                path.absolutePathString()
+                            )
+                        )
+                            dirs.add(path.toFile())
+                        searchForNonIndexedDirs(dirs, path)
+                    }
+                }
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        val pw =  PrintWriter(FileWriter(this.indexFile, true))
+        dirs.forEach {
+            this.indexedDirs.add(it.absolutePath)
+            pw.println(it.absolutePath)
+        }
+        pw.close()
+        return dirs
+    }
+
+    fun findIntermediateDirs(absolutePath2StructuralFiles: String) =
+        absolutePath2StructuralFiles.split(rootAbsolutePath).last().removePrefix("/").removeSuffix("/")
+            .split("/")
+}
 
 class NCBI {
 

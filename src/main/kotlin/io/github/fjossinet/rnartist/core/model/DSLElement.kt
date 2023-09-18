@@ -3,6 +3,9 @@ package io.github.fjossinet.rnartist.core.model
 import io.github.fjossinet.rnartist.core.layout
 import io.github.fjossinet.rnartist.core.theme
 import java.awt.Color
+import java.nio.file.Path
+import java.nio.file.Paths
+import kotlin.io.path.absolutePathString
 
 fun setJunction(
     rnArtistEl: RNArtistEl,
@@ -158,6 +161,31 @@ fun setLineWidth(
             this.setStep(it)
         }
     }
+}
+
+/**
+ * Return a DSL script with a default theme
+ */
+fun initScript():RNArtistEl {
+    val rnartistEl = RNArtistEl()
+
+    val themeEl = rnartistEl.addTheme()
+    with(themeEl.addDetails()) {
+        this.setValue(4)
+        this.setStep(1)
+    }
+
+    with(themeEl.addScheme()) {
+        this.setValue("Midnight Paradise")
+        this.setStep(1)
+    }
+
+    with(themeEl.addLine()) {
+        this.setValue(2.5)
+        this.setStep(1)
+    }
+
+    return rnartistEl
 }
 
 abstract class DSLNode(val name: String) {
@@ -1505,21 +1533,4 @@ fun dumpIntoTypeAndLocation(
         }
     }
     return selectedTypes
-}
-
-/**
- * This function removes the unecessary types to show according to the details level in the script
- */
-fun clearToBeShown(lvl: Int?, element: DSLElement): String? {
-    /*val detailsLvl = lvl ?: 1
-    val types = element.getTypeOrNull()?.split(" ")
-    val typesDisplayedAtThisLevel = when(detailsLvl) {
-        1 -> listOf("helix", "junction", "single_strand")
-        2 -> listOf("helix", "junction", "single_strand")
-        3 -> listOf("helix", "junction", "single_strand")
-        4 -> listOf("helix", "junction", "single_strand")
-        else -> listOf("helix", "junction", "single_strand")
-    }
-    types.dropWhile { it in typesDisplayedAtThisLevel }*/
-    return null
 }
