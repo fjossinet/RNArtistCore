@@ -437,31 +437,55 @@ abstract class UndoRedoDSLElement(name: String) : DSLElement(name) {
     fun cleanHistory() {
         this.children.removeIf { this.children.indexOf(it) + 1 > undoRedoCursor } //we remove the children after the current position of the undoRedoCursor as chosen by the user
         val childrenCopy = this.children.subList(0, this.children.size)
-        childrenCopy.reversed().forEach { childCopy ->
-            if (this.children.contains(childCopy)) {
+        childrenCopy.reversed().forEach { currentChild ->
+            if (this.children.contains(currentChild)) {
                 val children2Remove =
-                    this.children.subList(0, this.children.indexOf(childCopy)).reversed().filter { formerChild ->
+                    this.children.subList(0, this.children.indexOf(currentChild)).reversed().filter { formerChild ->
                         when (formerChild) {
-                            is DSLElement -> when (childCopy) {
-                                is DSLElement -> formerChild.name.equals(childCopy.name) && formerChild.inside(
-                                    childCopy.getLocationOrNull()?.toLocation(),
-                                    childCopy.getTypesOrNull()?.value
+                            is DSLElement -> when (currentChild) {
+                                is DSLElement -> formerChild.name.equals(currentChild.name) && formerChild.inside(
+                                    currentChild.getLocationOrNull()?.toLocation(),
+                                    currentChild.getTypesOrNull()?.value
                                 )
 
                                 else -> false
                             }
 
-                            else -> when (childCopy) {
+                            else -> when (currentChild) {
                                 is DSLElement -> false
-                                else -> formerChild.name.equals(childCopy.name)
+                                else -> formerChild.name.equals(currentChild.name)
                             }
                         }
                     }
+                //before to remove, it is important to check if some former children have defined some configurations not contained in the currentChild (the child that will be conserved)
+                children2Remove.forEach { child2Remove ->
+                    when (child2Remove) {
+                        is JunctionEl -> {
+                            child2Remove.getRadiusOrNull()?.let { radiusProp ->
+                                (currentChild as JunctionEl).getRadiusOrNull()?.let {
+                                    //the radius value defined in the currentChild is the one to keep
+                                } ?: run {
+                                    //no radius value for the currentChild, but the former one has defined one, we need to keep it
+                                    //this is done for the first former child with a radius value, and won't be done after (due to the let block just above)
+                                    //since the former children to be removed are in the reversed order, we will keep the last radius value before the current child to be conserved
+                                    currentChild.setRadius(radiusProp.value.toDouble())
+                                }
+                            }
+
+                            child2Remove.getOutIdsOrNull()?.let { outIdsProp ->
+                                (currentChild as JunctionEl).getOutIdsOrNull()?.let {
+                                } ?: run {
+                                    currentChild.setOutIds(outIdsProp.value)
+                                }
+                            }
+                        }
+                    }
+                }
                 this.children.removeIf { children2Remove.contains(it) }
             }
         }
         this.undoRedoCursor = this.children.size
-        //all the remaining children will correspond to the step 1 now
+        //all remaining children will correspond to step 1 now
         this.children.filterIsInstance<StepableDSLElement>().forEach {
             it.setStep(1)
         }

@@ -4444,6 +4444,7 @@ open class JunctionDrawing(
 
                     LayoutProperty.radius.toString() -> {
                         radius = configuration.propertyValue!!.toDouble()
+                        radiusRatio = radius/initialRadius
                         ssDrawing.computeResidues(this)
                     }
 
