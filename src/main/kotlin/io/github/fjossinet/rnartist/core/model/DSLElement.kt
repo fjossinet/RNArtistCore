@@ -3,9 +3,6 @@ package io.github.fjossinet.rnartist.core.model
 import io.github.fjossinet.rnartist.core.layout
 import io.github.fjossinet.rnartist.core.theme
 import java.awt.Color
-import java.nio.file.Path
-import java.nio.file.Paths
-import kotlin.io.path.absolutePathString
 
 fun setJunction(
     rnArtistEl: RNArtistEl,
@@ -128,9 +125,6 @@ fun setColor(
     }
 }
 
-/**
- * Remove all the line elements and create a new one.
- */
 fun setLineWidthForFull2D(rnArtistEl: RNArtistEl, width: Double, step: Int? = null) {
     val theme = rnArtistEl.getThemeOrNew()
     with(theme.addLine()) {
@@ -392,7 +386,7 @@ abstract class StepableDSLElement(name: String) : DSLElement(name) {
 }
 
 abstract class UndoRedoDSLElement(name: String) : DSLElement(name) {
-    var undoRedoCursor = 0 //the number of children we keep during dump
+    var undoRedoCursor = 0 //the number of children we keep
     var historyLength: Int = this.children.size
         get() = this.children.size
 
@@ -730,9 +724,6 @@ class ThemeEl() : UndoRedoDSLElement("theme") {
 
     fun getLines() = this.getChildren("line")
 
-    /*fun getLinesByLocationAndTypes(location: Location? = null, types: String? = null): List<LineEl> =
-        this.getChildrenByLocationAndTypes("line", location, types).map { it as LineEl }*/
-
     fun addShow(showEl: ShowEl? = null): ShowEl {
         val el = showEl ?: ShowEl()
         this.addChild(el)
@@ -740,9 +731,6 @@ class ThemeEl() : UndoRedoDSLElement("theme") {
     }
 
     fun getShows() = this.getChildren("show")
-
-    /*fun getShowsByLocationAndTypes(location: Location? = null, types: String? = null): List<ShowEl> =
-        this.getChildrenByLocationAndTypes("show", location, types).map { it as ShowEl }*/
 
     fun addHide(hideEl: HideEl? = null): HideEl {
         val el = hideEl ?: HideEl()
@@ -752,12 +740,26 @@ class ThemeEl() : UndoRedoDSLElement("theme") {
 
     fun getHides() = this.getChildren("hide")
 
+    /**
+     * Return the former theme is history. If null this means we're already at the beginning of history
+     */
     fun getFormerThemeInHistory(): Theme? {
-        return if (this.undoRedoCursor > 1) { // if at 1, then we will return null, meaning clear theme
+        return if (this.undoRedoCursor > 1) {
             this.decreaseUndoRedoCursor()
+            if (this.undoRedoCursor == 0) //we are not going below 1 for theme
+                this.increaseUndoRedoCursor()
             this.toTheme()
         } else {
-            this.undoRedoCursor = 0
+            null
+        }
+    }
+
+    fun getFirstThemeInHistory(): Theme? {
+        return if (this.undoRedoCursor > 1) {
+            this.undoRedoCursor = 0 //we're starting wihtout any child
+            this.increaseUndoRedoCursor() //we let this function get the children for the first step (from a single child to several ones corresponding to step 1)
+            this.toTheme()
+        } else {
             null
         }
     }
@@ -770,7 +772,7 @@ class ThemeEl() : UndoRedoDSLElement("theme") {
         return null
     }
 
-    fun getThemeInHistoryFromNextToEnd(): Theme? {
+    fun getLastThemeInHistory(): Theme? {
         if (this.undoRedoCursor < this.children.size) {
             this.undoRedoCursor = this.children.size
             return this.toTheme()
@@ -882,8 +884,6 @@ class ThemeEl() : UndoRedoDSLElement("theme") {
         }
     }
 
-    /*fun getHidesByLocationAndTypes(location: Location? = null, types: String? = null): List<HideEl> =
-        this.getChildrenByLocationAndTypes("hide", location, types).map { it as HideEl }*/
 }
 
 class SSEl : DSLElement("ss") {

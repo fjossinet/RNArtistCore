@@ -34,25 +34,27 @@ class RNArtistDB(val rootAbsolutePath:String) {
         }
 
     fun createNewFolder(uri:URI) {
-        val dataDir = File(uri)
-        dataDir.mkdir()
-        val fw = FileWriter(this.indexFile, true)
-        fw.appendLine(uri.path)
-        fw.close()
+        if (uri.path.startsWith(this.rootAbsolutePath)) {
+            val dataDir = File(uri)
+            dataDir.mkdir()
+            val fw = FileWriter(this.indexFile, true)
+            fw.appendLine(uri.path)
+            fw.close()
 
-        val rnartistEl = initScript()
-        val pngOutputDir = getDrawingsDirForDataDir(dataDir)
-        with (rnartistEl.addPNG()) {
-            this.setPath(pngOutputDir.absolutePath)
-            this.setWidth(250.0)
-            this.setHeight(250.0)
+            val rnartistEl = initScript()
+            val pngOutputDir = getDrawingsDirForDataDir(dataDir)
+            with(rnartistEl.addPNG()) {
+                this.setPath(pngOutputDir.absolutePath)
+                this.setWidth(250.0)
+                this.setHeight(250.0)
+            }
+
+            rnartistEl.addSS().addVienna().setPath(uri.path)
+
+            val script = File(dataDir.parent, "${dataDir.name}.kts")
+            script.createNewFile()
+            script.writeText(rnartistEl.dump().toString())
         }
-
-        rnartistEl.addSS().addVienna().setPath(uri.path)
-
-        val script = File(dataDir.parent, "${dataDir.name}.kts")
-        script.createNewFile()
-        script.writeText(rnartistEl.dump().toString())
     }
 
     fun addAndPlotViennaFile(fileName:String, dataDir:File, ss:SecondaryStructure):File {
@@ -129,10 +131,6 @@ class RNArtistDB(val rootAbsolutePath:String) {
         pw.close()
         return dirs
     }
-
-    fun findIntermediateDirs(absolutePath2StructuralFiles: String) =
-        absolutePath2StructuralFiles.split(rootAbsolutePath).last().removePrefix("/").removeSuffix("/")
-            .split("/")
 }
 
 class NCBI {
