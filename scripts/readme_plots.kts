@@ -70,7 +70,9 @@ rnartist {
         "12" to 345.8
     }
     theme {
-        details = 4
+        details {
+            value = 4
+        }
         color {
             type = "N"
             value = "lightyellow"
@@ -676,7 +678,9 @@ rnartist {
         }
     }
     theme {
-        details = 3
+        details {
+            value = 3
+        }
         scheme {
             value = "Atomic Xanadu"
         }
@@ -704,7 +708,9 @@ rnartist {
         }
     }
     theme {
-        details = 3
+        details {
+            value = 3
+        }
         scheme {
             value = "Atomic Xanadu"
         }
@@ -942,7 +948,9 @@ rnartist {
         }
     }
     theme {
-        details = 5
+        details {
+            value = 5
+        }
         scheme {
             value = "Atomic Xanadu"
         }

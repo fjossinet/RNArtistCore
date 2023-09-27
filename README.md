@@ -125,7 +125,9 @@ rnartist {
     }
   }
   theme {
-      details = 5
+      details {
+        value = 5
+      }
 
       color {
         type="A"

@@ -4,7 +4,7 @@ java -jar rnartist_core.jar dsl_script_file
 
 ### 0.3.4-SNAPSHOT
 
-- scheme and details level are back as elements. That was necessary to be able to define a step parameter (used for the undo/redo feature).
+- scheme and details level are now elements. That was necessary to be able to define a step parameter (used for the undo/redo feature).
 
 ```kotlin
 rnartist {

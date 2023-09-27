@@ -2,7 +2,6 @@ package io.github.fjossinet.rnartist.core
 
 import com.google.gson.Gson
 import io.github.fjossinet.rnartist.core.io.getUserDir
-import io.github.fjossinet.rnartist.core.io.randomColor
 import io.github.fjossinet.rnartist.core.model.*
 import org.jdom2.Document
 import org.jdom2.Element
@@ -427,7 +426,7 @@ object RnartistConfig {
     val defaultConfiguration = mutableMapOf(
         ThemeProperty.color.toString() to getHTMLColorString(Color.DARK_GRAY),
         ThemeProperty.linewidth.toString() to "1.0",
-        ThemeProperty.lineshift.toString() to "1.0",
+        ThemeProperty.interactionSymboLShift.toString() to "3.0",
         ThemeProperty.opacity.toString() to "255", //alpha value goes from 0 to 255
         ThemeProperty.fulldetails.toString() to "false"
     )
@@ -435,7 +434,7 @@ object RnartistConfig {
     val defaultResidueLetterConfiguration = mutableMapOf(
         ThemeProperty.color.toString() to getHTMLColorString(Color.WHITE),
         ThemeProperty.linewidth.toString() to "1.0",
-        ThemeProperty.lineshift.toString() to "1.0",
+        ThemeProperty.interactionSymboLShift.toString() to "3.0",
         ThemeProperty.opacity.toString() to "255", //alpha value goes from 0 to 255
         ThemeProperty.fulldetails.toString() to "false"
     )

@@ -19,7 +19,6 @@ val radiusConst: Double = 7.0
 val spaceBetweenResidues: Double = 5.0
 val deltaHelixWidth: Double = 5.0
 val deltaPhosphoShift: Double = 0.0
-val deltaLWSymbols: Double = 1.2
 
 val minimalCircumference: Float = 360F / ((ConnectorId.entries.size) * radiusConst * 3).toFloat()
 val minimalRadius: Float = minimalCircumference / (2F * Math.PI).toFloat()
@@ -121,7 +120,7 @@ enum class SecondaryStructureType {
 }
 
 enum class ThemeProperty {
-    fulldetails, color, linewidth, lineshift, opacity
+    fulldetails, color, linewidth, interactionSymboLShift, phosphodiesterBondShift, opacity
 }
 
 enum class LayoutProperty {
@@ -367,10 +366,10 @@ class DrawingConfiguration(val defaultParams: Map<String, String>) {
             defaultParams[ThemeProperty.fulldetails.toString()]!!
         ).toBoolean()
 
-    var lineShift: Double = defaultParams[ThemeProperty.lineshift.toString()]!!.toDouble()
+    var interactionSymbolShift: Double = defaultParams[ThemeProperty.interactionSymboLShift.toString()]!!.toDouble()
         get() = this.params.getOrDefault(
-            ThemeProperty.lineshift.toString(),
-            defaultParams[ThemeProperty.lineshift.toString()]!!
+            ThemeProperty.interactionSymboLShift.toString(),
+            defaultParams[ThemeProperty.interactionSymboLShift.toString()]!!
         ).toDouble()
 
     var lineWidth: Double = defaultParams[ThemeProperty.linewidth.toString()]!!.toDouble()
@@ -502,11 +501,18 @@ abstract class DrawingElement(
 
     open fun isFullDetails() = this.drawingConfiguration.fullDetails
 
+    /**
+     * This is different from the function isFullDetails().
+     * For example, a residue can be fullDetails = true. But if its parent (like a secondary interaction) is not, the residue will ne be drawn, whatever its details lvl.
+     *
+     */
+    open fun willBeDrawn() = true
+
     fun getOpacity() = this.drawingConfiguration.opacity
 
     fun getLineWidth() = this.drawingConfiguration.lineWidth
 
-    fun getLineShift() = this.drawingConfiguration.lineShift
+    fun getInteractionSymbolShift() = this.drawingConfiguration.interactionSymbolShift
 
     fun getSinglePositions() = this.location.positions.toIntArray()
 
@@ -2950,6 +2956,10 @@ abstract class ResidueDrawing(
         }
     }
 
+    override fun willBeDrawn(): Boolean {
+        return this.isFullDetails() && this.parent?.willBeDrawn() ?: true /*if no parent, then nothing can block the drawing for this element*/
+    }
+
     override fun show():List<DrawingElement> {
         var l = mutableListOf<DrawingElement>()
         this.pathToStructuralDomain().forEach {
@@ -5246,19 +5256,22 @@ class SecondaryInteractionDrawing(
         selectedDrawings: List<DrawingElement>?
     ) {
         if (residue.updated) {//the paired residue is de facto updated too
-            val center1 = this.residue.center
-            val center2 = this.pairedResidue.center
+            val (center1, center2) = pointsFrom(
+                this.residue.center,
+                this.pairedResidue.center,
+                this.getInteractionSymbolShift()
+            )
 
-            val shift =
-                radiusConst + this.getLineShift() + this.residue.getLineWidth() / 2.0 + this.getLineWidth() / 2.0
+            val shift = this.getInteractionSymbolShift()+this.residue.getLineWidth()+radiusConst
+
             if ((parent as HelixDrawing).distanceBetweenPairedResidues > 2 * shift) {
-                var points = pointsFrom(
-                    center1,
-                    center2,
+                val points = pointsFrom(
+                    this.residue.center,
+                    this.pairedResidue.center,
                     shift
                 )
-                this.p1 = if (this.residue.isFullDetails()) points.first else center1
-                this.p2 = if (this.pairedResidue.isFullDetails()) points.second else center2
+                this.p1 = if (this.residue.willBeDrawn()) points.first else center1
+                this.p2 = if (this.pairedResidue.willBeDrawn()) points.second else center2
                 this.interactionSymbol.defaultSymbol = LWLine(this, this.ssDrawing, this.location, false)
                 this.interactionSymbol.defaultSymbol!!.setShape(this.p1 as Point2D, this.p2 as Point2D)
 
@@ -5372,21 +5385,28 @@ class SecondaryInteractionDrawing(
         }
     }
 
+    override fun willBeDrawn(): Boolean {
+        return this.isFullDetails() && this.parent?.willBeDrawn() ?: true
+    }
+
     fun asSVG(at: AffineTransform, frame: Rectangle2D): String {
         if (residue.updated) {//the paired residue is de facto updated too
-            val center1 = this.residue.center
-            val center2 = this.pairedResidue.center
+            val (center1, center2) = pointsFrom(
+                this.residue.center,
+                this.pairedResidue.center,
+                this.getInteractionSymbolShift()
+            )
 
-            val shift =
-                radiusConst + this.getLineShift() + this.residue.getLineWidth() / 2.0 + this.getLineWidth() / 2.0
+            val shift = this.getInteractionSymbolShift()+this.residue.getLineWidth()+radiusConst
+
             if ((parent as HelixDrawing).distanceBetweenPairedResidues > 2 * shift) {
                 val points = pointsFrom(
-                    center1,
-                    center2,
+                    this.residue.center,
+                    this.pairedResidue.center,
                     shift
                 )
-                this.p1 = if (this.residue.isFullDetails()) points.first else center1
-                this.p2 = if (this.pairedResidue.isFullDetails()) points.second else center2
+                this.p1 = if (this.residue.willBeDrawn()) points.first else center1
+                this.p2 = if (this.pairedResidue.willBeDrawn()) points.second else center2
                 this.interactionSymbol.defaultSymbol = LWLine(this, this.ssDrawing, this.location, false)
                 this.interactionSymbol.defaultSymbol!!.setShape(this.p1 as Point2D, this.p2 as Point2D)
 
@@ -5589,6 +5609,10 @@ class InteractionSymbolDrawing(
         }
     }
 
+    override fun willBeDrawn(): Boolean {
+        return this.parent!!.willBeDrawn()
+    }
+
     fun asSVG(at: AffineTransform, frame: Rectangle2D): String {
         val buffer = StringBuffer()
         if (this.getLineWidth() > 0) {
@@ -5636,7 +5660,7 @@ class TertiaryInteractionDrawing(
         if (this.residue.absPos in ssDrawing.residuesUpdated || this.pairedResidue.absPos in ssDrawing.residuesUpdated) {
             val center1 = this.residue.center
             val center2 = this.pairedResidue.center
-            val shift = radiusConst + this.residue.getLineWidth().toDouble() / 2.0
+            val shift = radiusConst + this.residue.getLineWidth() / 2.0
             if (distance(center1, center2) > 2 * shift) {
                 val (p1, p2) = pointsFrom(
                     center1,
@@ -5895,8 +5919,8 @@ open class PhosphodiesterBondDrawing(
             g.draw(
                 at.createTransformedShape(
                     Line2D.Double(
-                        if (!residue.isFullDetails()) center1 else p1,
-                        if (!nextResidue.isFullDetails()) center2 else p2
+                        if (!residue.willBeDrawn()) center1 else p1,
+                        if (!nextResidue.willBeDrawn()) center2 else p2
                     )
                 )
             )
@@ -5904,36 +5928,37 @@ open class PhosphodiesterBondDrawing(
     }
 
     open fun asSVG(at: AffineTransform, frame: Rectangle2D): String {
-        if (this.isFullDetails()) {
-            val center1 = this.residue.center
-            val center2 = this.nextResidue.center
+        val center1 = this.residue.center
+        val center2 = this.nextResidue.center
 
-            val _p1 = Point2D.Double()
-            val _p2 = Point2D.Double()
-            val (p1, p2) = pointsFrom(
-                center1,
-                center2,
-                radiusConst + deltaPhosphoShift
+        val _p1 = Point2D.Double()
+        val _p2 = Point2D.Double()
+        val (p1, p2) = pointsFrom(
+            center1,
+            center2,
+            radiusConst + deltaPhosphoShift
+        )
+        at.transform(
+            if (!residue.willBeDrawn()) center1 else p1,
+            _p1
+        )
+        at.transform(
+            if (!nextResidue.willBeDrawn()) center2 else p2,
+            _p2
+        )
+        if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${
+            getHTMLColorString(
+                this.getColor()
             )
-            at.transform(
-                if (!residue.isFullDetails()) center1 else p1,
-                _p1
-            )
-            at.transform(
-                if (!nextResidue.isFullDetails()) center2 else p2,
-                _p2
-            )
-            if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${
-                getHTMLColorString(
-                    this.getColor()
-                )
-            }" stroke-width="${
-                this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
-            }"/>"""
-        }
+        }" stroke-width="${
+            this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
+        }"/>"""
         return ""
     }
 
+    override fun willBeDrawn(): Boolean {
+        return this.parent?.willBeDrawn() ?: true
+    }
 }
 
 class HelicalPhosphodiesterBondDrawing(parent: HelixDrawing, ssDrawing: SecondaryStructureDrawing, location: Location) :
@@ -5967,8 +5992,8 @@ class HelicalPhosphodiesterBondDrawing(parent: HelixDrawing, ssDrawing: Secondar
         g.draw(
             at.createTransformedShape(
                 Line2D.Double(
-                    if (!residue.isFullDetails()) center1 else p1,
-                    if (!nextResidue.isFullDetails()) center2 else p2
+                    if (!residue.willBeDrawn()) center1 else p1,
+                    if (!nextResidue.willBeDrawn()) center2 else p2
                 )
             )
         )
@@ -5976,33 +6001,31 @@ class HelicalPhosphodiesterBondDrawing(parent: HelixDrawing, ssDrawing: Secondar
     }
 
     override fun asSVG(at: AffineTransform, frame: Rectangle2D): String {
-        if (this.isFullDetails()) {
-            val center1 = this.residue.center
-            val center2 = this.nextResidue.center
+        val center1 = this.residue.center
+        val center2 = this.nextResidue.center
 
-            val _p1 = Point2D.Double()
-            val _p2 = Point2D.Double()
-            val (p1, p2) = pointsFrom(
-                center1,
-                center2,
-                radiusConst + deltaPhosphoShift
+        val _p1 = Point2D.Double()
+        val _p2 = Point2D.Double()
+        val (p1, p2) = pointsFrom(
+            center1,
+            center2,
+            radiusConst + deltaPhosphoShift
+        )
+        at.transform(
+            if (!residue.willBeDrawn()) center1 else p1,
+            _p1
+        )
+        at.transform(
+            if (!nextResidue.willBeDrawn()) center2 else p2,
+            _p2
+        )
+        if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${
+            getHTMLColorString(
+                this.getColor()
             )
-            at.transform(
-                if (!residue.isFullDetails()) center1 else p1,
-                _p1
-            )
-            at.transform(
-                if (!nextResidue.isFullDetails()) center2 else p2,
-                _p2
-            )
-            if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${
-                getHTMLColorString(
-                    this.getColor()
-                )
-            }" stroke-width="${
-                this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
-            }"/>"""
-        }
+        }" stroke-width="${
+            this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
+        }"/>"""
         return ""
     }
 }
@@ -6035,7 +6058,7 @@ class InHelixClosingPhosphodiesterBondDrawing(
             val center2 =
                 if (this.posInhelix == this.nextResidue.absPos && !this.nextResidue.parent!!.parent!!.isFullDetails()) (this.nextResidue.parent?.parent as HelixDrawing).line.p2 else this.nextResidue.center
 
-            if (!this.residue.isFullDetails() && !this.nextResidue.isFullDetails()) {
+            if (!this.residue.willBeDrawn() && !this.nextResidue.willBeDrawn()) {
                 g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
             } else {
                 val (p1, p2) = pointsFrom(
@@ -6046,8 +6069,8 @@ class InHelixClosingPhosphodiesterBondDrawing(
                 g.draw(
                     at.createTransformedShape(
                         Line2D.Double(
-                            if (this.residue.absPos != this.posInhelix && residue.isFullDetails()) p1 else center1,
-                            if (this.nextResidue.absPos != this.posInhelix && nextResidue.isFullDetails()) p2 else center2
+                            if (this.residue.absPos != this.posInhelix && residue.willBeDrawn()) p1 else center1,
+                            if (this.nextResidue.absPos != this.posInhelix && nextResidue.willBeDrawn()) p2 else center2
                         )
                     )
                 )
@@ -6056,13 +6079,12 @@ class InHelixClosingPhosphodiesterBondDrawing(
     }
 
     override fun asSVG(at: AffineTransform, frame: Rectangle2D): String {
-        if (this.isFullDetails()) {
             val center1 =
                 if (this.posInhelix == this.residue.absPos && !this.residue.parent!!.parent!!.isFullDetails()) (this.residue.parent?.parent as HelixDrawing).line.p2 else this.residue.center
             val center2 =
                 if (this.posInhelix == this.nextResidue.absPos && !this.nextResidue.parent!!.parent!!.isFullDetails()) (this.nextResidue.parent?.parent as HelixDrawing).line.p2 else this.nextResidue.center
 
-            if (!this.residue.isFullDetails() && !this.nextResidue.isFullDetails()) {
+            if (!this.residue.willBeDrawn() && !this.nextResidue.willBeDrawn()) {
                 val p1 = Point2D.Double()
                 val p2 = Point2D.Double()
                 at.transform(center1, p1)
@@ -6083,11 +6105,11 @@ class InHelixClosingPhosphodiesterBondDrawing(
                     radiusConst + deltaPhosphoShift
                 )
                 at.transform(
-                    if (this.residue.absPos != this.posInhelix && residue.isFullDetails()) p1 else center1,
+                    if (this.residue.absPos != this.posInhelix && residue.willBeDrawn()) p1 else center1,
                     _p1
                 )
                 at.transform(
-                    if (this.nextResidue.absPos != this.posInhelix && nextResidue.isFullDetails()) p2 else center2,
+                    if (this.nextResidue.absPos != this.posInhelix && nextResidue.willBeDrawn()) p2 else center2,
                     _p2
                 )
                 if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${
@@ -6098,7 +6120,6 @@ class InHelixClosingPhosphodiesterBondDrawing(
                     this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             }
-        }
         return ""
     }
 }
@@ -6132,7 +6153,7 @@ class OutHelixClosingPhosphodiesterBondDrawing(
             val center2 =
                 if (this.posInhelix == this.nextResidue.absPos && !this.nextResidue.parent!!.parent!!.isFullDetails()) (this.nextResidue.parent?.parent as HelixDrawing).line.p1 else this.nextResidue.center
 
-            if (!this.residue.isFullDetails() && !this.nextResidue.isFullDetails()) {
+            if (!this.residue.willBeDrawn() && !this.nextResidue.willBeDrawn()) {
                 g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
             } else {
                 val (p1, p2) = pointsFrom(
@@ -6143,8 +6164,8 @@ class OutHelixClosingPhosphodiesterBondDrawing(
                 g.draw(
                     at.createTransformedShape(
                         Line2D.Double(
-                            if (this.residue.absPos != this.posInhelix && residue.isFullDetails()) p1 else center1,
-                            if (this.nextResidue.absPos != this.posInhelix && nextResidue.isFullDetails()) p2 else center2
+                            if (this.residue.absPos != this.posInhelix && residue.willBeDrawn()) p1 else center1,
+                            if (this.nextResidue.absPos != this.posInhelix && nextResidue.willBeDrawn()) p2 else center2
                         )
                     )
                 )
@@ -6153,13 +6174,12 @@ class OutHelixClosingPhosphodiesterBondDrawing(
     }
 
     override fun asSVG(at: AffineTransform, frame: Rectangle2D): String {
-        if (this.isFullDetails()) {
             val center1 =
                 if (this.posInhelix == this.residue.absPos && !this.residue.parent!!.parent!!.isFullDetails()) (this.residue.parent?.parent as HelixDrawing).line.p1 else this.residue.center
             val center2 =
                 if (this.posInhelix == this.nextResidue.absPos && !this.nextResidue.parent!!.parent!!.isFullDetails()) (this.nextResidue.parent?.parent as HelixDrawing).line.p1 else this.nextResidue.center
 
-            if (!this.residue.isFullDetails() && !this.nextResidue.isFullDetails()) {
+            if (!this.residue.willBeDrawn() && !this.nextResidue.willBeDrawn()) {
                 val p1 = Point2D.Double()
                 val p2 = Point2D.Double()
                 at.transform(center1, p1)
@@ -6180,11 +6200,11 @@ class OutHelixClosingPhosphodiesterBondDrawing(
                     radiusConst + deltaPhosphoShift
                 )
                 at.transform(
-                    if (this.residue.absPos != this.posInhelix && residue.isFullDetails()) p1 else center1,
+                    if (this.residue.absPos != this.posInhelix && residue.willBeDrawn()) p1 else center1,
                     _p1
                 )
                 at.transform(
-                    if (this.nextResidue.absPos != this.posInhelix && nextResidue.isFullDetails()) p2 else center2,
+                    if (this.nextResidue.absPos != this.posInhelix && nextResidue.willBeDrawn()) p2 else center2,
                     _p2
                 )
                 if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${
@@ -6195,7 +6215,6 @@ class OutHelixClosingPhosphodiesterBondDrawing(
                     this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             }
-        }
         return ""
     }
 }
@@ -6235,7 +6254,7 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(
                 else -> this.nextResidue.center
             }
 
-        if (!this.residue.isFullDetails() && !this.nextResidue.isFullDetails()) {
+        if (!this.residue.willBeDrawn() && !this.nextResidue.willBeDrawn()) {
             g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
         } else {
             val (p1, p2) = pointsFrom(
@@ -6246,8 +6265,8 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(
             g.draw(
                 at.createTransformedShape(
                     Line2D.Double(
-                        if (this.residue.isFullDetails()) p1 else center1,
-                        if (this.nextResidue.isFullDetails()) p2 else center2
+                        if (this.residue.willBeDrawn()) p1 else center1,
+                        if (this.nextResidue.willBeDrawn()) p2 else center2
                     )
                 )
             )
@@ -6256,7 +6275,6 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(
     }
 
     override fun asSVG(at: AffineTransform, frame: Rectangle2D): String {
-        if (this.isFullDetails()) {
             val center1 =
                 when {
                     this.residue.absPos == this.posInHelix && !this.residue.parent!!.parent!!.isFullDetails() -> (this.residue.parent!!.parent as HelixDrawing).line.p1
@@ -6267,7 +6285,7 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(
                     this.nextResidue.absPos == this.posInHelix && !this.nextResidue.parent!!.parent!!.isFullDetails() -> (this.nextResidue.parent!!.parent as HelixDrawing).line.p1
                     else -> this.nextResidue.center
                 }
-            if (!this.residue.isFullDetails() && !this.nextResidue.isFullDetails()) {
+            if (!this.residue.willBeDrawn() && !this.nextResidue.willBeDrawn()) {
                 val p1 = Point2D.Double()
                 val p2 = Point2D.Double()
                 at.transform(center1, p1)
@@ -6288,11 +6306,11 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(
                     radiusConst + deltaPhosphoShift
                 )
                 at.transform(
-                    if (this.residue.isFullDetails()) p1 else center1,
+                    if (this.residue.willBeDrawn()) p1 else center1,
                     _p1
                 )
                 at.transform(
-                    if (this.nextResidue.isFullDetails()) p2 else center2,
+                    if (this.nextResidue.willBeDrawn()) p2 else center2,
                     _p2
                 )
                 if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${
@@ -6303,7 +6321,6 @@ class SingleStrandLinkingBranchPhosphodiesterBondDrawing(
                     this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             }
-        }
         return ""
     }
 }
@@ -6337,7 +6354,7 @@ class BranchesLinkingPhosphodiesterBondDrawing(
         val center2 =
             if (!this.ssDrawing.quickDraw && this.nextResidue.parent!!.parent!!.isFullDetails()) this.nextResidue.center else (this.nextResidue.parent!!.parent as HelixDrawing).line.p1
 
-        if (this.ssDrawing.quickDraw || !this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
+        if (this.ssDrawing.quickDraw || !this.residue.willBeDrawn() && !this.nextResidue.willBeDrawn()) {
             g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
         } else {
             val (p1, p2) = pointsFrom(
@@ -6348,8 +6365,8 @@ class BranchesLinkingPhosphodiesterBondDrawing(
             g.draw(
                 at.createTransformedShape(
                     Line2D.Double(
-                        if (residue.parent!!.isFullDetails() && (residue.isFullDetails() || residue.residueLetter.isFullDetails())) p1 else center1,
-                        if (nextResidue.parent!!.isFullDetails() && (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails())) p2 else center2
+                        if (residue.willBeDrawn()) p1 else center1,
+                        if (nextResidue.willBeDrawn() ) p2 else center2
                     )
                 )
             )
@@ -6363,7 +6380,7 @@ class BranchesLinkingPhosphodiesterBondDrawing(
         val center2 =
             if (this.nextResidue.parent!!.parent!!.isFullDetails()) this.nextResidue.center else (this.nextResidue.parent!!.parent as HelixDrawing).line.p1
 
-        if (!this.residue.isFullDetails() && !this.residue.residueLetter.isFullDetails() && !this.nextResidue.isFullDetails() && !this.nextResidue.residueLetter.isFullDetails()) {
+        if (!this.residue.willBeDrawn() && !this.nextResidue.willBeDrawn()) {
             val p1 = Point2D.Double()
             val p2 = Point2D.Double()
             at.transform(center1, p1)
@@ -6383,11 +6400,11 @@ class BranchesLinkingPhosphodiesterBondDrawing(
                 radiusConst + deltaPhosphoShift
             )
             at.transform(
-                if (residue.parent!!.isFullDetails() && (residue.isFullDetails() || residue.residueLetter.isFullDetails())) p1 else center1,
+                if (residue.willBeDrawn()) p1 else center1,
                 _p1
             )
             at.transform(
-                if (nextResidue.parent!!.isFullDetails() && (nextResidue.isFullDetails() || nextResidue.residueLetter.isFullDetails())) p2 else center2,
+                if (nextResidue.willBeDrawn() ) p2 else center2,
                 _p2
             )
             if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${
@@ -6429,7 +6446,7 @@ class HelicesDirectLinkPhosphodiesterBondDrawing(
             val center2 =
                 if (!this.nextResidue.parent!!.parent!!.isFullDetails()) (if (this.posForP2 == this.nextResidue.absPos) (this.nextResidue.parent?.parent as HelixDrawing).line.p2 else (this.nextResidue.parent?.parent as HelixDrawing).line.p1) else this.nextResidue.center
 
-            if (!(this.residue.isFullDetails() || !residue.parent!!.isFullDetails() || !residue.parent!!.parent!!.isFullDetails()) && (!this.nextResidue.isFullDetails() || !nextResidue.parent!!.isFullDetails()) || !nextResidue.parent!!.parent!!.isFullDetails()) {
+            if (!this.residue.willBeDrawn() && !nextResidue.willBeDrawn()) {
                 g.draw(at.createTransformedShape(Line2D.Double(center1, center2)))
             } else {
                 val (p1, p2) = pointsFrom(
@@ -6440,8 +6457,8 @@ class HelicesDirectLinkPhosphodiesterBondDrawing(
                 g.draw(
                     at.createTransformedShape(
                         Line2D.Double(
-                            if (!residue.isFullDetails()) center1 else p1,
-                            if (!nextResidue.isFullDetails()) center2 else p2
+                            if (!residue.willBeDrawn()) center1 else p1,
+                            if (!nextResidue.willBeDrawn()) center2 else p2
                         )
                     )
                 )
@@ -6450,13 +6467,12 @@ class HelicesDirectLinkPhosphodiesterBondDrawing(
     }
 
     override fun asSVG(at: AffineTransform, frame: Rectangle2D): String {
-        if (this.isFullDetails()) {
             val center1 =
                 if (!this.residue.parent!!.parent!!.isFullDetails()) (if (this.posForP2 == this.residue.absPos) (this.residue.parent?.parent as HelixDrawing).line.p2 else (this.residue.parent?.parent as HelixDrawing).line.p1) else this.residue.center
             val center2 =
                 if (!this.nextResidue.parent!!.parent!!.isFullDetails()) (if (this.posForP2 == this.nextResidue.absPos) (this.nextResidue.parent?.parent as HelixDrawing).line.p2 else (this.nextResidue.parent?.parent as HelixDrawing).line.p1) else this.nextResidue.center
 
-            if (!(this.residue.isFullDetails() || !residue.parent!!.isFullDetails() || !residue.parent!!.parent!!.isFullDetails()) && (!this.nextResidue.isFullDetails() || !nextResidue.parent!!.isFullDetails()) || !nextResidue.parent!!.parent!!.isFullDetails()) {
+            if (!this.residue.willBeDrawn() && !nextResidue.willBeDrawn()) {
                 val p1 = Point2D.Double()
                 val p2 = Point2D.Double()
                 at.transform(center1, p1)
@@ -6477,11 +6493,11 @@ class HelicesDirectLinkPhosphodiesterBondDrawing(
                     radiusConst + deltaPhosphoShift
                 )
                 at.transform(
-                    if (!residue.isFullDetails()) center1 else p1,
+                    if (!residue.willBeDrawn()) center1 else p1,
                     _p1
                 )
                 at.transform(
-                    if (!nextResidue.isFullDetails()) center2 else p2,
+                    if (!nextResidue.willBeDrawn()) center2 else p2,
                     _p2
                 )
                 if (frame.contains(_p1) && frame.contains(_p2)) return """<line x1="${_p1.x}" y1="${_p1.y}" x2="${_p2.x}" y2="${_p2.y}" stroke="${
@@ -6492,7 +6508,6 @@ class HelicesDirectLinkPhosphodiesterBondDrawing(
                     this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                 }"/>"""
             }
-        }
         return ""
     }
 }

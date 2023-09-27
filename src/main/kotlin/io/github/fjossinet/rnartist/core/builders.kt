@@ -304,25 +304,19 @@ class PNGBuilder : OutputFileBuilder() {
             if (!f.parentFile.exists())
                 f.parentFile.mkdirs()
             f.createNewFile()
-            try {
-                locationBuilder.build()?.let { location ->
-                    drawing.getFrame(location)?.let { selectionFrame ->
-                        drawing.asPNG(
-                            frame = Rectangle2D.Double(0.0, 0.0, width, height),
-                            selectionFrame = selectionFrame,
-                            outputFile = f
-                        )
-                    }
-                } ?: run {
+            locationBuilder.build()?.let { location ->
+                drawing.getFrame(location)?.let { selectionFrame ->
                     drawing.asPNG(
                         frame = Rectangle2D.Double(0.0, 0.0, width, height),
+                        selectionFrame = selectionFrame,
                         outputFile = f
                     )
                 }
-            } catch(e:Exception) {
-                e.printStackTrace()
-                if (f.exists())
-                    f.delete()
+            } ?: run {
+                drawing.asPNG(
+                    frame = Rectangle2D.Double(0.0, 0.0, width, height),
+                    outputFile = f
+                )
             }
             dataPath?.let { dataPath ->
                 //if rnartistElement is not null, this means that several 2Ds have been drawn and for each 2D, we generate a dedicated script

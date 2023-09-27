@@ -33,6 +33,17 @@ class RNArtistDB(val rootAbsolutePath:String) {
             return f
         }
 
+    fun indexDatabase():List<File> {
+        val dirs = this.searchForNonIndexedDirs()
+        val pw =  PrintWriter(FileWriter(this.indexFile, true))
+        dirs.forEach {
+            this.indexedDirs.add(it.absolutePath)
+            pw.println(it.absolutePath)
+        }
+        pw.close()
+        return dirs
+    }
+
     fun createNewFolder(uri:URI) {
         if (uri.path.startsWith(this.rootAbsolutePath)) {
             val dataDir = File(uri)
@@ -41,19 +52,7 @@ class RNArtistDB(val rootAbsolutePath:String) {
             fw.appendLine(uri.path)
             fw.close()
 
-            val rnartistEl = initScript()
-            val pngOutputDir = getDrawingsDirForDataDir(dataDir)
-            with(rnartistEl.addPNG()) {
-                this.setPath(pngOutputDir.absolutePath)
-                this.setWidth(250.0)
-                this.setHeight(250.0)
-            }
-
-            rnartistEl.addSS().addVienna().setPath(uri.path)
-
-            val script = File(dataDir.parent, "${dataDir.name}.kts")
-            script.createNewFile()
-            script.writeText(rnartistEl.dump().toString())
+            this.getScriptFileForDataDir(dataDir) //we create the sscript file
         }
     }
 
@@ -91,7 +90,25 @@ class RNArtistDB(val rootAbsolutePath:String) {
             .removeSuffix("/").split("/").toTypedArray()
     ).toUri())
 
-    fun getScriptFileForDataDir(dataDir:File) = File(dataDir.parent, "${dataDir.name}.kts")
+    fun getScriptFileForDataDir(dataDir:File):File {
+        val script = File(dataDir.parent, "${dataDir.name}.kts")
+        if (!script.exists()) {
+            script.createNewFile()
+            val rnartistEl = initScript()
+            val pngOutputDir = getDrawingsDirForDataDir(dataDir)
+            with(rnartistEl.addPNG()) {
+                this.setPath(pngOutputDir.absolutePath)
+                this.setWidth(250.0)
+                this.setHeight(250.0)
+            }
+
+            rnartistEl.addSS().addVienna().setPath(dataDir.path)
+
+            script.writeText(rnartistEl.dump().toString())
+        }
+
+        return script
+    }
 
     fun containsStructuralData(path: Path): Boolean {
         var containsStructuralData = false
@@ -105,30 +122,17 @@ class RNArtistDB(val rootAbsolutePath:String) {
         return containsStructuralData
     }
 
-    fun searchForNonIndexedDirs(dirs: MutableList<File> = mutableListOf<File>(), dir: Path = File(this.rootAbsolutePath).toPath()): MutableList<File> {
-        try {
-            Files.newDirectoryStream(dir).use { stream ->
-                for (path in stream) {
-                    if (path.toFile().isDirectory() && path.name != drawingsDirName) {
-                        val containsStructuralData = containsStructuralData(path)
-                        if (containsStructuralData && !indexedDirs.contains(
-                                path.absolutePathString()
-                            )
-                        )
-                            dirs.add(path.toFile())
-                        searchForNonIndexedDirs(dirs, path)
-                    }
+    private fun searchForNonIndexedDirs(dirs: MutableList<File> = mutableListOf<File>(), dir: Path = File(this.rootAbsolutePath).toPath()): MutableList<File> {
+        Files.newDirectoryStream(dir).use { stream ->
+            for (path in stream) {
+                if (path.toFile().isDirectory() && path.name != drawingsDirName) {
+                    val containsStructuralData = containsStructuralData(path)
+                    if (containsStructuralData && !indexedDirs.contains(path.absolutePathString()) && !dirs.contains(path.toFile()))
+                        dirs.add(path.toFile())
+                    searchForNonIndexedDirs(dirs, path)
                 }
             }
-        } catch (e: IOException) {
-            e.printStackTrace()
         }
-        val pw =  PrintWriter(FileWriter(this.indexFile, true))
-        dirs.forEach {
-            this.indexedDirs.add(it.absolutePath)
-            pw.println(it.absolutePath)
-        }
-        pw.close()
         return dirs
     }
 }
