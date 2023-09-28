@@ -217,9 +217,8 @@ abstract class OutputFileBuilder {
 
     /**
      * @param [drawing] the SecondaryStructureDrawing to be saved
-     * @param [rnartistElement] if not null, a dedicated dsl script will be created for the drawing saved
      */
-    abstract fun build(drawing: SecondaryStructureDrawing, rnartistElement: DSLElement?)
+    abstract fun build(drawing: SecondaryStructureDrawing)
 
     fun location(setup: LocationBuilder.() -> Unit) {
         this.locationBuilder.setup()
@@ -246,7 +245,7 @@ class PNGBuilder : OutputFileBuilder() {
             return field
         }
 
-    override fun build(drawing: SecondaryStructureDrawing, rnartistElement: DSLElement?) {
+    override fun build(drawing: SecondaryStructureDrawing) {
         path?.let { path ->
             val sep = getDefault().separator
             val fileName =
@@ -255,30 +254,6 @@ class PNGBuilder : OutputFileBuilder() {
                         is FileSource -> {
                             //a file name can contain a dot
                             val tokens = drawing.secondaryStructure.source?.getId()?.split(sep)?.last()?.split(".")
-                            tokens?.let {
-                                tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
-                            } ?: run {
-                                null
-                            }
-                        }
-
-                        is BracketNotation -> {
-                            drawing.secondaryStructure.name
-                        }
-
-                        else -> {
-                            null
-                        }
-
-                    }
-
-                }
-            val dataPath =
-                drawing.secondaryStructure.source?.let { source ->
-                    when (source) {
-                        is FileSource -> {
-                            //a file name can contains a dot
-                            val tokens = drawing.secondaryStructure.source?.getId()?.split(".")
                             tokens?.let {
                                 tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
                             } ?: run {
@@ -318,24 +293,6 @@ class PNGBuilder : OutputFileBuilder() {
                     outputFile = f
                 )
             }
-            dataPath?.let { dataPath ->
-                //if rnartistElement is not null, this means that several 2Ds have been drawn and for each 2D, we generate a dedicated script
-                rnartistElement?.let { rnartistElement ->
-                    //now the dsl script for this 2D, if not already there
-                    f = if (!dataPath.startsWith(sep))
-                        File(
-                            "${Jar().path()}${sep}${dataPath}.kts"
-                        )
-                    else
-                        File(
-                            "${dataPath}.kts"
-                        )
-                    if (!f.exists()) {
-                        f.createNewFile()
-                        f.writeText( rnartistElement.dump().toString())
-                    }
-                }
-            }
         }
     }
 
@@ -356,7 +313,7 @@ class SVGBuilder : OutputFileBuilder() {
             return field
         }
 
-    override fun build(drawing: SecondaryStructureDrawing, rnartistElement: DSLElement?) {
+    override fun build(drawing: SecondaryStructureDrawing) {
         path?.let { path ->
             val sep = getDefault().separator
             val fileName = this.name ?:
@@ -365,30 +322,6 @@ class SVGBuilder : OutputFileBuilder() {
                         is FileSource -> {
                             //a file name can contains a dot
                             val tokens = drawing.secondaryStructure.source?.getId()?.split(sep)?.last()?.split(".")
-                            tokens?.let {
-                                tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
-                            } ?: run {
-                                null
-                            }
-                        }
-
-                        is BracketNotation -> {
-                            drawing.secondaryStructure.name
-                        }
-
-                        else -> {
-                            null
-                        }
-
-                    }
-
-                }
-            val dataPath =
-                drawing.secondaryStructure.source?.let { source ->
-                    when (source) {
-                        is FileSource -> {
-                            //a file name can contains a dot
-                            val tokens = drawing.secondaryStructure.source?.getId()?.split(".")
                             tokens?.let {
                                 tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
                             } ?: run {
@@ -427,24 +360,6 @@ class SVGBuilder : OutputFileBuilder() {
                     frame = Rectangle2D.Double(0.0, 0.0, width, height),
                     outputFile = f
                 )
-            }
-            dataPath?.let { dataPath ->
-                //if rnartistElement is not null, this means that several 2Ds have been drawn and for each 2D, we generate a dedicated script
-                rnartistElement?.let { rnartistElement ->
-                    //now the dsl script for this 2D, if not already there
-                    f = if (!dataPath.startsWith(sep))
-                        File(
-                            "${Jar().path()}${sep}${dataPath}.kts"
-                        )
-                    else
-                        File(
-                            "${dataPath}.kts"
-                        )
-                    if (!f.exists()) {
-                        f.createNewFile()
-                        f.writeText(rnartistElement.dump().toString())
-                    }
-                }
             }
         }
     }
@@ -864,25 +779,36 @@ class RNArtistBuilder {
             this.layout?.let { layout ->
                 drawing.applyLayout(layout)
             }
+
+            var dataPath:String? = null
+
             this.pngOutputBuilder?.let { pngOutputBuilder ->
                 ss.source?.let { source ->
                     when (source) {
                         is FileSource -> {
                             if (source.getId().endsWith(".vienna")) {
                                 val ssElement =
-                                    this.rnartistElement.addSS() //only a single ss element is allowed the previous one is removed
+                                    this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
                                 val viennaElement = ssElement.addVienna()
                                 viennaElement.setFile(source.getId())
+
+
+                                source.getId().split(".").let {
+                                    dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
+                                }
+
                             }
                         }
 
                         is BracketNotation -> {
                             val ssElement =
-                                this.rnartistElement.addSS() //only a single ss element is allowed the previous one is removed
+                                this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
                             val bnElement = ssElement.addBracketNotation()
                             bnElement.setSeq(ss.rna.seq)
                             bnElement.setValue(ss.toBracketNotation())
                             bnElement.setName(ss.name)
+
+                            dataPath =  ss.name
                         }
 
                         else -> {
@@ -893,10 +819,24 @@ class RNArtistBuilder {
 
                 }
                 this.rnartistElement.addPNG(pngOutputBuilder.dslElement)
-                pngOutputBuilder.build(
-                    drawing,
-                    rnartistElement
-                )
+                pngOutputBuilder.build(drawing)
+                if (this.secondaryStructures.size > 1 ) { //several 2Ds have been drawn and for each 2D, we generate a dedicated script
+                    dataPath?.let { dataPath ->
+                        val sep = getDefault().separator
+                        val f = if (!dataPath.startsWith(sep))
+                            File(
+                                "${Jar().path()}${sep}${dataPath}.kts"
+                            )
+                        else
+                            File(
+                                "${dataPath}.kts"
+                            )
+                        if (!f.exists()) {
+                            f.createNewFile()
+                            f.writeText( rnartistElement.dump().toString())
+                        }
+                    }
+                }
             }
             this.svgOutputBuilder?.let { svgOutputBuilder ->
                 ss.source?.let { source ->
@@ -907,6 +847,9 @@ class RNArtistBuilder {
                                     this.rnartistElement.addSS() //only a single ss element is allowed the previous one is removed
                                 val viennaElement = ssElement.addVienna()
                                 viennaElement.setFile(source.getId())
+                                source.getId().split(".").let {
+                                    dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
+                                }
                             }
                         }
 
@@ -917,6 +860,9 @@ class RNArtistBuilder {
                             bnElement.setSeq(ss.rna.seq)
                             bnElement.setValue(ss.toBracketNotation())
                             bnElement.setName(ss.name)
+
+                            dataPath = ss.name
+
                         }
 
                         else -> {
@@ -926,10 +872,24 @@ class RNArtistBuilder {
 
                 }
                 this.rnartistElement.addSVG(svgOutputBuilder.dslElement)
-                svgOutputBuilder.build(
-                    drawing,
-                    rnartistElement
-                )
+                svgOutputBuilder.build(drawing)
+                if (this.secondaryStructures.size > 1 ) { //several 2Ds have been drawn and for each 2D, we generate a dedicated script
+                    dataPath?.let { dataPath ->
+                        val sep = getDefault().separator
+                        val f = if (!dataPath.startsWith(sep))
+                            File(
+                                "${Jar().path()}${sep}${dataPath}.kts"
+                            )
+                        else
+                            File(
+                                "${dataPath}.kts"
+                            )
+                        if (!f.exists()) {
+                            f.createNewFile()
+                            f.writeText( rnartistElement.dump().toString())
+                        }
+                    }
+                }
             }
             this.chimeraOutputBuilder?.name?.let { chainName ->
                 if (chainName == ss.rna.name)

@@ -973,7 +973,7 @@ class BracketNotationEl : DSLElement("bn") {
         this.getPropertyOrNull("value")?.let {
             it.value = value
         } ?: run {
-            this.children.add(StringDSLProperty("seq", value))
+            this.children.add(StringDSLProperty("value", value))
         }
     }
 
