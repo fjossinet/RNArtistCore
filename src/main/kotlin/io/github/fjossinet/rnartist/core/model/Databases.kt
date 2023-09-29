@@ -44,16 +44,18 @@ class RNArtistDB(val rootAbsolutePath:String) {
         return dirs
     }
 
-    fun createNewFolder(uri:URI) {
-        if (uri.path.startsWith(this.rootAbsolutePath)) {
-            val dataDir = File(uri)
-            dataDir.mkdir()
+    fun createNewFolder(uri:URI): File? {
+        val folder = File(uri)
+        if (folder.absolutePath.startsWith(this.rootAbsolutePath)) {
+            folder.mkdir()
             val fw = FileWriter(this.indexFile, true)
             fw.appendLine(uri.path)
             fw.close()
 
-            this.getScriptFileForDataDir(dataDir) //we create the sscript file
+            this.getScriptFileForDataDir(folder) //we create the script file
+            return folder
         }
+        return null
     }
 
     fun addAndPlotViennaFile(fileName:String, dataDir:File, ss:SecondaryStructure):File {
@@ -86,8 +88,8 @@ class RNArtistDB(val rootAbsolutePath:String) {
     fun getDrawingsDirForDataDir(dataDir:File) = File(Paths.get(
         this.rootAbsolutePath,
         this.drawingsDirName,
-        *dataDir.absolutePath.split(this.rootAbsolutePath).last().removePrefix("/")
-            .removeSuffix("/").split("/").toTypedArray()
+        *dataDir.absolutePath.split(this.rootAbsolutePath).last().removePrefix(System.getProperty("file.separator"))
+            .removeSuffix(System.getProperty("file.separator")).split(System.getProperty("file.separator")).toTypedArray()
     ).toUri())
 
     fun getScriptFileForDataDir(dataDir:File):File {
