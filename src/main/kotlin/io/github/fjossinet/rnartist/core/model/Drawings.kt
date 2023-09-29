@@ -492,7 +492,7 @@ abstract class DrawingElement(
                 val _c = this.drawingConfiguration.color
                 Color(_c.red, _c.green, _c.blue, this.getOpacity())
             } else
-                Color(229, 229, 229)
+                RnartistConfig.nonSelectedColor
         } ?: run {
             val _c = this.drawingConfiguration.color
             Color(_c.red, _c.green, _c.blue, this.getOpacity())

@@ -21,6 +21,9 @@ import java.util.*
 object RnartistConfig {
 
     @JvmField
+    var nonSelectedColor = Color.LIGHT_GRAY
+
+    @JvmField
     val colorSchemes: Map<String, Map<SecondaryStructureType, (DrawingElement) -> String>> = mapOf(
         "Persian Carolina" to mapOf(
             SecondaryStructureType.AShape to

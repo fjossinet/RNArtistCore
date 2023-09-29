@@ -393,6 +393,7 @@ abstract class UndoRedoDSLElement(name: String) : DSLElement(name) {
     fun decreaseUndoRedoCursor() {
         (this.children.get(undoRedoCursor - 1) as? DSLElement)?.getStep()?.let { s ->
             undoRedoCursor -= this.children.filterIsInstance<DSLElement>().count { it.getStep() == s }
+            currentStep = s
         } ?: run {
             undoRedoCursor--
         }
@@ -402,15 +403,19 @@ abstract class UndoRedoDSLElement(name: String) : DSLElement(name) {
     fun increaseUndoRedoCursor() {
         (this.children.get(undoRedoCursor) as? DSLElement)?.getStep()?.let { s ->
             undoRedoCursor += this.children.filterIsInstance<DSLElement>().count { it.getStep() == s }
+            currentStep = s
         } ?: run {
             undoRedoCursor++
         }
-
     }
 
+    //the last step recorded so far
     var lastStep = 0
         get() = this.children.filterIsInstance<DSLElement>().filter { it.getStep() != null }.lastOrNull()?.getStep()
             ?: 0
+
+    //the current step according to the cursor position in the undo/redo history
+    var currentStep = 0
 
     override fun dump(indent: String, buffer: StringBuffer): StringBuffer {
         buffer.appendLine("$indent $name {")
