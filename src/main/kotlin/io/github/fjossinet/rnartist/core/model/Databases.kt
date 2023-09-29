@@ -14,6 +14,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.collections.HashMap
 import kotlin.io.path.absolutePathString
+import kotlin.io.path.invariantSeparatorsPathString
 import kotlin.io.path.name
 
 class RNArtistDB(val rootAbsolutePath:String) {
@@ -69,13 +70,13 @@ class RNArtistDB(val rootAbsolutePath:String) {
         val rnartistEl = initScript()
 
         with (rnartistEl.addPNG()) {
-            this.setPath(getDrawingsDirForDataDir(dataDir).absolutePath)
+            this.setPath(getDrawingsDirForDataDir(dataDir).invariantSeparatorsPath)
             this.setWidth(250.0)
             this.setHeight(250.0)
         }
 
         val viennaEl = rnartistEl.addSS().addVienna()
-        viennaEl.setFile(viennaFile.toPath().toAbsolutePath().toString())
+        viennaEl.setFile(viennaFile.toPath().invariantSeparatorsPathString)
 
         val scriptContent = rnartistEl.dump().toString()
 
@@ -99,12 +100,12 @@ class RNArtistDB(val rootAbsolutePath:String) {
             val rnartistEl = initScript()
             val pngOutputDir = getDrawingsDirForDataDir(dataDir)
             with(rnartistEl.addPNG()) {
-                this.setPath(pngOutputDir.absolutePath)
+                this.setPath(pngOutputDir.invariantSeparatorsPath)
                 this.setWidth(250.0)
                 this.setHeight(250.0)
             }
 
-            rnartistEl.addSS().addVienna().setPath(dataDir.path)
+            rnartistEl.addSS().addVienna().setPath(dataDir.invariantSeparatorsPath)
 
             script.writeText(rnartistEl.dump().toString())
         }
@@ -129,7 +130,7 @@ class RNArtistDB(val rootAbsolutePath:String) {
             for (path in stream) {
                 if (path.toFile().isDirectory() && path.name != drawingsDirName) {
                     val containsStructuralData = containsStructuralData(path)
-                    if (containsStructuralData && !indexedDirs.contains(path.absolutePathString()) && !dirs.contains(path.toFile()))
+                    if (containsStructuralData && !indexedDirs.contains(path.invariantSeparatorsPathString) && !dirs.contains(path.toFile()))
                         dirs.add(path.toFile())
                     searchForNonIndexedDirs(dirs, path)
                 }

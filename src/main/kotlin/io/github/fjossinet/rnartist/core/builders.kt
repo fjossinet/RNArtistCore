@@ -9,6 +9,7 @@ import java.io.FileReader
 import java.io.IOException
 import java.lang.Exception
 import java.nio.file.FileSystems.*
+import kotlin.io.path.invariantSeparatorsPathString
 import kotlin.random.Random
 
 class RNABuilder {
@@ -229,10 +230,9 @@ class PNGBuilder : OutputFileBuilder() {
     override val dslElement = PNGEl()
         get() {
             this.path?.let { path ->
-                val sep = getDefault().separator
                 field.setPath(
-                    if (!path.startsWith(sep))
-                        "${Jar().path()}${sep}${path}"
+                    if (!path.startsWith("/"))
+                        "${Jar().path().invariantSeparatorsPathString}/${path}"
                     else
                         path
                 )
@@ -247,13 +247,12 @@ class PNGBuilder : OutputFileBuilder() {
 
     override fun build(drawing: SecondaryStructureDrawing) {
         path?.let { path ->
-            val sep = getDefault().separator
             val fileName =
                 drawing.secondaryStructure.source?.let { source ->
                     when (source) {
                         is FileSource -> {
                             //a file name can contain a dot
-                            val tokens = drawing.secondaryStructure.source?.getId()?.split(sep)?.last()?.split(".")
+                            val tokens = drawing.secondaryStructure.source?.getId()?.split("/")?.last()?.split(".")
                             tokens?.let {
                                 tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
                             } ?: run {
@@ -272,10 +271,10 @@ class PNGBuilder : OutputFileBuilder() {
                     }
 
                 }
-            var f = if (!path.startsWith(sep))
-                File("${Jar().path()}${sep}${path}${sep}${fileName}.png")
+            var f = if (!path.startsWith("/"))
+                File("${Jar().path().invariantSeparatorsPathString}/${path}/${fileName}.png")
             else
-                File("${path}${sep}${fileName}.png")
+                File("${path}/${fileName}.png")
             if (!f.parentFile.exists())
                 f.parentFile.mkdirs()
             f.createNewFile()
@@ -340,8 +339,8 @@ class SVGBuilder : OutputFileBuilder() {
                     }
 
                 }
-            var f = if (!path.startsWith(sep))
-                File("${Jar().path()}${sep}${path}${sep}${fileName}.svg")
+            var f = if (!path.startsWith("/"))
+                File("${Jar().path().invariantSeparatorsPathString}${sep}${path}${sep}${fileName}.svg")
             else
                 File("${path}${sep}${fileName}.svg")
             if (!f.parentFile.exists())
