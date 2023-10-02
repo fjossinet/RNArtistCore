@@ -45,12 +45,12 @@ class RNArtistDB(val rootAbsolutePath:String) {
         return dirs
     }
 
-    fun createNewFolder(uri:URI): File? {
-        val folder = File(uri)
-        if (folder.absolutePath.startsWith(this.rootAbsolutePath)) {
+    fun createNewFolder(absPathFolder:String): File? {
+        val folder = File(absPathFolder)
+        if (folder.invariantSeparatorsPath.startsWith(this.rootAbsolutePath)) {
             folder.mkdir()
             val fw = FileWriter(this.indexFile, true)
-            fw.appendLine(uri.path)
+            fw.appendLine(absPathFolder)
             fw.close()
 
             this.getScriptFileForDataDir(folder) //we create the script file
@@ -86,12 +86,15 @@ class RNArtistDB(val rootAbsolutePath:String) {
         return script
     }
 
-    fun getDrawingsDirForDataDir(dataDir:File) = File(Paths.get(
-        this.rootAbsolutePath,
-        this.drawingsDirName,
-        *dataDir.absolutePath.split(this.rootAbsolutePath).last().removePrefix(System.getProperty("file.separator"))
-            .removeSuffix(System.getProperty("file.separator")).split(System.getProperty("file.separator")).toTypedArray()
-    ).toUri())
+    fun getDrawingsDirForDataDir(dataDir:File):File {
+        val path = Paths.get(
+                this.rootAbsolutePath,
+                this.drawingsDirName,
+                *dataDir.invariantSeparatorsPath.split(this.rootAbsolutePath).last().removePrefix(System.getProperty("file.separator"))
+                        .removeSuffix(System.getProperty("file.separator")).split(System.getProperty("file.separator")).toTypedArray()
+        ).invariantSeparatorsPathString
+        return File(path)
+    }
 
     fun getScriptFileForDataDir(dataDir:File):File {
         val script = File(dataDir.parent, "${dataDir.name}.kts")

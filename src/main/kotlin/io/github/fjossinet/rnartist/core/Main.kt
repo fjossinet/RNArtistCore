@@ -4,10 +4,11 @@ import java.io.File
 import java.io.FileReader
 import java.nio.file.Paths
 import javax.script.ScriptEngineManager
+import kotlin.io.path.invariantSeparatorsPathString
 
 class Jar() {
     fun path() = Paths.get(Jar::class.java.getProtectionDomain().getCodeSource().getLocation()
-            .toURI()).parent.toAbsolutePath()
+            .toURI()).parent.invariantSeparatorsPathString
 }
 
 fun main(args:Array<String>) {

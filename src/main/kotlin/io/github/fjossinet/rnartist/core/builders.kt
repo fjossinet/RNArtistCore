@@ -231,10 +231,10 @@ class PNGBuilder : OutputFileBuilder() {
         get() {
             this.path?.let { path ->
                 field.setPath(
-                    if (!path.startsWith("/"))
-                        "${Jar().path().invariantSeparatorsPathString}/${path}"
-                    else
+                    if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$")))
                         path
+                    else
+                        "${Jar().path()}/${path}"
                 )
             }
             this.name?.let {
@@ -271,10 +271,10 @@ class PNGBuilder : OutputFileBuilder() {
                     }
 
                 }
-            var f = if (!path.startsWith("/"))
-                File("${Jar().path().invariantSeparatorsPathString}/${path}/${fileName}.png")
-            else
+            var f = if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$")))
                 File("${path}/${fileName}.png")
+            else
+                File("${Jar().path()}/${path}/${fileName}.png")
             if (!f.parentFile.exists())
                 f.parentFile.mkdirs()
             f.createNewFile()
@@ -314,13 +314,12 @@ class SVGBuilder : OutputFileBuilder() {
 
     override fun build(drawing: SecondaryStructureDrawing) {
         path?.let { path ->
-            val sep = getDefault().separator
             val fileName = this.name ?:
                 drawing.secondaryStructure.source?.let { source ->
                     when (source) {
                         is FileSource -> {
                             //a file name can contains a dot
-                            val tokens = drawing.secondaryStructure.source?.getId()?.split(sep)?.last()?.split(".")
+                            val tokens = drawing.secondaryStructure.source?.getId()?.split("/")?.last()?.split(".")
                             tokens?.let {
                                 tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
                             } ?: run {
@@ -339,10 +338,10 @@ class SVGBuilder : OutputFileBuilder() {
                     }
 
                 }
-            var f = if (!path.startsWith("/"))
-                File("${Jar().path().invariantSeparatorsPathString}${sep}${path}${sep}${fileName}.svg")
+            var f = if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$")))
+                File("${path}/${fileName}.svg")
             else
-                File("${path}${sep}${fileName}.svg")
+                File("${Jar().path()}/${path}/${fileName}.svg")
             if (!f.parentFile.exists())
                 f.parentFile.mkdirs()
             f.createNewFile()
@@ -372,11 +371,10 @@ class ChimeraBuilder {
 
     fun build(drawing: SecondaryStructureDrawing) {
         path?.let { path ->
-            val sep = getDefault().separator
-            val f = if (!path.startsWith(sep))
-                File("${Jar().path()}${sep}${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.cxc")
+            val f = if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$")))
+                File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.cxc")
             else
-                File("${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.cxc")
+                File("${Jar().path()}/${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.cxc")
             drawing.secondaryStructure.tertiaryStructure?.let {
                 drawing.asChimeraScript(f)
             }
@@ -391,11 +389,10 @@ class BlenderBuilder {
 
     fun build(drawing: SecondaryStructureDrawing) {
         path?.let { path ->
-            val sep = getDefault().separator
-            val f = if (!path.startsWith(sep))
-                File("${Jar().path()}${sep}${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.py")
+            val f = if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$")))
+                File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.py")
             else
-                File("${path}${sep}${drawing.secondaryStructure.rna.name.replace("/", "_")}.py")
+                File("${Jar().path()}/${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.py")
             drawing.secondaryStructure.tertiaryStructure?.let { tertiaryStructure ->
                 drawing.asBlenderScript(
                     tertiaryStructure,
@@ -429,11 +426,10 @@ class PDBBuilder {
             this.file = pdbFile.absolutePath
         }
         this.file?.let { file ->
-            val sep = getDefault().separator
-            val f = if (!file.startsWith(sep))
-                File("${Jar().path()}${sep}${file}")
-            else
+            val f = if (file.startsWith("/") || file.matches(Regex("^[A-Z]:/.+$")))
                 File(file)
+            else
+               File("${Jar().path()}/${file}")
             try {
                 structures.addAll(Annotate3D().annotate(f))
                 structures.forEach {
@@ -465,21 +461,19 @@ class ViennaBuilder : InputFileBuilder() {
 
     override fun build(): List<SecondaryStructure> {
         this.file?.let { file ->
-            val sep = getDefault().separator
-            val f = if (!file.startsWith(sep))
-                File("${Jar().path()}${sep}${file}")
-            else
+            val f = if (file.startsWith("/") || file.matches(Regex("^[A-Z]:/.+$")))
                 File(file)
+            else
+                File("${Jar().path()}/${file}")
             val ss = parseVienna(FileReader(f))
             ss.source = FileSource(file)
             return arrayListOf(ss)
         }
         this.path?.let { path ->
-            val sep = getDefault().separator
-            val f = if (!path.startsWith(sep)) {
-                File("${Jar().path()}${sep}${path}")
-            } else
+            val f = if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$"))) {
                 File(path)
+            } else
+               File("${Jar().path()}/${path}")
             val structures = mutableListOf<SecondaryStructure>()
             f.listFiles { _, name -> name.endsWith(".vienna") }?.forEach { viennaFile ->
                 val tokens = viennaFile.absolutePath.split(".")
@@ -507,21 +501,20 @@ class BPSeqBuilder : InputFileBuilder() {
 
     override fun build(): List<SecondaryStructure> {
         this.file?.let { file ->
-            val sep = getDefault().separator
-            val f = if (!file.startsWith(sep))
-                File("${Jar().path()}${sep}${file}")
-            else
+            val f = if (file.startsWith("/") || file.matches(Regex("^[A-Z]:/.+$")))
                 File(file)
+            else
+                File("${Jar().path()}/${file}")
             val ss = parseBPSeq(FileReader(f))
             ss.source = FileSource(file)
             return arrayListOf(ss)
         }
         this.path?.let { path ->
-            val sep = getDefault().separator
-            val f = if (!path.startsWith(sep)) {
-                File("${Jar().path()}${sep}${path}")
-            } else
+            val f = if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$")))
                 File(path)
+            else
+                File("${Jar().path()}/${path}")
+
             val structures = mutableListOf<SecondaryStructure>()
             f.listFiles { _, name -> name.endsWith(".bpseq") }?.forEach { bpseqFile ->
                 val tokens = bpseqFile.absolutePath.split(".")
@@ -549,21 +542,19 @@ class CTBuilder : InputFileBuilder() {
 
     override fun build(): List<SecondaryStructure> {
         this.file?.let { file ->
-            val sep = getDefault().separator
-            val f = if (!file.startsWith(sep))
-                File("${Jar().path()}${sep}${file}")
-            else
+            val f = if (file.startsWith("/") || file.matches(Regex("^[A-Z]:/.+$")))
                 File(file)
+            else
+                File("${Jar().path()}/${file}")
             val ss = parseCT(FileReader(f))
             ss.source = FileSource(file)
             return arrayListOf(ss)
         }
         this.path?.let { path ->
-            val sep = getDefault().separator
-            val f = if (!path.startsWith(sep)) {
-                File("${Jar().path()}${sep}${path}")
-            } else
+            val f = if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$")))
                 File(path)
+            else
+                File("${Jar().path()}/${path}")
             val structures = mutableListOf<SecondaryStructure>()
             f.listFiles { _, name -> name.endsWith(".ct") }?.forEach { ctFile ->
                 val tokens = ctFile.absolutePath.split(".")
@@ -606,11 +597,10 @@ class StockholmBuilder : InputFileBuilder() {
 
     override fun build(): List<SecondaryStructure> {
         this.file?.let { file ->
-            val sep = getDefault().separator
-            val f = if (!file.startsWith(sep))
-                File("${Jar().path()}${sep}${file}")
-            else
+            val f = if (file.startsWith("/") || file.matches(Regex("^[A-Z]:/.+$")))
                 File(file)
+            else
+                File("${Jar().path()}/${file}")
             val secondaryStructures = parseStockholm(FileReader(f), withConsensus2D = true).third
             secondaryStructures.forEach {
                 it.source = FileSource(file)
@@ -732,11 +722,10 @@ class BooquetBuilder {
                     lineWidth = line,
                     color = if (color.startsWith("#")) getAWTColor(color) else getAWTColor(getColorCode(color))
                 )
-                val sep = getDefault().separator
-                val f = if (!path.startsWith(sep))
-                    File("${Jar().path()}${sep}${path}${sep}${ss.rna.name.replace("/", "_")}.svg")
+                val f = if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$")))
+                    File("${path}/${ss.rna.name.replace("/", "_")}.svg")
                 else
-                    File("${path}${sep}${ss.rna.name.replace("/", "_")}.svg")
+                    File("${Jar().path()}/${path}/${ss.rna.name.replace("/", "_")}.svg")
                 if (!f.parentFile.exists())
                     f.parentFile.mkdirs()
                 f.createNewFile()
@@ -821,15 +810,10 @@ class RNArtistBuilder {
                 pngOutputBuilder.build(drawing)
                 if (this.secondaryStructures.size > 1 ) { //several 2Ds have been drawn and for each 2D, we generate a dedicated script
                     dataPath?.let { dataPath ->
-                        val sep = getDefault().separator
-                        val f = if (!dataPath.startsWith(sep))
-                            File(
-                                "${Jar().path()}${sep}${dataPath}.kts"
-                            )
+                        val f = if (dataPath.startsWith("/") || dataPath.matches(Regex("^[A-Z]:/.+$")))
+                            File("${dataPath}.kts")
                         else
-                            File(
-                                "${dataPath}.kts"
-                            )
+                            File("${Jar().path()}/${dataPath}.kts")
                         if (!f.exists()) {
                             f.createNewFile()
                             f.writeText( rnartistElement.dump().toString())
@@ -874,15 +858,11 @@ class RNArtistBuilder {
                 svgOutputBuilder.build(drawing)
                 if (this.secondaryStructures.size > 1 ) { //several 2Ds have been drawn and for each 2D, we generate a dedicated script
                     dataPath?.let { dataPath ->
-                        val sep = getDefault().separator
-                        val f = if (!dataPath.startsWith(sep))
-                            File(
-                                "${Jar().path()}${sep}${dataPath}.kts"
-                            )
+                        val f = if (dataPath.startsWith("/") || dataPath.matches(Regex("^[A-Z]:/.+$")))
+                            File("${dataPath}.kts")
                         else
-                            File(
-                                "${dataPath}.kts"
-                            )
+                            File("${Jar().path()}/${dataPath}.kts")
+
                         if (!f.exists()) {
                             f.createNewFile()
                             f.writeText( rnartistElement.dump().toString())
