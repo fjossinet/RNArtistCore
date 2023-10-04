@@ -423,7 +423,7 @@ class PDBBuilder {
         if (this.id != null) {
             val pdbFile = File.createTempFile(this.id!!, ".pdb")
             pdbFile.writeText(PDB().getEntry(this.id!!).readText())
-            this.file = pdbFile.absolutePath
+            this.file = pdbFile.invariantSeparatorsPath
         }
         this.file?.let { file ->
             val f = if (file.startsWith("/") || file.matches(Regex("^[A-Z]:/.+$")))
@@ -476,11 +476,11 @@ class ViennaBuilder : InputFileBuilder() {
                File("${Jar().path()}/${path}")
             val structures = mutableListOf<SecondaryStructure>()
             f.listFiles { _, name -> name.endsWith(".vienna") }?.forEach { viennaFile ->
-                val tokens = viennaFile.absolutePath.split(".")
+                val tokens = viennaFile.invariantSeparatorsPath.split(".")
                 val ktsFile = File("${tokens.subList(0,tokens.size-1).joinToString(".")}.kts")
                 if (!ktsFile.exists()) {
                     val ss = parseVienna(FileReader(viennaFile))
-                    ss.source = FileSource(viennaFile.absolutePath)
+                    ss.source = FileSource(viennaFile.invariantSeparatorsPath)
                     structures.add(ss)
                 }
             }
@@ -517,11 +517,11 @@ class BPSeqBuilder : InputFileBuilder() {
 
             val structures = mutableListOf<SecondaryStructure>()
             f.listFiles { _, name -> name.endsWith(".bpseq") }?.forEach { bpseqFile ->
-                val tokens = bpseqFile.absolutePath.split(".")
+                val tokens = bpseqFile.invariantSeparatorsPath.split(".")
                 val ktsFile = File("${tokens.subList(0,tokens.size-1).joinToString(".")}.kts")
                 if (!ktsFile.exists()) {
                     val ss = parseBPSeq(FileReader(bpseqFile))
-                    ss.source = FileSource(bpseqFile.absolutePath)
+                    ss.source = FileSource(bpseqFile.invariantSeparatorsPath)
                     structures.add(ss)
                 }
             }
@@ -557,11 +557,11 @@ class CTBuilder : InputFileBuilder() {
                 File("${Jar().path()}/${path}")
             val structures = mutableListOf<SecondaryStructure>()
             f.listFiles { _, name -> name.endsWith(".ct") }?.forEach { ctFile ->
-                val tokens = ctFile.absolutePath.split(".")
+                val tokens = ctFile.invariantSeparatorsPath.split(".")
                 val ktsFile = File("${tokens.subList(0,tokens.size-1).joinToString(".")}.kts")
                 if (!ktsFile.exists()) {
                     val ss = parseCT(FileReader(ctFile))
-                    ss.source = FileSource(ctFile.absolutePath)
+                    ss.source = FileSource(ctFile.invariantSeparatorsPath)
                     structures.add(ss)
                 }
             }

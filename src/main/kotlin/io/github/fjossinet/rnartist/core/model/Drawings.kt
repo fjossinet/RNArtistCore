@@ -1784,9 +1784,9 @@ class SecondaryStructureDrawing(
             }
 
             is FileSource -> {
-                if ((this.secondaryStructure.source as FileSource).fileName.endsWith("pdb")) {
+                if ((this.secondaryStructure.source as FileSource).invariantSeparatorsPath.endsWith("pdb")) {
                     var command =
-                        StringBuffer("open \"${(this.secondaryStructure.source as FileSource).fileName}\"${System.lineSeparator()}")
+                        StringBuffer("open \"${(this.secondaryStructure.source as FileSource).invariantSeparatorsPath}\"${System.lineSeparator()}")
                     colors2residues.forEach { (colorCode, residues) ->
                         command.append("color /${chainName}:")
                         residues.forEach {
@@ -2194,7 +2194,7 @@ structure_collection.children.link(junctions_collection)"""
 
         val helices2Ends = mutableMapOf<String, Pair<Triple<Float, Float, Float>, Triple<Float, Float, Float>>>()
 
-        if (this.secondaryStructure.source is PDBSource || this.secondaryStructure.source is FileSource && (this.secondaryStructure.source as FileSource).fileName.endsWith(
+        if (this.secondaryStructure.source is PDBSource || this.secondaryStructure.source is FileSource && (this.secondaryStructure.source as FileSource).invariantSeparatorsPath.endsWith(
                 "pdb"
             )
         ) {

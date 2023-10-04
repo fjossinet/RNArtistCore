@@ -1,6 +1,5 @@
 package io.github.fjossinet.rnartist.core.model
 
-import java.io.File
 import java.io.Serializable
 import java.util.*
 
@@ -1548,14 +1547,14 @@ class RfamSource(val rfamId: String) : DatabaseSource() {
     }
 }
 
-class FileSource(val fileName: String) : DataSource {
+class FileSource(val invariantSeparatorsPath: String) : DataSource {
 
     override fun getId(): String {
-        return this.fileName
+        return this.invariantSeparatorsPath
     }
 
     override fun toString(): String {
-        return "local:file:${this.fileName}"
+        return "local:file:${this.invariantSeparatorsPath}"
     }
 
 }
