@@ -38,7 +38,7 @@ if (!dir.exists())
                 result.third.forEach {
                     val f = File(familyDescrDir, "${it.name.replace("/", "_")}.vienna")
                     if (!f.exists()) {
-                        println("Dumping 2D ${f.name} in $rfamID (${familyDescrDir.absolutePath}) ")
+                        println("Dumping 2D ${f.name} in $rfamID (${familyDescrDir.invariantSeparatorsPath}) ")
                         val pw = FileWriter(f)
                         writeVienna(it, pw)
                     }

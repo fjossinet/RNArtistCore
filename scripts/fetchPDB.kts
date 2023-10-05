@@ -41,7 +41,7 @@ ids.forEach { pdbId ->
             val tertiaryStructures = parsePDB(FileReader(pdbFile))
             ss {
                 pdb {
-                    file = pdbFile.absolutePath
+                    file = pdbFile.invariantSeparatorsPath
                 }
             }.first.forEach {
                 val s = mutableListOf("[${pdbId}](https://www.rcsb.org/structure/${pdbId})")

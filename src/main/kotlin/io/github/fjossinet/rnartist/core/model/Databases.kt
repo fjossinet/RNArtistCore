@@ -13,16 +13,15 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.collections.HashMap
-import kotlin.io.path.absolutePathString
 import kotlin.io.path.invariantSeparatorsPathString
 import kotlin.io.path.name
 
-class RNArtistDB(val rootAbsolutePath:String) {
+class RNArtistDB(val rootInvariantSeparatorsPath:String) {
     val indexedDirs = mutableListOf<String>()
     private val drawingsDirName = "drawings"
     val indexFile: File
         get() {
-            val f = File(File(this.rootAbsolutePath), ".rnartist_db_index")
+            val f = File(File(this.rootInvariantSeparatorsPath), ".rnartist_db_index")
             if (!f.exists())
                 f.createNewFile()
             else {
@@ -38,8 +37,8 @@ class RNArtistDB(val rootAbsolutePath:String) {
         val dirs = this.searchForNonIndexedDirs()
         val pw =  PrintWriter(FileWriter(this.indexFile, true))
         dirs.forEach {
-            this.indexedDirs.add(it.absolutePath)
-            pw.println(it.absolutePath)
+            this.indexedDirs.add(it.invariantSeparatorsPath)
+            pw.println(it.invariantSeparatorsPath)
         }
         pw.close()
         return dirs
@@ -47,11 +46,13 @@ class RNArtistDB(val rootAbsolutePath:String) {
 
     fun createNewFolder(absPathFolder:String): File? {
         val folder = File(absPathFolder)
-        if (folder.invariantSeparatorsPath.startsWith(this.rootAbsolutePath)) {
+        if (folder.invariantSeparatorsPath.startsWith(this.rootInvariantSeparatorsPath)) {
             folder.mkdir()
             val fw = FileWriter(this.indexFile, true)
             fw.appendLine(absPathFolder)
             fw.close()
+
+            indexedDirs.add(absPathFolder)
 
             this.getScriptFileForDataDir(folder) //we create the script file
             return folder
@@ -88,9 +89,9 @@ class RNArtistDB(val rootAbsolutePath:String) {
 
     fun getDrawingsDirForDataDir(dataDir:File):File {
         val path = Paths.get(
-                this.rootAbsolutePath,
+                this.rootInvariantSeparatorsPath,
                 this.drawingsDirName,
-                *dataDir.invariantSeparatorsPath.split(this.rootAbsolutePath).last().removePrefix(System.getProperty("file.separator"))
+                *dataDir.invariantSeparatorsPath.split(this.rootInvariantSeparatorsPath).last().removePrefix(System.getProperty("file.separator"))
                         .removeSuffix(System.getProperty("file.separator")).split(System.getProperty("file.separator")).toTypedArray()
         ).invariantSeparatorsPathString
         return File(path)
@@ -128,7 +129,7 @@ class RNArtistDB(val rootAbsolutePath:String) {
         return containsStructuralData
     }
 
-    private fun searchForNonIndexedDirs(dirs: MutableList<File> = mutableListOf<File>(), dir: Path = File(this.rootAbsolutePath).toPath()): MutableList<File> {
+    private fun searchForNonIndexedDirs(dirs: MutableList<File> = mutableListOf<File>(), dir: Path = File(this.rootInvariantSeparatorsPath).toPath()): MutableList<File> {
         Files.newDirectoryStream(dir).use { stream ->
             for (path in stream) {
                 if (path.toFile().isDirectory() && path.name != drawingsDirName) {
