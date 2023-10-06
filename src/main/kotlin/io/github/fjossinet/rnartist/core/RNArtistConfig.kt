@@ -430,7 +430,6 @@ object RnartistConfig {
         ThemeProperty.color.toString() to getHTMLColorString(Color.DARK_GRAY),
         ThemeProperty.linewidth.toString() to "1.0",
         ThemeProperty.interactionSymboLShift.toString() to "3.0",
-        ThemeProperty.opacity.toString() to "255", //alpha value goes from 0 to 255
         ThemeProperty.fulldetails.toString() to "false"
     )
 
@@ -438,7 +437,6 @@ object RnartistConfig {
         ThemeProperty.color.toString() to getHTMLColorString(Color.WHITE),
         ThemeProperty.linewidth.toString() to "1.0",
         ThemeProperty.interactionSymboLShift.toString() to "3.0",
-        ThemeProperty.opacity.toString() to "255", //alpha value goes from 0 to 255
         ThemeProperty.fulldetails.toString() to "false"
     )
 

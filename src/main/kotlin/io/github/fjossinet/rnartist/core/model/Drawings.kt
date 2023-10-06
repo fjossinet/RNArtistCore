@@ -120,7 +120,7 @@ enum class SecondaryStructureType {
 }
 
 enum class ThemeProperty {
-    fulldetails, color, linewidth, interactionSymboLShift, phosphodiesterBondShift, opacity
+    fulldetails, color, linewidth, interactionSymboLShift, phosphodiesterBondShift
 }
 
 enum class LayoutProperty {
@@ -354,12 +354,6 @@ class DrawingConfiguration(val defaultParams: Map<String, String>) {
 
     val params: MutableMap<String, String> = mutableMapOf()
 
-    var opacity: Int = defaultParams[ThemeProperty.opacity.toString()]!!.toInt()
-        get() = this.params.getOrDefault(
-            ThemeProperty.opacity.toString(),
-            defaultParams[ThemeProperty.opacity.toString()]!!
-        ).toInt()
-
     var fullDetails: Boolean = defaultParams[ThemeProperty.fulldetails.toString()]!!.toBoolean()
         get() = this.params.getOrDefault(
             ThemeProperty.fulldetails.toString(),
@@ -490,12 +484,12 @@ abstract class DrawingElement(
         return selectedDrawings?.let { selection ->
             if (selectedDrawings.isEmpty() || !this.pathToStructuralDomain().none { selection.contains(it) }) {
                 val _c = this.drawingConfiguration.color
-                Color(_c.red, _c.green, _c.blue, this.getOpacity())
+                Color(_c.red, _c.green, _c.blue)
             } else
                 RnartistConfig.nonSelectedColor
         } ?: run {
             val _c = this.drawingConfiguration.color
-            Color(_c.red, _c.green, _c.blue, this.getOpacity())
+            Color(_c.red, _c.green, _c.blue)
         }
     }
 
@@ -507,8 +501,6 @@ abstract class DrawingElement(
      *
      */
     open fun willBeDrawn() = true
-
-    fun getOpacity() = this.drawingConfiguration.opacity
 
     fun getLineWidth() = this.drawingConfiguration.lineWidth
 
@@ -878,13 +870,13 @@ class SecondaryStructureDrawing(
                 for (newJunction in newBranchConstructed.junctionsFromBranch()) {
                     val circlesAtTheSameLevel = mutableListOf<JunctionDrawing>()
                     for (lastC in lastJunctions) {
-                        if (lastC.circle.bounds.maxY >= newJunction.circle.bounds.minY && lastC.circle.bounds.minY <= newJunction.circle.bounds.maxY) {
+                        if (lastC.circle.bounds2D.maxY >= newJunction.circle.bounds2D.minY && lastC.circle.bounds2D.minY <= newJunction.circle.bounds2D.maxY) {
                             circlesAtTheSameLevel.add(lastC)
                         }
                     }
                     for (cATTheSameLevel in circlesAtTheSameLevel)
-                        if (cATTheSameLevel.circle.bounds.maxX > newJunction.circle.bounds.minX)
-                            allTransX.add(cATTheSameLevel.circle.bounds.maxX - newJunction.circle.bounds.minX + 6.0 * radiusConst)
+                        if (cATTheSameLevel.circle.bounds2D.maxX > newJunction.circle.bounds2D.minX)
+                            allTransX.add(cATTheSameLevel.circle.bounds2D.maxX - newJunction.circle.bounds2D.minX + 6.0 * radiusConst)
                 }
 
                 var transX = allTransX.maxOrNull()!!
@@ -2916,7 +2908,7 @@ abstract class ResidueDrawing(
 
     override val bounds: List<Point2D>
         get() {
-            val b = this.circle.bounds.bounds2D
+            val b = this.circle.bounds2D
             val shift = this.getLineWidth()+radiusConst*0.1
             return listOf(
                 Point2D.Double(b.minX - shift, b.minY - shift),
@@ -2950,7 +2942,7 @@ abstract class ResidueDrawing(
             g.color = this.getLineColor(selectedDrawings)
             g.draw(_c)
             g.stroke = previousStroke
-            if ((absPos % 5 == 0 || absPos == 1 || absPos == ssDrawing.length) && g.font.size - 4 > 4 && this.getOpacity() > 0)
+            if ((absPos % 5 == 0 || absPos == 1 || absPos == ssDrawing.length))
                 this.drawNumbering(g, at)
             this.residueLetter.draw(g, at, drawingArea, selectedDrawings)
         }
@@ -2978,16 +2970,14 @@ abstract class ResidueDrawing(
             if (selectedDrawings.isEmpty() || !this.pathToStructuralDomain().none { selection.contains(it) }) {
                 val _c = this.drawingConfiguration.color
                 Color(
-                    _c.darker().red, _c.darker().green, _c.darker().blue,
-                    this.getOpacity()
+                    _c.darker().red, _c.darker().green, _c.darker().blue
                 )
             } else
                 Color(229, 229, 229)
         } ?: run {
             val _c = this.drawingConfiguration.color
             Color(
-                _c.darker().red, _c.darker().green, _c.darker().blue,
-                this.getOpacity()
+                _c.darker().red, _c.darker().green, _c.darker().blue
             )
         }
     }
@@ -2997,12 +2987,11 @@ abstract class ResidueDrawing(
         val _c = at.createTransformedShape(this.circle)
         if (this.isFullDetails()) {
             val strokeColor = Color(
-                this.getColor().darker().red, this.getColor().darker().green, this.getColor().darker().blue,
-                this.getOpacity()
+                this.getColor().darker().red, this.getColor().darker().green, this.getColor().darker().blue
             )
             if (frame.contains(_c.bounds2D))
                 buffer.append(
-                    """<circle cx="${_c.bounds.centerX}" cy="${_c.bounds.centerY}" r="${_c.bounds.width / 2}" stroke="${
+                    """<circle cx="${_c.bounds2D.centerX}" cy="${_c.bounds2D.centerY}" r="${_c.bounds2D.width / 2}" stroke="${
                         getHTMLColorString(
                             strokeColor
                         )
@@ -3010,7 +2999,7 @@ abstract class ResidueDrawing(
                         this.ssDrawing.zoomLevel.toFloat() * this.getLineWidth().toFloat()
                     }" fill="${getHTMLColorString(this.getColor())}"/>"""
                 )
-            if (this.getOpacity() > 0 && frame.contains(_c.bounds2D)) { //the conditions to draw a letter
+            if (frame.contains(_c.bounds2D)) { //the conditions to draw a letter
                 buffer.append(this.residueLetter.asSVG(at))
             }
         }
@@ -3022,8 +3011,7 @@ abstract class ResidueDrawing(
                     """<text x="${it.second}" y="${it.third}" text-anchor="middle" dy=".3em" style="fill:${
                         getHTMLColorString(
                             Color(
-                                Color.DARK_GRAY.red, Color.DARK_GRAY.green, Color.DARK_GRAY.blue,
-                                this.getOpacity()
+                                Color.DARK_GRAY.red, Color.DARK_GRAY.green, Color.DARK_GRAY.blue
                             )
                         )
                     };font-family:${ssDrawing.workingSession.fontName};font-size:${ssDrawing.workingSession.fontSize - 4};">${it.first}</text>"""
@@ -3031,8 +3019,7 @@ abstract class ResidueDrawing(
                     """<text x="${it.second}" y="${it.third}" style="fill:${
                         getHTMLColorString(
                             Color(
-                                Color.DARK_GRAY.red, Color.DARK_GRAY.green, Color.DARK_GRAY.blue,
-                                this.getOpacity()
+                                Color.DARK_GRAY.red, Color.DARK_GRAY.green, Color.DARK_GRAY.blue
                             )
                         )
                     };font-family:${ssDrawing.workingSession.fontName};font-size:${ssDrawing.workingSession.fontSize - 4};">${it.first}</text>"""
@@ -3042,11 +3029,10 @@ abstract class ResidueDrawing(
         shapesNumbering.forEach {
             buffer.append("<g>")
             buffer.append(
-                """<circle cx="${it.bounds.centerX}" cy="${it.bounds.centerY}" r="${it.bounds.width / 2}"  stroke-width="0.0" fill="${
+                """<circle cx="${it.bounds2D.centerX}" cy="${it.bounds2D.centerY}" r="${it.bounds2D.width / 2}"  stroke-width="0.0" fill="${
                     getHTMLColorString(
                         Color(
-                            Color.DARK_GRAY.red, Color.DARK_GRAY.green, Color.DARK_GRAY.blue,
-                            this.getOpacity()
+                            Color.DARK_GRAY.red, Color.DARK_GRAY.green, Color.DARK_GRAY.blue
                         )
                     )
                 }"/>"""
@@ -3058,13 +3044,12 @@ abstract class ResidueDrawing(
 
     private fun drawNumbering(g: Graphics2D, at: AffineTransform) {
         g.color = Color(
-            Color.DARK_GRAY.red, Color.DARK_GRAY.green, Color.DARK_GRAY.blue,
-            this.getOpacity()
+            Color.DARK_GRAY.red, Color.DARK_GRAY.green, Color.DARK_GRAY.blue
         )
         val n = "$absPos".length
         var p: Pair<Point2D, Point2D>? = null
         var e: Shape? = null
-        g.font = Font(g.font.fontName, g.font.style, g.font.size - 4)
+        g.font = Font(g.font.fontName, g.font.style, g.font.size/2)
         val numberDim = getStringBoundsRectangle2D(g, "0", g.font)
         (this.parent as? SecondaryInteractionDrawing)?.let {
             val pairedCenter = (if (it.residue == this) it.pairedResidue else it.residue).center
@@ -3959,22 +3944,22 @@ open class JunctionDrawing(
 
     val minX: Double
         get() {
-            return this.junctionsFromBranch().minByOrNull { it.circle.bounds.minX }!!.circle.bounds.minX
+            return this.junctionsFromBranch().minByOrNull { it.circle.bounds2D.minX }!!.circle.bounds2D.minX
         }
 
     val minY: Double
         get() {
-            return this.junctionsFromBranch().minByOrNull { it.circle.bounds.minY }!!.circle.bounds.minY
+            return this.junctionsFromBranch().minByOrNull { it.circle.bounds2D.minY }!!.circle.bounds2D.minY
         }
 
     val maxX: Double
         get() {
-            return this.junctionsFromBranch().maxByOrNull { it.circle.bounds.maxX }!!.circle.bounds.maxX
+            return this.junctionsFromBranch().maxByOrNull { it.circle.bounds2D.maxX }!!.circle.bounds2D.maxX
         }
 
     val maxY: Double
         get() {
-            return this.junctionsFromBranch().maxByOrNull { it.circle.bounds.maxY }!!.circle.bounds.maxY
+            return this.junctionsFromBranch().maxByOrNull { it.circle.bounds2D.maxY }!!.circle.bounds2D.maxY
         }
 
     val junctionType = this.junction.junctionType
@@ -4559,7 +4544,7 @@ open class JunctionDrawing(
         val _c = at.createTransformedShape(this.circle)
         if (!this.isFullDetails() && this.getLineWidth() > 0 && frame.contains(_c.bounds2D)) {
             buffer.append(
-                """<circle cx="${_c.bounds.centerX}" cy="${_c.bounds.centerY}" r="${_c.bounds.width / 2}" stroke="${
+                """<circle cx="${_c.bounds2D.centerX}" cy="${_c.bounds2D.centerY}" r="${_c.bounds2D.width / 2}" stroke="${
                     getHTMLColorString(
                         this.getColor()
                     )
