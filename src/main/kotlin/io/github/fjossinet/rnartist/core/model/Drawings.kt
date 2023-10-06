@@ -2908,7 +2908,7 @@ abstract class ResidueDrawing(
 
     override val bounds: List<Point2D>
         get() {
-            val b = this.circle.bounds2D
+            val b = this.circle.bounds.bounds2D
             val shift = this.getLineWidth()+radiusConst*0.1
             return listOf(
                 Point2D.Double(b.minX - shift, b.minY - shift),
@@ -2991,7 +2991,7 @@ abstract class ResidueDrawing(
             )
             if (frame.contains(_c.bounds2D))
                 buffer.append(
-                    """<circle cx="${_c.bounds2D.centerX}" cy="${_c.bounds2D.centerY}" r="${_c.bounds2D.width / 2}" stroke="${
+                    """<circle cx="${_c.bounds2D.centerX}" cy="${_c.bounds2D.centerY}" r="${_c.bounds2D.width / 2.0}" stroke="${
                         getHTMLColorString(
                             strokeColor
                         )
@@ -3029,7 +3029,7 @@ abstract class ResidueDrawing(
         shapesNumbering.forEach {
             buffer.append("<g>")
             buffer.append(
-                """<circle cx="${it.bounds2D.centerX}" cy="${it.bounds2D.centerY}" r="${it.bounds2D.width / 2}"  stroke-width="0.0" fill="${
+                """<circle cx="${it.bounds2D.centerX}" cy="${it.bounds2D.centerY}" r="${it.bounds2D.width / 2.0}"  stroke-width="0.0" fill="${
                     getHTMLColorString(
                         Color(
                             Color.DARK_GRAY.red, Color.DARK_GRAY.green, Color.DARK_GRAY.blue
@@ -3049,7 +3049,7 @@ abstract class ResidueDrawing(
         val n = "$absPos".length
         var p: Pair<Point2D, Point2D>? = null
         var e: Shape? = null
-        g.font = Font(g.font.fontName, g.font.style, g.font.size/2)
+        g.font = Font(g.font.fontName, g.font.style, g.font.size - 4)
         val numberDim = getStringBoundsRectangle2D(g, "0", g.font)
         (this.parent as? SecondaryInteractionDrawing)?.let {
             val pairedCenter = (if (it.residue == this) it.pairedResidue else it.residue).center
@@ -4544,7 +4544,7 @@ open class JunctionDrawing(
         val _c = at.createTransformedShape(this.circle)
         if (!this.isFullDetails() && this.getLineWidth() > 0 && frame.contains(_c.bounds2D)) {
             buffer.append(
-                """<circle cx="${_c.bounds2D.centerX}" cy="${_c.bounds2D.centerY}" r="${_c.bounds2D.width / 2}" stroke="${
+                """<circle cx="${_c.bounds2D.centerX}" cy="${_c.bounds2D.centerY}" r="${_c.bounds2D.width / 2.0}" stroke="${
                     getHTMLColorString(
                         this.getColor()
                     )
