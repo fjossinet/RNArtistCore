@@ -30,36 +30,35 @@ From any directory, type:
 RNArtistCore can be added as a dependency into your own projects. No stable release for now, only snapshots. To use RNArtistCore in your Java application, just add the below dependency in your file pom.xml:
 
 ```xml
-    <repositories>
-  <repository>
-    <id>maven-snapshots</id>
-    <url>http://oss.sonatype.org/content/repositories/snapshots</url>
-    <layout>default</layout>
-    <releases>
-      <enabled>false</enabled>
-    </releases>
-    <snapshots>
-      <enabled>true</enabled>
-    </snapshots>
-  </repository>
-</repositories>
-
-<dependencies>
-<dependency>
-  <groupId>io.github.fjossinet.rnartist</groupId>
-  <artifactId>rnartistcore</artifactId>
-  <version>0.3.4-SNAPSHOT</version>
-</dependency>
-</dependencies>
+  <repositories>
+      <repository>
+        <id>maven-snapshots</id>
+        <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+        <layout>default</layout>
+        <releases>
+          <enabled>false</enabled>
+        </releases>
+        <snapshots>
+          <enabled>true</enabled>
+        </snapshots>
+      </repository>
+  </repositories>
+  
+  <dependencies>
+    <dependency>
+      <groupId>io.github.fjossinet.rnartist</groupId>
+      <artifactId>rnartistcore</artifactId>
+      <version>0.3.4-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
 ```
-
-
 # <a name="dsl"></a>How to write your drawing script?
 
 RNArtistCore exposes a language to write your drawing instructions more easily. All the examples described in this README are available in the file [scripts/readme_plots.kts](scripts/readme_plots.kts). 
 
 Please note that this is still a work under development and that all instructions are not stable. You can take a look at the [changelog](Changelog.md) for details concerning the modifications. 
 
+* [Important syntax rules](#important-syntax-rules)
 * [The **```rnartist```** element](#rnartist)
 * [The **```svg```** and **```png```** elements](#output) 
 * [The **```ss```** element](#ss)
@@ -167,6 +166,27 @@ Two algorithms are available:
 
 Both algorithms need a secondary structure element. A drawing can be saved in an SVG or PNG file. The name of the RNA molecule will be used for the filename. Each algorithm has its own parameters to configure the drawing process and the final result.
 
+## <a name="important-syntax-rules"></a> ***Important syntax rules***
+
+* a path has to be defined using the invariant separator "/", even if you're using Windows. For example:
+
+```kotlin
+rnartist {
+  svg {
+    path = "C:/Users/me/svg/"    
+  }
+  
+  ss {
+    vienna {
+      file = "C:/Users/me/vienna/test.vienna"
+    }
+  }
+}
+```
+* if a path doesn't start with "/" (Linux/MacOS) or "[A-Z]:/" (Windows), it is considered as a relative path (meaning that it is added to the absolute path of the rnartistcore jar file used to run the script).
+* the data element has to be defined before any layout or theme element
+* only a single layout, theme or data element is expected inside an rnartist element. The syntax will evolve to allow several data elements (one per dataset) with the ability to choose the dataset to be used. 
+* if several 2Ds are loaded at once, beside the SVG/PNG exports, RNArtistCore will also generate a copy of the running script for each 2D computed. If your input for the 2D was a file (Vienna for exemple), this script will have the same name and location. If the 2D was described inside the script (using a bracket notation for example), the file will have the same location than the rnartistcore jar and the name you gave to the 2D in the script. Each script will have the same instructions than the original one, except that it will only target a single 2D. You can then modify this script (layout, theme, output size,...) and run it without impacting the other 2Ds.
 ## <a name="rnartist"></a> ***The **```rnartist```** element***
 
 The parameters available for this algorithm are:
@@ -180,7 +200,7 @@ The parameters available for this algorithm are:
 
 The parameters available are:
 
-* **path** (mandatory): the path for the saving directory. The file will be created in this directory and its name will correspond to the name of the RNA molecule.
+* **path** (mandatory): the path for the saving directory. The file will be created in this directory and its name will correspond to the name of the input file or the name of the molecule if the 2D was not described in a local file (see below).
 
 ```kotlin
 rnartist {
@@ -368,7 +388,7 @@ rnartist {
     }
   }
 }
-```
+```x
 
 #### <a name="file"></a>The ```bpseq```, ```ct```, ```vienna```, ```pdb``` and ```stockholm``` elements
 
@@ -1386,7 +1406,7 @@ rnartist {
 
 ## <a name="data"></a> The **```data```** element
 
-Datasets can be linked to an RNA secondary structure. You can either fill the dataset within the script, or load it from a file.
+Datasets can be linked to an RNA secondary structure. You can either define the entire dataset directly inside the script, or load it from a local file.
 The ```data``` element has to be defined **before** the elements theme and layout.
 
 ```kotlin
@@ -1421,6 +1441,15 @@ rnartist {
         file = "/project/QuSHAPE_01_shape_mode_reactivities.txt"
     }
 }
+```
+
+The structure of a local file describing a dataset is really simple. It's a text file where each line describes the absolute_position in the RNA and its linked experimental value. The two fields are separated with a space character:
+
+```
+1 30.2
+2 56.8
+10 2.0
+127 18.7
 ```
 
 The values linked to each residue can be used as a selection criteria to define the colors, line width and details level.
