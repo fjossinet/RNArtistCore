@@ -2,6 +2,194 @@ package io.github.fjossinet.rnartist.core.model
 
 import java.io.Serializable
 import java.util.*
+import kotlin.random.Random
+
+class FoldingMatrix(val sequence:String) {
+
+    private var matrix:MutableList<MutableList<Int>> = mutableListOf()
+
+    init {
+        this.matrix.clear()
+        (0 until sequence.length).forEach {
+            this.matrix.add(MutableList(sequence.length) {0})
+        }
+        var column = 0
+        var row = 0
+        while (row <= sequence.length-1) {
+            var r = row
+            var c = column
+            while (r >= 0 && c <= sequence.length - 1) {
+                if (sequence[r] == 'A' && sequence[c] == 'U' ||
+                    sequence[r] == 'U' && sequence[c] == 'A' ||
+                    sequence[r] == 'G' && sequence[c] == 'U' ||
+                    sequence[r] == 'U' && sequence[c] == 'G' ||
+                    sequence[r] == 'G' && sequence[c] == 'C' ||
+                    sequence[r] == 'C' && sequence[c] == 'G'
+                ) {
+                    this.matrix[r][c] = this.matrix[r + 1][c - 1] + 1
+                }
+
+                if (r == 0)
+                    break
+                r -= 1
+                c += 1
+            }
+            if (row == column)
+                column += 1
+            else
+                row += 1
+        }
+    }
+
+    /**
+     * Find all the helices with the end equal to the transcription step
+     * @param maxLength if true, will only return the helices with the max length
+     */
+    fun findHelicesAt(transcriptionStep:Int, maxLength:Boolean = true):List<Helix> {
+        val helices= mutableListOf<Helix>()
+        var row = 0
+        while (row <= transcriptionStep-1) {
+            val helixLength = this.matrix[row][transcriptionStep - 1]
+            val helixStart = row+1
+            val helixEnd = transcriptionStep
+            val interstrandDistance =
+                (helixEnd - helixLength + 1) - (helixStart + helixLength - 1) - 1
+            if (helixLength >= 2) {
+                if (interstrandDistance >= 4) {
+                    helices.add(
+                        Helix(
+                            Location(
+                                Location(helixStart, helixStart+helixLength-1),
+                                Location(
+                                    helixEnd-helixLength+1,
+                                    helixEnd
+                                )
+                            )
+                        )
+                    )
+                }
+            }
+            row += 1
+        }
+        return if (helices.isNotEmpty() && maxLength) {
+            val max = helices.maxBy { it.length }.length
+            helices.filter { it.length >= max }.sortedBy { it.start }
+        }
+        else
+            helices.sortedBy { it.start }
+    }
+
+    /**
+     * Return one of the 2D at the end of the transcription process
+     */
+    fun randomFinalStructure():SecondaryStructure {
+        val former2D = mutableListOf<Helix>()
+        for (step in 1..this.sequence.length) {
+            val helices = this.findHelicesAt(step)
+            if (former2D.isEmpty() && helices.isNotEmpty()) //this means that this is the first folding found
+                former2D.add(helices.first())
+            else if (helices.isNotEmpty()) { //otherwise we use the former 2D to find the potential next ones...
+                val newPotential2Ds = newStructuresAt(step, former2D)
+                if (newPotential2Ds.isNotEmpty()) {
+                    former2D.clear()
+                    former2D.addAll(
+                        newPotential2Ds.get(
+                            Random.nextInt(
+                                0,
+                                newPotential2Ds.size
+                            )
+                        )
+                    ) //and we choose a random one as the new former2D
+                }
+            }
+        }
+        return SecondaryStructure(RNA("test", this.sequence), helices = former2D)
+    }
+
+    /**
+     * return a list of secondary structures (described as a list of helices) that can appear at a given transcription step.
+     * @param transcriptionStep: the transcription step when the new structures appear.
+     * @param former2D: the 2D that will give birth to the new ones at this transcription step
+     * @return a list of new 2D structures (each one as a list of helices). In each new 2D, a single helix has its end value equal to the transcription step
+     */
+    fun newStructuresAt(transcriptionStep:Int, former2D:List<Helix>):List<List<Helix>> {
+        val rna = RNA(seq = this.sequence.substring(
+            0,
+            transcriptionStep
+        ))
+        val new2Ds = mutableListOf<List<Helix>>()
+        val _newHelices = this.findHelicesAt(transcriptionStep) //we get all the helices that appears at this transcription step
+        newHelices@for (newHelix in _newHelices) {
+            val positionsMadeFree = mutableSetOf<Int>()
+            //first we check if the newHelix length is greater than the total length of the former helices intersected (if any)
+            val intersectedHelices = mutableListOf<Helix>()
+            for (formerHelix in former2D) {
+                if (intersect(formerHelix, newHelix)) {
+                    intersectedHelices.add(formerHelix)
+                    positionsMadeFree.addAll(formerHelix.location.positions)
+                }
+            }
+            if (intersectedHelices.sumOf { it.length } > newHelix.length) //this new helix cannot be selected to produce a new 2D
+                continue@newHelices
+            //this new helix at this transcription step can be selected to produce a new 2D
+            val new2D = mutableListOf<Helix>()
+            new2D.add(newHelix)
+            former2D.forEach { //we copy the helices from the former2D into the new one if not intersecting the new helix that gives birth to the new 2D
+                if (!intersectedHelices.contains(it))
+                    new2D.add(it)
+            }
+            //we check if other helices can be simply added to the new 2D
+            positionsMadeFree.sorted().forEach { s ->
+                val _helices = this.findHelicesAt(s)
+                outer@for (h1 in _helices) {
+                    if (!intersectedHelices.contains(h1)) {
+                        for (h2 in new2D) {
+                            if (intersect(h1, h2))
+                                continue@outer
+                        }
+                        new2D.add(h1)
+                    }
+                }
+            }
+            if (validate2D(new2D, rna)) //if the helices create a 2D that fit the validation criteria, it will be returned to the caller
+                new2Ds.add(new2D.sortedBy { it.start })
+        }
+        return new2Ds
+    }
+
+    /**
+     * Validate a 2D according to several criteria :
+     *  - strands in junctions cannot be longer than 10 nts
+     */
+    private fun validate2D(helices:List<Helix>, rna:RNA):Boolean {
+        val ss = SecondaryStructure(rna = rna, helices = helices)
+        ss.junctions.forEach { junction ->
+            if (junction.location.blocks.any { it.length > 10 })
+                return false
+            return when (junction.junctionType) {
+                JunctionType.ApicalLoop -> {
+                    return true
+                }
+
+                JunctionType.InnerLoop -> {
+                    return true
+                }
+
+                else -> {
+                    true
+                }
+            }
+
+        }
+        return true
+    }
+
+    fun intersect(h1:Helix, h2:Helix) = !(h1.location.ends[1] < h2.start && h1.location.ends[2] > h2.end ||
+            h1.location.ends[0] > h2.start + h2.length - 1 && h1.location.ends[3] < h2.end - h2.length + 1 ||
+            h1.location.ends[3] < h2.start ||
+            h1.location.ends[0] > h2.end)
+
+}
 
 /**
  * Represents a set of contiguous positions, from start to end.
