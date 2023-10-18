@@ -1676,10 +1676,9 @@ fun randomRNA(size: Int): RNA {
  * The pairingDensity is the percent of residues paired
  * @return in a Pair, (first) the bracket notation computed and (second) the number of basepairs not realized
  */
-fun randomBn(size:Int, pairingDensity:Double = 0.5):Pair<String, Int> {
+fun randomBn(size:Int, pairingDensity:Double = 0.5, meanHelixSize:Int =  4):Pair<String, Int> {
     var basePairsCount = ((size*pairingDensity)/2.0).toInt() //number of base-pairs
     var ss = SecondaryStructure(randomRNA(size), bracketNotation = (1..size).map { "." }.joinToString(separator = ""))
-    val meanHelixSize = 4
     val helixSizesTested = mutableListOf<Int>()
     while (basePairsCount >= 2) {
         if (helixSizesTested.size == meanHelixSize*2-2+1-2) //we have tested all the possible sizes, this is the end of the process

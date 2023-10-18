@@ -60,15 +60,29 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
         return null
     }
 
-    fun addAndPlotViennaFile(fileName:String, dataDir:File, ss:SecondaryStructure):File {
+    /**
+     * Create and return the dsl script to save and plot a secondary structure in the database.
+     * An RNArtistEl root can be provided (containing custom layout, theme,...) otherwie a default one will be generated.
+     * A PNGEl will be added to this root to generate the png thumbnail
+     * A VienneEl  will be added to this root to generate the vienna file
+     * @return a file for the dsl script. This file has been created in the dataDir given as argument. This script needs now to be evaluated in order to produce the vienna and png files at the right places.
+     */
+    fun addAndPlot2D(fileName:String, dataDir:File, ss:SecondaryStructure, rnArtistEl: RNArtistEl? = null):File {
 
-        val viennaFile = File(dataDir, "$fileName.vienna")
+        var realFileName = fileName
+        var i = 1
+        if (dataDir.listFiles().map { it.name }.contains("$realFileName.vienna")) {
+            realFileName = "${fileName}_$i"
+            i++
+        }
+
+        val viennaFile = File(dataDir, "$realFileName.vienna")
         writeVienna(
             ss,
             PrintWriter(viennaFile)
         )
 
-        val rnartistEl = initScript()
+        val rnartistEl = rnArtistEl ?: initScript()
 
         with (rnartistEl.addPNG()) {
             this.setPath(getDrawingsDirForDataDir(dataDir).invariantSeparatorsPath)
@@ -81,7 +95,7 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
 
         val scriptContent = rnartistEl.dump().toString()
 
-        val script = File(dataDir, "${fileName}.kts")
+        val script = File(dataDir, "${realFileName}.kts")
         script.createNewFile()
         script.writeText(scriptContent)
         return script
