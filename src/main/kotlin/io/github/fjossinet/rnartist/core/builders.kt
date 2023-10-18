@@ -80,9 +80,18 @@ class PartsBuilder {
 }
 
 class BracketNotationBuilder {
-    var value: String = "(((...)))"
     var name: String = "A"
     var seq: String? = null
+    var value: String = "(((...)))"
+    val dslElement = BracketNotationEl()
+        get() {
+            field.setName(this.name)
+            field.setValue(this.value)
+            this.seq?.let {
+                field.setSeq(it)
+            }
+            return field
+        }
 
     fun build(): SecondaryStructure {
         this.seq?.let {
@@ -95,7 +104,8 @@ class BracketNotationBuilder {
             bracketNotation = value.trim(),
             source = BracketNotation()
         )
-        ss.randomizeSeq()
+        ss.randomizeSeq() //to have now a seq that fits the structural constraints
+        this.seq = ss.rna.seq
         return ss
     }
 }
@@ -157,6 +167,7 @@ class SecondaryStructureBuilder {
         bnBuilder.setup()
         bnBuilder.build().let {
             secondaryStructures.add(it)
+            this.dslElement.addBracketNotation(bnBuilder.dslElement)
         }
     }
 
