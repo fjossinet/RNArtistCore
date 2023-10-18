@@ -84,7 +84,7 @@ fun parseRnaml(f: File?): List<SecondaryStructure> {
                     )
                 }
             }
-            secondaryStructures.add(SecondaryStructure(m, null, bps))
+            secondaryStructures.add(SecondaryStructure(m, basePairs =  bps))
         }
     }
     return secondaryStructures

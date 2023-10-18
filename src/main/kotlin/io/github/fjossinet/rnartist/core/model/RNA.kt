@@ -1141,7 +1141,7 @@ class SecondaryStructure(
 
         bps = when {
             basePairs != null -> {
-                basePairs.toMutableList()
+                basePairs.sortedBy { it.start }.toMutableList()
             }
             bracketNotation != null -> {
                 toBasePairs(bracketNotation)
@@ -1152,7 +1152,7 @@ class SecondaryStructure(
         }
 
         helices?.let {
-            this.helices.addAll(it)
+            this.helices.addAll(it.sortedBy { it.start })
         }
 
         //do we have an aligned RNA sequence containing gaps??
@@ -1670,6 +1670,53 @@ fun randomRNA(size: Int): RNA {
         .map(residues::get)
         .joinToString("")
     return RNA("random rna", seq)
+}
+
+/**
+ * The pairingDensity is the percent of residues paired
+ * @return in a Pair, (first) the bracket notation computed and (second) the number of basepairs not realized
+ */
+fun randomBn(size:Int, pairingDensity:Double = 0.5):Pair<String, Int> {
+    var basePairsCount = ((size*pairingDensity)/2.0).toInt() //number of base-pairs
+    var ss = SecondaryStructure(randomRNA(size), bracketNotation = (1..size).map { "." }.joinToString(separator = ""))
+    val meanHelixSize = 4
+    val helixSizesTested = mutableListOf<Int>()
+    while (basePairsCount >= 2) {
+        if (helixSizesTested.size == meanHelixSize*2-2+1-2) //we have tested all the possible sizes, this is the end of the process
+            break
+        var newHelixSize = Random.nextInt(2, (meanHelixSize*2-2)+1)
+        while (helixSizesTested.contains(newHelixSize)) {
+            newHelixSize = Random.nextInt(2, (meanHelixSize*2-2)+1)
+        }
+        if (newHelixSize > basePairsCount)
+            newHelixSize = basePairsCount
+        //now we search for a random location in one of the blocks from junction available
+        val blocks = ss.junctions.filter { it.junctionType != JunctionType.Flower }.flatMap { it.locationWithoutSecondaries.blocks }.toMutableList() //we exclude the junctions with the highest type, otherwise the engine will not be able to handle it
+        blocks.addAll(ss.singleStrands.map{ it.location.blocks.first()})
+        val blocksThatCanHostHelix = blocks.filter { it.length >=  newHelixSize*2+4} //the size of a block need to be the size of the helix + a 4-length apical loop
+
+        if (blocksThatCanHostHelix.isNotEmpty()) {
+            basePairsCount -= newHelixSize //now we are sure to place this new helix. We can decrease the counter
+            //we randomly choose a block that can host the helix
+            val block = blocksThatCanHostHelix.get(Random.nextInt(0, blocksThatCanHostHelix.size))
+            //the helix will start at a random position between the start of the block and the position to have enough residues to make the helix + a 4-length apical loop
+            val helixStart = Random.nextInt(block.start, block.end-(newHelixSize*2+4)+2)
+            //we have enough free space for a 4-length apical loop in this block. But perhaps we can have a random larger one (otherwise all the apical loops will be of size 4)....
+            val apicalLoopStart = helixStart+newHelixSize
+            val farthestPossibleEnd = block.end-newHelixSize
+            val apicalLoopEnd = Random.nextInt(apicalLoopStart, farthestPossibleEnd+1)
+            val newSetOfHelices = ss.helices
+            val helix = Helix(Location(listOf(Block(helixStart, apicalLoopStart-1), Block(apicalLoopEnd+1, helixStart+newHelixSize*2+4-1))))
+            newSetOfHelices.add(helix)
+            ss = SecondaryStructure(ss.rna, helices = newSetOfHelices)
+            val blocks = ss.junctions.flatMap { it.locationWithoutSecondaries.blocks }.toMutableList()
+            blocks.addAll(ss.singleStrands.map{ it.location.blocks.first()})
+            helixSizesTested.clear()
+        } else {
+            helixSizesTested.add(newHelixSize) //we found no blocks that can accepts this helix size, we will test another ones.
+        }
+    }
+    return Pair(ss.toBracketNotation(), basePairsCount)
 }
 
 fun getSource(s: String): DataSource? {

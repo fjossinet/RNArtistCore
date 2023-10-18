@@ -24,7 +24,6 @@ fun randomColor():Color {
     return Color(red, green, blue)
 }
 
-
 @Throws(IOException::class)
 fun getUserDir(): File {
     val root = File(StringBuffer(System.getProperty("user.home")).append(System.getProperty("file.separator")).append(".rnartist").toString())

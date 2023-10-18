@@ -62,7 +62,6 @@ class PartsBuilder {
                     helices.add(h)
                 }
             }
-            helices.sortBy { it.start }
             rnaBuilder.build()?.let { rna ->
                 val ss = SecondaryStructure(rna, helices = helices)
                 if (rnaBuilder.seq == null) {

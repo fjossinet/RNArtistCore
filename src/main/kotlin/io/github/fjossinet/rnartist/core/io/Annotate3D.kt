@@ -52,7 +52,6 @@ class Annotate3D {
                     }
                 }
             }
-            basePairs.sortBy { it.start }
             val ss = SecondaryStructure(RNA(ts.rna.name, StringBuffer(ts.rna.seq).toString()), basePairs = basePairs)
             ss.name = ts.rna.name
             val ns = mutableMapOf<Int,String>()
