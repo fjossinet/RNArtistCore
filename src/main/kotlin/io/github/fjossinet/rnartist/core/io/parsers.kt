@@ -396,8 +396,8 @@ fun parseBPSeq(reader: Reader): SecondaryStructure {
 fun writeVienna(ss:SecondaryStructure, writer: Writer) {
     val pw = PrintWriter(writer)
     pw.println(">${ss.rna.name}")
-    pw.println("${ss.rna.seq}")
-    pw.println("${ss.toBracketNotation()}")
+    pw.println(ss.rna.seq)
+    pw.println(ss.toBracketNotation())
     pw.close()
 }
 

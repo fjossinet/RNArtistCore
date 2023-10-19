@@ -1480,7 +1480,10 @@ class SecondaryStructure(
         }
     }
 
-    fun toBracketNotation(): String {
+    /**
+     * @param location restricted to this location
+     */
+    fun toBracketNotation(location:Location? = null): String {
         val bn = CharArray(this.rna.length)
         for (i in 0 until this.rna.length) bn[i] = '.'
         for (helix in this.helices) {
@@ -1493,7 +1496,11 @@ class SecondaryStructure(
             bn[bp.start - 1] = '('
             bn[bp.end - 1] = ')'
         }
-        return String(bn)
+        return location?.let {
+            String(bn.sliceArray(location.positions.map { it-1 }))
+        } ?: run {
+            String(bn)
+        }
     }
 
     override fun toString() = this.name
