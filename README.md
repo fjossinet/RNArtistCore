@@ -388,7 +388,7 @@ rnartist {
     }
   }
 }
-```x
+```
 
 #### <a name="file"></a>The ```bpseq```, ```ct```, ```vienna```, ```pdb``` and ```stockholm``` elements
 
