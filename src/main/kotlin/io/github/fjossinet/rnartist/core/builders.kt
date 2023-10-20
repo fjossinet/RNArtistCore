@@ -8,8 +8,6 @@ import java.io.File
 import java.io.FileReader
 import java.io.IOException
 import java.lang.Exception
-import java.nio.file.FileSystems.*
-import kotlin.io.path.invariantSeparatorsPathString
 import kotlin.random.Random
 
 class RNABuilder {
@@ -802,7 +800,24 @@ class RNArtistBuilder {
                                 source.getId().split(".").let {
                                     dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
                                 }
+                            } else if (source.getId().endsWith(".ct")) {
+                                val ssElement =
+                                    this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
+                                val ctElement = ssElement.addCT()
+                                ctElement.setFile(source.getId())
 
+                                source.getId().split(".").let {
+                                    dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
+                                }
+                            }  else if (source.getId().endsWith(".bpseq")) {
+                                val ssElement =
+                                    this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
+                                val bpseqElement = ssElement.addBPSeq()
+                                bpseqElement.setFile(source.getId())
+
+                                source.getId().split(".").let {
+                                    dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
+                                }
                             }
                         }
 
@@ -826,16 +841,14 @@ class RNArtistBuilder {
                 }
                 this.rnartistElement.addPNG(pngOutputBuilder.dslElement)
                 pngOutputBuilder.build(drawing)
-                if (this.secondaryStructures.size > 1 ) { //several 2Ds have been drawn and for each 2D, we generate a dedicated script
-                    dataPath?.let { dataPath ->
-                        val f = if (dataPath.startsWith("/") || dataPath.matches(Regex("^[A-Z]:/.+$")))
-                            File("${dataPath}.kts")
-                        else
-                            File("${Jar().path()}/${dataPath}.kts")
-                        if (!f.exists()) {
-                            f.createNewFile()
-                            f.writeText( rnartistElement.dump().toString())
-                        }
+                dataPath?.let { dataPath ->
+                    val f = if (dataPath.startsWith("/") || dataPath.matches(Regex("^[A-Z]:/.+$")))
+                        File("${dataPath}.kts")
+                    else
+                        File("${Jar().path()}/${dataPath}.kts")
+                    if (!f.exists()) {
+                        f.createNewFile()
+                        f.writeText( rnartistElement.dump().toString())
                     }
                 }
             }
@@ -848,6 +861,24 @@ class RNArtistBuilder {
                                     this.rnartistElement.addSS() //only a single ss element is allowed the previous one is removed
                                 val viennaElement = ssElement.addVienna()
                                 viennaElement.setFile(source.getId())
+                                source.getId().split(".").let {
+                                    dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
+                                }
+                            } else if (source.getId().endsWith(".ct")) {
+                                val ssElement =
+                                    this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
+                                val ctElement = ssElement.addCT()
+                                ctElement.setFile(source.getId())
+
+                                source.getId().split(".").let {
+                                    dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
+                                }
+                            }  else if (source.getId().endsWith(".bpseq")) {
+                                val ssElement =
+                                    this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
+                                val bpseqElement = ssElement.addBPSeq()
+                                bpseqElement.setFile(source.getId())
+
                                 source.getId().split(".").let {
                                     dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
                                 }
@@ -874,17 +905,15 @@ class RNArtistBuilder {
                 }
                 this.rnartistElement.addSVG(svgOutputBuilder.dslElement)
                 svgOutputBuilder.build(drawing)
-                if (this.secondaryStructures.size > 1 ) { //several 2Ds have been drawn and for each 2D, we generate a dedicated script
-                    dataPath?.let { dataPath ->
-                        val f = if (dataPath.startsWith("/") || dataPath.matches(Regex("^[A-Z]:/.+$")))
-                            File("${dataPath}.kts")
-                        else
-                            File("${Jar().path()}/${dataPath}.kts")
+                dataPath?.let { dataPath ->
+                    val f = if (dataPath.startsWith("/") || dataPath.matches(Regex("^[A-Z]:/.+$")))
+                        File("${dataPath}.kts")
+                    else
+                        File("${Jar().path()}/${dataPath}.kts")
 
-                        if (!f.exists()) {
-                            f.createNewFile()
-                            f.writeText( rnartistElement.dump().toString())
-                        }
+                    if (!f.exists()) {
+                        f.createNewFile()
+                        f.writeText( rnartistElement.dump().toString())
                     }
                 }
             }

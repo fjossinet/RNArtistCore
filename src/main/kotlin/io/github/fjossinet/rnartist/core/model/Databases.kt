@@ -126,7 +126,11 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
                 this.setHeight(250.0)
             }
 
-            rnartistEl.addSS().addVienna().setPath(dataDir.invariantSeparatorsPath)
+            with (rnartistEl.addSS()) {
+                this.addVienna().setPath(dataDir.invariantSeparatorsPath)
+                this.addCT().setPath(dataDir.invariantSeparatorsPath)
+                this.addBPSeq().setPath(dataDir.invariantSeparatorsPath)
+            }
 
             script.writeText(rnartistEl.dump().toString())
         }
