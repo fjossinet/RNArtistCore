@@ -18,7 +18,7 @@
 
     <groupId>io.github.fjossinet.rnartist</groupId>
     <artifactId>rnartistcore</artifactId>
-    <version>0.3.8-SNAPSHOT</version>
+    <version>0.3.9-SNAPSHOT</version>
 
     <name>RNArtist Core</name>
     <description>A Kotlin library to create and plot RNA 2D structures</description>

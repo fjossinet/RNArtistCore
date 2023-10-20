@@ -63,7 +63,7 @@ class PartsBuilder {
                 }
             }
             rnaBuilder.build()?.let { rna ->
-                val ss = SecondaryStructure(rna, helices = helices)
+                val ss = SecondaryStructure(rna, helices = helices, source = Parts())
                 if (rnaBuilder.seq == null) {
                     //this means that the sequence is a random one, but then nnot fitting the structural constraints. So we generate a new one fitting the constraints
                     ss.randomizeSeq()
@@ -274,6 +274,10 @@ class PNGBuilder : OutputFileBuilder() {
                             drawing.secondaryStructure.name
                         }
 
+                        is Parts -> {
+                            drawing.secondaryStructure.name
+                        }
+
                         else -> {
                             null
                         }
@@ -338,6 +342,10 @@ class SVGBuilder : OutputFileBuilder() {
                         }
 
                         is BracketNotation -> {
+                            drawing.secondaryStructure.name
+                        }
+
+                        is Parts -> {
                             drawing.secondaryStructure.name
                         }
 
@@ -760,7 +768,7 @@ class RNArtistBuilder {
     private var blenderOutputBuilder: BlenderBuilder? = null
     var secondaryStructures = mutableListOf<SecondaryStructure>()
     var theme: Theme? = null
-    var data: MutableMap<String, Double> = mutableMapOf()
+    var data: MutableMap<Int, Double> = mutableMapOf()
     private var layout: Layout? = null
 
     fun build(): Pair<List<SecondaryStructureDrawing>, RNArtistEl> {
@@ -951,12 +959,12 @@ class DataBuilder {
             field = value
             File(value).readLines().forEach {
                 val tokens = it.split(" ")
-                data[tokens[0]] = tokens[1].toDouble()
+                data[tokens[0].toInt()] = tokens[1].toDouble()
             }
         }
-    var data = mutableMapOf<String, Double>()
+    var data = mutableMapOf<Int, Double>()
 
-    infix fun String.to(i: Double) {
+    infix fun Int.to(i: Double) {
         data[this] = i
     }
 
@@ -1119,7 +1127,7 @@ class JunctionLayoutBuilder {
     }
 }
 
-class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
+class ThemeBuilder(data: MutableMap<Int, Double> = mutableMapOf()) {
     private val themeConfigurationBuilders = mutableListOf<ThemeConfigurationBuilder>()
     private val data = data.toMutableMap()
     val dslElement = ThemeEl()
@@ -1380,14 +1388,14 @@ class ThemeBuilder(data: MutableMap<String, Double> = mutableMapOf()) {
 
 }
 
-open class ThemeConfigurationBuilder(data: MutableMap<String, Double>) {
+open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
     val locationBuilder = LocationBuilder()
     var type: String? = null
     var step:Int? = null
     val data = data.toMutableMap()
     var filtered = false
 
-    infix fun MutableMap<String, Double>.gt(min: Double) {
+    infix fun MutableMap<Int, Double>.gt(min: Double) {
         val excluded = this.filter { it.value <= min }
         excluded.forEach {
             remove(it.key)
@@ -1395,7 +1403,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<String, Double>) {
         filtered = true
     }
 
-    infix fun MutableMap<String, Double>.lt(max: Double) {
+    infix fun MutableMap<Int, Double>.lt(max: Double) {
         val excluded = this.filter { it.value >= max }
         excluded.forEach {
             remove(it.key)
@@ -1403,7 +1411,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<String, Double>) {
         filtered = true
     }
 
-    infix fun MutableMap<String, Double>.eq(value: Double) {
+    infix fun MutableMap<Int, Double>.eq(value: Double) {
         val excluded = this.filter { it.value != value }
         excluded.forEach {
             remove(it.key)
@@ -1411,7 +1419,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<String, Double>) {
         filtered = true
     }
 
-    infix fun MutableMap<String, Double>.between(range: ClosedFloatingPointRange<Double>) {
+    infix fun MutableMap<Int, Double>.between(range: ClosedFloatingPointRange<Double>) {
         val excluded = this.filter { it.value !in range }
         excluded.forEach {
             remove(it.key)
@@ -1865,7 +1873,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<String, Double>) {
 
 }
 
-class SchemeBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(data) {
+class SchemeBuilder(data: MutableMap<Int, Double>) : ThemeConfigurationBuilder(data) {
     var value: String? = null
     val dslElement = SchemeEl()
         get() {
@@ -1884,7 +1892,7 @@ class SchemeBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilde
         }
 }
 
-class DetailsBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(data) {
+class DetailsBuilder(data: MutableMap<Int, Double>) : ThemeConfigurationBuilder(data) {
     var value: Int? = null
     val dslElement = DetailsEl()
         get() {
@@ -1904,7 +1912,7 @@ class DetailsBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuild
 
 }
 
-class ColorBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(data) {
+class ColorBuilder(data: MutableMap<Int, Double>) : ThemeConfigurationBuilder(data) {
     val dslElement = ColorEl()
         get() {
             value?.let {
@@ -1941,7 +1949,7 @@ class ColorBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder
 
 }
 
-class LineBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(data) {
+class LineBuilder(data: MutableMap<Int, Double>) : ThemeConfigurationBuilder(data) {
     val dslElement = LineEl()
         get() {
             field.setValue(value)
@@ -1962,7 +1970,7 @@ class LineBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(
     var value = 2.0
 }
 
-class ShowBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(data) {
+class ShowBuilder(data: MutableMap<Int, Double>) : ThemeConfigurationBuilder(data) {
     val dslElement = ShowEl()
         get() {
             type?.let {
@@ -1979,7 +1987,7 @@ class ShowBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(
         }
 }
 
-class HideBuilder(data: MutableMap<String, Double>) : ThemeConfigurationBuilder(data) {
+class HideBuilder(data: MutableMap<Int, Double>) : ThemeConfigurationBuilder(data) {
     val dslElement = HideEl()
         get() {
 

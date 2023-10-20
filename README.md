@@ -332,10 +332,15 @@ rnartist {
       }
     }
   }
+
+  theme {
+    details {
+      value = 1
+    }
+  }
 }
 ```
 
-![](media/rna_and_helix_elements.png)
 ![](media/rna_and_helix_elements.png)
 
 #### <a name="bn"></a>The ```bn``` element
@@ -394,10 +399,8 @@ rnartist {
 
 The secondary structure will be constructed from the data stored in the file.
 
-To be able to use the PDB format, RNArtistCore needs to use the algorithm RNAVIEW available with the [Docker container rnartistcore](https://hub.docker.com/r/fjossinet/rnartistcore). RNArtistCore will delegate to RNAVIEW the annotation of the 3D structure into a 2D.
-
 The parameters are:
-* **file** (mandatory): the path and the name of your file. 
+* **file** or **path** (mandatory): the file property defines the absolute path of a single input file. The path property defines the absolute path of a folder containing input files. 
 * **name**: if the file contains several molecular chains, this parameter allows to precise the one you want. If no name is provided, all the molecular chains will be processed.
 
 ```kotlin
@@ -409,6 +412,20 @@ rnartist {
   ss {
     bpseq {
       file = "myrna.bpseq"
+    }
+  }
+}
+```
+
+```kotlin
+rnartist {
+  png {
+    path = "media/"
+  }
+
+  ss {
+    vienna {
+      path = "/Users/bwayne/project_1/my_vienna_files/"
     }
   }
 }
@@ -495,7 +512,7 @@ ss {
 }
 ```
 
-The element ```rfam``` can contain an attribute named ```use alignment numbering```. If this attribute is set, the locations described in the script will be understood as locations in the original alignment. Check this [video](https://www.youtube.com/watch?v=cEFlneO_muE) for details.
+The element ```rfam``` can contain an attribute named ```use alignment numbering```. If this attribute is set, the locations described in the script will be understood as locations in the original alignment.
 
 ## <a name="theme"></a>The **```theme```** element
 
@@ -1420,9 +1437,9 @@ rnartist {
         } 
     }
     data {
-        "1" to 200.7
-        "2" to 192.3
-        "3" to 143.6
+        1 to 200.7
+        2 to 192.3
+        3 to 143.6
     }
 }
 ```
@@ -1512,18 +1529,18 @@ rnartist {
     }
   }
   data {
-    "1" to 200.7
-    "2" to 192.3
-    "3" to 143.6
-    "4" to 34.8
-    "5" to 4.5
-    "6" to 234.9
-    "7" to 12.3
-    "8" to 56.8
-    "9" to 59.8
-    "10" to 140.5
-    "11" to 0.2
-    "12" to 345.8
+    1 to 200.7
+    2 to 192.3
+    3 to 143.6
+    4 to 34.8
+    5 to 4.5
+    6 to 234.9
+    7 to 12.3
+    8 to 56.8
+    9 to 59.8
+    10 to 140.5
+    11 to 0.2
+    12 to 345.8
   }
   theme {
     details {

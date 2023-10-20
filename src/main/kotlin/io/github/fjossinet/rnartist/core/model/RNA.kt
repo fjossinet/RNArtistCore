@@ -1756,6 +1756,16 @@ class BracketNotation : DataSource {
     }
 }
 
+class Parts : DataSource {
+    override fun getId(): String? {
+        return null
+    }
+
+    override fun toString(): String {
+        return "local:parts"
+    }
+}
+
 abstract class DatabaseSource : DataSource
 
 class PDBSource(val pdbId: String) : DatabaseSource() {

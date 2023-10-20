@@ -1,6 +1,33 @@
-To check and fix your script syntax, type the following command in your terminal:
+### 0.3.9-SNAPSHOT
 
-java -jar rnartist_core.jar dsl_script_file
+- a numbering-system (element ```ns```) can be defined and  (elements ```bn```, ```parts```, ```vienna/bpseq/ct``` with a file property,...). 
+
+- for the element ```data```, the absolute positions have to be precised without quotes (like the location elements). No changes if the values are describes in a linked text file.
+
+```kotlin
+
+rnartist {
+    png {
+        path = "media/"
+    }
+    ss {
+        vienna {
+            file = "project/samples/rna.vienna"
+        }
+    }
+    data {
+        1 to 200.7
+        2 to 192.3
+        3 to 143.6
+        4 to 34.8
+    }
+    theme {
+        details {
+            value = 4
+        }
+    }
+}
+```
 
 ### 0.3.4-SNAPSHOT
 
