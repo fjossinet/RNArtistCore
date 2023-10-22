@@ -3251,8 +3251,12 @@ abstract class ResidueDrawing(
     override fun applyTheme(theme: Theme, checkStopBefore:((DrawingElement) -> Boolean)?, checkStopAfter:((DrawingElement) -> Boolean)?) {
         theme.configurations.forEach { configuration ->
             if (configuration.select(this) && configuration.propertyName.equals(ThemeProperty.fulldetails.toString()) && !configuration.propertyValue(this).equals(this.isFullDetails().toString()))
-                //if the parameter fullDetails is modified, the residue becomes updated to force the recomputation of the  interaction symbol
+                //if the parameter fullDetails is modified, the residue becomes updated to force the recomputation of the interaction symbol
                 this.updated = true
+            if (configuration.select(this) && configuration.propertyName.equals(ThemeProperty.linewidth.toString())) {
+                //if the parameter lineWidth is modified, the residue becomes updated to force the recomputation of the interaction symbol
+                this.updated = true
+            }
         }
         super.applyTheme(theme, checkStopBefore, checkStopAfter)
     }
@@ -5240,14 +5244,14 @@ class SecondaryInteractionDrawing(
         drawingArea: Rectangle2D,
         selectedDrawings: List<DrawingElement>?
     ) {
+        val shift = this.getInteractionSymbolShift()+this.residue.getLineWidth()+radiusConst
+
         if (residue.updated) {//the paired residue is de facto updated too
             val (center1, center2) = pointsFrom(
                 this.residue.center,
                 this.pairedResidue.center,
                 this.getInteractionSymbolShift()
             )
-
-            val shift = this.getInteractionSymbolShift()+this.residue.getLineWidth()+radiusConst
 
             if ((parent as HelixDrawing).distanceBetweenPairedResidues > 2 * shift) {
                 val points = pointsFrom(
@@ -5363,7 +5367,8 @@ class SecondaryInteractionDrawing(
         }
 
         if (this.isFullDetails()) {
-            this.interactionSymbol.draw(g, at, drawingArea, selectedDrawings)
+            if ((parent as HelixDrawing).distanceBetweenPairedResidues > 2 * shift)
+                this.interactionSymbol.draw(g, at, drawingArea, selectedDrawings)
             this.residues.forEach {
                 it.draw(g, at, drawingArea, selectedDrawings)
             }
