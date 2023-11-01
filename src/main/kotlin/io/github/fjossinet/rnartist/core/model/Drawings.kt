@@ -135,7 +135,6 @@ fun helixDrawingWidth() = radiusConst * deltaHelixWidth
 /**
  * Stores everything related to the current working session:
  * - the current translation and zoom of the view (finalZoomLevel, viewX, viewY)
- * - the selection
  * - the elements drawn
  * - the level to decide which tertiaires are displayed (None, Pknots-only, All)
  */
@@ -4058,7 +4057,6 @@ open class JunctionDrawing(
             }
             helixRank += 1
             var inPoint: Point2D
-
             var outId = junctionsBehaviors[this.junctionType]?.let { it(this, helixRank) }
 
             var nextJunction: Junction? = null

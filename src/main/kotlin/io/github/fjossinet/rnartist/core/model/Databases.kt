@@ -19,6 +19,8 @@ import kotlin.io.path.name
 class RNArtistDB(val rootInvariantSeparatorsPath:String) {
     val indexedDirs = mutableListOf<String>()
     private val drawingsDirName = "drawings"
+    var name:String = "No database selected"
+
     val indexFile: File
         get() {
             val f = File(File(this.rootInvariantSeparatorsPath), ".rnartist_db_index")
@@ -33,15 +35,57 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
             return f
         }
 
-    fun indexDatabase():List<File> {
-        val dirs = this.searchForNonIndexedDirs()
-        val pw =  PrintWriter(FileWriter(this.indexFile, true))
-        dirs.forEach {
-            this.indexedDirs.add(it.invariantSeparatorsPath)
-            pw.println(it.invariantSeparatorsPath)
+    init {
+        this.name = this.rootInvariantSeparatorsPath.split("/").last()
+    }
+
+    /**
+     * This function search for all the path and fiel properties to change them to fit this DB
+     */
+    fun importScript(script:File) {
+        val lines = mutableListOf<String>()
+        script.readLines().forEach { line ->
+            if (line.trim().startsWith("file") || line.trim().startsWith("path")) {
+                val path = line.trim().split("=").last().trim().removePrefix("\"").removeSuffix("\"")
+                if (!path.startsWith(rootInvariantSeparatorsPath)) //the DB is coming from another location
+                    lines.add("${line.split("=").first()} = \"${rootInvariantSeparatorsPath}${path.split(name).last()}\"")
+                else
+                    lines.add(line)
+            } else
+                lines.add(line)
+        }
+        val pw = PrintWriter(script)
+        pw.write(lines.joinToString(separator = "\n"))
+        pw.close()
+    }
+
+    /**
+     * if init is true, the indexing is done like a first load. If some script exists & init is true, we check their path to fit this database
+     */
+    fun indexDatabase(init:Boolean = false):List<File> {
+        if (init)
+            this.indexedDirs.clear()
+        val dataDirs = this.searchForNonIndexedDirs()
+        val pw =  PrintWriter(FileWriter(this.indexFile, !init)) //!init means no append if we reinit the indexing as a first load
+        dataDirs.forEach { dataDir ->
+            this.indexedDirs.add(dataDir.invariantSeparatorsPath)
+            pw.println(dataDir.invariantSeparatorsPath)
+            val scriptDataDir = File(File(dataDir.invariantSeparatorsPath).parent, "${dataDir.invariantSeparatorsPath.split("/").last()}.kts")
+            if (scriptDataDir.exists() && init)
+                importScript(scriptDataDir)
+            dataDir.listFiles()?.let { files ->
+                files.forEach { file ->
+                    if (file.name.endsWith("vienna")) {
+                        val scriptVienna = File("${file.invariantSeparatorsPath.split(".vienna").first()}.kts")
+                        if (scriptVienna.exists() && init)
+                            importScript(scriptVienna)
+                    }
+                }
+            }
+
         }
         pw.close()
-        return dirs
+        return dataDirs
     }
 
     fun createNewFolder(absPathFolder:String): File? {
@@ -155,7 +199,7 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
             for (path in stream) {
                 if (path.toFile().isDirectory() && path.name != drawingsDirName) {
                     val containsStructuralData = containsStructuralData(path)
-                    if (containsStructuralData && !indexedDirs.contains(path.invariantSeparatorsPathString) && !dirs.contains(path.toFile()))
+                    if (containsStructuralData && !indexedDirs.contains(path.invariantSeparatorsPathString) && !dirs.contains(path.toFile()) && path.invariantSeparatorsPathString.startsWith(rootInvariantSeparatorsPath))
                         dirs.add(path.toFile())
                     searchForNonIndexedDirs(dirs, path)
                 }

@@ -7,7 +7,7 @@ import java.awt.geom.Rectangle2D
 import java.io.File
 import java.io.FileReader
 import java.io.IOException
-import java.lang.Exception
+import kotlin.Exception
 import kotlin.random.Random
 
 class RNABuilder {
@@ -771,160 +771,158 @@ class RNArtistBuilder {
 
     fun build(): Pair<List<SecondaryStructureDrawing>, RNArtistEl> {
         val drawings = mutableListOf<SecondaryStructureDrawing>()
+        var issues = 0
         this.secondaryStructures.forEachIndexed { _, ss ->
-            val drawing = SecondaryStructureDrawing(ss, WorkingSession())
-            //at this point all the junctions have found their layout. We can store them DSLELement tree in order to not recompute them during the next loads
-            /*drawing.allJunctions.forEach {
+            try {
+                val drawing = SecondaryStructureDrawing(ss, WorkingSession())
+                //at this point all the junctions have found their layout. We can store them DSLELement tree in order to not recompute them during the next loads
+                /*drawing.allJunctions.forEach {
 
             }*/
-            this.theme?.let { theme ->
-                drawing.applyTheme(theme)
-            }
-            this.layout?.let { layout ->
-                drawing.applyLayout(layout)
-            }
+                this.theme?.let { theme ->
+                    drawing.applyTheme(theme)
+                }
+                this.layout?.let { layout ->
+                    drawing.applyLayout(layout)
+                }
 
-            var dataPath:String? = null
+                var dataPath: String? = null
 
-            this.pngOutputBuilder?.let { pngOutputBuilder ->
-                ss.source?.let { source ->
-                    when (source) {
-                        is FileSource -> {
-                            if (source.getId().endsWith(".vienna")) {
-                                val ssElement =
-                                    this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
-                                val viennaElement = ssElement.addVienna()
-                                viennaElement.setFile(source.getId())
+                this.pngOutputBuilder?.let { pngOutputBuilder ->
+                    ss.source?.let { source ->
+                        when (source) {
+                            is FileSource -> {
+                                if (source.getId().endsWith(".vienna")) {
+                                    val ssElement =
+                                        this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
+                                    val viennaElement = ssElement.addVienna()
+                                    viennaElement.setFile(source.getId())
 
 
-                                source.getId().split(".").let {
-                                    dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
-                                }
-                            } else if (source.getId().endsWith(".ct")) {
-                                val ssElement =
-                                    this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
-                                val ctElement = ssElement.addCT()
-                                ctElement.setFile(source.getId())
+                                    source.getId().split(".").let {
+                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
+                                    }
+                                } else if (source.getId().endsWith(".ct")) {
+                                    val ssElement =
+                                        this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
+                                    val ctElement = ssElement.addCT()
+                                    ctElement.setFile(source.getId())
 
-                                source.getId().split(".").let {
-                                    dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
-                                }
-                            }  else if (source.getId().endsWith(".bpseq")) {
-                                val ssElement =
-                                    this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
-                                val bpseqElement = ssElement.addBPSeq()
-                                bpseqElement.setFile(source.getId())
+                                    source.getId().split(".").let {
+                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
+                                    }
+                                } else if (source.getId().endsWith(".bpseq")) {
+                                    val ssElement =
+                                        this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
+                                    val bpseqElement = ssElement.addBPSeq()
+                                    bpseqElement.setFile(source.getId())
 
-                                source.getId().split(".").let {
-                                    dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
+                                    source.getId().split(".").let {
+                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
+                                    }
                                 }
                             }
-                        }
 
-                        is BracketNotation -> {
-                            val ssElement =
-                                this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
-                            val bnElement = ssElement.addBracketNotation()
-                            bnElement.setSeq(ss.rna.seq)
-                            bnElement.setValue(ss.toBracketNotation())
-                            bnElement.setName(ss.name)
+                            is BracketNotation -> {
+                                val ssElement =
+                                    this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
+                                val bnElement = ssElement.addBracketNotation()
+                                bnElement.setSeq(ss.rna.seq)
+                                bnElement.setValue(ss.toBracketNotation())
+                                bnElement.setName(ss.name)
 
-                            dataPath =  ss.name
-                        }
+                                dataPath = ss.name
+                            }
 
-                        else -> {
+                            else -> {
+
+                            }
 
                         }
 
                     }
+                    this.rnartistElement.addPNG(pngOutputBuilder.dslElement)
+                    pngOutputBuilder.build(drawing)
+                }
+                this.svgOutputBuilder?.let { svgOutputBuilder ->
+                    ss.source?.let { source ->
+                        when (source) {
+                            is FileSource -> {
+                                if (source.getId().endsWith(".vienna")) {
+                                    val ssElement =
+                                        this.rnartistElement.addSS() //only a single ss element is allowed the previous one is removed
+                                    val viennaElement = ssElement.addVienna()
+                                    viennaElement.setFile(source.getId())
+                                    source.getId().split(".").let {
+                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
+                                    }
+                                } else if (source.getId().endsWith(".ct")) {
+                                    val ssElement =
+                                        this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
+                                    val ctElement = ssElement.addCT()
+                                    ctElement.setFile(source.getId())
 
-                }
-                this.rnartistElement.addPNG(pngOutputBuilder.dslElement)
-                pngOutputBuilder.build(drawing)
-                dataPath?.let { dataPath ->
-                    val f = if (dataPath.startsWith("/") || dataPath.matches(Regex("^[A-Z]:/.+$")))
-                        File("${dataPath}.kts")
-                    else
-                        File("${Jar().path()}/${dataPath}.kts")
-                    if (!f.exists()) {
-                        f.createNewFile()
-                        f.writeText( rnartistElement.dump().toString())
-                    }
-                }
-            }
-            this.svgOutputBuilder?.let { svgOutputBuilder ->
-                ss.source?.let { source ->
-                    when (source) {
-                        is FileSource -> {
-                            if (source.getId().endsWith(".vienna")) {
+                                    source.getId().split(".").let {
+                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
+                                    }
+                                } else if (source.getId().endsWith(".bpseq")) {
+                                    val ssElement =
+                                        this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
+                                    val bpseqElement = ssElement.addBPSeq()
+                                    bpseqElement.setFile(source.getId())
+
+                                    source.getId().split(".").let {
+                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
+                                    }
+                                }
+                            }
+
+                            is BracketNotation -> {
                                 val ssElement =
                                     this.rnartistElement.addSS() //only a single ss element is allowed the previous one is removed
-                                val viennaElement = ssElement.addVienna()
-                                viennaElement.setFile(source.getId())
-                                source.getId().split(".").let {
-                                    dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
-                                }
-                            } else if (source.getId().endsWith(".ct")) {
-                                val ssElement =
-                                    this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
-                                val ctElement = ssElement.addCT()
-                                ctElement.setFile(source.getId())
+                                val bnElement = ssElement.addBracketNotation()
+                                bnElement.setSeq(ss.rna.seq)
+                                bnElement.setValue(ss.toBracketNotation())
+                                bnElement.setName(ss.name)
 
-                                source.getId().split(".").let {
-                                    dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
-                                }
-                            }  else if (source.getId().endsWith(".bpseq")) {
-                                val ssElement =
-                                    this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
-                                val bpseqElement = ssElement.addBPSeq()
-                                bpseqElement.setFile(source.getId())
+                                dataPath = ss.name
 
-                                source.getId().split(".").let {
-                                    dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
-                                }
                             }
-                        }
 
-                        is BracketNotation -> {
-                            val ssElement =
-                                this.rnartistElement.addSS() //only a single ss element is allowed the previous one is removed
-                            val bnElement = ssElement.addBracketNotation()
-                            bnElement.setSeq(ss.rna.seq)
-                            bnElement.setValue(ss.toBracketNotation())
-                            bnElement.setName(ss.name)
+                            else -> {
+                            }
 
-                            dataPath = ss.name
-
-                        }
-
-                        else -> {
                         }
 
                     }
-
+                    this.rnartistElement.addSVG(svgOutputBuilder.dslElement)
+                    svgOutputBuilder.build(drawing)
                 }
-                this.rnartistElement.addSVG(svgOutputBuilder.dslElement)
-                svgOutputBuilder.build(drawing)
                 dataPath?.let { dataPath ->
                     val f = if (dataPath.startsWith("/") || dataPath.matches(Regex("^[A-Z]:/.+$")))
                         File("${dataPath}.kts")
                     else
                         File("${Jar().path()}/${dataPath}.kts")
-
                     if (!f.exists()) {
                         f.createNewFile()
-                        f.writeText( rnartistElement.dump().toString())
+                        f.writeText(rnartistElement.dump().toString())
                     }
                 }
-            }
-            this.chimeraOutputBuilder?.name?.let { chainName ->
-                if (chainName == ss.rna.name)
+                this.chimeraOutputBuilder?.name?.let { chainName ->
+                    if (chainName == ss.rna.name)
+                        this.chimeraOutputBuilder?.build(drawing)
+                } ?: run {
                     this.chimeraOutputBuilder?.build(drawing)
-            } ?: run {
-                this.chimeraOutputBuilder?.build(drawing)
+                }
+                drawings.add(drawing)
+            } catch (e:Exception) {
+                e.printStackTrace()
+                println(ss.source?.toString())
+                issues++
             }
-            drawings.add(drawing)
         }
+        if (issues > 0)
+            println("!!!!!!! $issues drawings with issues !!!!!!!!!!!")
         return Pair(drawings, rnartistElement)
     }
 
