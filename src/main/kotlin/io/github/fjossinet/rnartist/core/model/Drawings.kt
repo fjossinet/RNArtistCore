@@ -175,24 +175,21 @@ class WorkingSession {
         viewY += transY
     }
 
-    fun zoomView(x: Double, y: Double, on: Boolean) {
+    fun zoomViewOn(x: Double, y: Double, zoomLevel:Double = 1.0) {
         val realPointBeforeZoom =
             Point2D.Double(
-                (x - viewX) / zoomLevel,
-                (y - viewY) / zoomLevel
+                (x - viewX) / this.zoomLevel,
+                (y - viewY) / this.zoomLevel
             )
-        if (on)
-            setZoom(1.25)
-        else
-            setZoom(1.0 / 1.25)
+        this.zoomLevel = zoomLevel
         val realPointAfterZoom =
             Point2D.Double(
-                (x - viewX) / zoomLevel,
-                (y - viewY) / zoomLevel
+                (x - viewX) / this.zoomLevel,
+                (y - viewY) / this.zoomLevel
             )
         moveView(
-            (realPointAfterZoom.getX() - realPointBeforeZoom.getX()) * zoomLevel,
-            (realPointAfterZoom.getY() - realPointBeforeZoom.getY()) * zoomLevel
+            (realPointAfterZoom.getX() - realPointBeforeZoom.getX()) * this.zoomLevel,
+            (realPointAfterZoom.getY() - realPointBeforeZoom.getY()) * this.zoomLevel
         )
     }
 

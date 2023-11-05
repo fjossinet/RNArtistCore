@@ -1756,7 +1756,7 @@ class BracketNotation : DataSource {
     }
 }
 
-class Parts : DataSource {
+class PartsSource : DataSource {
     override fun getId(): String? {
         return null
     }

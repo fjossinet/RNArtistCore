@@ -61,7 +61,7 @@ class PartsBuilder {
                 }
             }
             rnaBuilder.build()?.let { rna ->
-                val ss = SecondaryStructure(rna, helices = helices, source = Parts())
+                val ss = SecondaryStructure(rna, helices = helices, source = PartsSource())
                 if (rnaBuilder.seq == null) {
                     //this means that the sequence is a random one, but then nnot fitting the structural constraints. So we generate a new one fitting the constraints
                     ss.randomizeSeq()
@@ -272,7 +272,7 @@ class PNGBuilder : OutputFileBuilder() {
                             drawing.secondaryStructure.name
                         }
 
-                        is Parts -> {
+                        is PartsSource -> {
                             drawing.secondaryStructure.name
                         }
 
@@ -343,7 +343,7 @@ class SVGBuilder : OutputFileBuilder() {
                             drawing.secondaryStructure.name
                         }
 
-                        is Parts -> {
+                        is PartsSource -> {
                             drawing.secondaryStructure.name
                         }
 
