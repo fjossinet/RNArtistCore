@@ -3,6 +3,7 @@ package io.github.fjossinet.rnartist.core.model
 import io.github.fjossinet.rnartist.core.layout
 import io.github.fjossinet.rnartist.core.theme
 import java.awt.Color
+import java.awt.geom.Point2D
 
 fun setJunction(
     rnArtistEl: RNArtistEl,
@@ -208,12 +209,14 @@ abstract class DSLElement(name: String) : DSLNode(name) {
     fun getStep(): Int? = this.getProperties().firstOrNull { it.name.equals("step") }?.value?.toIntOrNull()
 
     override fun dump(indent: String, buffer: StringBuffer): StringBuffer {
-        buffer.appendLine("$indent $name {")
-        val newIndent = "$indent   "
-        children.forEach { child ->
-            child.dump(newIndent, buffer)
+        if (children.isNotEmpty()) {
+            buffer.appendLine("$indent $name {")
+            val newIndent = "$indent   "
+            children.forEach { child ->
+                child.dump(newIndent, buffer)
+            }
+            buffer.appendLine("$indent }")
         }
-        buffer.appendLine("$indent }")
         return buffer
     }
 
@@ -270,7 +273,7 @@ abstract class DSLElement(name: String) : DSLNode(name) {
      */
     protected fun getChildren(name: String) = this.children.filter { it.name == name }
 
-    fun removeChild(child: DSLNode) {
+    open fun removeChild(child: DSLNode) {
         this.children.remove(child)
     }
 
@@ -334,6 +337,17 @@ class RNArtistEl : DSLElement("rnartist") {
 
     fun getSSOrNull(): SSEl? = this.getChildOrNull("ss") as? SSEl
 
+    fun addData(dataEl: DataEl? = null): DataEl {
+        this.children.removeIf { it.name.equals("data") } //only a single element allowed
+        val el = dataEl ?: DataEl()
+        this.children.add(el)
+        return el
+    }
+
+    fun getDataOrNew(): DataEl = this.getChildOrNull("data") as? DataEl ?: addData()
+
+    fun getDataOrNull(): DataEl? = this.getChildOrNull("data") as? DataEl
+
     fun addPNG(pngEl: PNGEl? = null): PNGEl {
         this.children.removeIf { it.name.equals("png") } //only a single element allowed
         val el = pngEl ?: PNGEl()
@@ -364,6 +378,7 @@ class RNArtistEl : DSLElement("rnartist") {
         buffer.appendLine("$indent $name {")
         val newIndent = "$indent   "
         this.getSSOrNew().dump(newIndent, buffer)
+        this.getDataOrNull()?.dump(newIndent, buffer)
         this.getThemeOrNew().dump(newIndent, buffer)
         this.getLayoutOrNew().dump(newIndent, buffer)
         this.getPNGOrNull()?.dump(newIndent, buffer)
@@ -418,12 +433,14 @@ abstract class UndoRedoDSLElement(name: String) : DSLElement(name) {
     var currentStep = 0
 
     override fun dump(indent: String, buffer: StringBuffer): StringBuffer {
-        buffer.appendLine("$indent $name {")
-        val newIndent = "$indent   "
-        children.subList(0, undoRedoCursor).forEach { child ->
-            child.dump(newIndent, buffer)
+        if (children.isNotEmpty()) {
+            buffer.appendLine("$indent $name {")
+            val newIndent = "$indent   "
+            children.subList(0, undoRedoCursor).forEach { child ->
+                child.dump(newIndent, buffer)
+            }
+            buffer.appendLine("$indent }")
         }
-        buffer.appendLine("$indent }")
         return buffer
     }
 
@@ -434,6 +451,11 @@ abstract class UndoRedoDSLElement(name: String) : DSLElement(name) {
         }
         this.children.add(child)
         undoRedoCursor++
+    }
+
+    override fun removeChild(child: DSLNode) {
+        super.removeChild(child)
+        undoRedoCursor--
     }
 
     /**
@@ -500,6 +522,12 @@ abstract class UndoRedoDSLElement(name: String) : DSLElement(name) {
 class LayoutEl : UndoRedoDSLElement("layout") {
     fun addJunction(junctionEl: JunctionEl? = null): JunctionEl {
         val el = junctionEl ?: JunctionEl()
+        this.addChild(el)
+        return el
+    }
+
+    fun addBranch(branchEl: BranchEl? = null): BranchEl {
+        val el = branchEl ?: BranchEl()
         this.addChild(el)
         return el
     }
@@ -592,6 +620,8 @@ class LayoutEl : UndoRedoDSLElement("layout") {
         return layouts
     }
 
+
+
     fun getNextLayoutInHistory(): Layout? {
         if (this.undoRedoCursor < this.children.size) {
             val formerCursorPosition = this.undoRedoCursor
@@ -664,7 +694,24 @@ class LayoutEl : UndoRedoDSLElement("layout") {
 
     fun toLayout(): Layout {
         return layout {
-            children.subList(0, undoRedoCursor).filterIsInstance<JunctionEl>().forEach { j ->
+
+            children.subList(0, undoRedoCursor).filterIsInstance<BranchEl>().sortedBy { it.getLocationOrNull()?.toLocation()?.start }.forEach { b ->
+                branch {
+                    b.getValueOrNull()?.let {
+                        value = it.value.toDouble()
+                    }
+                    b.getLocationOrNull()?.let {
+                        location {
+                            it.toLocation().blocks.forEach {
+                                it.start to it.end
+                            }
+                        }
+                    }
+                }
+
+            }
+
+            children.subList(0, undoRedoCursor).filterIsInstance<JunctionEl>().sortedBy { it.getLocationOrNull()?.toLocation()?.start }.forEach { j ->
                 junction {
                     j.getLocationOrNull()?.let {
                         location {
@@ -690,6 +737,21 @@ class LayoutEl : UndoRedoDSLElement("layout") {
             }
 
         }
+    }
+
+    override fun dump(indent: String, buffer: StringBuffer): StringBuffer {
+        if (children.isNotEmpty()) {
+            buffer.appendLine("$indent $name {")
+            val newIndent = "$indent   "
+            this.getChildren("branch").forEach {
+                it.dump(newIndent, buffer)
+            }
+            this.getChildren("junction").forEach {
+                it.dump(newIndent, buffer)
+            }
+            buffer.appendLine("$indent }")
+        }
+        return buffer
     }
 }
 
@@ -720,6 +782,16 @@ class JunctionEl : StepableDSLElement("junction") {
     fun getOutIdsOrNull() = this.getPropertyOrNull("out_ids")
 }
 
+class BranchEl : StepableDSLElement("branch") {
+
+    fun setValue(x: Double) {
+        this.children.add(DSLProperty("value", "${Math.round(x*100.0)/100.0}"))
+    }
+
+    fun getValueOrNull() = this.getPropertyOrNull("value")
+
+}
+
 class ThemeEl() : UndoRedoDSLElement("theme") {
 
     fun addDetails(detailsEl: DetailsEl? = null): DetailsEl {
@@ -733,6 +805,8 @@ class ThemeEl() : UndoRedoDSLElement("theme") {
         this.addChild(el)
         return el
     }
+
+    fun getScheme() = this.getChildOrNull("scheme")
 
     fun addColor(colorEl: ColorEl? = null): ColorEl {
         val el = colorEl ?: ColorEl()
@@ -965,6 +1039,15 @@ class SSEl : DSLElement("ss") {
 
 }
 
+class DataEl : DSLElement("data") {
+
+    fun addValue(pos: Int, value: Double) {
+        this.children.add(DSLProperty("$pos", "$value", operator = "to"))
+    }
+
+}
+
+
 class BracketNotationEl : DSLElement("bn") {
     fun setSeq(seq: String) {
         this.getPropertyOrNull("seq")?.let {
@@ -1128,11 +1211,16 @@ class ColorEl : ThemeConfigurationEl("color") {
 
     fun getValueOrNull() = this.getPropertyOrNull("value")
 
-    fun setTo(to: String) {
+    fun setTo(to: String, minValue:Double? = null, maxValue:Double? = null) {
         this.getPropertyOrNull("to")?.let {
             it.value = to
         } ?: run {
             this.children.add(StringDSLProperty("to", to))
+        }
+        if (minValue != null && maxValue != null) {
+            this.getPropertyOrNull("to")?.let {
+                this.children.add(DSLProperty("data", "$minValue..$maxValue", operator = "between"))
+            }
         }
     }
 

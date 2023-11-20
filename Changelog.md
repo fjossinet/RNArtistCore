@@ -1,6 +1,32 @@
-### 0.3.9-SNAPSHOT
+### 0.4.0-SNAPSHOT
 
-- a numbering-system (element ```ns```) can be defined and  (elements ```bn```, ```parts```, ```vienna/bpseq/ct``` with a file property,...). 
+- a new element named ```branch``` can be added to the layout. It defines the x-position (the parameter ```value```) for the helix starting this branch (defined by the parameter ```location```)
+
+```kotlin
+
+rnartist {
+    layout {
+        branch {
+            location {
+                9 to 10
+                425 to 430
+            }
+            value = 0.0
+        }
+        junction {
+            out_ids = "n"
+            radius = 17.83
+            location {
+                14 to 16
+                420 to 421
+            }
+        }
+    }
+}
+```
+
+
+### 0.3.9-SNAPSHOT
 
 - for the element ```data```, the absolute positions have to be precised without quotes (like the location elements). No changes if the values are describes in a linked text file.
 

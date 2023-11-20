@@ -326,34 +326,33 @@ class SVGBuilder : OutputFileBuilder() {
 
     override fun build(drawing: SecondaryStructureDrawing) {
         path?.let { path ->
-            val fileName = this.name ?:
-                drawing.secondaryStructure.source?.let { source ->
-                    when (source) {
-                        is FileSource -> {
-                            //a file name can contains a dot
-                            val tokens = drawing.secondaryStructure.source?.getId()?.split("/")?.last()?.split(".")
-                            tokens?.let {
-                                tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
-                            } ?: run {
-                                null
-                            }
-                        }
-
-                        is BracketNotation -> {
-                            drawing.secondaryStructure.name
-                        }
-
-                        is PartsSource -> {
-                            drawing.secondaryStructure.name
-                        }
-
-                        else -> {
+            val fileName = this.name ?: drawing.secondaryStructure.source?.let { source ->
+                when (source) {
+                    is FileSource -> {
+                        //a file name can contains a dot
+                        val tokens = drawing.secondaryStructure.source?.getId()?.split("/")?.last()?.split(".")
+                        tokens?.let {
+                            tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
+                        } ?: run {
                             null
                         }
+                    }
 
+                    is BracketNotation -> {
+                        drawing.secondaryStructure.name
+                    }
+
+                    is PartsSource -> {
+                        drawing.secondaryStructure.name
+                    }
+
+                    else -> {
+                        null
                     }
 
                 }
+
+            }
             var f = if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$")))
                 File("${path}/${fileName}.svg")
             else
@@ -445,7 +444,7 @@ class PDBBuilder {
             val f = if (file.startsWith("/") || file.matches(Regex("^[A-Z]:/.+$")))
                 File(file)
             else
-               File("${Jar().path()}/${file}")
+                File("${Jar().path()}/${file}")
             try {
                 structures.addAll(Annotate3D().annotate(f))
                 structures.forEach {
@@ -489,11 +488,11 @@ class ViennaBuilder : InputFileBuilder() {
             val f = if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$"))) {
                 File(path)
             } else
-               File("${Jar().path()}/${path}")
+                File("${Jar().path()}/${path}")
             val structures = mutableListOf<SecondaryStructure>()
             f.listFiles { _, name -> name.endsWith(".vienna") }?.forEach { viennaFile ->
                 val tokens = viennaFile.invariantSeparatorsPath.split(".")
-                val ktsFile = File("${tokens.subList(0,tokens.size-1).joinToString(".")}.kts")
+                val ktsFile = File("${tokens.subList(0, tokens.size - 1).joinToString(".")}.kts")
                 if (!ktsFile.exists()) {
                     val ss = parseVienna(FileReader(viennaFile))
                     ss.source = FileSource(viennaFile.invariantSeparatorsPath)
@@ -534,7 +533,7 @@ class BPSeqBuilder : InputFileBuilder() {
             val structures = mutableListOf<SecondaryStructure>()
             f.listFiles { _, name -> name.endsWith(".bpseq") }?.forEach { bpseqFile ->
                 val tokens = bpseqFile.invariantSeparatorsPath.split(".")
-                val ktsFile = File("${tokens.subList(0,tokens.size-1).joinToString(".")}.kts")
+                val ktsFile = File("${tokens.subList(0, tokens.size - 1).joinToString(".")}.kts")
                 if (!ktsFile.exists()) {
                     val ss = parseBPSeq(FileReader(bpseqFile))
                     ss.source = FileSource(bpseqFile.invariantSeparatorsPath)
@@ -574,7 +573,7 @@ class CTBuilder : InputFileBuilder() {
             val structures = mutableListOf<SecondaryStructure>()
             f.listFiles { _, name -> name.endsWith(".ct") }?.forEach { ctFile ->
                 val tokens = ctFile.invariantSeparatorsPath.split(".")
-                val ktsFile = File("${tokens.subList(0,tokens.size-1).joinToString(".")}.kts")
+                val ktsFile = File("${tokens.subList(0, tokens.size - 1).joinToString(".")}.kts")
                 if (!ktsFile.exists()) {
                     val ss = parseCT(FileReader(ctFile))
                     ss.source = FileSource(ctFile.invariantSeparatorsPath)
@@ -774,17 +773,64 @@ class RNArtistBuilder {
         var issues = 0
         this.secondaryStructures.forEachIndexed { _, ss ->
             try {
-                val drawing = SecondaryStructureDrawing(ss, WorkingSession())
-                //at this point all the junctions have found their layout. We can store them DSLELement tree in order to not recompute them during the next loads
-                /*drawing.allJunctions.forEach {
+                val alternatives = mutableListOf<SecondaryStructureDrawing>()
+                val outIdsLongest = listOf(
+                    ConnectorId.n,
+                    ConnectorId.nne,
+                    ConnectorId.nnw,
+                    ConnectorId.ne,
+                    ConnectorId.nw,
+                    ConnectorId.ene,
+                    ConnectorId.wnw,
+                    ConnectorId.e,
+                    ConnectorId.w,
+                    ConnectorId.ese,
+                    ConnectorId.wsw,
+                    ConnectorId.se,
+                    ConnectorId.sw,
+                    ConnectorId.sse,
+                    ConnectorId.ssw
+                )
 
-            }*/
+                FOR@for (outIdLongest in outIdsLongest) {
+                    alternatives.add(SecondaryStructureDrawing(ss, outIdForLongest = {outIdLongest}, layout = this.layout))
+                    if (alternatives.last().overlappingScore == 0)
+                        break
+                    else {
+                        val junctionsToImprove = alternatives.last().junctionsToImprove()
+                        var index = outIdsLongest.indexOf(outIdLongest)+1
+                        while (index <= outIdsLongest.size-1) {
+                            val drawingAttempt = SecondaryStructureDrawing(ss, outIdForLongest = {
+                                if (junctionsToImprove.contains(it))
+                                    outIdsLongest.get(index)
+                                else
+                                    outIdLongest
+                            }, layout = this.layout)
+                            if (drawingAttempt.overlappingScore == 0) {
+                                alternatives.add(drawingAttempt)
+                                break@FOR
+                            }
+                            else if (drawingAttempt.overlappingScore < junctionsToImprove.size)
+                                alternatives.add(drawingAttempt)
+                            index++
+                        }
+                    }
+                }
+                var bestDrawing = alternatives.sortedBy { it.overlappingScore }.first()
+
+                //with the junction layouts (computed or defined in the script), the junctions have pushed the branches at the right places.But if some branches were described in the script we apply them. Can be useful if the script wanted to have a branch at a different location that the one computed
+                layout?.let {
+                    bestDrawing.branches.forEach { branch ->
+                        branch.applyLayout(layout = it)
+                    }
+                }
+
                 this.theme?.let { theme ->
-                    drawing.applyTheme(theme)
+                    bestDrawing.applyTheme(theme)
                 }
-                this.layout?.let { layout ->
-                    drawing.applyLayout(layout)
-                }
+
+                //at this point all the junctions have their layout (computed or defined in the script). We can store them DSLELement tree in order to not recompute them during the next loads
+                rnartistElement.addLayout(bestDrawing.getLayoutEl())
 
                 var dataPath: String? = null
 
@@ -842,7 +888,7 @@ class RNArtistBuilder {
 
                     }
                     this.rnartistElement.addPNG(pngOutputBuilder.dslElement)
-                    pngOutputBuilder.build(drawing)
+                    pngOutputBuilder.build(bestDrawing)
                 }
                 this.svgOutputBuilder?.let { svgOutputBuilder ->
                     ss.source?.let { source ->
@@ -896,7 +942,7 @@ class RNArtistBuilder {
 
                     }
                     this.rnartistElement.addSVG(svgOutputBuilder.dslElement)
-                    svgOutputBuilder.build(drawing)
+                    svgOutputBuilder.build(bestDrawing)
                 }
                 dataPath?.let { dataPath ->
                     val f = if (dataPath.startsWith("/") || dataPath.matches(Regex("^[A-Z]:/.+$")))
@@ -910,12 +956,12 @@ class RNArtistBuilder {
                 }
                 this.chimeraOutputBuilder?.name?.let { chainName ->
                     if (chainName == ss.rna.name)
-                        this.chimeraOutputBuilder?.build(drawing)
+                        this.chimeraOutputBuilder?.build(bestDrawing)
                 } ?: run {
-                    this.chimeraOutputBuilder?.build(drawing)
+                    this.chimeraOutputBuilder?.build(bestDrawing)
                 }
-                drawings.add(drawing)
-            } catch (e:Exception) {
+                drawings.add(bestDrawing)
+            } catch (e: Exception) {
                 e.printStackTrace()
                 println(ss.source?.toString())
                 issues++
@@ -951,6 +997,7 @@ class RNArtistBuilder {
         val dataBuilder = DataBuilder()
         dataBuilder.setup()
         data = dataBuilder.data
+        this.rnartistElement.addData(dataBuilder.dslElement)
     }
 
     fun svg(setup: SVGBuilder.() -> Unit) {
@@ -981,6 +1028,20 @@ class RNArtistBuilder {
 }
 
 class DataBuilder {
+
+    val dslElement: DataEl?
+        get() {
+            return if (data.isEmpty())
+                null
+            else {
+                val dataEl = DataEl()
+                data.forEach { (pos, value) ->
+                    dataEl.addValue(pos, value)
+                }
+                dataEl
+            }
+
+        }
     var file: String? = null
         set(value) {
             field = value
@@ -999,6 +1060,7 @@ class DataBuilder {
 
 class LayoutBuilder {
     private val junctionLayoutBuilders = mutableListOf<JunctionLayoutBuilder>()
+    private val branchLayoutBuilders = mutableListOf<BranchLayoutBuilder>()
     val dslElement = LayoutEl()
         get() {
             return field
@@ -1009,6 +1071,13 @@ class LayoutBuilder {
         junctionLayoutBuilder.setup()
         this.dslElement.addJunction(junctionLayoutBuilder.dslElement)
         this.junctionLayoutBuilders.add(junctionLayoutBuilder)
+    }
+
+    fun branch(setup: BranchLayoutBuilder.() -> Unit) {
+        val branchLayoutBuilder = BranchLayoutBuilder()
+        branchLayoutBuilder.setup()
+        this.dslElement.addBranch(branchLayoutBuilder.dslElement)
+        this.branchLayoutBuilders.add(branchLayoutBuilder)
     }
 
     fun build(): Layout {
@@ -1067,22 +1136,62 @@ if ("X69982.1/45-449".equals(junctionDrawing.ssDrawing.secondaryStructure.rna.na
                         else -> null
                     }
                     junctionType?.let {
-                        junctionsBehaviors[junctionType] = { junctionDrawing: JunctionDrawing, helixRank: Int ->
-                            val newLayout = junctionLayoutBuilder.out_ids!!.split(" ").map {
-                                ConnectorId.valueOf(it)
-                            }.toList()
+                        junctionsBehaviors[junctionType] =
+                            { junctionDrawing: JunctionDrawing, helixRank: Int, useRelativeBehavior: Boolean, outIdForLongest: ConnectorId ->
+                                val newLayout = junctionLayoutBuilder.out_ids!!.split(" ").map {
+                                    ConnectorId.valueOf(it)
+                                }.toList()
 
-                            ConnectorId.entries
-                                .first { it.value == (junctionDrawing.inId.value + newLayout[helixRank - 1].value) % ConnectorId.entries.size }
-                        }
+                                ConnectorId.entries
+                                    .first { it.value == (junctionDrawing.inId.value + newLayout[helixRank - 1].value) % ConnectorId.entries.size }
+                            }
                     }
 
                 }
             }
         }
+        branchLayoutBuilders.forEach { branchLayoutBuilder ->
+            layout.addConfigurationFor(
+                branchLayoutBuilder.buildSelection(),
+                LayoutProperty.branch,
+                branchLayoutBuilder.value.toString()
+            )
+        }
         return layout
     }
 
+}
+
+class BranchLayoutBuilder {
+    val dslElement = BranchEl()
+        get() {
+            value?.let {
+                field.setValue(it)
+            }
+            this.locationBuilder.dslElement?.let {
+                field.addLocation(it)
+            }
+            step?.let {
+                field.setStep(it)
+            }
+            return field
+        }
+    var value: Double? = null
+    var step: Int? = null
+    private val locationBuilder = LocationBuilder()
+
+    fun location(setup: LocationBuilder.() -> Unit) {
+        this.locationBuilder.setup()
+    }
+
+    fun buildSelection(): (el: DrawingElement) -> Boolean {
+        val location = this.locationBuilder.build()
+        return { el: DrawingElement ->
+            location!!.contains(
+                el.location
+            )
+        }
+    }
 }
 
 class JunctionLayoutBuilder {
@@ -1114,7 +1223,7 @@ class JunctionLayoutBuilder {
     var type: Int? = null
     var out_ids: String? = null
     var radius: Double? = null
-    var step:Int? = null
+    var step: Int? = null
     var isGlobalLayout = true
         get() = this.locationBuilder.isEmpty() && this.name == null //if true, this layout targets all the junctions for this junction type, not specific ones
 
@@ -1222,11 +1331,13 @@ class ThemeBuilder(data: MutableMap<Int, Double> = mutableMapOf()) {
                             t.addConfiguration(
                                 ThemeProperty.fulldetails,
                                 { _ -> "true" },
-                                listOf(SecondaryStructureType.Helix,
+                                listOf(
+                                    SecondaryStructureType.Helix,
                                     SecondaryStructureType.SecondaryInteraction,
                                     SecondaryStructureType.Junction,
                                     SecondaryStructureType.SingleStrand,
-                                    SecondaryStructureType.PhosphodiesterBond)
+                                    SecondaryStructureType.PhosphodiesterBond
+                                )
                             )
 
                             t.addConfiguration(
@@ -1238,7 +1349,8 @@ class ThemeBuilder(data: MutableMap<Int, Double> = mutableMapOf()) {
                                     SecondaryStructureType.UShape,
                                     SecondaryStructureType.GShape,
                                     SecondaryStructureType.CShape,
-                                    SecondaryStructureType.XShape)
+                                    SecondaryStructureType.XShape
+                                )
                             )
                         }
 
@@ -1246,7 +1358,8 @@ class ThemeBuilder(data: MutableMap<Int, Double> = mutableMapOf()) {
                             t.addConfiguration(
                                 ThemeProperty.fulldetails,
                                 { _ -> "true" },
-                                listOf(SecondaryStructureType.Helix,
+                                listOf(
+                                    SecondaryStructureType.Helix,
                                     SecondaryStructureType.SecondaryInteraction,
                                     SecondaryStructureType.Junction,
                                     SecondaryStructureType.SingleStrand,
@@ -1255,18 +1368,21 @@ class ThemeBuilder(data: MutableMap<Int, Double> = mutableMapOf()) {
                                     SecondaryStructureType.UShape,
                                     SecondaryStructureType.GShape,
                                     SecondaryStructureType.CShape,
-                                    SecondaryStructureType.XShape)
+                                    SecondaryStructureType.XShape
+                                )
                             )
 
                             t.addConfiguration(
                                 ThemeProperty.fulldetails,
                                 { _ -> "false" },
-                                listOf(SecondaryStructureType.InteractionSymbol,
+                                listOf(
+                                    SecondaryStructureType.InteractionSymbol,
                                     SecondaryStructureType.A,
                                     SecondaryStructureType.U,
                                     SecondaryStructureType.G,
                                     SecondaryStructureType.C,
-                                    SecondaryStructureType.X)
+                                    SecondaryStructureType.X
+                                )
                             )
                         }
 
@@ -1274,7 +1390,8 @@ class ThemeBuilder(data: MutableMap<Int, Double> = mutableMapOf()) {
                             t.addConfiguration(
                                 ThemeProperty.fulldetails,
                                 { _ -> "true" },
-                                listOf(SecondaryStructureType.Helix,
+                                listOf(
+                                    SecondaryStructureType.Helix,
                                     SecondaryStructureType.SecondaryInteraction,
                                     SecondaryStructureType.Junction,
                                     SecondaryStructureType.SingleStrand,
@@ -1288,7 +1405,8 @@ class ThemeBuilder(data: MutableMap<Int, Double> = mutableMapOf()) {
                                     SecondaryStructureType.U,
                                     SecondaryStructureType.G,
                                     SecondaryStructureType.C,
-                                    SecondaryStructureType.X)
+                                    SecondaryStructureType.X
+                                )
                             )
 
                             t.addConfiguration(
@@ -1307,16 +1425,17 @@ class ThemeBuilder(data: MutableMap<Int, Double> = mutableMapOf()) {
                         }
                     }
                 }
+
                 is SchemeBuilder -> {
                     if ("Structural Domains" == configurationBuilder.value) {
                         val randomColors = (1..20).map { getHTMLColorString(randomColor()) }
                         t.addConfiguration(
                             ThemeProperty.color,
-                            {el ->
+                            { el ->
                                 when (el) {
-                                    is HelixDrawing -> randomColors.get(Random.nextInt(0,19))
-                                    is JunctionDrawing -> randomColors.get(Random.nextInt(0,19))
-                                    is SingleStrandDrawing -> randomColors.get(Random.nextInt(0,19))
+                                    is HelixDrawing -> randomColors.get(Random.nextInt(0, 19))
+                                    is JunctionDrawing -> randomColors.get(Random.nextInt(0, 19))
+                                    is SingleStrandDrawing -> randomColors.get(Random.nextInt(0, 19))
                                     is SecondaryInteractionDrawing -> getHTMLColorString(el.parent!!.getColor())
                                     is InteractionSymbolDrawing -> getHTMLColorString(el.parent!!.getColor())
                                     is ResidueDrawing -> getHTMLColorString(el.parent!!.getColor())
@@ -1325,7 +1444,8 @@ class ThemeBuilder(data: MutableMap<Int, Double> = mutableMapOf()) {
                                     } ?: run {
                                         getHTMLColorString(el.getColor())
                                     }
-                                    is ResidueLetterDrawing-> getHTMLColorString(Color.WHITE)
+
+                                    is ResidueLetterDrawing -> getHTMLColorString(Color.WHITE)
                                     else -> getHTMLColorString(Color.RED)
                                 }
                             },
@@ -1342,6 +1462,7 @@ class ThemeBuilder(data: MutableMap<Int, Double> = mutableMapOf()) {
                             }
                         }
                 }
+
                 is ColorBuilder -> {
                     configurationBuilder.value?.let {
                         if (data.isNotEmpty() && (configurationBuilder.filtered || configurationBuilder.to != null)) { //if we have some data and the user filtered them OR the color to has been set
@@ -1362,26 +1483,26 @@ class ThemeBuilder(data: MutableMap<Int, Double> = mutableMapOf()) {
                                                 t.addConfiguration(
                                                     configurationBuilder.buildSelection(Location(position)),
                                                     ThemeProperty.color,
-                                                { getHTMLColorString(Color(r.toInt(), g.toInt(), b.toInt())) })
+                                                    { getHTMLColorString(Color(r.toInt(), g.toInt(), b.toInt())) })
                                         } ?: run {
                                             t.addConfiguration(
                                                 configurationBuilder.buildSelection(Location(position)),
                                                 ThemeProperty.color,
-                                            { getHTMLColorString(Color(r.toInt(), g.toInt(), b.toInt())) })
+                                                { getHTMLColorString(Color(r.toInt(), g.toInt(), b.toInt())) })
                                         }
                                     }
                                 } ?: run {
                                     t.addConfiguration(
                                         configurationBuilder.buildSelection(),
                                         ThemeProperty.color,
-                                    { configurationBuilder.value!! })
+                                        { configurationBuilder.value!! })
                                 }
                             }
                         } else {
                             t.addConfiguration(
                                 configurationBuilder.buildSelection(),
                                 ThemeProperty.color,
-                            { configurationBuilder.value!! })
+                                { configurationBuilder.value!! })
                         }
                     }
                 }
@@ -1390,14 +1511,14 @@ class ThemeBuilder(data: MutableMap<Int, Double> = mutableMapOf()) {
                     t.addConfiguration(
                         configurationBuilder.buildSelection(),
                         ThemeProperty.fulldetails,
-                    { "true" })
+                        { "true" })
                 }
 
                 is HideBuilder -> {
                     t.addConfiguration(
                         configurationBuilder.buildSelection(),
                         ThemeProperty.fulldetails,
-                    { "false" })
+                        { "false" })
                 }
 
                 is LineBuilder -> {
@@ -1405,7 +1526,7 @@ class ThemeBuilder(data: MutableMap<Int, Double> = mutableMapOf()) {
                     t.addConfiguration(
                         lineBuilder.buildSelection(),
                         ThemeProperty.linewidth,
-                    { lineBuilder.value.toString() })
+                        { lineBuilder.value.toString() })
                 }
             }
 
@@ -1418,7 +1539,7 @@ class ThemeBuilder(data: MutableMap<Int, Double> = mutableMapOf()) {
 open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
     val locationBuilder = LocationBuilder()
     var type: String? = null
-    var step:Int? = null
+    var step: Int? = null
     val data = data.toMutableMap()
     var filtered = false
 
@@ -1874,7 +1995,9 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
                 })
             }
         } ?: run {
-            selectors.add({ el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true }) //no type? Any element is selected (and has to be in the location if the user set one)
+            selectors.add({ el: DrawingElement, l: Location? ->
+                l?.contains(el.location) ?: true
+            }) //no type? Any element is selected (and has to be in the location if the user set one)
         }
 
         return userDefinedLocation?.let {

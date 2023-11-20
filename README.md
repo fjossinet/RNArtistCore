@@ -19,11 +19,122 @@ You need to have java installed on your computer and executable in a terminal. T
 
 ## RNArtistCore from the commandline
 
-From the RNArtistCore directory, type: 
-<pre>java -jar rnartistcore-X.X.X-jar-with-dependencies.jar path/to/your/plotting_script.kts</pre>
+To display the help information, you need to type the following command from a terminal:
 
-From any directory, type:
-<pre>java -jar path/to/your/rnartistcore-X.X.X-jar-with-dependencies.jar path/to/plotting_script.kts</pre>
+<pre>
+java -jar /path/to/your/rnartistcore-X.X.X-jar-with-dependencies.jar
+</pre>
+
+<pre>
+RNArtistCore: a kotlin DSL to create and plot RNA 2D structures
+
+Usage:
+* to run a single RNArtistCore script: 
+    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar /path/to/your/script
+* to compute the 2D plot for a single structural file: 
+    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [options] -f /path/to/your/structural_file
+* to compute the 2D plots for several structural files:  
+    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [options] -d /path/to/the/root_folder/
+
+Options:
+-d <arg>                Compute the 2D plots for a bunch of structural files 
+                        stored in subfolders inside the root folder given as argument
+-f <arg>                Compute the 2D plot for a single structural file
+--no-png                The kotlin scripts created for each structural file will not 
+                        export the 2D plots in PNG files. This option should not be used to 
+                        create a database fully compliant with the graphical tool RNArtist 
+                        RNArtist needs PNG files to preview the 2Ds.
+--with-svg              The kotlin scripts created for each structural file will export 
+                        the 2D plots in SVG files
+--from <arg>            Start the computation of 2D plots from the file whose name without suffix 
+                        is given as argument (if file named my_rna_67.vienna, then you need to type --from my_rna_67)
+--min-color <arg>       Define the first color for the gradient color. The gradient color is used to 
+                        incorporate quantitative values into 2D plots (default: lightyellow)
+--max-color <arg>       Define the last color for the gradient color. The gradient color is used to 
+                        incorporate quantitative values into 2D plots (default: firebrick)
+--min-value [<arg>]     Define the min value to be used to compute the gradient color between 
+                        min-color and max-color (default: 0.0)
+--max-value [<arg>]     Define the max value to be used to compute the gradient color between 
+                        min-color and max-color (default: 1.0)
+-h                      Display help information
+</pre>
+
+As described in the help informaiton, you can either:
+
+* run a single drawing script. RNArtistCore will execute the instructions described in this script.
+* compute the 2D from a single structural file. RNArtistCore will generate a drawing script with the same name and location than the structural file. You should then edit this script and run it from the comandline.
+* compute the 2Ds from several structural files. Your files should be organized like the following:
+<pre>
+root_folder (no structural files in the root folder)
+ |
+ |__subfolder_1
+ |    |
+ |    |_ file_1.vienna
+ |    |_ file_2.vienna
+ |    
+ |__subfolder_2
+      |
+      |_ file_1.vienna
+      |_ file_2.vienna
+</pre>
+
+To produce the drawings for all the structural files, type:
+<pre>java -jar /path/to/your/rnartistcore-X.X.X-jar-with-dependencies.jar -d /path/to/your/root_folder</pre>
+
+This will generate a drawing script with default parameters for each structural file (with the same name and location). One generated, each script will be evaluated to plot and save each 2D in a 250x250 PNG file. 
+Your root folder in now a database fully compliant with the graphical tool [RNArtist](https://github.com/fjossinet/RNArtist).
+
+If you just want to produce your drawings with the default parameters, you can save them in 1000x1000 SVG files. To do so, you need to use the option ```--with-svg```. If you're sure to have no need of [RNArtist](https://github.com/fjossinet/RNArtist), you can use the options ```--with-svg --no-png```.
+
+You can kill the process and restart from any file using the following command:
+<pre>java -jar rnartistcore-X.X.X-jar-with-dependencies.jar -d --from name_of_a_file_without_suffix /path/to/your/root_folder</pre>
+
+For example, if you have a structure described in a file named my_rna_325B67.vienna, you can restart the process from this file by typing:
+<pre>java -jar rnartistcore-X.X.X-jar-with-dependencies.jar -d --from my_rna_325B67 /path/to/your/root_folder</pre>
+
+All the output files (scripts, images) starting from this file will be overwritten.
+
+After a while (RNArtistCore searches for the best layout for each drawing), you will get the folllowing:
+
+<pre>
+root_folder
+ |
+ |__subfolder_1.kts
+ |__subfolder_1
+ |    |
+ |    |_ file_1.vienna
+ |    |_ file_1.kts
+ |    |_ file_2.vienna
+ |    |_ file_2.kts
+ |
+ |__subfolder_2.kts
+ |__subfolder_2
+ |    |
+ |    |_ file_1.vienna
+ |    |_ file_1.kts
+ |    |_ file_2.vienna
+ |    |_ file_2.kts
+ |
+ |__drawings
+       |
+       |__subfolder_1
+       |    |
+       |    |_ file_1.png
+       |    |_ file_1.svg
+       |    |_ file_2.png
+       |    |_ file_2.svg
+       |
+       |__subfolder_2
+            |
+            |_ file_1.png
+            |_ file_1.svg
+            |_ file_2.png
+            |_ file_2.svg
+</pre>
+
+All SVG files are 1000x1000 and all PNG files are 250x250. You can load the SVG files in your fav editor (Inkscape, Affinity Designer, Illustrator,...).
+
+If you have generated PNG files (meaning that you did not use the option ```--no-png```), you can load your root folder from within [RNArtist](https://github.com/fjossinet/RNArtist) to use it as a browsable and editable database. The PNG files are then used as previews in RNArtist.
 
 # <a name="library"></a>RNArtistCore as a library
 

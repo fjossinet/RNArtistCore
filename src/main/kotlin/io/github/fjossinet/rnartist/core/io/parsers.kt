@@ -12,6 +12,60 @@ import java.util.stream.Collectors
 import kotlin.math.pow
 import kotlin.math.sqrt
 
+fun getScriptForDataFile(dataFile:File, outputDir:File, noPNG:Boolean = false, withSVG:Boolean = false, minColor: String = "lightyellow", minvalue:Double = 0.0, maxColor:String = "firebrick", maxvalue:Double = 1.0):File {
+    val script = File(dataFile.parentFile, "${dataFile.name.split(Regex(".(vienna|bpseq|ct|pdb)")).first()}.kts")
+    val quantitativeDataFile = File(dataFile.parentFile, "${dataFile.name.split(Regex(".(vienna|bpseq|ct|pdb)")).first()}.txt")
+    if (!script.exists()) {
+        script.createNewFile()
+        val rnartistEl = initScript()
+        if (!noPNG)
+            with(rnartistEl.addPNG()) {
+                this.setPath(outputDir.invariantSeparatorsPath)
+                this.setWidth(250.0)
+                this.setHeight(250.0)
+            }
+
+        if (withSVG)
+            with(rnartistEl.addSVG()) {
+                this.setPath(outputDir.invariantSeparatorsPath)
+                this.setWidth(1000.0)
+                this.setHeight(1000.0)
+            }
+
+        with (rnartistEl.addSS()) {
+            when (dataFile.name.split(".").last()) {
+                "vienna" ->  this.addVienna().setFile(dataFile.invariantSeparatorsPath)
+                "ct" ->  this.addCT().setFile(dataFile.invariantSeparatorsPath)
+                "bpseq" -> this.addBPSeq().setFile(dataFile.invariantSeparatorsPath)
+            }
+        }
+
+        if (quantitativeDataFile.exists()) {
+            with (rnartistEl.addData()) {
+                quantitativeDataFile.readLines().forEach {
+                    this.addValue(it.split(" ").first().toInt(), it.split(" ").last().toDouble())
+                }
+            }
+            //we remove the scheme from initScript()
+            with (rnartistEl.getThemeOrNew()) {
+                this.getScheme()?.let {
+                    this.removeChild(it)
+                }
+                with (this.addColor()) {
+                    this.setType("N")
+                    this.setValue(minColor)
+                    this.setTo(maxColor, minvalue, maxvalue)
+                    this.setStep(1)
+                }
+            }
+        }
+
+        script.writeText(rnartistEl.dump().toString())
+    }
+
+    return script
+}
+
 @Throws(java.lang.Exception::class)
 fun parseRnaml(f: File?): List<SecondaryStructure> {
     val secondaryStructures = mutableListOf<SecondaryStructure>()

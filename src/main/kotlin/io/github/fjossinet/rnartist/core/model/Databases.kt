@@ -2,6 +2,7 @@ package io.github.fjossinet.rnartist.core.model
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.internal.LinkedTreeMap
 import io.github.fjossinet.rnartist.core.io.writeVienna
 import io.github.fjossinet.rnartist.core.ss
 import java.io.*
@@ -37,10 +38,11 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
 
     init {
         this.name = this.rootInvariantSeparatorsPath.split("/").last()
+        this.indexFile //to read the index file or create an empty one
     }
 
     /**
-     * This function search for all the path and fiel properties to change them to fit this DB
+     * This function search for all the path and field properties in the script to change them to fit this database location
      */
     fun importScript(script:File) {
         val lines = mutableListOf<String>()
@@ -60,18 +62,86 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
     }
 
     /**
-     * if init is true, the indexing is done like a first load. If some script exists & init is true, we check their path to fit this database
+     * if init is true, the indexing is done like a first load. If some script exists & init is true, we check their path to fit this database location
+     * @param withSVG the instruction to generate SVG files will be added to the scripts
+     * @param createScriptForDataFiles generate the script for each data file now. Otherwise they will be generated when the script for the dataDir will be evaluated
      */
-    fun indexDatabase(init:Boolean = false):List<File> {
-        if (init)
+    fun indexDatabase(init:Boolean = false, createScriptForDataFiles:Boolean = false, noPNG:Boolean = false, withSVG:Boolean = false):List<File> {
+        if (init) {
             this.indexedDirs.clear()
+            this.indexFile.delete()
+        }
+        File(this.rootInvariantSeparatorsPath).listFiles()?.forEach {
+            if (it.name.endsWith(".json")) {
+                val jsonDir = File(File(this.rootInvariantSeparatorsPath), it.name.removeSuffix(".json"))
+                if (!jsonDir.exists()) {
+                    println("Processing ${it.name}...")
+                    jsonDir.mkdir()
+                    //we have json data to dump
+                    val rnas = Gson().fromJson(it.readText(), Any::class.java)
+                    (rnas as? LinkedTreeMap<String, Any>)?.forEach { rnaName, rnaDetails ->
+                        var rna: RNA? = null
+                        var basePairs: MutableList<BasePair>? = null
+                        var reactivities: MutableList<Double>? = null
+                        (rnaDetails as? LinkedTreeMap<Any, Any>)?.forEach { key, value ->
+                            when (key) {
+                                "sequence" -> {
+                                    rna = RNA(rnaName, value as String)
+                                }
+
+                                "paired_bases" -> {
+                                    basePairs = mutableListOf()
+                                    (value as? ArrayList<ArrayList<Double>>)?.forEach { basePair ->
+                                        val pos1 = basePair.get(0).toInt() + 1 //0-indexed
+                                        val pos2 = basePair.get(1).toInt() + 1 //0-indexed
+                                        basePairs!!.add(
+                                            BasePair(
+                                                Location(
+                                                    Location(pos1, pos1),
+                                                    Location(pos2, pos2)
+                                                )
+                                            )
+                                        )
+                                    }
+                                }
+
+                                "dms" -> {
+                                    reactivities = mutableListOf()
+                                    (value as? ArrayList<Double>)?.forEach { reactivity ->
+                                        reactivities!!.add(reactivity)
+                                    }
+                                }
+                            }
+                        }
+                        rna?.let { rna ->
+                            basePairs?.let { basePairs ->
+                                val viennaFile = File(jsonDir, "${rnaName}.vienna")
+                                if (!viennaFile.exists())
+                                    writeVienna(
+                                        SecondaryStructure(rna = rna, basePairs = basePairs),
+                                        viennaFile.writer()
+                                    )
+                            }
+                            reactivities?.let { reactivities ->
+                                val reactivitiesFile = File(jsonDir, "${rnaName}.txt")
+                                if (!reactivitiesFile.exists())
+                                    reactivitiesFile.writeText(reactivities.mapIndexed { index, reactivity -> "${index + 1} $reactivity" }
+                                        .joinToString(separator = "\n"))
+                            }
+                        }
+                    }
+                }
+            }
+        }
         val dataDirs = this.searchForNonIndexedDirs()
         val pw =  PrintWriter(FileWriter(this.indexFile, !init)) //!init means no append if we reinit the indexing as a first load
         dataDirs.forEach { dataDir ->
             this.indexedDirs.add(dataDir.invariantSeparatorsPath)
             pw.println(dataDir.invariantSeparatorsPath)
             val scriptDataDir = File(File(dataDir.invariantSeparatorsPath).parent, "${dataDir.invariantSeparatorsPath.split("/").last()}.kts")
-            if (scriptDataDir.exists() && init)
+            if (!scriptDataDir.exists())
+                this.getScriptForDataDir(dataDir, createScriptForDataFiles, noPNG, withSVG)
+            else if (scriptDataDir.exists() && init)
                 importScript(scriptDataDir)
             dataDir.listFiles()?.let { files ->
                 files.forEach { file ->
@@ -82,7 +152,6 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
                     }
                 }
             }
-
         }
         pw.close()
         return dataDirs
@@ -98,7 +167,7 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
 
             indexedDirs.add(absPathFolder)
 
-            this.getScriptFileForDataDir(folder) //we create the script file
+            this.getScriptForDataDir(folder) //we create the script file
             return folder
         }
         return null
@@ -158,17 +227,26 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
         return File(path)
     }
 
-    fun getScriptFileForDataDir(dataDir:File):File {
+    fun getScriptForDataDir(dataDir:File, createScriptForDataFiles:Boolean = false, noPNG:Boolean = false, withSVG:Boolean = false):File {
         val script = File(dataDir.parent, "${dataDir.name}.kts")
         if (!script.exists()) {
             script.createNewFile()
             val rnartistEl = initScript()
-            val pngOutputDir = getDrawingsDirForDataDir(dataDir)
-            with(rnartistEl.addPNG()) {
-                this.setPath(pngOutputDir.invariantSeparatorsPath)
-                this.setWidth(250.0)
-                this.setHeight(250.0)
-            }
+            val outputDir = getDrawingsDirForDataDir(dataDir)
+
+            if (!noPNG)
+                with(rnartistEl.addPNG()) {
+                    this.setPath(outputDir.invariantSeparatorsPath)
+                    this.setWidth(250.0)
+                    this.setHeight(250.0)
+                }
+
+            if (withSVG)
+                with(rnartistEl.addSVG()) {
+                    this.setPath(outputDir.invariantSeparatorsPath)
+                    this.setWidth(1000.0)
+                    this.setHeight(1000.0)
+                }
 
             with (rnartistEl.addSS()) {
                 this.addVienna().setPath(dataDir.invariantSeparatorsPath)
@@ -179,7 +257,23 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
             script.writeText(rnartistEl.dump().toString())
         }
 
+        if (createScriptForDataFiles) {
+            dataDir.listFiles(FileFilter {
+                it.name.endsWith(".ct") || it.name.endsWith(".vienna") || it.name.endsWith(
+                    ".bpseq"
+                ) || it.name.endsWith(".pdb")
+            })?.forEach { dataFile ->
+                getScriptForDataFile(dataFile, withSVG)
+            }
+        }
+
         return script
+    }
+
+    fun getPreviewForDataFile(dataFile:File):File  = File(getDrawingsDirForDataDir(dataFile.parentFile), "${dataFile.name.split(".kts").first()}.png")
+
+    fun getScriptForDataFile(dataFile:File, noPNG:Boolean = false, withSVG:Boolean = false, minColor: String = "lightyellow", minValue:Double = 0.0, maxColor:String = "firebrick", maxValue:Double = 1.0):File {
+        return io.github.fjossinet.rnartist.core.io.getScriptForDataFile(dataFile, getDrawingsDirForDataDir(dataFile.parentFile), noPNG, withSVG, minColor, minValue, maxColor, maxValue)
     }
 
     fun containsStructuralData(path: Path): Boolean {

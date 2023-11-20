@@ -687,7 +687,7 @@ interface StructuralDomain {
     val start: Int
     val end: Int
     val length: Int
-    var maxBranchLength: Int
+    var branchLengthFromHere: Int
 
     /**
      * The standard deviation for the length of this structural domain
@@ -696,7 +696,7 @@ interface StructuralDomain {
 }
 
 abstract class AbstractStructuralDomain : StructuralDomain {
-    override var maxBranchLength = 0
+    override var branchLengthFromHere = 0 /*number of structural domains from an apical loop to this domain. An apical loop has a value of 1*/
         set(value) {
             if (value > field)
                 field = value
@@ -796,7 +796,7 @@ class Junction(
 
     val junctionType: JunctionType
         get() {
-            return JunctionType.values().first { it.value == this.location.blocks.size }
+            return JunctionType.entries.first { it.value == this.location.blocks.size }
         }
 
     /**
@@ -1285,14 +1285,14 @@ class SecondaryStructure(
                     if (junction.junctionType == JunctionType.ApicalLoop) {
                         var length = 1
                         var currentJunction = junction
-                        currentJunction.maxBranchLength = length++
-                        currentJunction.helicesLinked[0].maxBranchLength = length++
+                        currentJunction.branchLengthFromHere = length++
+                        currentJunction.helicesLinked[0].branchLengthFromHere = length++
                         var previousJunction =
                             currentJunction.helicesLinked[0].junctionsLinked.toList().find { it != currentJunction }
                         while (previousJunction != null) {
                             currentJunction = previousJunction
-                            currentJunction.maxBranchLength = length++
-                            currentJunction.helicesLinked[0].maxBranchLength = length++
+                            currentJunction.branchLengthFromHere = length++
+                            currentJunction.helicesLinked[0].branchLengthFromHere = length++
                             previousJunction =
                                 currentJunction.helicesLinked[0].junctionsLinked.toList().find { it != currentJunction }
                         }
@@ -1411,6 +1411,17 @@ class SecondaryStructure(
             return null
         }
         return Triple(minNextEnd, pairedPosition, helix)
+    }
+
+    fun getSSEl():SSEl {
+        with (SSEl()) {
+            with (this.addBracketNotation()) {
+                this.setName(name)
+                this.setSeq(rna.seq)
+                this.setValue(toBracketNotation())
+            }
+            return this
+        }
     }
 
     private fun findJunctions() {
