@@ -67,10 +67,6 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
      * @param createScriptForDataFiles generate the script for each data file now. Otherwise they will be generated when the script for the dataDir will be evaluated
      */
     fun indexDatabase(init:Boolean = false, createScriptForDataFiles:Boolean = false, noPNG:Boolean = false, withSVG:Boolean = false):List<File> {
-        if (init) {
-            this.indexedDirs.clear()
-            this.indexFile.delete()
-        }
         File(this.rootInvariantSeparatorsPath).listFiles()?.forEach {
             if (it.name.endsWith(".json")) {
                 val jsonDir = File(File(this.rootInvariantSeparatorsPath), it.name.removeSuffix(".json"))
@@ -133,8 +129,12 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
                 }
             }
         }
+        if (init) {
+            this.indexFile.delete() //first since the access to index file will fill the indexedDirs
+            this.indexedDirs.clear()
+        }
         val dataDirs = this.searchForNonIndexedDirs()
-        val pw =  PrintWriter(FileWriter(this.indexFile, !init)) //!init means no append if we reinit the indexing as a first load
+        val pw =  PrintWriter(FileWriter(this.indexFile))
         dataDirs.forEach { dataDir ->
             this.indexedDirs.add(dataDir.invariantSeparatorsPath)
             pw.println(dataDir.invariantSeparatorsPath)
