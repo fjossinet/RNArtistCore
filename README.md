@@ -25,7 +25,7 @@ To display the help information, you need to type the following command from a t
 java -jar /path/to/your/rnartistcore-X.X.X-jar-with-dependencies.jar
 </pre>
 
-<pre>
+```text
 RNArtistCore: a kotlin DSL to create and plot RNA 2D structures
 
 Usage:
@@ -37,8 +37,8 @@ Usage:
     java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [options] -d /path/to/the/root_folder/
 
 Options:
--d <arg>                Compute the 2D plots for a bunch of structural files 
-                        stored in subfolders inside the root folder given as argument
+-d <arg>                Compute the 2D plots from structural files stored in subfolders inside 
+                        the root folder given as argument. If some files have already been processed, they will be ignored.
 -f <arg>                Compute the 2D plot for a single structural file
 --no-png                The kotlin scripts created for each structural file will not 
                         export the 2D plots in PNG files. This option should not be used to 
@@ -46,8 +46,9 @@ Options:
                         RNArtist needs PNG files to preview the 2Ds.
 --with-svg              The kotlin scripts created for each structural file will export 
                         the 2D plots in SVG files
---from <arg>            Start the computation of 2D plots from the file whose name without suffix 
-                        is given as argument (if file named my_rna_67.vienna, then you need to type --from my_rna_67)
+--from <arg>            Restart the computation of 2D plots from the file whose name without suffix 
+                        is given as argument (if file named my_rna_67.vienna, then you need to type --from my_rna_67).
+                        If some files have already been processed after this start file, they will be recomputed.
 --min-color <arg>       Define the first color for the gradient color. The gradient color is used to 
                         incorporate quantitative values into 2D plots (default: lightyellow)
 --max-color <arg>       Define the last color for the gradient color. The gradient color is used to 
@@ -57,7 +58,7 @@ Options:
 --max-value [<arg>]     Define the max value to be used to compute the gradient color between 
                         min-color and max-color (default: 1.0)
 -h                      Display help information
-</pre>
+```
 
 As described in the help informaiton, you can either:
 

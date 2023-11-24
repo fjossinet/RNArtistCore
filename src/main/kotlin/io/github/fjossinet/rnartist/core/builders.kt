@@ -1137,7 +1137,7 @@ if ("X69982.1/45-449".equals(junctionDrawing.ssDrawing.secondaryStructure.rna.na
                     }
                     junctionType?.let {
                         junctionsBehaviors[junctionType] =
-                            { junctionDrawing: JunctionDrawing, helixRank: Int, useRelativeBehavior: Boolean, outIdForLongest: ConnectorId ->
+                            { junctionDrawing: JunctionDrawing, helixRank: Int, outIdForLongest: ConnectorId ->
                                 val newLayout = junctionLayoutBuilder.out_ids!!.split(" ").map {
                                     ConnectorId.valueOf(it)
                                 }.toList()

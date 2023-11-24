@@ -271,6 +271,7 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
     }
 
     fun getPreviewForDataFile(dataFile:File):File  = File(getDrawingsDirForDataDir(dataFile.parentFile), "${dataFile.name.split(".kts").first()}.png")
+    fun getSVGForDataFile(dataFile:File):File  = File(getDrawingsDirForDataDir(dataFile.parentFile), "${dataFile.name.split(".kts").first()}.svg")
 
     fun getScriptForDataFile(dataFile:File, noPNG:Boolean = false, withSVG:Boolean = false, minColor: String = "lightyellow", minValue:Double = 0.0, maxColor:String = "firebrick", maxValue:Double = 1.0):File {
         return io.github.fjossinet.rnartist.core.io.getScriptForDataFile(dataFile, getDrawingsDirForDataDir(dataFile.parentFile), noPNG, withSVG, minColor, minValue, maxColor, maxValue)

@@ -24,8 +24,8 @@ Usage:
     java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [options] -d /path/to/the/root_folder/
 
 Options:
--d <arg>                Compute the 2D plots for a bunch of structural files 
-                        stored in subfolders inside the root folder given as argument
+-d <arg>                Compute the 2D plots from structural files stored in subfolders inside 
+                        the root folder given as argument. If some files have already been processed, they will be ignored.
 -f <arg>                Compute the 2D plot for a single structural file
 --no-png                The kotlin scripts created for each structural file will not 
                         export the 2D plots in PNG files. This option should not be used to 
@@ -33,8 +33,9 @@ Options:
                         RNArtist needs PNG files to preview the 2Ds.
 --with-svg              The kotlin scripts created for each structural file will export 
                         the 2D plots in SVG files
---from <arg>            Start the computation of 2D plots from the file whose name without suffix 
-                        is given as argument (if file named my_rna_67.vienna, then you need to type --from my_rna_67)
+--from <arg>            Restart the computation of 2D plots from the file whose name without suffix 
+                        is given as argument (if file named my_rna_67.vienna, then you need to type --from my_rna_67).
+                        If some files have already been processed after this start file, they will be recomputed.
 --min-color <arg>       Define the first color for the gradient color. The gradient color is used to 
                         incorporate quantitative values into 2D plots (default: lightyellow)
 --max-color <arg>       Define the last color for the gradient color. The gradient color is used to 
@@ -210,12 +211,7 @@ suspend fun main(args: Array<String>) {
                         }
                     }
                 }
-            } else { //we init this DB
-                if (File(File(args.get(args.indexOf("-d")+1)), ".rnartist_db_index").exists()) {
-                    println("The folder ${args.get(args.indexOf("-d")+1)} is already an RNArtistCore database. Do you agree to overwrite it? [y/N]")
-                    if (!"y".equals(readLine()?.trim()))
-                        System.exit(-1)
-                }
+            } else { //we create the DB
                 val db = RNArtistDB(args.get(args.indexOf("-d")+1))
                 //the database is indexed and the scripts for the data files are created now to be able to print the progress of the database construction
                 //otherwise all the 2Ds for each data dir will be generated at once during the evaluation of the script for the data dir
@@ -249,40 +245,42 @@ suspend fun main(args: Array<String>) {
                             else
                                 1.0
                         )
-                        //since we init the db, if a script exists we delete it to be sure to have someting clean
-                        if (scriptDataFile.exists())
-                            scriptDataFile.delete()
-                        scriptDataFile = db.getScriptForDataFile(
-                            dataFile,
-                            args.contains("--no-png"),
-                            args.contains("--with-svg"),
-                            if (args.contains("--min-color"))
-                                args.get(args.indexOf("--min-color")+1)
-                            else
-                                "lightyellow",
-                            if (args.contains("--min-value"))
-                                args.get(args.indexOf("--min-value")+1).toDouble()
-                            else
-                                0.0,
-                            if (args.contains("--max-color"))
-                                args.get(args.indexOf("--max-color")+1)
-                            else
-                                "firebrick",
-                            if (args.contains("--max-value"))
-                                args.get(args.indexOf("--max-value")+1).toDouble()
-                            else
-                                1.0
-                        )
-                        println("Drawing 2D for ${scriptDataFile.name.split(".kts").first()}")
-                        (engine.eval(
-                            "import io.github.fjossinet.rnartist.core.*${System.getProperty("line.separator")}${
-                                System.getProperty(
-                                    "line.separator"
-                                )
-                            } ${FileReader(scriptDataFile).readText()}"
-                        ) as? Pair<List<SecondaryStructureDrawing>, RNArtistEl>)?.let {
-                            //we overwrite the initial script without any layout with the best layout found and stored in the DSL elements tree
-                            scriptDataFile.writeText(it.second.dump("", StringBuffer()).toString())
+                        if (!args.contains("--no-png") && !db.getPreviewForDataFile(scriptDataFile).exists() || args.contains("--with-svg") && !db.getSVGForDataFile(scriptDataFile).exists()) {
+                            //the user asked for something that doesn't exist for the current structural file. We need to run the script
+                            if (scriptDataFile.exists())//if a script already exists, we delete it to be sure to have someting clean (we could have a script without the SVG export and the user asked now for one)
+                                scriptDataFile.delete()
+                            scriptDataFile = db.getScriptForDataFile(
+                                dataFile,
+                                args.contains("--no-png"),
+                                args.contains("--with-svg"),
+                                if (args.contains("--min-color"))
+                                    args.get(args.indexOf("--min-color")+1)
+                                else
+                                    "lightyellow",
+                                if (args.contains("--min-value"))
+                                    args.get(args.indexOf("--min-value")+1).toDouble()
+                                else
+                                    0.0,
+                                if (args.contains("--max-color"))
+                                    args.get(args.indexOf("--max-color")+1)
+                                else
+                                    "firebrick",
+                                if (args.contains("--max-value"))
+                                    args.get(args.indexOf("--max-value")+1).toDouble()
+                                else
+                                    1.0
+                            )
+                            println("Drawing 2D for ${scriptDataFile.name.split(".kts").first()}")
+                            (engine.eval(
+                                "import io.github.fjossinet.rnartist.core.*${System.getProperty("line.separator")}${
+                                    System.getProperty(
+                                        "line.separator"
+                                    )
+                                } ${FileReader(scriptDataFile).readText()}"
+                            ) as? Pair<List<SecondaryStructureDrawing>, RNArtistEl>)?.let {
+                                //we overwrite the initial script without any layout with the best layout found and stored in the DSL elements tree
+                                scriptDataFile.writeText(it.second.dump("", StringBuffer()).toString())
+                            }
                         }
                     }
                 }
