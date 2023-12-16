@@ -774,7 +774,7 @@ class RNArtistBuilder {
         this.secondaryStructures.forEachIndexed { _, ss ->
             try {
                 val alternatives = mutableListOf<SecondaryStructureDrawing>()
-                val outIdsLongest = listOf(
+                val outIdsForLongest = listOf(
                     ConnectorId.n,
                     ConnectorId.nne,
                     ConnectorId.nnw,
@@ -789,30 +789,54 @@ class RNArtistBuilder {
                     ConnectorId.se,
                     ConnectorId.sw,
                     ConnectorId.sse,
-                    ConnectorId.ssw
+                    ConnectorId.ssw,
+                    ConnectorId.s
                 )
 
-                FOR@for (outIdLongest in outIdsLongest) {
-                    alternatives.add(SecondaryStructureDrawing(ss, outIdForLongest = {outIdLongest}, layout = this.layout))
-                    if (alternatives.last().overlappingScore == 0)
-                        break
-                    else {
-                        val junctionsToImprove = alternatives.last().junctionsToImprove()
-                        var index = outIdsLongest.indexOf(outIdLongest)+1
-                        while (index <= outIdsLongest.size-1) {
-                            val drawingAttempt = SecondaryStructureDrawing(ss, outIdForLongest = {
-                                if (junctionsToImprove.contains(it))
-                                    outIdsLongest.get(index)
-                                else
-                                    outIdLongest
-                            }, layout = this.layout)
-                            if (drawingAttempt.overlappingScore == 0) {
-                                alternatives.add(drawingAttempt)
-                                break@FOR
+                FOR@ for (outIdLongest in outIdsForLongest) {
+                    val lastReferenceDrawing = SecondaryStructureDrawing(ss, outIdForLongest = { outIdLongest }, layout = this.layout)
+                    alternatives.add(lastReferenceDrawing)
+                    if  (lastReferenceDrawing.overlappingScore == 0)
+                        break@FOR
+                    for (backward in 0..10) {
+                        var junctionsToImprove = lastReferenceDrawing.junctionsToImprove(backward)
+                        if (junctionsToImprove.isNotEmpty()) {
+                            var junctionsToImproveFromBranch = junctionsToImprove.toMutableSet()
+                            junctionsToImproveFromBranch.addAll(junctionsToImprove)
+                            for (junction2improve in junctionsToImprove) {
+                                junctionsToImproveFromBranch.addAll(
+                                    junction2improve.junctionsFromBranch()
+                                        .filter { junction2improve.junction.location.contains(junction2improve.junction.location) })
                             }
-                            else if (drawingAttempt.overlappingScore < junctionsToImprove.size)
+                            val innerLoopsToImprove =
+                                junctionsToImprove.filter { it.junctionType == JunctionType.InnerLoop }
+                            val targetedBehaviours = innerLoopsToImprove.map {
+                                Pair(
+                                    it.junction.location,
+                                    { _: JunctionDrawing, _: Int, outIdLongest: ConnectorId -> outIdLongest })
+                            }
+                            var index = outIdsForLongest.indexOf(outIdLongest) + 1
+                            while (index <= outIdsForLongest.size - 1) {
+                                val drawingAttempt = SecondaryStructureDrawing(
+                                    ss,
+                                    outIdForLongest = {
+                                        if (junctionsToImprove.any { junctionToImprove ->
+                                                junctionToImprove.junction.location.contains(
+                                                    it
+                                                )
+                                            })
+                                            outIdsForLongest.get(index)
+                                        else
+                                            outIdLongest
+                                    },
+                                    targetedJunctionBehaviors = targetedBehaviours,
+                                    layout = this.layout
+                                )
                                 alternatives.add(drawingAttempt)
-                            index++
+                                if (drawingAttempt.overlappingScore == 0)
+                                    break@FOR
+                                index++
+                            }
                         }
                     }
                 }
@@ -843,7 +867,6 @@ class RNArtistBuilder {
                                         this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
                                     val viennaElement = ssElement.addVienna()
                                     viennaElement.setFile(source.getId())
-
 
                                     source.getId().split(".").let {
                                         dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
@@ -877,7 +900,10 @@ class RNArtistBuilder {
                                 bnElement.setValue(ss.toBracketNotation())
                                 bnElement.setName(ss.name)
 
-                                dataPath = ss.name
+                                dataPath = File(
+                                    pngOutputBuilder.path,
+                                    ss.name
+                                ).invariantSeparatorsPath //since no external input file to get a folder to store the script, we use the output folder
                             }
 
                             else -> {
@@ -931,7 +957,10 @@ class RNArtistBuilder {
                                 bnElement.setValue(ss.toBracketNotation())
                                 bnElement.setName(ss.name)
 
-                                dataPath = ss.name
+                                dataPath = File(
+                                    svgOutputBuilder.path,
+                                    ss.name
+                                ).invariantSeparatorsPath //since no external input file to get a folder to store the script, we use the output folder
 
                             }
 
@@ -949,7 +978,7 @@ class RNArtistBuilder {
                         File("${dataPath}.kts")
                     else
                         File("${Jar().path()}/${dataPath}.kts")
-                    if (!f.exists()) {
+                    if (!f.exists() || this.layout == null) { //if no layout was available in the script, we save it
                         f.createNewFile()
                         f.writeText(rnartistElement.dump().toString())
                     }
@@ -1542,6 +1571,8 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
     var step: Int? = null
     val data = data.toMutableMap()
     var filtered = false
+    var minValue:Double? = null
+    var maxValue:Double? = null
 
     infix fun MutableMap<Int, Double>.gt(min: Double) {
         val excluded = this.filter { it.value <= min }
@@ -1549,6 +1580,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
             remove(it.key)
         }
         filtered = true
+        minValue = min
     }
 
     infix fun MutableMap<Int, Double>.lt(max: Double) {
@@ -1557,6 +1589,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
             remove(it.key)
         }
         filtered = true
+        maxValue = max
     }
 
     infix fun MutableMap<Int, Double>.eq(value: Double) {
@@ -1573,6 +1606,8 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
             remove(it.key)
         }
         filtered = true
+        minValue = range.start
+        maxValue = range.endInclusive
     }
 
     fun location(setup: LocationBuilder.() -> Unit) {
@@ -2068,9 +2103,11 @@ class ColorBuilder(data: MutableMap<Int, Double>) : ThemeConfigurationBuilder(da
             value?.let {
                 field.setValue(it)
             }
+
             to?.let {
-                field.setTo(it)
+                field.setTo(it, minValue, maxValue)
             }
+
             type?.let {
                 field.setType(it)
             }
@@ -2082,6 +2119,8 @@ class ColorBuilder(data: MutableMap<Int, Double>) : ThemeConfigurationBuilder(da
             this.locationBuilder.dslElement?.let {
                 field.addLocation(it)
             }
+
+
             return field
         }
     var value: String? = null

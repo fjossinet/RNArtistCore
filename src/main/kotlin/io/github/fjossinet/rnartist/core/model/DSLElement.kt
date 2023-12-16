@@ -526,6 +526,10 @@ class LayoutEl : UndoRedoDSLElement("layout") {
         return el
     }
 
+    fun getJunctions() = this.getChildren("junction").map { it as JunctionEl }
+
+    fun getBranches() = this.getChildren("branch").map { it as BranchEl }
+
     fun addBranch(branchEl: BranchEl? = null): BranchEl {
         val el = branchEl ?: BranchEl()
         this.addChild(el)
@@ -753,6 +757,17 @@ class LayoutEl : UndoRedoDSLElement("layout") {
         }
         return buffer
     }
+
+    override fun equals(other: Any?): Boolean {
+        return other is LayoutEl
+                && other.children.size == this.children.size
+                && other.getJunctions().all { otherJunction -> this.getJunctions().any { it.getLocationOrNull()?.toLocation() == otherJunction.getLocationOrNull()?.toLocation() && it.getOutIdsOrNull()?.value == otherJunction.getOutIdsOrNull()?.value && it.getRadiusOrNull()?.value == otherJunction.getRadiusOrNull()?.value } }
+                && other.getBranches().all { otherBranch -> this.getBranches().any { it.getLocationOrNull()?.toLocation() == otherBranch.getLocationOrNull()?.toLocation() && it.getValueOrNull()?.value == otherBranch.getValueOrNull()?.value } }
+    }
+
+    override fun hashCode(): Int {
+        return javaClass.hashCode()
+    }
 }
 
 class JunctionEl : StepableDSLElement("junction") {
@@ -931,6 +946,16 @@ class ThemeEl() : UndoRedoDSLElement("theme") {
                             }
                             it.getToOrNull()?.let {
                                 to = it.value
+                            }
+                            it.getDataOrNull()?.let {
+                                when (it.operator) {
+                                    "lt" -> { maxValue = it.value.toDouble() }
+                                    "gt" ->  { minValue = it.value.toDouble() }
+                                    "between" -> {
+                                        minValue = it.value.split("..").first().toDouble()
+                                        maxValue = it.value.split("..").last().toDouble()
+                                    }
+                                }
                             }
                         }
                     }
@@ -1221,10 +1246,20 @@ class ColorEl : ThemeConfigurationEl("color") {
             this.getPropertyOrNull("to")?.let {
                 this.children.add(DSLProperty("data", "$minValue..$maxValue", operator = "between"))
             }
+        } else if (minValue != null) {
+            this.getPropertyOrNull("to")?.let {
+                this.children.add(DSLProperty("data", "$minValue", operator = "gt"))
+            }
+        } else if (maxValue != null) {
+            this.getPropertyOrNull("to")?.let {
+                this.children.add(DSLProperty("data", "$maxValue", operator = "lt"))
+            }
         }
     }
 
     fun getToOrNull() = this.getPropertyOrNull("to")
+
+    fun getDataOrNull() = this.getPropertyOrNull("data")
 
 }
 

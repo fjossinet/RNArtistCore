@@ -62,14 +62,18 @@ suspend fun main(args: Array<String>) {
     val manager = ScriptEngineManager()
     val engine = manager.getEngineByExtension("kts")
     val options = args.filter { it.startsWith("-") }
-    if (options.isEmpty())
+    if (options.isEmpty()) {
+        println("Run script ${args.last()}")
+        val text = FileReader(File(args.last())).readText()
+        println("Script loaded...")
         engine.eval(
             "import io.github.fjossinet.rnartist.core.*${System.getProperty("line.separator")}${
                 System.getProperty(
                     "line.separator"
                 )
-            } ${FileReader(File(args.last())).readText()}"
+            } ${text}"
         )
+    }
     else
         if (options.contains("-h"))
             println(usage)
