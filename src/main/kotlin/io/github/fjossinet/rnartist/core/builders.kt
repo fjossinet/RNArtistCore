@@ -169,12 +169,6 @@ class SecondaryStructureBuilder {
         }
     }
 
-    fun rfam(setup: RfamBuilder.() -> Unit) {
-        val rfamBuilder = RfamBuilder()
-        rfamBuilder.setup()
-        secondaryStructures.addAll(rfamBuilder.build())
-    }
-
     fun vienna(setup: ViennaBuilder.() -> Unit) {
         val viennaBuilder = ViennaBuilder()
         viennaBuilder.setup()
@@ -186,12 +180,14 @@ class SecondaryStructureBuilder {
         val bpSeqBuilder = BPSeqBuilder()
         bpSeqBuilder.setup()
         secondaryStructures.addAll(bpSeqBuilder.build())
+        this.dslElement.addBPSeq(bpSeqBuilder.dslElement)
     }
 
     fun ct(setup: CTBuilder.() -> Unit) {
         val ctBuilder = CTBuilder()
         ctBuilder.setup()
         secondaryStructures.addAll(ctBuilder.build())
+        this.dslElement.addCT(ctBuilder.dslElement)
     }
 
     fun pdb(setup: PDBBuilder.() -> Unit) {
@@ -199,18 +195,28 @@ class SecondaryStructureBuilder {
         pdbBuilder.setup()
         val result = pdbBuilder.build()
         secondaryStructures.addAll(result)
+        this.dslElement.addPDB(pdbBuilder.dslElement)
     }
 
     fun stockholm(setup: StockholmBuilder.() -> Unit) {
         val stockholmBuilder = StockholmBuilder()
         stockholmBuilder.setup()
         secondaryStructures.addAll(stockholmBuilder.build())
+        this.dslElement.addStockholm(stockholmBuilder.dslElement)
     }
 
     fun rnacentral(setup: RNACentralBuilder.() -> Unit) {
         val rnaCentralBuilder = RNACentralBuilder()
         rnaCentralBuilder.setup()
         secondaryStructures.addAll(rnaCentralBuilder.build())
+        this.dslElement.addRnaCentral(rnaCentralBuilder.dslElement)
+    }
+
+    fun rfam(setup: RfamBuilder.() -> Unit) {
+        val rfamBuilder = RfamBuilder()
+        rfamBuilder.setup()
+        secondaryStructures.addAll(rfamBuilder.build())
+        this.dslElement.addRfam(rfamBuilder.dslElement)
     }
 
 }
@@ -258,13 +264,38 @@ class PNGBuilder : OutputFileBuilder() {
             val fileName =
                 drawing.secondaryStructure.source?.let { source ->
                     when (source) {
+                        is DatabaseSource -> {
+                            when (source) {
+                                is RfamSource -> {
+                                    "${source.getId()}_${drawing.secondaryStructure.name.replace("/", "_")}"//since we can have several rnas in an entry
+                                }
+                                is PDBSource -> {
+                                    "${source.getId()}_${drawing.secondaryStructure.name}"//since we can have several rnas in an entry
+                                }
+                                is RnaCentralSource -> {
+                                    source.getId()//since we can only have a single rna in an entry
+                                }
+                                else -> {
+                                    source.getId()
+                                }
+                            }
+
+                        }
                         is FileSource -> {
                             //a file name can contain a dot
-                            val tokens = drawing.secondaryStructure.source?.getId()?.split("/")?.last()?.split(".")
-                            tokens?.let {
-                                tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
-                            } ?: run {
-                                null
+                            val tokens = source.getId().split("/").last().split(".")
+                            tokens.let {
+                                val fileName = tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
+                                if (source.getId().endsWith(".pdb")) {
+                                    "${fileName}_${drawing.secondaryStructure.name}"//since we can have several rnas in the file
+                                }
+                                else if (source.getId().endsWith(".sto") || source.getId().endsWith(".stk") || source.getId().endsWith(".stockholm")) {
+                                    "${fileName}_${drawing.secondaryStructure.name.replace("/", "_")}"//since we can have several rnas in the file
+                                }
+                                //for vienna, we restrict it to a single molecule (if used as an alignment, rather use stockholm)
+                                else  {
+                                    fileName
+                                }
                             }
                         }
 
@@ -328,13 +359,37 @@ class SVGBuilder : OutputFileBuilder() {
         path?.let { path ->
             val fileName = this.name ?: drawing.secondaryStructure.source?.let { source ->
                 when (source) {
+                    is DatabaseSource -> {
+                        when (source) {
+                            is RfamSource -> {
+                                "${source.getId()}_${drawing.secondaryStructure.name.replace("/", "_")}"//since we can have several rnas in an entry
+                            }
+                            is PDBSource -> {
+                                "${source.getId()}_${drawing.secondaryStructure.name}"//since we can have several rnas in an entry
+                            }
+                            is RnaCentralSource -> {
+                                source.getId()//since we can only have a single rna in an entry
+                            }
+                            else ->{
+                                source.getId()
+                            }
+                        }
+                    }
                     is FileSource -> {
                         //a file name can contains a dot
-                        val tokens = drawing.secondaryStructure.source?.getId()?.split("/")?.last()?.split(".")
-                        tokens?.let {
-                            tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
-                        } ?: run {
-                            null
+                        val tokens = source.getId().split("/").last().split(".")
+                        tokens.let {
+                            val fileName = tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
+                            if (source.getId().endsWith(".pdb")) {
+                                "${fileName}_${drawing.secondaryStructure.name}"//since we can have several rnas in the file
+                            }
+                            else if (source.getId().endsWith(".sto") || source.getId().endsWith(".stk") || source.getId().endsWith(".stockholm")) {
+                                "${fileName}_${drawing.secondaryStructure.name.replace("/", "_")}"//since we can have several rnas in the file
+                            }
+                            //for vienna, we restrict it to a single molecule (if used as an alignment, rather use stockholm)
+                            else  {
+                                fileName
+                            }
                         }
                     }
 
@@ -429,6 +484,19 @@ abstract class InputFileBuilder {
 
 class PDBBuilder {
 
+    val dslElement = PDBEl()
+        get() {
+            this.file?.let {
+                field.setFile(it)
+            }
+            this.name?.let {
+                field.setName(it)
+            }
+            this.id?.let {
+                field.setId(it)
+            }
+            return field
+        }
     var file: String? = null
     var name: String? = null
     var id: String? = null
@@ -645,6 +713,16 @@ object numbering
 
 class RfamBuilder : PublicDatabaseBuilder() {
 
+    val dslElement = RfamEl()
+        get() {
+            this.id?.let {
+                field.setId(it)
+            }
+            this.name?.let {
+                field.setId(it)
+            }
+            return field
+        }
     val use = Use()
     private var useAlignmentNumbering = false
 
@@ -704,6 +782,14 @@ class RfamBuilder : PublicDatabaseBuilder() {
 }
 
 class RNACentralBuilder : PublicDatabaseBuilder() {
+
+    val dslElement = RnaCentralEl()
+        get() {
+            this.id?.let {
+                field.setId(it)
+            }
+            return field
+        }
 
     override fun build(): List<SecondaryStructure> {
         this.id?.let { id ->
@@ -889,6 +975,24 @@ class RNArtistBuilder {
                                     source.getId().split(".").let {
                                         dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
                                     }
+                                } else if (source.getId().endsWith(".sto") || source.getId().endsWith(".stk") || source.getId().endsWith(".stockholm")) {
+                                    val ssElement =
+                                        this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
+                                    val stockholmEl = ssElement.addStockholm()
+                                    stockholmEl.setFile(source.getId())
+
+                                    source.getId().split(".").let {
+                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
+                                    }
+                                } else if (source.getId().endsWith(".pdb")) {
+                                    val ssElement =
+                                        this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
+                                    val pdbEl = ssElement.addPDB()
+                                    pdbEl.setFile(source.getId())
+
+                                    source.getId().split(".").let {
+                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
+                                    }
                                 }
                             }
 
@@ -942,6 +1046,24 @@ class RNArtistBuilder {
                                         this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
                                     val bpseqElement = ssElement.addBPSeq()
                                     bpseqElement.setFile(source.getId())
+
+                                    source.getId().split(".").let {
+                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
+                                    }
+                                } else if (source.getId().endsWith(".sto") || source.getId().endsWith(".stk") || source.getId().endsWith(".stockholm")) {
+                                    val ssElement =
+                                        this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
+                                    val stockholmEl = ssElement.addStockholm()
+                                    stockholmEl.setFile(source.getId())
+
+                                    source.getId().split(".").let {
+                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
+                                    }
+                                } else if (source.getId().endsWith(".pdb")) {
+                                    val ssElement =
+                                        this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
+                                    val pdbEl = ssElement.addPDB()
+                                    pdbEl.setFile(source.getId())
 
                                     source.getId().split(".").let {
                                         dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
@@ -1090,6 +1212,7 @@ class DataBuilder {
 class LayoutBuilder {
     private val junctionLayoutBuilders = mutableListOf<JunctionLayoutBuilder>()
     private val branchLayoutBuilders = mutableListOf<BranchLayoutBuilder>()
+    var alternatives = false
     val dslElement = LayoutEl()
         get() {
             return field
@@ -1622,53 +1745,53 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
         this.type?.let { type ->
             type.split(" ").map { type ->
                 selectors.add(when (type) {
-                    "A" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.AShape }
-                    "A@helix" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.AShape }
-                    "A@junction" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.AShape }
-                    "A@apical_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.AShape }
-                    "A@inner_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.AShape }
-                    "A@3_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.AShape }
-                    "A@4_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.AShape }
-                    "A@single_strand" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.AShape }
+                    "A" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.AShape }
+                    "A@helix" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.AShape }
+                    "A@junction" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.AShape }
+                    "A@apical_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.AShape }
+                    "A@inner_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.AShape }
+                    "A@3_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.AShape }
+                    "A@4_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.AShape }
+                    "A@single_strand" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.AShape }
 
-                    "U" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.UShape }
-                    "U@helix" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.UShape }
-                    "U@junction" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.UShape }
-                    "U@apical_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.UShape }
-                    "U@inner_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.UShape }
-                    "U@3_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.UShape }
-                    "U@4_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.UShape }
-                    "U@single_strand" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.UShape }
+                    "U" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.UShape }
+                    "U@helix" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.UShape }
+                    "U@junction" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.UShape }
+                    "U@apical_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.UShape }
+                    "U@inner_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.UShape }
+                    "U@3_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.UShape }
+                    "U@4_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.UShape }
+                    "U@single_strand" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.UShape }
 
-                    "G" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.GShape }
-                    "G@helix" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.GShape }
-                    "G@junction" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.GShape }
-                    "G@apical_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.GShape }
-                    "G@inner_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.GShape }
-                    "G@3_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.GShape }
-                    "G@4_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.GShape }
-                    "G@single_strand" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.GShape }
+                    "G" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.GShape }
+                    "G@helix" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.GShape }
+                    "G@junction" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.GShape }
+                    "G@apical_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.GShape }
+                    "G@inner_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.GShape }
+                    "G@3_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.GShape }
+                    "G@4_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.GShape }
+                    "G@single_strand" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.GShape }
 
-                    "C" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.CShape }
-                    "C@helix" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.CShape }
-                    "C@junction" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.CShape }
-                    "C@apical_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.CShape }
-                    "C@inner_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.CShape }
-                    "C@3_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.CShape }
-                    "C@4_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.CShape }
-                    "C@single_strand" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.CShape }
+                    "C" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.CShape }
+                    "C@helix" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.CShape }
+                    "C@junction" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.CShape }
+                    "C@apical_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.CShape }
+                    "C@inner_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.CShape }
+                    "C@3_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.CShape }
+                    "C@4_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.CShape }
+                    "C@single_strand" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.CShape }
 
-                    "X" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.XShape }
-                    "X@helix" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.XShape }
-                    "X@junction" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.XShape }
-                    "X@apical_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.XShape }
-                    "X@inner_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.XShape }
-                    "X@3_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.XShape }
-                    "X@4_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.XShape }
-                    "X@single_strand" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.XShape }
+                    "X" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.XShape }
+                    "X@helix" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.XShape }
+                    "X@junction" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.XShape }
+                    "X@apical_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.XShape }
+                    "X@inner_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.XShape }
+                    "X@3_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.XShape }
+                    "X@4_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.XShape }
+                    "X@single_strand" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.XShape }
 
                     "N" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && (el.type == SecondaryStructureType.AShape ||
+                        l?.let { el.inside(it) } ?: run {true} && (el.type == SecondaryStructureType.AShape ||
                                 el.type == SecondaryStructureType.UShape ||
                                 el.type == SecondaryStructureType.GShape ||
                                 el.type == SecondaryStructureType.CShape ||
@@ -1676,7 +1799,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
                     }
 
                     "N@helix" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SecondaryInteraction && (el.type == SecondaryStructureType.AShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SecondaryInteraction && (el.type == SecondaryStructureType.AShape ||
                                 el.type == SecondaryStructureType.UShape ||
                                 el.type == SecondaryStructureType.GShape ||
                                 el.type == SecondaryStructureType.CShape ||
@@ -1684,7 +1807,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
                     }
 
                     "N@junction" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.type == SecondaryStructureType.AShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.type == SecondaryStructureType.AShape ||
                                 el.type == SecondaryStructureType.UShape ||
                                 el.type == SecondaryStructureType.GShape ||
                                 el.type == SecondaryStructureType.CShape ||
@@ -1692,7 +1815,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
                     }
 
                     "N@apical_loop" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && (el.type == SecondaryStructureType.AShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && (el.type == SecondaryStructureType.AShape ||
                                 el.type == SecondaryStructureType.UShape ||
                                 el.type == SecondaryStructureType.GShape ||
                                 el.type == SecondaryStructureType.CShape ||
@@ -1700,7 +1823,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
                     }
 
                     "N@inner_loop" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && (el.type == SecondaryStructureType.AShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && (el.type == SecondaryStructureType.AShape ||
                                 el.type == SecondaryStructureType.UShape ||
                                 el.type == SecondaryStructureType.GShape ||
                                 el.type == SecondaryStructureType.CShape ||
@@ -1708,7 +1831,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
                     }
 
                     "N@3_way" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && (el.type == SecondaryStructureType.AShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && (el.type == SecondaryStructureType.AShape ||
                                 el.type == SecondaryStructureType.UShape ||
                                 el.type == SecondaryStructureType.GShape ||
                                 el.type == SecondaryStructureType.CShape ||
@@ -1716,7 +1839,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
                     }
 
                     "N@4_way" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && (el.type == SecondaryStructureType.AShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && (el.type == SecondaryStructureType.AShape ||
                                 el.type == SecondaryStructureType.UShape ||
                                 el.type == SecondaryStructureType.GShape ||
                                 el.type == SecondaryStructureType.CShape ||
@@ -1724,7 +1847,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
                     }
 
                     "N@single_strand" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SingleStrand && (el.type == SecondaryStructureType.AShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SingleStrand && (el.type == SecondaryStructureType.AShape ||
                                 el.type == SecondaryStructureType.UShape ||
                                 el.type == SecondaryStructureType.GShape ||
                                 el.type == SecondaryStructureType.CShape ||
@@ -1732,132 +1855,132 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
                     }
 
                     "R" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.type == SecondaryStructureType.AShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.AShape ||
                                 el.type == SecondaryStructureType.GShape
                     }
 
                     "R@helix" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SecondaryInteraction && (el.type == SecondaryStructureType.AShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SecondaryInteraction && (el.type == SecondaryStructureType.AShape ||
                                 el.type == SecondaryStructureType.GShape)
                     }
 
                     "R@junction" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.type == SecondaryStructureType.AShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.type == SecondaryStructureType.AShape ||
                                 el.type == SecondaryStructureType.GShape)
                     }
 
                     "R@apical_loop" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && (el.type == SecondaryStructureType.AShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && (el.type == SecondaryStructureType.AShape ||
                                 el.type == SecondaryStructureType.GShape)
                     }
 
                     "R@inner_loop" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && (el.type == SecondaryStructureType.AShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && (el.type == SecondaryStructureType.AShape ||
                                 el.type == SecondaryStructureType.GShape)
                     }
 
                     "R@3_way" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && (el.type == SecondaryStructureType.AShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && (el.type == SecondaryStructureType.AShape ||
                                 el.type == SecondaryStructureType.GShape)
                     }
 
                     "R@4_way" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && (el.type == SecondaryStructureType.AShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && (el.type == SecondaryStructureType.AShape ||
                                 el.type == SecondaryStructureType.GShape)
                     }
 
                     "R@single_strand" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SingleStrand && (el.type == SecondaryStructureType.AShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SingleStrand && (el.type == SecondaryStructureType.AShape ||
                                 el.type == SecondaryStructureType.GShape)
                     }
 
                     "Y" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.type == SecondaryStructureType.UShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.UShape ||
                                 el.type == SecondaryStructureType.CShape
                     }
 
                     "Y@helix" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SecondaryInteraction && (el.type == SecondaryStructureType.UShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SecondaryInteraction && (el.type == SecondaryStructureType.UShape ||
                                 el.type == SecondaryStructureType.CShape)
                     }
 
                     "Y@junction" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.type == SecondaryStructureType.UShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.type == SecondaryStructureType.UShape ||
                                 el.type == SecondaryStructureType.CShape)
                     }
 
                     "Y@apical_loop" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && (el.type == SecondaryStructureType.UShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && (el.type == SecondaryStructureType.UShape ||
                                 el.type == SecondaryStructureType.CShape)
                     }
 
                     "Y@inner_loop" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && (el.type == SecondaryStructureType.UShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && (el.type == SecondaryStructureType.UShape ||
                                 el.type == SecondaryStructureType.CShape)
                     }
 
                     "Y@3_way" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && (el.type == SecondaryStructureType.UShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && (el.type == SecondaryStructureType.UShape ||
                                 el.type == SecondaryStructureType.CShape)
                     }
 
                     "Y@4_way" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && (el.type == SecondaryStructureType.UShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && (el.type == SecondaryStructureType.UShape ||
                                 el.type == SecondaryStructureType.CShape)
                     }
 
                     "Y@single_strand" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SingleStrand && (el.type == SecondaryStructureType.UShape ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SingleStrand && (el.type == SecondaryStructureType.UShape ||
                                 el.type == SecondaryStructureType.CShape)
                     }
 
-                    "a" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.A }
-                    "a@helix" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.A }
-                    "a@junction" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.A }
-                    "a@apical_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.A }
-                    "a@inner_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.A }
-                    "a@3_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.A }
-                    "a@4_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.A }
-                    "a@single_strand" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.A }
+                    "a" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.A }
+                    "a@helix" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.A }
+                    "a@junction" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.A }
+                    "a@apical_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.A }
+                    "a@inner_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.A }
+                    "a@3_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.A }
+                    "a@4_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.A }
+                    "a@single_strand" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.A }
 
-                    "u" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.U }
-                    "u@helix" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.U }
-                    "u@junction" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.U }
-                    "u@apical_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.U }
-                    "u@inner_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.U }
-                    "u@3_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.U }
-                    "u@4_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.U }
-                    "u@single_strand" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.U }
+                    "u" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.U }
+                    "u@helix" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.U }
+                    "u@junction" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.U }
+                    "u@apical_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.U }
+                    "u@inner_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.U }
+                    "u@3_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.U }
+                    "u@4_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.U }
+                    "u@single_strand" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.U }
 
-                    "g" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.G }
-                    "g@helix" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.G }
-                    "g@junction" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.G }
-                    "g@apical_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.G }
-                    "g@inner_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.G }
-                    "g@3_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.G }
-                    "g@4_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.G }
-                    "g@single_strand" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.G }
+                    "g" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.G }
+                    "g@helix" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.G }
+                    "g@junction" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.G }
+                    "g@apical_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.G }
+                    "g@inner_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.G }
+                    "g@3_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.G }
+                    "g@4_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.G }
+                    "g@single_strand" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.G }
 
-                    "c" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.C }
-                    "c@helix" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.C }
-                    "c@junction" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.C }
-                    "c@apical_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.C }
-                    "c@inner_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.C }
-                    "c@3_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.C }
-                    "c@4_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.C }
-                    "c@single_strand" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.C }
+                    "c" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.C }
+                    "c@helix" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.C }
+                    "c@junction" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.C }
+                    "c@apical_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.C }
+                    "c@inner_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.C }
+                    "c@3_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.C }
+                    "c@4_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.C }
+                    "c@single_strand" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.C }
 
-                    "x" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.X }
-                    "x@helix" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.X }
-                    "x@junction" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.X }
-                    "x@apical_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.X }
-                    "x@inner_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.X }
-                    "x@3_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.X }
-                    "x@4_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.X }
-                    "x@single_strand" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.X }
+                    "x" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.X }
+                    "x@helix" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.parent?.type == SecondaryStructureType.SecondaryInteraction && el.type == SecondaryStructureType.X }
+                    "x@junction" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.X }
+                    "x@apical_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.X }
+                    "x@inner_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.X }
+                    "x@3_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.X }
+                    "x@4_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.X }
+                    "x@single_strand" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.X }
 
                     "n" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && (el.type == SecondaryStructureType.A ||
+                        l?.let { el.inside(it) } ?: run {true} && (el.type == SecondaryStructureType.A ||
                                 el.type == SecondaryStructureType.U ||
                                 el.type == SecondaryStructureType.G ||
                                 el.type == SecondaryStructureType.C ||
@@ -1865,7 +1988,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
                     }
 
                     "n@helix" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.parent?.type == SecondaryStructureType.SecondaryInteraction && (el.type == SecondaryStructureType.A ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.parent?.type == SecondaryStructureType.SecondaryInteraction && (el.type == SecondaryStructureType.A ||
                                 el.type == SecondaryStructureType.U ||
                                 el.type == SecondaryStructureType.G ||
                                 el.type == SecondaryStructureType.C ||
@@ -1873,7 +1996,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
                     }
 
                     "n@junction" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.type == SecondaryStructureType.A ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.type == SecondaryStructureType.A ||
                                 el.type == SecondaryStructureType.U ||
                                 el.type == SecondaryStructureType.G ||
                                 el.type == SecondaryStructureType.C ||
@@ -1881,7 +2004,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
                     }
 
                     "n@apical_loop" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && (el.type == SecondaryStructureType.A ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && (el.type == SecondaryStructureType.A ||
                                 el.type == SecondaryStructureType.U ||
                                 el.type == SecondaryStructureType.G ||
                                 el.type == SecondaryStructureType.C ||
@@ -1889,7 +2012,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
                     }
 
                     "n@inner_loop" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && (el.type == SecondaryStructureType.A ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && (el.type == SecondaryStructureType.A ||
                                 el.type == SecondaryStructureType.U ||
                                 el.type == SecondaryStructureType.G ||
                                 el.type == SecondaryStructureType.C ||
@@ -1897,7 +2020,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
                     }
 
                     "n@3_way" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && (el.type == SecondaryStructureType.A ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && (el.type == SecondaryStructureType.A ||
                                 el.type == SecondaryStructureType.U ||
                                 el.type == SecondaryStructureType.G ||
                                 el.type == SecondaryStructureType.C ||
@@ -1905,7 +2028,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
                     }
 
                     "n@4_way" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && (el.type == SecondaryStructureType.A ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && (el.type == SecondaryStructureType.A ||
                                 el.type == SecondaryStructureType.U ||
                                 el.type == SecondaryStructureType.G ||
                                 el.type == SecondaryStructureType.C ||
@@ -1913,7 +2036,7 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
                     }
 
                     "n@single_strand" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SingleStrand && (el.type == SecondaryStructureType.A ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SingleStrand && (el.type == SecondaryStructureType.A ||
                                 el.type == SecondaryStructureType.U ||
                                 el.type == SecondaryStructureType.G ||
                                 el.type == SecondaryStructureType.C ||
@@ -1921,117 +2044,117 @@ open class ThemeConfigurationBuilder(data: MutableMap<Int, Double>) {
                     }
 
                     "r" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.type == SecondaryStructureType.A ||
+                        l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.A ||
                                 el.type == SecondaryStructureType.G
                     }
 
                     "r@helix" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.parent?.type == SecondaryStructureType.SecondaryInteraction && (el.type == SecondaryStructureType.A ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.parent?.type == SecondaryStructureType.SecondaryInteraction && (el.type == SecondaryStructureType.A ||
                                 el.type == SecondaryStructureType.G)
                     }
 
                     "r@junction" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.type == SecondaryStructureType.A ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.type == SecondaryStructureType.A ||
                                 el.type == SecondaryStructureType.G)
                     }
 
                     "r@apical_loop" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && (el.type == SecondaryStructureType.A ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && (el.type == SecondaryStructureType.A ||
                                 el.type == SecondaryStructureType.G)
                     }
 
                     "r@inner_loop" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && (el.type == SecondaryStructureType.A ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && (el.type == SecondaryStructureType.A ||
                                 el.type == SecondaryStructureType.G)
                     }
 
                     "r@3_way" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && (el.type == SecondaryStructureType.A ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && (el.type == SecondaryStructureType.A ||
                                 el.type == SecondaryStructureType.G)
                     }
 
                     "r@4_way" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && (el.type == SecondaryStructureType.A ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && (el.type == SecondaryStructureType.A ||
                                 el.type == SecondaryStructureType.G)
                     }
 
                     "r@single_strand" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SingleStrand && (el.type == SecondaryStructureType.A ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SingleStrand && (el.type == SecondaryStructureType.A ||
                                 el.type == SecondaryStructureType.G)
                     }
 
                     "y" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.type == SecondaryStructureType.U ||
+                        l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.U ||
                                 el.type == SecondaryStructureType.C
                     }
 
                     "y@helix" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.parent?.type == SecondaryStructureType.SecondaryInteraction && (el.type == SecondaryStructureType.U ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.parent?.type == SecondaryStructureType.SecondaryInteraction && (el.type == SecondaryStructureType.U ||
                                 el.type == SecondaryStructureType.C)
                     }
 
                     "y@junction" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.type == SecondaryStructureType.U ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.type == SecondaryStructureType.U ||
                                 el.type == SecondaryStructureType.C)
                     }
 
                     "y@apical_loop" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && (el.type == SecondaryStructureType.U ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && (el.type == SecondaryStructureType.U ||
                                 el.type == SecondaryStructureType.C)
                     }
 
                     "y@inner_loop" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && (el.type == SecondaryStructureType.U ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && (el.type == SecondaryStructureType.U ||
                                 el.type == SecondaryStructureType.C)
                     }
 
                     "y@3_way" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && (el.type == SecondaryStructureType.U ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && (el.type == SecondaryStructureType.U ||
                                 el.type == SecondaryStructureType.C)
                     }
 
                     "y@4_way" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && (el.type == SecondaryStructureType.U ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && (el.type == SecondaryStructureType.U ||
                                 el.type == SecondaryStructureType.C)
                     }
 
                     "y@single_strand" -> { el: DrawingElement, l: Location? ->
-                        l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SingleStrand && (el.type == SecondaryStructureType.U ||
+                        l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SingleStrand && (el.type == SecondaryStructureType.U ||
                                 el.type == SecondaryStructureType.C)
                     }
 
-                    "helix" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.Helix }
+                    "helix" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.Helix }
 
-                    "single_strand" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.SingleStrand }
+                    "single_strand" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.SingleStrand }
 
-                    "junction" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.Junction }
-                    "apical_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.Junction && (el as JunctionDrawing).junctionType == JunctionType.ApicalLoop }
-                    "inner_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.Junction && (el as JunctionDrawing).junctionType == JunctionType.InnerLoop }
-                    "3_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.Junction && (el as JunctionDrawing).junctionType == JunctionType.ThreeWay }
-                    "4_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.Junction && (el as JunctionDrawing).junctionType == JunctionType.FourWay }
+                    "junction" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.Junction }
+                    "apical_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.Junction && (el as JunctionDrawing).junctionType == JunctionType.ApicalLoop }
+                    "inner_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.Junction && (el as JunctionDrawing).junctionType == JunctionType.InnerLoop }
+                    "3_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.Junction && (el as JunctionDrawing).junctionType == JunctionType.ThreeWay }
+                    "4_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.Junction && (el as JunctionDrawing).junctionType == JunctionType.FourWay }
 
-                    "secondary_interaction" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.SecondaryInteraction }
+                    "secondary_interaction" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.SecondaryInteraction }
 
-                    "tertiary_interaction" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.TertiaryInteraction }
+                    "tertiary_interaction" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.TertiaryInteraction }
 
-                    "phosphodiester_bond" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.PhosphodiesterBond }
-                    "phosphodiester_bond@helix" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Helix && el.type == SecondaryStructureType.PhosphodiesterBond }
-                    "phosphodiester_bond@junction" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.PhosphodiesterBond }
-                    "phosphodiester_bond@apical_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.PhosphodiesterBond }
-                    "phosphodiester_bond@inner_loop" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.PhosphodiesterBond }
-                    "phosphodiester_bond@3_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.PhosphodiesterBond }
-                    "phosphodiester_bond@4_way" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.PhosphodiesterBond }
-                    "phosphodiester_bond@single_strand" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.PhosphodiesterBond }
+                    "phosphodiester_bond" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.PhosphodiesterBond }
+                    "phosphodiester_bond@helix" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Helix && el.type == SecondaryStructureType.PhosphodiesterBond }
+                    "phosphodiester_bond@junction" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && el.type == SecondaryStructureType.PhosphodiesterBond }
+                    "phosphodiester_bond@apical_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ApicalLoop && el.type == SecondaryStructureType.PhosphodiesterBond }
+                    "phosphodiester_bond@inner_loop" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.InnerLoop && el.type == SecondaryStructureType.PhosphodiesterBond }
+                    "phosphodiester_bond@3_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.ThreeWay && el.type == SecondaryStructureType.PhosphodiesterBond }
+                    "phosphodiester_bond@4_way" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.Junction && (el.parent as JunctionDrawing).junctionType == JunctionType.FourWay && el.type == SecondaryStructureType.PhosphodiesterBond }
+                    "phosphodiester_bond@single_strand" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.parent?.type == SecondaryStructureType.SingleStrand && el.type == SecondaryStructureType.PhosphodiesterBond }
 
-                    "interaction_symbol" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.InteractionSymbol }
+                    "interaction_symbol" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.InteractionSymbol }
 
-                    "pknot" -> { el: DrawingElement, l: Location? -> l?.contains(el.location) ?: true && el.type == SecondaryStructureType.PKnot }
+                    "pknot" -> { el: DrawingElement, l: Location? -> l?.let { el.inside(it) } ?: run {true} && el.type == SecondaryStructureType.PKnot }
                     else -> { _: DrawingElement, _: Location? -> false } //unknown, nothing can be selected
                 })
             }
         } ?: run {
             selectors.add({ el: DrawingElement, l: Location? ->
-                l?.contains(el.location) ?: true
+                l?.let { el.inside(it) } ?: run {true}
             }) //no type? Any element is selected (and has to be in the location if the user set one)
         }
 

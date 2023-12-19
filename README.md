@@ -26,45 +26,69 @@ java -jar /path/to/your/rnartistcore-X.X.X-jar-with-dependencies.jar
 </pre>
 
 ```text
-RNArtistCore: a kotlin DSL to create and plot RNA 2D structures
+RNArtistCore: a commandline tool to create and plot RNA 2D structures
+=====================================================================
 
 Usage:
-* to run a single RNArtistCore script: 
-    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar /path/to/your/script
-* to compute the 2D plot for a single structural file: 
-    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [options] -f /path/to/your/structural_file
-* to compute the 2D plots for several structural files:  
-    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [options] -d /path/to/the/root_folder/
+------
+If you already have an RNArtistCore script:
 
-Options:
+    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar /path/to/your/script
+    
+If you don't have any RNArtistCore script:
+
+* to compute the 2D plot for a single local structural file: 
+    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [options] -f /path/to/your/structural_file
+    
+* to compute the 2D plots for several local structural files:  
+    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [options] -d /path/to/the/root_folder/
+    
+* to compute the 2D plot for a database entry: 
+    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [options] -e database_entry_id -o output_directory
+
+Primary options (to define the location of your structural data):
+-----------------------------------------------------------------
+-f <arg>                Compute the 2D plot for a single structural file whose path is given as argument.
+                        An RNArtistCore script with default parameters will be created in the same folder as the structural file.
+
 -d <arg>                Compute the 2D plots from structural files stored in subfolders inside 
                         the root folder given as argument. If some files have already been processed, they will be ignored.
--f <arg>                Compute the 2D plot for a single structural file
---no-png                The kotlin scripts created for each structural file will not 
-                        export the 2D plots in PNG files. This option should not be used to 
-                        create a database fully compliant with the graphical tool RNArtist 
-                        RNArtist needs PNG files to preview the 2Ds.
---with-svg              The kotlin scripts created for each structural file will export 
-                        the 2D plots in SVG files
---from <arg>            Restart the computation of 2D plots from the file whose name without suffix 
+
+-e <arg> -o <arg>       Compute the 2D plot for a a database entry (PDB, RNACentral and Rfam supported). 
+                        The argument for option -e has to be a valid ID for the database (like 1EHZ for PDB, RF00177 for Rfam or URS00000CFF65 for RNACentral).
+                        An RNArtistCore script with default parameters will be created in the folder defined with the mandatory option -o.
+
+Secondary options (to change some default parameters in the script):
+--------------------------------------------------------------------
+--no-png                The RNArtistCore script will not export its 2D plot(s) in PNG files. This option should not be used to 
+                        create a database fully compliant with the graphical tool RNArtist. RNArtist needs PNG files to preview the 2Ds.
+
+
+--with-svg              The RNArtistCore script will export its 2D plot(s) in SVG files
+
+--from <arg>            If you're batch processing several structural files, this option allow to restart process from the file whose name without suffix 
                         is given as argument (if file named my_rna_67.vienna, then you need to type --from my_rna_67).
                         If some files have already been processed after this start file, they will be recomputed.
+
 --min-color <arg>       Define the first color for the gradient color. The gradient color is used to 
                         incorporate quantitative values into 2D plots (default: lightyellow)
+
 --max-color <arg>       Define the last color for the gradient color. The gradient color is used to 
                         incorporate quantitative values into 2D plots (default: firebrick)
+
 --min-value [<arg>]     Define the min value to be used to compute the gradient color between 
                         min-color and max-color (default: 0.0)
+
 --max-value [<arg>]     Define the max value to be used to compute the gradient color between 
                         min-color and max-color (default: 1.0)
--h                      Display help information
 ```
 
-As described in the help informaiton, you can either:
+As described in the help information, you can either:
 
-* run a single drawing script. RNArtistCore will execute the instructions described in this script.
-* compute the 2D from a single structural file. RNArtistCore will generate a drawing script with the same name and location than the structural file. You should then edit this script and run it from the comandline.
-* compute the 2Ds from several structural files. Your files should be organized like the following:
+* run an RNArtistCore script. RNArtistCore will execute the instructions described in this script.
+* compute the 2D from a database entry. RNArtistCore will create and run a script whose name matches the entry ID and whose location is defined with the mandatory option -o. You can then edit this script to fit your peculiarities and re-run it from the commandline.
+* compute the 2D from a single local structural file. RNArtistCore will create and run a script with the same name and location as the structural file. You can then edit this script to fit your peculiarities and re-run it from the commandline.
+* compute the 2Ds from several local structural files. To do this, your files has to be organized like the following:
 <pre>
 root_folder (no structural files in the root folder)
  |
@@ -82,7 +106,7 @@ root_folder (no structural files in the root folder)
 To produce the drawings for all the structural files, type:
 <pre>java -jar /path/to/your/rnartistcore-X.X.X-jar-with-dependencies.jar -d /path/to/your/root_folder</pre>
 
-This will generate a drawing script with default parameters for each structural file (with the same name and location). One generated, each script will be evaluated to plot and save each 2D in a 250x250 PNG file. 
+This will generate an RNartistCore script with default parameters for each structural file (with the same name and location). One generated, each script will be evaluated to plot and save each 2D in a 250x250 PNG file. 
 Your root folder in now a database fully compliant with the graphical tool [RNArtist](https://github.com/fjossinet/RNArtist).
 
 If you just want to produce your drawings with the default parameters, you can save them in 1000x1000 SVG files. To do so, you need to use the option ```--with-svg```. If you're sure to have no need of [RNArtist](https://github.com/fjossinet/RNArtist), you can use the options ```--with-svg --no-png```.
@@ -95,7 +119,7 @@ For example, if you have a structure described in a file named my_rna_325B67.vie
 
 All the output files (scripts, images) starting from this file will be overwritten.
 
-After a while (RNArtistCore searches for the best layout for each drawing), you will get the folllowing:
+After a while (RNArtistCore searches for a good non-overlapping layout for each drawing), you will get the folllowing:
 
 <pre>
 root_folder
@@ -139,7 +163,7 @@ If you have generated PNG files (meaning that you did not use the option ```--no
 
 # <a name="library"></a>RNArtistCore as a library
 
-RNArtistCore can be added as a dependency into your own projects. No stable release for now, only snapshots. To use RNArtistCore in your Java application, just add the below dependency in your file pom.xml:
+RNArtistCore can be added as a dependency into your own projects. No stable release for now, only snapshots. To use RNArtistCore in your Java/Kotlin application, just add the below dependency in your file pom.xml:
 
 ```xml
   <repositories>
@@ -171,13 +195,14 @@ RNArtistCore exposes a language to write your drawing instructions more easily. 
 Please note that this is still a work under development and that all instructions are not stable. You can take a look at the [changelog](Changelog.md) for details concerning the modifications. 
 
 * [Important syntax rules](#important-syntax-rules)
+* [The outputs of a script](#script-outputs)
 * [The **```rnartist```** element](#rnartist)
 * [The **```svg```** and **```png```** elements](#output) 
 * [The **```ss```** element](#ss)
   * [The **```parts```** element](#parts)
   * [The **```bn```** element](#bn)
   * [The ```bpseq```, ```ct```, ```vienna```, ```pdb``` and ```stockholm``` elements](#file)
-  * [The ```rfam``` and ```pdb``` elements](#database)
+  * [The ```rfam```,  ```pdb``` and ```rnacentral``` elements](#database)
 * [The **```theme```** element](#theme)
   * [The **```details```** and **```scheme```** properties](#details)
   * [The **```color```** element](#color)
@@ -186,39 +211,40 @@ Please note that this is still a work under development and that all instruction
   * [The **```line```** element](#line)
 * [The **```layout```** element](#layout)
 * [The **```data```** element](#data)
-* [The **```booquet```** element](#booquet)
 
-Using pseudo-code, here is the structure that your instructions have to fit with:
+Roughly, an RNArtistCore script is made with different sections:
 
 ```kotlin
-drawing_algorithm {
-  
-  output_file {
-      
+rnartist {
+
+  svg {
+    //how to export the 2D in an SVG file 
   }
 
-  secondary_structure {
-    
+  png {
+    //how to export the 2D in a PNG file
+  }
+
+  ss {
+    //the description of your 2D (bracket notation, parts or external file)     
   }
 
   data {
-
+    //quantitative values to link to your 2D (listed here or external file)
   }
 
   theme {
-
+    //how to paint your 2D
   }
 
   layout {
-
+    //how to layout your 2D
   }
 
 }
 ```
 
-As you can see, you choose a drawing algorithm that will use a secondary structure to output its drawing in an output file. The drawing can be customized with a theme and a layout to suit your needs. Data can be linked to the secondary structure (for example to color residues according to their experimental value).
-
-Here is a concrete example:
+Here is a more concrete example:
 
 ```kotlin
 rnartist {
@@ -272,12 +298,6 @@ rnartist {
 
 ![](media/concrete_example.png)
 
-Two algorithms are available:
-* rnartist (used in the graphical tool [RNArtist](https://github.com/fjossinet/RNArtist))
-* booquet
-
-Both algorithms need a secondary structure element. A drawing can be saved in an SVG or PNG file. The name of the RNA molecule will be used for the filename. Each algorithm has its own parameters to configure the drawing process and the final result.
-
 ## <a name="important-syntax-rules"></a> ***Important syntax rules***
 
 * a path has to be defined using the invariant separator "/", even if you're using Windows. For example:
@@ -297,8 +317,19 @@ rnartist {
 ```
 * if a path doesn't start with "/" (Linux/MacOS) or "[A-Z]:/" (Windows), it is considered as a relative path (meaning that it is added to the absolute path of the rnartistcore jar file used to run the script).
 * the data element has to be defined before any layout or theme element
-* only a single layout, theme or data element is expected inside an rnartist element. The syntax will evolve to allow several data elements (one per dataset) with the ability to choose the dataset to be used. 
+* only a single layout, theme or data element is expected inside an rnartist element. The syntax will evolve to allow several data elements (one per dataset) with the ability to choose the dataset to be used.
 * if several 2Ds are loaded at once, beside the SVG/PNG exports, RNArtistCore will also generate a copy of the running script for each 2D computed. If your input for the 2D was a file (Vienna for exemple), this script will have the same name and location. If the 2D was described inside the script (using a bracket notation for example), the file will have the same location than the rnartistcore jar and the name you gave to the 2D in the script. Each script will have the same instructions than the original one, except that it will only target a single 2D. You can then modify this script (layout, theme, output size,...) and run it without impacting the other 2Ds.
+
+## <a name="script-outputs"></a> ***The outputs of a script***
+
+In parallel with the SVG/PNG files, a running script creates a new RNArtistCore script for each 2D processed, with the same name and location as the structural file (and with a .kts suffix). 
+
+Each script created contains the same instructions than the running script but target a single 2D. It is supplemented with the description of the non-overlapping layout computed for this 2D. 
+
+If the running script was already named and located as the structural file, it will be updated to store the description of the non-overlapping layout computed. 
+
+If the 2D was described inside the script (using a bracket notation for example), the new script will have the same location than the rnartistcore jar and the name you gave to the 2D in the running script.
+
 ## <a name="rnartist"></a> ***The **```rnartist```** element***
 
 The parameters available for this algorithm are:
@@ -513,7 +544,7 @@ The secondary structure will be constructed from the data stored in the file.
 
 The parameters are:
 * **file** or **path** (mandatory): the file property defines the absolute path of a single input file. The path property defines the absolute path of a folder containing input files. 
-* **name**: if the file contains several molecular chains, this parameter allows to precise the one you want. If no name is provided, all the molecular chains will be processed.
+* **name**: if the file contains several rnas, this parameter allows to precise the one you want to use. If no name is provided, all rnas will be processed. Concerning the Stockholm format, you can use the name "consensus" to plot the consensus structure.
 
 ```kotlin
 rnartist {
@@ -589,20 +620,28 @@ rnartist {
 }
 ```
 
-### <a name="database"></a>The ```rfam``` and ```pdb``` elements
+### <a name="database"></a>The ```rfam```,  ```pdb``` and ```rnacentral``` elements
 
-The secondary structure will be constructed from the data stored in the database entry.
+The secondary structure will be constructed from the data stored in a database entry.
 
 The parameters are:
 * **```id```** (mandatory): the id of your database entry
-* **```name```**: if the entry contains several molecular chains, this parameter allows to precise the one you want. If no name is provided, all the molecular chains will be processed.
+* **```name```**: if the entry contains several rnas, this parameter allows to precise the one you want to use. If no name is provided, all the rnas will be processed.  Concerning Rfam, you can use the name "consensus" to plot the consensus structure.
 
 ```kotlin
 ss {
-  
   rfam {
     id = "RF00072"
     name = "AJ009730.1/1-133"
+  }
+}
+```
+
+```kotlin
+ss {
+  rfam {
+    id = "RF00072"
+    name = "consensus"
   }
 }
 ```
@@ -624,7 +663,25 @@ ss {
 }
 ```
 
+```kotlin
+ss {
+  rnacentral {
+      id = "URS00000CFF65"
+  }
+}
+```
+
 The element ```rfam``` can contain an attribute named ```use alignment numbering```. If this attribute is set, the locations described in the script will be understood as locations in the original alignment.
+
+```kotlin
+ss {
+  rfam {
+    id = "RF00072"
+    name = "consensus"
+    use alignment numbering
+  }
+}
+```
 
 ## <a name="theme"></a>The **```theme```** element
 
@@ -1686,86 +1743,6 @@ rnartist {
 ```
 
 ![](media/dataset.png)
-
-## <a name="booquet"></a> ***The **```booquet```** element***
-
-This algorithm has less options than the rnartist one. The parameters available are:
-* **```file```** (mandatory): the absolute path and the name of the SVG output file. The path needs to start with ```/project/```, corresponding to the root of your project.
-* **```ss```** (mandatory): a secondary structure element
-* **```width```**: the width of the view containing the drawing (default: 600)
-* **```height```**: the height of the view containing the drawingg (default: 600)
-* **```color```**: an HTML color code or color name
-* **```line```**: the width for the lines
-* **```junction_diameter```**: the diameter of the circles
-
-The drawing will be automatically zoomed to fit the view.
-
-```kotlin
-booquet {
-  file = "/project/media/booquet_from_rfam.svg"
-  junction_diameter = 15.0
-  color = "midnightblue"
-  line = 1.0
-  ss {
-    rfam {
-      id = "RF00072"
-      name = "AJ009730.1/1-133"
-    }
-  }
-}
-```
-
-![](media/booquet_from_rfam_AJ009730.1_1-133.png)
-
-```kotlin
-booquet {
-  file = "/project/media/booquet_from_vienna.svg"
-  junction_diameter = 15.0
-  color = "olive"
-  line = 3.0
-  ss {
-    vienna {
-      file = "/project/samples/rna.vienna"
-    }
-  }
-}
-```
-
-![](media/booquet_from_vienna_A.png)
-
-```kotlin
-booquet {
-  file = "/project/media/booquet_from_ct.svg"
-  junction_diameter = 15.0
-  color = "darkorchid"
-  ss {
-    ct {
-      file = "/project/samples/ASE_00010_from_RNA_STRAND_database.ct"
-    }
-  }
-}
-```
-
-![](media/booquet_from_ct_A.png)
-
-```kotlin
-booquet {
-  file = "/project/media/booquet_from_pdb.svg"
-  junction_diameter = 15.0
-  color = "darkmagenta"
-  width = 1200.0
-  height = 800.0
-  line = 0.5
-  ss {
-    pdb {
-      file = "/project/samples/1jj2.pdb"
-      name = "0"
-    }
-  }
-}
-```
-
-![](media/booquet_from_pdb_0.png)
 
 # Notes
 

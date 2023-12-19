@@ -13,8 +13,8 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 
 fun getScriptForDataFile(dataFile:File, outputDir:File, noPNG:Boolean = false, withSVG:Boolean = false, minColor: String = "lightyellow", minvalue:Double = 0.0, maxColor:String = "firebrick", maxvalue:Double = 1.0):File {
-    val script = File(dataFile.parentFile, "${dataFile.name.split(Regex(".(vienna|bpseq|ct|pdb)")).first()}.kts")
-    val quantitativeDataFile = File(dataFile.parentFile, "${dataFile.name.split(Regex(".(vienna|bpseq|ct|pdb)")).first()}.txt")
+    val script = File(dataFile.parentFile, "${dataFile.name.split(Regex(".(vienna|bpseq|ct|pdb|stk|sto|stockholm)")).first()}.kts")
+    val quantitativeDataFile = File(dataFile.parentFile, "${dataFile.name.split(Regex(".(vienna|bpseq|ct|pdb|stk|sto|stockholm)")).first()}.txt")
     if (!script.exists()) {
         script.createNewFile()
         val rnartistEl = initScript()
@@ -37,6 +37,10 @@ fun getScriptForDataFile(dataFile:File, outputDir:File, noPNG:Boolean = false, w
                 "vienna" ->  this.addVienna().setFile(dataFile.invariantSeparatorsPath)
                 "ct" ->  this.addCT().setFile(dataFile.invariantSeparatorsPath)
                 "bpseq" -> this.addBPSeq().setFile(dataFile.invariantSeparatorsPath)
+                "pdb" ->  this.addPDB().setFile(dataFile.invariantSeparatorsPath)
+                "stk" -> this.addStockholm().setFile(dataFile.invariantSeparatorsPath)
+                "sto" -> this.addStockholm().setFile(dataFile.invariantSeparatorsPath)
+                "stockholm" -> this.addStockholm().setFile(dataFile.invariantSeparatorsPath)
             }
         }
 
@@ -217,8 +221,8 @@ fun parseStockholm(reader: Reader, withConsensus2D:Boolean = false): Triple<Pair
     var secondaryStructures = mutableListOf<SecondaryStructure>()
     val alignedMolecules: MutableMap<String, StringBuffer> = HashMap()
     val bn = StringBuffer()
-    lateinit var familyDescr: String
-    lateinit var familyType: String
+    var familyDescr = "Undefined"
+    var familyType = "Undefined"
     val `in` = BufferedReader(reader)
     var line: String?
     while (`in`.readLine().also { line = it } != null) {

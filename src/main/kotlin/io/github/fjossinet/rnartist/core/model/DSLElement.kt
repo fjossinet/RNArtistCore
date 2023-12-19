@@ -3,7 +3,6 @@ package io.github.fjossinet.rnartist.core.model
 import io.github.fjossinet.rnartist.core.layout
 import io.github.fjossinet.rnartist.core.theme
 import java.awt.Color
-import java.awt.geom.Point2D
 
 fun setJunction(
     rnArtistEl: RNArtistEl,
@@ -1062,6 +1061,28 @@ class SSEl : DSLElement("ss") {
 
     fun getPDBOrNull(): PDBEl? = this.getChildOrNull("pdb") as? PDBEl
 
+    fun addStockholm(stockholmEl: StockholmEl? = null): StockholmEl {
+        val el = stockholmEl ?: StockholmEl()
+        this.children.add(el)
+        return el
+    }
+
+    fun getStockholmOrNew(): StockholmEl = this.getChildOrNull("stockholm") as? StockholmEl ?: addStockholm()
+
+    fun getStockholmOrNull(): StockholmEl? = this.getChildOrNull("stockholm") as? StockholmEl
+
+    fun addRnaCentral(rnacentralEl: RnaCentralEl? = null): RnaCentralEl {
+        val el = rnacentralEl ?: RnaCentralEl()
+        this.children.add(el)
+        return el
+    }
+
+    fun addRfam(rfamEl: RfamEl? = null): RfamEl {
+        val el = rfamEl ?: RfamEl()
+        this.children.add(el)
+        return el
+    }
+
 }
 
 class DataEl : DSLElement("data") {
@@ -1128,6 +1149,34 @@ class CTEl : InputEl("ct")
 class BPSeqEl : InputEl("bpseq")
 
 class PDBEl : InputEl("pdb") {
+    fun setId(id: String) {
+        this.getPropertyOrNull("id")?.let {
+            it.value = id
+        } ?: run {
+            this.children.add(StringDSLProperty("id", id))
+        }
+    }
+
+    fun setName(name: String) {
+        this.getPropertyOrNull("name")?.let {
+            it.value = name
+        } ?: run {
+            this.children.add(StringDSLProperty("name", name))
+        }
+    }
+}
+
+class RnaCentralEl: InputEl("rnacentral") {
+    fun setId(id: String) {
+        this.getPropertyOrNull("id")?.let {
+            it.value = id
+        } ?: run {
+            this.children.add(StringDSLProperty("id", id))
+        }
+    }
+}
+
+class RfamEl: InputEl("rfam") {
     fun setId(id: String) {
         this.getPropertyOrNull("id")?.let {
             it.value = id

@@ -353,6 +353,29 @@ class RNACentral {
 
     val baseURL = "https://rnacentral.org/api/v1/rna"
 
+    fun getEntry(rnacentralID:String):StringReader? {
+        try {
+            var text = URL("${baseURL}/${rnacentralID}?format=json").readText()
+            var data = Gson().fromJson(text, HashMap<String, String>().javaClass)
+            val sequence = data["sequence"]
+            sequence?.let {
+                text = URL("${baseURL}/${rnacentralID}/2d/1/?format=json").readText()
+                data = Gson().fromJson(text, HashMap<String, String>().javaClass)
+                val bn = (data["data"] as Map<String, String>)["secondary_structure"]
+                bn?.let {
+                    return StringReader(
+                        """>$rnacentralID
+$sequence
+$bn""".trimIndent()
+                    )
+                }
+            }
+        } catch (e:Exception) {
+            return null
+        }
+        return null
+    }
+
     fun fetch(id:String):SecondaryStructure? {
         //the sequence
         var text = URL("${baseURL}/${id}?format=json").readText()
@@ -371,7 +394,7 @@ class RNACentral {
                     }
 
                 }.forEach {
-                   it.source = RfamSource(id)
+                   it.source = RnaCentralSource(id)
                    return it
                }
             }
