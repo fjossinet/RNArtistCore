@@ -316,6 +316,8 @@ class RNArtistEl : DSLElement("rnartist") {
 
     fun getLayoutOrNew(): LayoutEl = this.getChildOrNull("layout") as? LayoutEl ?: addLayout()
 
+    fun getLayoutOrNull(): LayoutEl? = this.getChildOrNull("layout") as? LayoutEl
+
     fun addTheme(themeEl: ThemeEl? = null): ThemeEl {
         this.children.removeIf { it.name.equals("theme") } //only a single element allowed
         val el = themeEl ?: ThemeEl()
@@ -370,6 +372,13 @@ class RNArtistEl : DSLElement("rnartist") {
     fun getSVGOrNull(): SVGEl? = this.getChildOrNull("svg") as? SVGEl
 
     fun removeSVG() = this.getSVGOrNull()?.let { this.removeChild(it) }
+
+    fun addTraveler(travelerEl: TravelerEl? = null): TravelerEl {
+        this.children.removeIf { it.name.equals("traveler") } //only a single element allowed
+        val el = travelerEl ?: TravelerEl()
+        this.children.add(el)
+        return el
+    }
 
     override fun dump(indent: String, buffer: StringBuffer): StringBuffer {
         buffer.appendLine("import io.github.fjossinet.rnartist.core.*")
@@ -1142,7 +1151,15 @@ abstract class InputEl(name: String) : DSLElement(name) {
 
 class ViennaEl : InputEl("vienna")
 
-class StockholmEl : InputEl("stockholm")
+class StockholmEl : InputEl("stockholm") {
+    fun setName(name: String) {
+        this.getPropertyOrNull("name")?.let {
+            it.value = name
+        } ?: run {
+            this.children.add(StringDSLProperty("name", name))
+        }
+    }
+}
 
 class CTEl : InputEl("ct")
 
@@ -1211,7 +1228,9 @@ abstract class OutputFileEl(name: String) : DSLElement(name) {
             this.children.add(StringDSLProperty("name", name))
         }
     }
+}
 
+abstract class GraphicFileEl(name: String) : OutputFileEl(name) {
     fun setWidth(width: Double) {
         this.getPropertyOrNull("width")?.let {
             it.value = "$width"
@@ -1229,9 +1248,11 @@ abstract class OutputFileEl(name: String) : DSLElement(name) {
     }
 }
 
-class PNGEl : OutputFileEl("png")
+class PNGEl : GraphicFileEl("png")
 
-class SVGEl : OutputFileEl("svg")
+class SVGEl : GraphicFileEl("svg")
+
+class TravelerEl: GraphicFileEl("traveler")
 
 abstract class ThemeConfigurationEl(name: String) : StepableDSLElement(name) {
     fun setType(type: String) {

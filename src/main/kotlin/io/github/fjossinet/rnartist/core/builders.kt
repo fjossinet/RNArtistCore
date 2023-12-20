@@ -3,12 +3,190 @@ package io.github.fjossinet.rnartist.core
 import io.github.fjossinet.rnartist.core.io.*
 import io.github.fjossinet.rnartist.core.model.*
 import java.awt.Color
+import java.awt.geom.AffineTransform
 import java.awt.geom.Rectangle2D
 import java.io.File
 import java.io.FileReader
 import java.io.IOException
+import java.util.*
 import kotlin.Exception
 import kotlin.random.Random
+
+class RNArtistBuilder {
+    private val rnartistElement = RNArtistEl()
+    private val outputFileBuilders = mutableListOf<OutputFileBuilder>()
+    var secondaryStructures = mutableListOf<SecondaryStructure>()
+    var theme: Theme? = null
+    var data: MutableMap<Int, Double> = mutableMapOf()
+    private var layout: Layout? = null
+
+    fun build(): Pair<List<SecondaryStructureDrawing>, RNArtistEl> {
+        val drawings = mutableListOf<SecondaryStructureDrawing>()
+        var issues = 0
+        this.secondaryStructures.forEachIndexed { _, ss ->
+            try {
+                val alternatives = mutableListOf<SecondaryStructureDrawing>()
+                val outIdsForLongest = listOf(
+                    ConnectorId.n,
+                    ConnectorId.nne,
+                    ConnectorId.nnw,
+                    ConnectorId.ne,
+                    ConnectorId.nw,
+                    ConnectorId.ene,
+                    ConnectorId.wnw,
+                    ConnectorId.e,
+                    ConnectorId.w,
+                    ConnectorId.ese,
+                    ConnectorId.wsw,
+                    ConnectorId.se,
+                    ConnectorId.sw,
+                    ConnectorId.sse,
+                    ConnectorId.ssw,
+                    ConnectorId.s
+                )
+
+                FOR@ for (outIdLongest in outIdsForLongest) {
+                    val lastReferenceDrawing = SecondaryStructureDrawing(ss, outIdForLongest = { outIdLongest }, layout = this.layout)
+                    alternatives.add(lastReferenceDrawing)
+                    if  (lastReferenceDrawing.overlappingScore == 0)
+                        break@FOR
+                    for (backward in 0..10) {
+                        var junctionsToImprove = lastReferenceDrawing.junctionsToImprove(backward)
+                        if (junctionsToImprove.isNotEmpty()) {
+                            var junctionsToImproveFromBranch = junctionsToImprove.toMutableSet()
+                            junctionsToImproveFromBranch.addAll(junctionsToImprove)
+                            for (junction2improve in junctionsToImprove) {
+                                junctionsToImproveFromBranch.addAll(
+                                    junction2improve.junctionsFromBranch()
+                                        .filter { junction2improve.junction.location.contains(junction2improve.junction.location) })
+                            }
+                            val innerLoopsToImprove =
+                                junctionsToImprove.filter { it.junctionType == JunctionType.InnerLoop }
+                            val targetedBehaviours = innerLoopsToImprove.map {
+                                Pair(
+                                    it.junction.location,
+                                    { _: JunctionDrawing, _: Int, outIdLongest: ConnectorId -> outIdLongest })
+                            }
+                            var index = outIdsForLongest.indexOf(outIdLongest) + 1
+                            while (index <= outIdsForLongest.size - 1) {
+                                val drawingAttempt = SecondaryStructureDrawing(
+                                    ss,
+                                    outIdForLongest = {
+                                        if (junctionsToImprove.any { junctionToImprove ->
+                                                junctionToImprove.junction.location.contains(
+                                                    it
+                                                )
+                                            })
+                                            outIdsForLongest.get(index)
+                                        else
+                                            outIdLongest
+                                    },
+                                    targetedJunctionBehaviors = targetedBehaviours,
+                                    layout = this.layout
+                                )
+                                alternatives.add(drawingAttempt)
+                                if (drawingAttempt.overlappingScore == 0)
+                                    break@FOR
+                                index++
+                            }
+                        }
+                    }
+                }
+                var bestDrawing = alternatives.sortedBy { it.overlappingScore }.first()
+
+                //with the junction layouts (computed or defined in the script), the junctions have pushed the branches at the right places.But if some branches were described in the script we apply them. Can be useful if the script wanted to have a branch at a different location that the one computed
+                layout?.let {
+                    bestDrawing.branches.forEach { branch ->
+                        branch.applyLayout(layout = it)
+                    }
+                }
+
+                this.theme?.let { theme ->
+                    bestDrawing.applyTheme(theme)
+                }
+
+                this.outputFileBuilders.add(KtsScriptBuilder(layout == null)) //this output builder needs to be at the end to be sure to save in the script all the other output builders
+
+                //at this point all the junctions have their layout (computed or defined in the script). We can store them DSLELement tree in order to not recompute them during the next loads
+                if (layout == null) // but only if wa had no layout defined in the script otherwise we keep it
+                    rnartistElement.addLayout(bestDrawing.getLayoutEl())
+
+                this.outputFileBuilders.forEach { outputFileBuilder ->
+                    outputFileBuilder.build(bestDrawing, this.rnartistElement)
+                }
+
+                drawings.add(bestDrawing)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                issues++
+            }
+        }
+        if (issues > 0)
+            println("!!!!!!! $issues drawings with issues !!!!!!!!!!!")
+        return Pair(drawings, rnartistElement)
+    }
+
+    fun ss(setup: SecondaryStructureBuilder.() -> Unit) {
+        val secondaryStructureBuilder = SecondaryStructureBuilder()
+        secondaryStructureBuilder.setup()
+        secondaryStructures.addAll(secondaryStructureBuilder.build())
+        this.rnartistElement.addSS(secondaryStructureBuilder.dslElement)
+    }
+
+    fun theme(setup: ThemeBuilder.() -> Unit) {
+        val themeBuilder = ThemeBuilder(data)
+        themeBuilder.setup()
+        this.theme = themeBuilder.build()
+        this.rnartistElement.addTheme(themeBuilder.dslElement)
+    }
+
+    fun layout(setup: LayoutBuilder.() -> Unit) {
+        val layoutBuilder = LayoutBuilder()
+        layoutBuilder.setup()
+        this.layout = layoutBuilder.build()
+        this.rnartistElement.addLayout(layoutBuilder.dslElement)
+    }
+
+    fun data(setup: DataBuilder.() -> Unit) {
+        val dataBuilder = DataBuilder()
+        dataBuilder.setup()
+        data = dataBuilder.data
+        this.rnartistElement.addData(dataBuilder.dslElement)
+    }
+
+    //############ outputs #####################
+
+    fun svg(setup: SVGBuilder.() -> Unit) {
+        val svgOutputBuilder = SVGBuilder()
+        svgOutputBuilder.setup()
+        this.outputFileBuilders.add(svgOutputBuilder)
+    }
+
+    fun png(setup: PNGBuilder.() -> Unit) {
+        val pngOutputBuilder = PNGBuilder()
+        pngOutputBuilder.setup()
+        this.outputFileBuilders.add(pngOutputBuilder)
+    }
+
+    fun traveler(setup: TravelerBuilder.() -> Unit) {
+        val travelerBuilder = TravelerBuilder()
+        travelerBuilder.setup()
+        this.outputFileBuilders.add(travelerBuilder)
+    }
+
+    fun chimera(setup: ChimeraBuilder.() -> Unit) {
+        val chimeraOutputBuilder = ChimeraBuilder()
+        chimeraOutputBuilder.setup()
+        this.outputFileBuilders.add(chimeraOutputBuilder)
+    }
+
+    fun blender(setup: BlenderBuilder.() -> Unit) {
+        val blenderOutputBuilder = BlenderBuilder()
+        blenderOutputBuilder.setup()
+        this.outputFileBuilders.add(blenderOutputBuilder)
+    }
+
+}
 
 class RNABuilder {
     var name: String = "A"
@@ -225,41 +403,18 @@ abstract class OutputFileBuilder {
     abstract val dslElement: DSLElement
     var path: String? = null
     var name: String? = null
-    var width: Double = 800.0
-    var height: Double = 800.0
     var locationBuilder: LocationBuilder = LocationBuilder()
-
 
     /**
      * @param [drawing] the SecondaryStructureDrawing to be saved
      */
-    abstract fun build(drawing: SecondaryStructureDrawing)
+    abstract fun build(drawing: SecondaryStructureDrawing, rnartistEl:RNArtistEl)
 
     fun location(setup: LocationBuilder.() -> Unit) {
         this.locationBuilder.setup()
     }
-}
 
-class PNGBuilder : OutputFileBuilder() {
-    override val dslElement = PNGEl()
-        get() {
-            this.path?.let { path ->
-                field.setPath(
-                    if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$")))
-                        path
-                    else
-                        "${Jar().path()}/${path}"
-                )
-            }
-            this.name?.let {
-                field.setName(it)
-            }
-            field.setWidth(width)
-            field.setHeight(height)
-            return field
-        }
-
-    override fun build(drawing: SecondaryStructureDrawing) {
+    open protected fun getOutputFile(drawing: SecondaryStructureDrawing, suffix:String):File? {
         path?.let { path ->
             val fileName =
                 drawing.secondaryStructure.source?.let { source ->
@@ -284,18 +439,16 @@ class PNGBuilder : OutputFileBuilder() {
                         is FileSource -> {
                             //a file name can contain a dot
                             val tokens = source.getId().split("/").last().split(".")
-                            tokens.let {
-                                val fileName = tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
-                                if (source.getId().endsWith(".pdb")) {
-                                    "${fileName}_${drawing.secondaryStructure.name}"//since we can have several rnas in the file
-                                }
-                                else if (source.getId().endsWith(".sto") || source.getId().endsWith(".stk") || source.getId().endsWith(".stockholm")) {
-                                    "${fileName}_${drawing.secondaryStructure.name.replace("/", "_")}"//since we can have several rnas in the file
-                                }
-                                //for vienna, we restrict it to a single molecule (if used as an alignment, rather use stockholm)
-                                else  {
-                                    fileName
-                                }
+                            val fileName = tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
+                            if (source.getId().endsWith(".pdb")) {
+                                "${fileName}_${drawing.secondaryStructure.name}"//since we can have several rnas in the file
+                            }
+                            else if (source.getId().endsWith(".sto") || source.getId().endsWith(".stk") || source.getId().endsWith(".stockholm")) {
+                                "${fileName}_${drawing.secondaryStructure.name.replace("/", "_")}"//since we can have several rnas in the file
+                            }
+                            //for vienna, we restrict it to a single molecule (if used as an alignment, rather use stockholm)
+                            else  {
+                                fileName
                             }
                         }
 
@@ -315,12 +468,95 @@ class PNGBuilder : OutputFileBuilder() {
 
                 }
             var f = if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$")))
-                File("${path}/${fileName}.png")
+                File("${path}/${fileName}.$suffix")
             else
-                File("${Jar().path()}/${path}/${fileName}.png")
+                File("${Jar().path()}/${path}/${fileName}.$suffix")
             if (!f.parentFile.exists())
                 f.parentFile.mkdirs()
             f.createNewFile()
+            return f
+        }
+        return null
+    }
+}
+
+class KtsScriptBuilder(val noLayoutInFormerScript:Boolean):OutputFileBuilder() {
+    override val dslElement = object: DSLElement(name="") {} //useless
+        get() = field
+
+    override protected fun getOutputFile(drawing: SecondaryStructureDrawing, suffix:String):File? {
+        drawing.secondaryStructure.source?.let { source ->
+            when (source) {
+                is FileSource -> {
+                    //a file name can contain a dot
+                    val tokens = source.getId().split("/").last().split(".")
+                    var fileName = tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
+                    if (source.getId().endsWith(".pdb")) {
+                        fileName = "${fileName}_${drawing.secondaryStructure.name}"//since we can have several rnas in the file
+                    }
+                    else if (source.getId().endsWith(".sto") || source.getId().endsWith(".stk") || source.getId().endsWith(".stockholm")) {
+                        fileName = "${fileName}_${drawing.secondaryStructure.name.replace("/", "_")}"//since we can have several rnas in the file
+                    }
+                    //for vienna, we restrict it to a single molecule (if used as an alignment, rather use stockholm), so we keep the filename without appending RNA name
+                    return File(File(source.getId()).parentFile,"${fileName}.$suffix")
+                }
+
+                else -> {
+                    null
+                }
+
+            }
+
+        }
+        return null
+    }
+
+    override fun build(drawing: SecondaryStructureDrawing, rnartistEl:RNArtistEl) {
+        getOutputFile(drawing, "kts")?.let { f ->
+            if (!f.exists() || noLayoutInFormerScript) { //if the script with the name we want doesn't exist or did not contain any Layout
+                f.createNewFile()
+                //since the name of the script will contains the name of the 2D (so the RNA chain name) for PDB and Stockholm files,
+                //this information needs to be added to the input element to focus the script on this RNA chain only
+                rnartistEl.getSSOrNull()?.let { ssEl ->
+                    ssEl.getPDBOrNull()?.let {
+                        it.setName(drawing.secondaryStructure.name)
+                    }
+                    ssEl.getStockholmOrNull()?.let {
+                        it.setName(drawing.secondaryStructure.name)
+                    }
+                }
+                f.writeText(rnartistEl.dump().toString())
+            }
+        }
+    }
+}
+
+abstract class GraphicFileBuilder:OutputFileBuilder() {
+    var width: Double = 800.0
+    var height: Double = 800.0
+}
+
+class PNGBuilder : GraphicFileBuilder() {
+    override val dslElement = PNGEl()
+        get() {
+            this.path?.let { path ->
+                field.setPath(
+                    if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$")))
+                        path
+                    else
+                        "${Jar().path()}/${path}"
+                )
+            }
+            this.name?.let {
+                field.setName(it)
+            }
+            field.setWidth(width)
+            field.setHeight(height)
+            return field
+        }
+
+    override fun build(drawing: SecondaryStructureDrawing, rnartistEl:RNArtistEl) {
+        getOutputFile(drawing, "png")?.let { f ->
             locationBuilder.build()?.let { location ->
                 drawing.getFrame(location)?.let { selectionFrame ->
                     drawing.asPNG(
@@ -336,11 +572,12 @@ class PNGBuilder : OutputFileBuilder() {
                 )
             }
         }
+        rnartistEl.addPNG(this.dslElement)
     }
 
 }
 
-class SVGBuilder : OutputFileBuilder() {
+class SVGBuilder : GraphicFileBuilder() {
 
     override val dslElement = SVGEl()
         get() {
@@ -355,66 +592,8 @@ class SVGBuilder : OutputFileBuilder() {
             return field
         }
 
-    override fun build(drawing: SecondaryStructureDrawing) {
-        path?.let { path ->
-            val fileName = this.name ?: drawing.secondaryStructure.source?.let { source ->
-                when (source) {
-                    is DatabaseSource -> {
-                        when (source) {
-                            is RfamSource -> {
-                                "${source.getId()}_${drawing.secondaryStructure.name.replace("/", "_")}"//since we can have several rnas in an entry
-                            }
-                            is PDBSource -> {
-                                "${source.getId()}_${drawing.secondaryStructure.name}"//since we can have several rnas in an entry
-                            }
-                            is RnaCentralSource -> {
-                                source.getId()//since we can only have a single rna in an entry
-                            }
-                            else ->{
-                                source.getId()
-                            }
-                        }
-                    }
-                    is FileSource -> {
-                        //a file name can contains a dot
-                        val tokens = source.getId().split("/").last().split(".")
-                        tokens.let {
-                            val fileName = tokens.subList(0, tokens.size - 1).joinToString(separator = ".")
-                            if (source.getId().endsWith(".pdb")) {
-                                "${fileName}_${drawing.secondaryStructure.name}"//since we can have several rnas in the file
-                            }
-                            else if (source.getId().endsWith(".sto") || source.getId().endsWith(".stk") || source.getId().endsWith(".stockholm")) {
-                                "${fileName}_${drawing.secondaryStructure.name.replace("/", "_")}"//since we can have several rnas in the file
-                            }
-                            //for vienna, we restrict it to a single molecule (if used as an alignment, rather use stockholm)
-                            else  {
-                                fileName
-                            }
-                        }
-                    }
-
-                    is BracketNotation -> {
-                        drawing.secondaryStructure.name
-                    }
-
-                    is PartsSource -> {
-                        drawing.secondaryStructure.name
-                    }
-
-                    else -> {
-                        null
-                    }
-
-                }
-
-            }
-            var f = if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$")))
-                File("${path}/${fileName}.svg")
-            else
-                File("${Jar().path()}/${path}/${fileName}.svg")
-            if (!f.parentFile.exists())
-                f.parentFile.mkdirs()
-            f.createNewFile()
+    override fun build(drawing: SecondaryStructureDrawing, rnartistEl:RNArtistEl) {
+        getOutputFile(drawing, "svg")?.let { f ->
             locationBuilder.build()?.let { location ->
                 drawing.getFrame(location)?.let { selectionFrame ->
                     drawing.asSVG(
@@ -430,16 +609,54 @@ class SVGBuilder : OutputFileBuilder() {
                 )
             }
         }
+        rnartistEl.addSVG(this.dslElement)
     }
 
 }
 
-class ChimeraBuilder {
+class TravelerBuilder:GraphicFileBuilder() {
+    override val dslElement = TravelerEl()
+        get() {
+            this.path?.let { path ->
+                field.setPath(
+                    if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$")))
+                        path
+                    else
+                        "${Jar().path()}/${path}"
+                )
+            }
+            this.name?.let {
+                field.setName(it)
+            }
+            field.setWidth(width)
+            field.setHeight(height)
+            return field
+        }
 
-    var path: String? = null
-    var name: String? = null
+    override fun build(drawing: SecondaryStructureDrawing, rnartistEl:RNArtistEl) {
+        getOutputFile(drawing, "traveler")?.let { f ->
+            drawing.fitViewTo(Rectangle2D.Double(0.0, 0.0, width, height))
+            val builder = StringBuilder()
+            builder.appendLine("<structure>")
+            val at = AffineTransform()
+            at.translate(drawing.workingSession.viewX, drawing.workingSession.viewY)
+            at.scale(drawing.workingSession.zoomLevel, drawing.workingSession.zoomLevel)
+            drawing.residues.sortedBy { it.absPos }.forEach {
+                val _c = at.createTransformedShape(it.circle)
+                builder.appendLine("<point x=\"${"%.2f".format(Locale.ENGLISH, _c.bounds2D.centerX)}\" y=\"${"%.2f".format(Locale.ENGLISH, _c.bounds2D.centerY)}\" b=\"${it.name}\"/>")
+            }
+            builder.appendLine("</structure>")
+            f.writeText(builder.toString())
+        }
+        rnartistEl.addTraveler(this.dslElement)
+    }
+}
 
-    fun build(drawing: SecondaryStructureDrawing) {
+class ChimeraBuilder: OutputFileBuilder() {
+    override val dslElement: DSLElement
+        get() = TODO("Not yet implemented")
+
+    override fun build(drawing: SecondaryStructureDrawing, rnartistEl:RNArtistEl) {
         path?.let { path ->
             val f = if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$")))
                 File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.cxc")
@@ -453,11 +670,11 @@ class ChimeraBuilder {
 
 }
 
-class BlenderBuilder {
+class BlenderBuilder: OutputFileBuilder() {
+    override val dslElement: DSLElement
+        get() = TODO("Not yet implemented")
 
-    var path: String? = null
-
-    fun build(drawing: SecondaryStructureDrawing) {
+    override fun build(drawing: SecondaryStructureDrawing, rnartistEl:RNArtistEl) {
         path?.let { path ->
             val f = if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$")))
                 File("${path}/${drawing.secondaryStructure.rna.name.replace("/", "_")}.py")
@@ -839,341 +1056,6 @@ class BooquetBuilder {
         val secondaryStructureBuilder = SecondaryStructureBuilder()
         secondaryStructureBuilder.setup()
         secondaryStructures.addAll(secondaryStructureBuilder.build())
-    }
-
-}
-
-class RNArtistBuilder {
-    private val rnartistElement = RNArtistEl()
-    private var svgOutputBuilder: SVGBuilder? = null
-    private var pngOutputBuilder: PNGBuilder? = null
-    private var chimeraOutputBuilder: ChimeraBuilder? = null
-    private var blenderOutputBuilder: BlenderBuilder? = null
-    var secondaryStructures = mutableListOf<SecondaryStructure>()
-    var theme: Theme? = null
-    var data: MutableMap<Int, Double> = mutableMapOf()
-    private var layout: Layout? = null
-
-    fun build(): Pair<List<SecondaryStructureDrawing>, RNArtistEl> {
-        val drawings = mutableListOf<SecondaryStructureDrawing>()
-        var issues = 0
-        this.secondaryStructures.forEachIndexed { _, ss ->
-            try {
-                val alternatives = mutableListOf<SecondaryStructureDrawing>()
-                val outIdsForLongest = listOf(
-                    ConnectorId.n,
-                    ConnectorId.nne,
-                    ConnectorId.nnw,
-                    ConnectorId.ne,
-                    ConnectorId.nw,
-                    ConnectorId.ene,
-                    ConnectorId.wnw,
-                    ConnectorId.e,
-                    ConnectorId.w,
-                    ConnectorId.ese,
-                    ConnectorId.wsw,
-                    ConnectorId.se,
-                    ConnectorId.sw,
-                    ConnectorId.sse,
-                    ConnectorId.ssw,
-                    ConnectorId.s
-                )
-
-                FOR@ for (outIdLongest in outIdsForLongest) {
-                    val lastReferenceDrawing = SecondaryStructureDrawing(ss, outIdForLongest = { outIdLongest }, layout = this.layout)
-                    alternatives.add(lastReferenceDrawing)
-                    if  (lastReferenceDrawing.overlappingScore == 0)
-                        break@FOR
-                    for (backward in 0..10) {
-                        var junctionsToImprove = lastReferenceDrawing.junctionsToImprove(backward)
-                        if (junctionsToImprove.isNotEmpty()) {
-                            var junctionsToImproveFromBranch = junctionsToImprove.toMutableSet()
-                            junctionsToImproveFromBranch.addAll(junctionsToImprove)
-                            for (junction2improve in junctionsToImprove) {
-                                junctionsToImproveFromBranch.addAll(
-                                    junction2improve.junctionsFromBranch()
-                                        .filter { junction2improve.junction.location.contains(junction2improve.junction.location) })
-                            }
-                            val innerLoopsToImprove =
-                                junctionsToImprove.filter { it.junctionType == JunctionType.InnerLoop }
-                            val targetedBehaviours = innerLoopsToImprove.map {
-                                Pair(
-                                    it.junction.location,
-                                    { _: JunctionDrawing, _: Int, outIdLongest: ConnectorId -> outIdLongest })
-                            }
-                            var index = outIdsForLongest.indexOf(outIdLongest) + 1
-                            while (index <= outIdsForLongest.size - 1) {
-                                val drawingAttempt = SecondaryStructureDrawing(
-                                    ss,
-                                    outIdForLongest = {
-                                        if (junctionsToImprove.any { junctionToImprove ->
-                                                junctionToImprove.junction.location.contains(
-                                                    it
-                                                )
-                                            })
-                                            outIdsForLongest.get(index)
-                                        else
-                                            outIdLongest
-                                    },
-                                    targetedJunctionBehaviors = targetedBehaviours,
-                                    layout = this.layout
-                                )
-                                alternatives.add(drawingAttempt)
-                                if (drawingAttempt.overlappingScore == 0)
-                                    break@FOR
-                                index++
-                            }
-                        }
-                    }
-                }
-                var bestDrawing = alternatives.sortedBy { it.overlappingScore }.first()
-
-                //with the junction layouts (computed or defined in the script), the junctions have pushed the branches at the right places.But if some branches were described in the script we apply them. Can be useful if the script wanted to have a branch at a different location that the one computed
-                layout?.let {
-                    bestDrawing.branches.forEach { branch ->
-                        branch.applyLayout(layout = it)
-                    }
-                }
-
-                this.theme?.let { theme ->
-                    bestDrawing.applyTheme(theme)
-                }
-
-                //at this point all the junctions have their layout (computed or defined in the script). We can store them DSLELement tree in order to not recompute them during the next loads
-                rnartistElement.addLayout(bestDrawing.getLayoutEl())
-
-                var dataPath: String? = null
-
-                this.pngOutputBuilder?.let { pngOutputBuilder ->
-                    ss.source?.let { source ->
-                        when (source) {
-                            is FileSource -> {
-                                if (source.getId().endsWith(".vienna")) {
-                                    val ssElement =
-                                        this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
-                                    val viennaElement = ssElement.addVienna()
-                                    viennaElement.setFile(source.getId())
-
-                                    source.getId().split(".").let {
-                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
-                                    }
-                                } else if (source.getId().endsWith(".ct")) {
-                                    val ssElement =
-                                        this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
-                                    val ctElement = ssElement.addCT()
-                                    ctElement.setFile(source.getId())
-
-                                    source.getId().split(".").let {
-                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
-                                    }
-                                } else if (source.getId().endsWith(".bpseq")) {
-                                    val ssElement =
-                                        this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
-                                    val bpseqElement = ssElement.addBPSeq()
-                                    bpseqElement.setFile(source.getId())
-
-                                    source.getId().split(".").let {
-                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
-                                    }
-                                } else if (source.getId().endsWith(".sto") || source.getId().endsWith(".stk") || source.getId().endsWith(".stockholm")) {
-                                    val ssElement =
-                                        this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
-                                    val stockholmEl = ssElement.addStockholm()
-                                    stockholmEl.setFile(source.getId())
-
-                                    source.getId().split(".").let {
-                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
-                                    }
-                                } else if (source.getId().endsWith(".pdb")) {
-                                    val ssElement =
-                                        this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
-                                    val pdbEl = ssElement.addPDB()
-                                    pdbEl.setFile(source.getId())
-
-                                    source.getId().split(".").let {
-                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
-                                    }
-                                }
-                            }
-
-                            is BracketNotation -> {
-                                val ssElement =
-                                    this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
-                                val bnElement = ssElement.addBracketNotation()
-                                bnElement.setSeq(ss.rna.seq)
-                                bnElement.setValue(ss.toBracketNotation())
-                                bnElement.setName(ss.name)
-
-                                dataPath = File(
-                                    pngOutputBuilder.path,
-                                    ss.name
-                                ).invariantSeparatorsPath //since no external input file to get a folder to store the script, we use the output folder
-                            }
-
-                            else -> {
-
-                            }
-
-                        }
-
-                    }
-                    this.rnartistElement.addPNG(pngOutputBuilder.dslElement)
-                    pngOutputBuilder.build(bestDrawing)
-                }
-                this.svgOutputBuilder?.let { svgOutputBuilder ->
-                    ss.source?.let { source ->
-                        when (source) {
-                            is FileSource -> {
-                                if (source.getId().endsWith(".vienna")) {
-                                    val ssElement =
-                                        this.rnartistElement.addSS() //only a single ss element is allowed the previous one is removed
-                                    val viennaElement = ssElement.addVienna()
-                                    viennaElement.setFile(source.getId())
-                                    source.getId().split(".").let {
-                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
-                                    }
-                                } else if (source.getId().endsWith(".ct")) {
-                                    val ssElement =
-                                        this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
-                                    val ctElement = ssElement.addCT()
-                                    ctElement.setFile(source.getId())
-
-                                    source.getId().split(".").let {
-                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
-                                    }
-                                } else if (source.getId().endsWith(".bpseq")) {
-                                    val ssElement =
-                                        this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
-                                    val bpseqElement = ssElement.addBPSeq()
-                                    bpseqElement.setFile(source.getId())
-
-                                    source.getId().split(".").let {
-                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
-                                    }
-                                } else if (source.getId().endsWith(".sto") || source.getId().endsWith(".stk") || source.getId().endsWith(".stockholm")) {
-                                    val ssElement =
-                                        this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
-                                    val stockholmEl = ssElement.addStockholm()
-                                    stockholmEl.setFile(source.getId())
-
-                                    source.getId().split(".").let {
-                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
-                                    }
-                                } else if (source.getId().endsWith(".pdb")) {
-                                    val ssElement =
-                                        this.rnartistElement.addSS() //only a single ss element is allowed, the former one is removed
-                                    val pdbEl = ssElement.addPDB()
-                                    pdbEl.setFile(source.getId())
-
-                                    source.getId().split(".").let {
-                                        dataPath = it.subList(0, it.size - 1).joinToString(separator = ".")
-                                    }
-                                }
-                            }
-
-                            is BracketNotation -> {
-                                val ssElement =
-                                    this.rnartistElement.addSS() //only a single ss element is allowed the previous one is removed
-                                val bnElement = ssElement.addBracketNotation()
-                                bnElement.setSeq(ss.rna.seq)
-                                bnElement.setValue(ss.toBracketNotation())
-                                bnElement.setName(ss.name)
-
-                                dataPath = File(
-                                    svgOutputBuilder.path,
-                                    ss.name
-                                ).invariantSeparatorsPath //since no external input file to get a folder to store the script, we use the output folder
-
-                            }
-
-                            else -> {
-                            }
-
-                        }
-
-                    }
-                    this.rnartistElement.addSVG(svgOutputBuilder.dslElement)
-                    svgOutputBuilder.build(bestDrawing)
-                }
-                dataPath?.let { dataPath ->
-                    val f = if (dataPath.startsWith("/") || dataPath.matches(Regex("^[A-Z]:/.+$")))
-                        File("${dataPath}.kts")
-                    else
-                        File("${Jar().path()}/${dataPath}.kts")
-                    if (!f.exists() || this.layout == null) { //if no layout was available in the script, we save it
-                        f.createNewFile()
-                        f.writeText(rnartistElement.dump().toString())
-                    }
-                }
-                this.chimeraOutputBuilder?.name?.let { chainName ->
-                    if (chainName == ss.rna.name)
-                        this.chimeraOutputBuilder?.build(bestDrawing)
-                } ?: run {
-                    this.chimeraOutputBuilder?.build(bestDrawing)
-                }
-                drawings.add(bestDrawing)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                println(ss.source?.toString())
-                issues++
-            }
-        }
-        if (issues > 0)
-            println("!!!!!!! $issues drawings with issues !!!!!!!!!!!")
-        return Pair(drawings, rnartistElement)
-    }
-
-    fun ss(setup: SecondaryStructureBuilder.() -> Unit) {
-        val secondaryStructureBuilder = SecondaryStructureBuilder()
-        secondaryStructureBuilder.setup()
-        secondaryStructures.addAll(secondaryStructureBuilder.build())
-        this.rnartistElement.addSS(secondaryStructureBuilder.dslElement)
-    }
-
-    fun theme(setup: ThemeBuilder.() -> Unit) {
-        val themeBuilder = ThemeBuilder(data)
-        themeBuilder.setup()
-        this.theme = themeBuilder.build()
-        this.rnartistElement.addTheme(themeBuilder.dslElement)
-    }
-
-    fun layout(setup: LayoutBuilder.() -> Unit) {
-        val layoutBuilder = LayoutBuilder()
-        layoutBuilder.setup()
-        this.layout = layoutBuilder.build()
-        this.rnartistElement.addLayout(layoutBuilder.dslElement)
-    }
-
-    fun data(setup: DataBuilder.() -> Unit) {
-        val dataBuilder = DataBuilder()
-        dataBuilder.setup()
-        data = dataBuilder.data
-        this.rnartistElement.addData(dataBuilder.dslElement)
-    }
-
-    fun svg(setup: SVGBuilder.() -> Unit) {
-        this.svgOutputBuilder = SVGBuilder()
-        this.svgOutputBuilder!!.setup()
-    }
-
-    fun png(setup: PNGBuilder.() -> Unit) {
-        this.pngOutputBuilder = PNGBuilder()
-        this.pngOutputBuilder!!.setup()
-    }
-
-    fun output(setup: PNGBuilder.() -> Unit) {
-        this.pngOutputBuilder = PNGBuilder()
-        this.pngOutputBuilder!!.setup()
-    }
-
-    fun chimera(setup: ChimeraBuilder.() -> Unit) {
-        this.chimeraOutputBuilder = ChimeraBuilder()
-        this.chimeraOutputBuilder!!.setup()
-    }
-
-    fun blender(setup: BlenderBuilder.() -> Unit) {
-        this.blenderOutputBuilder = BlenderBuilder()
-        this.blenderOutputBuilder!!.setup()
     }
 
 }

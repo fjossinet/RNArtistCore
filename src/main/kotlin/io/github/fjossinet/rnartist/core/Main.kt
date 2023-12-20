@@ -1,6 +1,6 @@
 package io.github.fjossinet.rnartist.core
 
-import io.github.fjossinet.rnartist.core.io.getScriptForDataFile
+import io.github.fjossinet.rnartist.core.io.getScriptContentForDataFile
 import io.github.fjossinet.rnartist.core.model.*
 import java.io.File
 import java.io.FileFilter
@@ -131,8 +131,6 @@ fun main(args: Array<String>) {
                             PDB().getEntry(dbEntryId).let {
                                 dataFile = File(outputDir, "${dbEntryId}.pdb")
                                 dataFile!!.writeText(it.readText())
-                            } ?: run {
-                                println("Cannot get data for PDB entry $dbEntryId")
                             }
                         } else {
                             println("Unknown entry ID! PDB, RNACentral and Rfam IDs are supported. Examples of valid IDs: 1EHZ for PDB, RF00177 for Rfam or URS00000CFF65 for RNACentral.")
@@ -147,16 +145,8 @@ fun main(args: Array<String>) {
                  }
 
                 dataFile?.let { dataFile->
-                    var scriptDataFile = File(dataFile.parentFile, "${dataFile.name.split(Regex(".(vienna|bpseq|ct|pdb|stk|sto|stockholm)")).first()}.kts")
 
-                    if (scriptDataFile.exists()) {
-                        println("The RNArtistCore script ${scriptDataFile.name} already exists. Do you want to overwrite it? [y/N]")
-                        if (!"y".equals(readLine()?.trim()))
-                            System.exit(-1)
-                        scriptDataFile.delete()
-                    }
-
-                    scriptDataFile = getScriptForDataFile(
+                    val scriptContent = getScriptContentForDataFile(
                         dataFile,
                         dataFile.parentFile,
                         args.contains("--no-png"),
@@ -178,17 +168,15 @@ fun main(args: Array<String>) {
                         else
                             1.0
                     )
-                    println("Drawing 2D for ${scriptDataFile.name.split(".kts").first()}")
-                    (engine.eval(
+
+                    println("Drawing 2D for ${dataFile.name}")
+                    engine.eval(
                         "import io.github.fjossinet.rnartist.core.*${System.getProperty("line.separator")}${
                             System.getProperty(
                                 "line.separator"
                             )
-                        } ${FileReader(scriptDataFile).readText()}"
-                    ) as? Pair<List<SecondaryStructureDrawing>, RNArtistEl>)?.let {
-                        //we overwrite the initial script without any layout with the best layout found and stored in the DSL elements tree
-                        scriptDataFile.writeText(it.second.dump("", StringBuffer()).toString())
-                    }
+                        } ${scriptContent}"
+                    )
                 }
             }
         }

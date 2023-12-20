@@ -1,3 +1,24 @@
+### 0.4.6-SNAPSHOT
+
+- new output element named ```traveler``` to save a 2D drawing as a [traveler XML file](https://github.com/cusbg/traveler). Width and height properties define the area on which the 2D is centered.
+
+```kotlin
+
+rnartist {
+    traveler {
+        path = "project/outputs/"
+        width = 500.0
+        height = 500.0
+    }
+
+    ss {
+        vienna {
+            file = "project/samples/rna.vienna"
+        }
+    }
+}
+```
+
 ### 0.4.0-SNAPSHOT
 
 - a new element named ```branch``` can be added to the layout. It defines the x-position (the parameter ```value```) for the helix starting this branch (defined by the parameter ```location```)

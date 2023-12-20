@@ -3,6 +3,7 @@ package io.github.fjossinet.rnartist.core.model
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.internal.LinkedTreeMap
+import io.github.fjossinet.rnartist.core.io.getScriptContentForDataFile
 import io.github.fjossinet.rnartist.core.io.writeVienna
 import io.github.fjossinet.rnartist.core.ss
 import java.io.*
@@ -274,7 +275,10 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
     fun getSVGForDataFile(dataFile:File):File  = File(getDrawingsDirForDataDir(dataFile.parentFile), "${dataFile.name.split(".kts").first()}.svg")
 
     fun getScriptForDataFile(dataFile:File, noPNG:Boolean = false, withSVG:Boolean = false, minColor: String = "lightyellow", minValue:Double = 0.0, maxColor:String = "firebrick", maxValue:Double = 1.0):File {
-        return io.github.fjossinet.rnartist.core.io.getScriptForDataFile(dataFile, getDrawingsDirForDataDir(dataFile.parentFile), noPNG, withSVG, minColor, minValue, maxColor, maxValue)
+        val script = File(dataFile.parentFile, "${dataFile.name.split(Regex(".(vienna|bpseq|ct|pdb|stk|sto|stockholm)")).first()}.kts")
+        script.createNewFile()
+        script.writeText(getScriptContentForDataFile(dataFile, getDrawingsDirForDataDir(dataFile.parentFile), noPNG, withSVG, minColor, minValue, maxColor, maxValue))
+        return script
     }
 
     fun containsStructuralData(path: Path): Boolean {

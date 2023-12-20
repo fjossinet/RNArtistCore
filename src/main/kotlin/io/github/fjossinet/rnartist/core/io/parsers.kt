@@ -12,11 +12,8 @@ import java.util.stream.Collectors
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-fun getScriptForDataFile(dataFile:File, outputDir:File, noPNG:Boolean = false, withSVG:Boolean = false, minColor: String = "lightyellow", minvalue:Double = 0.0, maxColor:String = "firebrick", maxvalue:Double = 1.0):File {
-    val script = File(dataFile.parentFile, "${dataFile.name.split(Regex(".(vienna|bpseq|ct|pdb|stk|sto|stockholm)")).first()}.kts")
+fun getScriptContentForDataFile(dataFile:File, outputDir:File, noPNG:Boolean = false, withSVG:Boolean = false, minColor: String = "lightyellow", minvalue:Double = 0.0, maxColor:String = "firebrick", maxvalue:Double = 1.0):String {
     val quantitativeDataFile = File(dataFile.parentFile, "${dataFile.name.split(Regex(".(vienna|bpseq|ct|pdb|stk|sto|stockholm)")).first()}.txt")
-    if (!script.exists()) {
-        script.createNewFile()
         val rnartistEl = initScript()
         if (!noPNG)
             with(rnartistEl.addPNG()) {
@@ -64,10 +61,7 @@ fun getScriptForDataFile(dataFile:File, outputDir:File, noPNG:Boolean = false, w
             }
         }
 
-        script.writeText(rnartistEl.dump().toString())
-    }
-
-    return script
+    return rnartistEl.dump().toString()
 }
 
 @Throws(java.lang.Exception::class)
