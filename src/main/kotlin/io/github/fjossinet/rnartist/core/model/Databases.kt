@@ -71,59 +71,62 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
         File(this.rootInvariantSeparatorsPath).listFiles()?.forEach {
             if (it.name.endsWith(".json")) {
                 val jsonDir = File(File(this.rootInvariantSeparatorsPath), it.name.removeSuffix(".json"))
-                if (!jsonDir.exists()) {
-                    println("Processing ${it.name}...")
+                println("Processing ${it.name}...")
+                if (!jsonDir.exists())
                     jsonDir.mkdir()
-                    //we have json data to dump
-                    val rnas = Gson().fromJson(it.readText(), Any::class.java)
-                    (rnas as? LinkedTreeMap<String, Any>)?.forEach { rnaName, rnaDetails ->
-                        var rna: RNA? = null
-                        var basePairs: MutableList<BasePair>? = null
-                        var reactivities: MutableList<Double>? = null
-                        (rnaDetails as? LinkedTreeMap<Any, Any>)?.forEach { key, value ->
-                            when (key) {
-                                "sequence" -> {
-                                    rna = RNA(rnaName, value as String)
-                                }
+                //now we extract the json data as structural and reactivities files
+                val rnas = Gson().fromJson(it.readText(), Any::class.java)
+                (rnas as? LinkedTreeMap<String, Any>)?.forEach { rnaName, rnaDetails ->
+                    var rna: RNA? = null
+                    var basePairs: MutableList<BasePair>? = null
+                    var reactivities: MutableList<Double>? = null
+                    (rnaDetails as? LinkedTreeMap<Any, Any>)?.forEach { key, value ->
+                        when (key) {
+                            "sequence" -> {
+                                rna = RNA(rnaName, value as String)
+                            }
 
-                                "paired_bases" -> {
-                                    basePairs = mutableListOf()
-                                    (value as? ArrayList<ArrayList<Double>>)?.forEach { basePair ->
-                                        val pos1 = basePair.get(0).toInt() + 1 //0-indexed
-                                        val pos2 = basePair.get(1).toInt() + 1 //0-indexed
-                                        basePairs!!.add(
-                                            BasePair(
-                                                Location(
-                                                    Location(pos1, pos1),
-                                                    Location(pos2, pos2)
-                                                )
+                            "structure" -> {
+                                basePairs = mutableListOf()
+                                (value as? ArrayList<ArrayList<Double>>)?.forEach { basePair ->
+                                    val pos1 = basePair.get(0).toInt() + 1 //0-indexed
+                                    val pos2 = basePair.get(1).toInt() + 1 //0-indexed
+                                    basePairs!!.add(
+                                        BasePair(
+                                            Location(
+                                                Location(pos1, pos1),
+                                                Location(pos2, pos2)
                                             )
                                         )
-                                    }
+                                    )
                                 }
+                            }
 
-                                "dms" -> {
-                                    reactivities = mutableListOf()
-                                    (value as? ArrayList<Double>)?.forEach { reactivity ->
-                                        reactivities!!.add(reactivity)
-                                    }
+                            "dms" -> {
+                                reactivities = mutableListOf()
+                                (value as? ArrayList<Double>)?.forEach { reactivity ->
+                                    reactivities!!.add(reactivity)
                                 }
                             }
                         }
-                        rna?.let { rna ->
-                            basePairs?.let { basePairs ->
-                                val viennaFile = File(jsonDir, "${rnaName}.vienna")
-                                if (!viennaFile.exists())
-                                    writeVienna(
-                                        SecondaryStructure(rna = rna, basePairs = basePairs),
-                                        viennaFile.writer()
-                                    )
+                    }
+                    rna?.let { rna ->
+                        basePairs?.let { basePairs ->
+                            val viennaFile = File(jsonDir, "${rnaName}.vienna")
+                            if (!viennaFile.exists()) {
+                                println("New structural file ${rnaName}.vienna created...")
+                                writeVienna(
+                                    SecondaryStructure(rna = rna, basePairs = basePairs),
+                                    viennaFile.writer()
+                                )
                             }
-                            reactivities?.let { reactivities ->
-                                val reactivitiesFile = File(jsonDir, "${rnaName}.txt")
-                                if (!reactivitiesFile.exists())
-                                    reactivitiesFile.writeText(reactivities.mapIndexed { index, reactivity -> "${index + 1} $reactivity" }
-                                        .joinToString(separator = "\n"))
+                        }
+                        reactivities?.let { reactivities ->
+                            val reactivitiesFile = File(jsonDir, "${rnaName}.txt")
+                            if (!reactivitiesFile.exists()) {
+                                println("New reactivities file ${rnaName}.txt created...")
+                                reactivitiesFile.writeText(reactivities.mapIndexed { index, reactivity -> "${index + 1} $reactivity" }
+                                    .joinToString(separator = "\n"))
                             }
                         }
                     }
@@ -250,9 +253,21 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
                 }
 
             with (rnartistEl.addSS()) {
+                if (dataDir.listFiles(FileFilter {
+                        it.name.endsWith(".ct")}).isNotEmpty())
+                    this.addCT().setPath(dataDir.invariantSeparatorsPath)
+                if (dataDir.listFiles(FileFilter {
+                        it.name.endsWith(".vienna")}).isNotEmpty())
                 this.addVienna().setPath(dataDir.invariantSeparatorsPath)
-                this.addCT().setPath(dataDir.invariantSeparatorsPath)
+                if (dataDir.listFiles(FileFilter {
+                        it.name.endsWith(".bpseq")}).isNotEmpty())
                 this.addBPSeq().setPath(dataDir.invariantSeparatorsPath)
+                if (dataDir.listFiles(FileFilter {
+                        it.name.endsWith(".pdb")}).isNotEmpty())
+                this.addPDB().setPath(dataDir.invariantSeparatorsPath)
+                if (dataDir.listFiles(FileFilter {
+                        it.name.endsWith(".sto")}).isNotEmpty())
+                this.addStockholm().setPath(dataDir.invariantSeparatorsPath)
             }
 
             script.writeText(rnartistEl.dump().toString())
@@ -262,9 +277,13 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
             dataDir.listFiles(FileFilter {
                 it.name.endsWith(".ct") || it.name.endsWith(".vienna") || it.name.endsWith(
                     ".bpseq"
-                ) || it.name.endsWith(".pdb")
+                ) || it.name.endsWith(".pdb") || it.name.endsWith(".sto")
             })?.forEach { dataFile ->
-                getScriptForDataFile(dataFile, withSVG)
+                val quantitativeDataFile = File(dataFile.parentFile, "${dataFile.name.split(Regex(".(vienna|bpseq|ct|pdb|stk|sto|stockholm)")).first()}.txt")
+                if (quantitativeDataFile.exists())
+                    getScriptForDataFile(dataFile, quantitativeDataFile, withSVG)
+                else
+                    getScriptForDataFile(dataFile, null, withSVG)
             }
         }
 
@@ -274,10 +293,28 @@ class RNArtistDB(val rootInvariantSeparatorsPath:String) {
     fun getPreviewForDataFile(dataFile:File):File  = File(getDrawingsDirForDataDir(dataFile.parentFile), "${dataFile.name.split(".kts").first()}.png")
     fun getSVGForDataFile(dataFile:File):File  = File(getDrawingsDirForDataDir(dataFile.parentFile), "${dataFile.name.split(".kts").first()}.svg")
 
-    fun getScriptForDataFile(dataFile:File, noPNG:Boolean = false, withSVG:Boolean = false, minColor: String = "lightyellow", minValue:Double = 0.0, maxColor:String = "firebrick", maxValue:Double = 1.0):File {
+    fun getScriptForDataFile(dataFile:File, quantitativeDataFile:File? = null, noPNG:Boolean = false, pngWidth:Double? = null, pngHeight:Double? = null, withSVG:Boolean = false, svgWidth:Double? = null, svgHeight:Double? = null, minColor: String = "lightyellow", minValue:Double = 0.0, maxColor:String = "firebrick", maxValue:Double = 1.0):File {
         val script = File(dataFile.parentFile, "${dataFile.name.split(Regex(".(vienna|bpseq|ct|pdb|stk|sto|stockholm)")).first()}.kts")
-        script.createNewFile()
-        script.writeText(getScriptContentForDataFile(dataFile, getDrawingsDirForDataDir(dataFile.parentFile), noPNG, withSVG, minColor, minValue, maxColor, maxValue))
+        if (!script.exists()) {
+            script.createNewFile()
+            script.writeText(
+                getScriptContentForDataFile(
+                    dataFile,
+                    getDrawingsDirForDataDir(dataFile.parentFile),
+                    quantitativeDataFile,
+                    noPNG,
+                    pngWidth,
+                    pngHeight,
+                    withSVG,
+                    svgWidth,
+                    svgHeight,
+                    minColor,
+                    minValue,
+                    maxColor,
+                    maxValue
+                )
+            )
+        }
         return script
     }
 

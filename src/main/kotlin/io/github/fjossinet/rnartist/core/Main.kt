@@ -14,28 +14,31 @@ val usage = """
 RNArtistCore: a commandline tool to create and plot RNA 2D structures
 #####################################################################
 
-Usage with a prior RNArtistCore script:
-======================================
+Usage #1: with a prior RNArtistCore script
+==========================================
 
     java -jar rnartistcore-X.X.X-jar-with-dependencies.jar /path/to/your/script
     
-Usages without any prior RNArtistCore script:
-============================================
+Usage #2: without any prior RNArtistCore script
+===============================================
 
-* to process a single local structural file: 
-    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [options] -f /path/to/your/structural_file
-    
-* to process several local structural files:  
-    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [options] -d /path/to/the/root_folder/
-    
-* to process a database entry: 
-    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [options] -e database_entry_id -o output_directory
-    
-The RNArtistCore script created stores the isntructions for a theme with default parameters and for a non-overlapping layout. 
-This script can now be modified and re-run as a prior RNArtistCore script.
+Depending on the mandatory option chosen (-f, -d or -e), you can:
 
-Primary options to define the location of the structural data:
--------------------------------------------------------------
+* plot a single local structural file: 
+    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [--non-mandatory-options] -f /path/to/your/structural_file
+    
+* plot several local structural files:  
+    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [--non-mandatory-options] -d /path/to/the/root_folder/
+    
+* plot a database entry: 
+    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [--non-mandatory-options] -e database_entry_id -o output_directory
+    
+In each case, an RNArtistCore script will be created for each structural file found. Each script stores the instructions to plot the 2D.
+Non mandatory options can be used to change the default parameters stored in the scripts (see below). 
+The scripts can be modified with your favorite text editor and re-run from the commandline (see usage #1).
+
+Mandatory options to define the location of the structural data
+---------------------------------------------------------------
 -f <arg>                Compute the 2D plot for a single structural file whose path is given as argument.
                         An RNArtistCore script with default parameters will be created in the same folder as the structural file.
 
@@ -44,34 +47,44 @@ Primary options to define the location of the structural data:
                         At the end of the process, the root folder can be loaded with the graphical tool RNArtist to explore and manipulate the 2D plots.
 
 -e <arg> -o <arg>       Compute the 2D plot for a database entry (PDB, RNACentral and Rfam supported). 
-                        The argument for option -e has to be a valid ID for the database (like 1EHZ for PDB, RF00177 for Rfam or URS00000CFF65 for RNACentral).
-                        An RNArtistCore script with default parameters will be created in the folder defined with the mandatory option -o.
+                        The argument for option -e has to be a valid ID for the database selected (like 1EHZ for PDB, RF00177 for Rfam or URS00000CFF65 for RNACentral).
+                        An RNArtistCore script will be created in the folder defined with the mandatory option -o.
 
-Secondary options to change default parameters in the script:
-------------------------------------------------------------
+Non mandatory options to change the default parameters in the script
+--------------------------------------------------------------------
 --no-png                The RNArtistCore script will not export its 2D plot(s) in PNG files. This option should not be used to 
                         create a database fully compliant with the graphical tool RNArtist. RNArtist needs PNG files to preview the 2Ds.
+                        
+--png-width             The width for the PNG files. The default value is the width of the drawing.
+
+--png-height            The height for the PNG files. The default value is the height of the drawing.
 
 --with-svg              The RNArtistCore script will export its 2D plot(s) in SVG files
 
+--svg-width             The width for the SVG files. The default value is the width of the drawing.
+
+--svg-height            The height for the SVG files. The default value is the height of the drawing.
+
+--with-data <arg>       The RNArtistCore script will link the 2D to the quantitative values described in the file given as argument. 
+                        Min/max values and min/max colors can be defined with the options below.
+
 --min-color <arg>       Define the first color for the gradient color. The gradient color is used to 
-                        incorporate quantitative values into 2D plots (default: lightyellow)
+                        display quantitative values in 2D plots (default: lightyellow)
 
 --max-color <arg>       Define the last color for the gradient color. The gradient color is used to 
-                        incorporate quantitative values into 2D plots (default: firebrick)
+                        display quantitative values in 2D plots (default: firebrick)
 
---min-value [<arg>]     Define the min value to be used to compute the gradient color between 
+--min-value <arg>       Define the min value to be used to compute the gradient color between 
                         min-color and max-color (default: 0.0)
 
---max-value [<arg>]     Define the max value to be used to compute the gradient color between 
+--max-value <arg>       Define the max value to be used to compute the gradient color between 
                         min-color and max-color (default: 1.0)
                         
-Secondary options to process several local structural files:
------------------------------------------------------------
+Non mandatory options to plot several local structural files
+------------------------------------------------------------
 
---from <arg>            If you're batch processing several structural files, this option allow to restart the process from the file whose name without suffix 
-                        is given as argument (if file named my_rna_67.vienna, then you need to type --from my_rna_67).
-                        If some files have already been processed after this start file, they will be recomputed.
+--from <arg>            If you're batch processing several structural files, this option allows to restart the process from the file given as argument, without its suffix (if the file is named my_rna_67.vienna, then you need to type --from my_rna_67).
+                        If some files have already been processed after this file, they will be recomputed.
 """.trimIndent()
 
 class Jar() {
@@ -136,7 +149,7 @@ fun main(args: Array<String>) {
                             println("Unknown entry ID! PDB, RNACentral and Rfam IDs are supported. Examples of valid IDs: 1EHZ for PDB, RF00177 for Rfam or URS00000CFF65 for RNACentral.")
                         }
                     } else {
-                        println("You have to combine option -e with option -o to define the path where all the files will be stored")
+                        println("You have to combine option -e with option -o to define the location of the RNArtistCore script to be created")
                         System.exit(-1)
                     }
                 } else {
@@ -146,11 +159,34 @@ fun main(args: Array<String>) {
 
                 dataFile?.let { dataFile->
 
+                    var quantitativeDataFile:File? = File(dataFile.parentFile, "${dataFile.name.split(Regex(".(vienna|bpseq|ct|pdb|stk|sto|stockholm)")).first()}.txt")
+                    if (quantitativeDataFile!!.exists() && args.contains("--with-data"))
+                        quantitativeDataFile = File(args.get(args.indexOf("--with-data") + 1))
+                    else
+                        quantitativeDataFile = null
+
                     val scriptContent = getScriptContentForDataFile(
                         dataFile,
                         dataFile.parentFile,
+                        quantitativeDataFile,
                         args.contains("--no-png"),
+                        if (args.contains("--png-width"))
+                            args.get(args.indexOf("--png-width") + 1).toDouble()
+                        else
+                            null,
+                        if (args.contains("--png-height"))
+                            args.get(args.indexOf("--png-height") + 1).toDouble()
+                        else
+                            null,
                         args.contains("--with-svg"),
+                        if (args.contains("--svg-width"))
+                            args.get(args.indexOf("--svg-width") + 1).toDouble()
+                        else
+                            null,
+                        if (args.contains("--svg-height"))
+                            args.get(args.indexOf("--svg-height") + 1).toDouble()
+                        else
+                            null,
                         if (args.contains("--min-color"))
                             args.get(args.indexOf("--min-color") + 1)
                         else
@@ -189,8 +225,7 @@ fun main(args: Array<String>) {
                     val dataDir = File(it)
                     dataDir.listFiles(FileFilter {
                         it.name.endsWith(".vienna") || it.name.endsWith(".bpseq") || it.name.endsWith(".ct") || it.name.endsWith(
-                            ".pdb"
-                        )
+                            ".pdb") || it.name.endsWith(".sto")
                     }).forEach { dataFile ->
                         if (!foundStart)
                             foundStart = dataFile.name.startsWith(args.get(args.indexOf("--from") + 1))
@@ -202,10 +237,33 @@ fun main(args: Array<String>) {
                             if (scriptDataFile.exists())
                                 scriptDataFile.delete()
 
+                            var quantitativeDataFile:File? = File(dataFile.parentFile, "${dataFile.name.split(Regex(".(vienna|bpseq|ct|pdb|stk|sto|stockholm)")).first()}.txt")
+                            if (!quantitativeDataFile!!.exists() && args.contains("--with-data"))
+                                quantitativeDataFile = File(args.get(args.indexOf("--with-data") + 1))
+                            else if (!quantitativeDataFile!!.exists())
+                                quantitativeDataFile = null
+
                             scriptDataFile = db.getScriptForDataFile(
                                 dataFile,
+                                quantitativeDataFile,
                                 args.contains("--no-png"),
+                                if (args.contains("--png-width"))
+                                    args.get(args.indexOf("--png-width") + 1).toDouble()
+                                else
+                                    null,
+                                if (args.contains("--png-height"))
+                                    args.get(args.indexOf("--png-height") + 1).toDouble()
+                                else
+                                    null,
                                 args.contains("--with-svg"),
+                                if (args.contains("--svg-width"))
+                                    args.get(args.indexOf("--svg-width") + 1).toDouble()
+                                else
+                                    null,
+                                if (args.contains("--svg-height"))
+                                    args.get(args.indexOf("--svg-height") + 1).toDouble()
+                                else
+                                    null,
                                 if (args.contains("--min-color"))
                                     args.get(args.indexOf("--min-color")+1)
                                 else
@@ -250,10 +308,34 @@ fun main(args: Array<String>) {
                             ".pdb"
                         )
                     }).forEach { dataFile ->
+
+                        var quantitativeDataFile:File? = File(dataFile.parentFile, "${dataFile.name.split(Regex(".(vienna|bpseq|ct|pdb|stk|sto|stockholm)")).first()}.txt")
+                        if (!quantitativeDataFile!!.exists() && args.contains("--with-data"))
+                            quantitativeDataFile = File(args.get(args.indexOf("--with-data") + 1))
+                        else if (!quantitativeDataFile!!.exists())
+                            quantitativeDataFile = null
+
                         var scriptDataFile = db.getScriptForDataFile(
                             dataFile,
+                            quantitativeDataFile,
                             args.contains("--no-png"),
+                            if (args.contains("--png-width"))
+                                args.get(args.indexOf("--png-width") + 1).toDouble()
+                            else
+                                null,
+                            if (args.contains("--png-height"))
+                                args.get(args.indexOf("--png-height") + 1).toDouble()
+                            else
+                                null,
                             args.contains("--with-svg"),
+                            if (args.contains("--svg-width"))
+                                args.get(args.indexOf("--svg-width") + 1).toDouble()
+                            else
+                                null,
+                            if (args.contains("--svg-height"))
+                                args.get(args.indexOf("--svg-height") + 1).toDouble()
+                            else
+                                null,
                             if (args.contains("--min-color"))
                                 args.get(args.indexOf("--min-color")+1)
                             else
@@ -275,10 +357,28 @@ fun main(args: Array<String>) {
                             //the user asked for something that doesn't exist for the current structural file. We need to run the script
                             if (scriptDataFile.exists())//if a script already exists, we delete it to be sure to have someting clean (we could have a script without the SVG export and the user asked now for one)
                                 scriptDataFile.delete()
+
                             scriptDataFile = db.getScriptForDataFile(
                                 dataFile,
+                                quantitativeDataFile,
                                 args.contains("--no-png"),
+                                if (args.contains("--png-width"))
+                                    args.get(args.indexOf("--png-width") + 1).toDouble()
+                                else
+                                    null,
+                                if (args.contains("--png-height"))
+                                    args.get(args.indexOf("--png-height") + 1).toDouble()
+                                else
+                                    null,
                                 args.contains("--with-svg"),
+                                if (args.contains("--svg-width"))
+                                    args.get(args.indexOf("--svg-width") + 1).toDouble()
+                                else
+                                    null,
+                                if (args.contains("--svg-height"))
+                                    args.get(args.indexOf("--svg-height") + 1).toDouble()
+                                else
+                                    null,
                                 if (args.contains("--min-color"))
                                     args.get(args.indexOf("--min-color")+1)
                                 else

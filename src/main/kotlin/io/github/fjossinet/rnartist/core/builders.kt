@@ -46,20 +46,14 @@ class RNArtistBuilder {
                 )
 
                 FOR@ for (outIdLongest in outIdsForLongest) {
-                    val lastReferenceDrawing = SecondaryStructureDrawing(ss, outIdForLongest = { outIdLongest }, layout = this.layout)
+                    val lastReferenceDrawing = SecondaryStructureDrawing(ss, outIdForLongest = { outIdLongest }, layout = this.layout/*the layout stored in the script, if any, has the priority*/)
                     alternatives.add(lastReferenceDrawing)
+                    lastReferenceDrawing.computeOverlapping()
                     if  (lastReferenceDrawing.overlappingScore == 0)
                         break@FOR
-                    for (backward in 0..10) {
+                    for (backward in 0..4) {
                         var junctionsToImprove = lastReferenceDrawing.junctionsToImprove(backward)
                         if (junctionsToImprove.isNotEmpty()) {
-                            var junctionsToImproveFromBranch = junctionsToImprove.toMutableSet()
-                            junctionsToImproveFromBranch.addAll(junctionsToImprove)
-                            for (junction2improve in junctionsToImprove) {
-                                junctionsToImproveFromBranch.addAll(
-                                    junction2improve.junctionsFromBranch()
-                                        .filter { junction2improve.junction.location.contains(junction2improve.junction.location) })
-                            }
                             val innerLoopsToImprove =
                                 junctionsToImprove.filter { it.junctionType == JunctionType.InnerLoop }
                             val targetedBehaviours = innerLoopsToImprove.map {
@@ -82,9 +76,10 @@ class RNArtistBuilder {
                                             outIdLongest
                                     },
                                     targetedJunctionBehaviors = targetedBehaviours,
-                                    layout = this.layout
+                                    layout = this.layout //the layout stored in the script, if any, has the priority
                                 )
                                 alternatives.add(drawingAttempt)
+                                drawingAttempt.computeOverlapping()
                                 if (drawingAttempt.overlappingScore == 0)
                                     break@FOR
                                 index++
@@ -93,6 +88,7 @@ class RNArtistBuilder {
                     }
                 }
                 var bestDrawing = alternatives.sortedBy { it.overlappingScore }.first()
+                bestDrawing.computeOverlapping()
 
                 //with the junction layouts (computed or defined in the script), the junctions have pushed the branches at the right places.But if some branches were described in the script we apply them. Can be useful if the script wanted to have a branch at a different location that the one computed
                 layout?.let {
@@ -532,8 +528,8 @@ class KtsScriptBuilder(val noLayoutInFormerScript:Boolean):OutputFileBuilder() {
 }
 
 abstract class GraphicFileBuilder:OutputFileBuilder() {
-    var width: Double = 800.0
-    var height: Double = 800.0
+    var width: Double? = null
+    var height: Double? = null
 }
 
 class PNGBuilder : GraphicFileBuilder() {
@@ -550,8 +546,13 @@ class PNGBuilder : GraphicFileBuilder() {
             this.name?.let {
                 field.setName(it)
             }
-            field.setWidth(width)
-            field.setHeight(height)
+            this.width?.let {
+                field.setWidth(it)
+            }
+            this.height?.let {
+                field.setHeight(it)
+            }
+
             return field
         }
 
@@ -560,14 +561,14 @@ class PNGBuilder : GraphicFileBuilder() {
             locationBuilder.build()?.let { location ->
                 drawing.getFrame(location)?.let { selectionFrame ->
                     drawing.asPNG(
-                        frame = Rectangle2D.Double(0.0, 0.0, width, height),
+                        frame = Rectangle2D.Double(0.0, 0.0, width ?: drawing.getFrame()!!.width*1.1, height ?: drawing.getFrame()!!.height*1.1),
                         selectionFrame = selectionFrame,
                         outputFile = f
                     )
                 }
             } ?: run {
                 drawing.asPNG(
-                    frame = Rectangle2D.Double(0.0, 0.0, width, height),
+                    frame = Rectangle2D.Double(0.0, 0.0, width ?: drawing.getFrame()!!.width*1.1, height ?: drawing.getFrame()!!.height*1.1),
                     outputFile = f
                 )
             }
@@ -587,8 +588,12 @@ class SVGBuilder : GraphicFileBuilder() {
             this.name?.let {
                 field.setName(it)
             }
-            field.setWidth(width)
-            field.setHeight(height)
+            this.width?.let {
+                field.setWidth(it)
+            }
+            this.height?.let {
+                field.setHeight(it)
+            }
             return field
         }
 
@@ -597,14 +602,16 @@ class SVGBuilder : GraphicFileBuilder() {
             locationBuilder.build()?.let { location ->
                 drawing.getFrame(location)?.let { selectionFrame ->
                     drawing.asSVG(
-                        frame = Rectangle2D.Double(0.0, 0.0, width, height),
+                        frame = Rectangle2D.Double(0.0, 0.0, width ?: drawing.getFrame()!!.width*1.1, height ?: drawing.getFrame()!!.height*1.1),
                         selectionFrame = selectionFrame,
                         outputFile = f
                     )
                 }
             } ?: run {
+                drawing.fitViewTo(Rectangle2D.Double(0.0, 0.0, width ?: drawing.getFrame()!!.width*1.1, (height ?: drawing.getFrame()!!.height*1.1)-60))
+
                 drawing.asSVG(
-                    frame = Rectangle2D.Double(0.0, 0.0, width, height),
+                    frame = Rectangle2D.Double(0.0, 0.0, width ?: drawing.getFrame()!!.width*1.1, height ?: drawing.getFrame()!!.height*1.1),
                     outputFile = f
                 )
             }
@@ -628,14 +635,18 @@ class TravelerBuilder:GraphicFileBuilder() {
             this.name?.let {
                 field.setName(it)
             }
-            field.setWidth(width)
-            field.setHeight(height)
+            this.width?.let {
+                field.setWidth(it)
+            }
+            this.height?.let {
+                field.setHeight(it)
+            }
             return field
         }
 
     override fun build(drawing: SecondaryStructureDrawing, rnartistEl:RNArtistEl) {
         getOutputFile(drawing, "traveler")?.let { f ->
-            drawing.fitViewTo(Rectangle2D.Double(0.0, 0.0, width, height))
+            drawing.fitViewTo(Rectangle2D.Double(0.0, 0.0, width ?: drawing.getFrame()!!.width*1.1, height ?: drawing.getFrame()!!.height*1.1))
             val builder = StringBuilder()
             builder.appendLine("<structure>")
             val at = AffineTransform()
@@ -715,6 +726,7 @@ class PDBBuilder {
             return field
         }
     var file: String? = null
+    var path: String? = null
     var name: String? = null
     var id: String? = null
 
@@ -746,6 +758,20 @@ class PDBBuilder {
             }
             return structures
         }
+        this.path?.let { path ->
+            val f = if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$"))) {
+                File(path)
+            } else
+                File("${Jar().path()}/${path}")
+            f.listFiles { _, name -> name.endsWith(".pdb") }?.forEach { pdbFile ->
+                val _structures = Annotate3D().annotate(pdbFile)
+                _structures.forEach {
+                    it.source = if (this.id != null) PDBSource(this.id!!) else FileSource(pdbFile.invariantSeparatorsPath)
+                }
+                structures.addAll(_structures)
+            }
+            return structures
+        }
         return listOf()
     }
 }
@@ -755,6 +781,9 @@ class ViennaBuilder : InputFileBuilder() {
         get() {
             this.file?.let {
                 field.setFile(it)
+            }
+            this.path?.let {
+                field.setPath(it)
             }
             return field
         }
@@ -776,13 +805,9 @@ class ViennaBuilder : InputFileBuilder() {
                 File("${Jar().path()}/${path}")
             val structures = mutableListOf<SecondaryStructure>()
             f.listFiles { _, name -> name.endsWith(".vienna") }?.forEach { viennaFile ->
-                val tokens = viennaFile.invariantSeparatorsPath.split(".")
-                val ktsFile = File("${tokens.subList(0, tokens.size - 1).joinToString(".")}.kts")
-                if (!ktsFile.exists()) {
-                    val ss = parseVienna(FileReader(viennaFile))
-                    ss.source = FileSource(viennaFile.invariantSeparatorsPath)
-                    structures.add(ss)
-                }
+                val ss = parseVienna(FileReader(viennaFile))
+                ss.source = FileSource(viennaFile.invariantSeparatorsPath)
+                structures.add(ss)
             }
             return structures
         }
@@ -795,6 +820,9 @@ class BPSeqBuilder : InputFileBuilder() {
         get() {
             this.file?.let {
                 field.setFile(it)
+            }
+            this.path?.let {
+                field.setPath(it)
             }
             return field
         }
@@ -817,13 +845,9 @@ class BPSeqBuilder : InputFileBuilder() {
 
             val structures = mutableListOf<SecondaryStructure>()
             f.listFiles { _, name -> name.endsWith(".bpseq") }?.forEach { bpseqFile ->
-                val tokens = bpseqFile.invariantSeparatorsPath.split(".")
-                val ktsFile = File("${tokens.subList(0, tokens.size - 1).joinToString(".")}.kts")
-                if (!ktsFile.exists()) {
-                    val ss = parseBPSeq(FileReader(bpseqFile))
-                    ss.source = FileSource(bpseqFile.invariantSeparatorsPath)
-                    structures.add(ss)
-                }
+                val ss = parseBPSeq(FileReader(bpseqFile))
+                ss.source = FileSource(bpseqFile.invariantSeparatorsPath)
+                structures.add(ss)
             }
             return structures
         }
@@ -836,6 +860,9 @@ class CTBuilder : InputFileBuilder() {
         get() {
             this.file?.let {
                 field.setFile(it)
+            }
+            this.path?.let {
+                field.setPath(it)
             }
             return field
         }
@@ -857,13 +884,9 @@ class CTBuilder : InputFileBuilder() {
                 File("${Jar().path()}/${path}")
             val structures = mutableListOf<SecondaryStructure>()
             f.listFiles { _, name -> name.endsWith(".ct") }?.forEach { ctFile ->
-                val tokens = ctFile.invariantSeparatorsPath.split(".")
-                val ktsFile = File("${tokens.subList(0, tokens.size - 1).joinToString(".")}.kts")
-                if (!ktsFile.exists()) {
-                    val ss = parseCT(FileReader(ctFile))
-                    ss.source = FileSource(ctFile.invariantSeparatorsPath)
-                    structures.add(ss)
-                }
+                val ss = parseCT(FileReader(ctFile))
+                ss.source = FileSource(ctFile.invariantSeparatorsPath)
+                structures.add(ss)
             }
             return structures
         }
@@ -876,6 +899,12 @@ class StockholmBuilder : InputFileBuilder() {
         get() {
             this.file?.let {
                 field.setFile(it)
+            }
+            this.path?.let {
+                field.setPath(it)
+            }
+            this.name?.let {
+                field.setName(it)
             }
             return field
         }
@@ -913,6 +942,22 @@ class StockholmBuilder : InputFileBuilder() {
                 }
             } else
                 return secondaryStructures
+        }
+        this.path?.let { path ->
+            val f = if (path.startsWith("/") || path.matches(Regex("^[A-Z]:/.+$")))
+                File(path)
+            else
+                File("${Jar().path()}/${path}")
+            val structures = mutableListOf<SecondaryStructure>()
+            f.listFiles { _, name -> name.endsWith(".sto") }?.forEach { stoFile ->
+                val secondaryStructures = parseStockholm(FileReader(stoFile), withConsensus2D = true).third
+                secondaryStructures.forEach {
+                    it.source = FileSource(stoFile.invariantSeparatorsPath)
+                    it.rna.useAlignmentNumberingSystem = useAlignmentNumbering
+                }
+                structures.addAll(secondaryStructures)
+            }
+            return structures
         }
         return listOf()
     }
@@ -1502,8 +1547,8 @@ class ThemeBuilder(data: MutableMap<Int, Double> = mutableMapOf()) {
                         if (data.isNotEmpty() && (configurationBuilder.filtered || configurationBuilder.to != null)) { //if we have some data and the user filtered them OR the color to has been set
                             configurationBuilder.data.forEach { (position, value) ->
                                 val fromColor = getAWTColor(configurationBuilder.value.toString())
-                                val min = configurationBuilder.data.values.minOrNull()
-                                val max = configurationBuilder.data.values.maxOrNull()
+                                val min = configurationBuilder.minValue ?: configurationBuilder.data.values.minOrNull()
+                                val max = configurationBuilder.maxValue ?: configurationBuilder.data.values.maxOrNull()
                                 configurationBuilder.to?.let { to ->
                                     val toColor = getAWTColor(to)
                                     if (min != max) {
@@ -1511,18 +1556,35 @@ class ThemeBuilder(data: MutableMap<Int, Double> = mutableMapOf()) {
                                         val r = fromColor.red * (1 - p) + toColor.red * p
                                         val g = fromColor.green * (1 - p) + toColor.green * p
                                         val b = fromColor.blue * (1.toFloat() - p) + toColor.blue * p
+
+                                        //println("$position $value $p ${getHTMLColorString(Color(r.toInt(), g.toInt(), b.toInt()))}")
+
+                                        val colorCharacter = if (p < 0.5) Color.BLACK else Color.WHITE
+
                                         configurationBuilder.locationBuilder.build()?.let { loc ->
                                             //if a location has been defined, a configuration is added only if the position of the residue is inside this location
-                                            if (loc.contains(position.toInt()))
+                                            if (loc.contains(position.toInt())) {
                                                 t.addConfiguration(
                                                     configurationBuilder.buildSelection(Location(position)),
                                                     ThemeProperty.color,
                                                     { getHTMLColorString(Color(r.toInt(), g.toInt(), b.toInt())) })
+
+                                                t.addConfiguration(
+                                                    {e:DrawingElement -> (e.type == SecondaryStructureType.A || e.type == SecondaryStructureType.U || e.type == SecondaryStructureType.G || e.type == SecondaryStructureType.C || e.type == SecondaryStructureType.X) && e.inside(Location(position))},
+                                                    ThemeProperty.color,
+                                                    { getHTMLColorString(colorCharacter) })
+
+                                            }
                                         } ?: run {
                                             t.addConfiguration(
                                                 configurationBuilder.buildSelection(Location(position)),
                                                 ThemeProperty.color,
                                                 { getHTMLColorString(Color(r.toInt(), g.toInt(), b.toInt())) })
+
+                                            t.addConfiguration(
+                                                {e:DrawingElement -> (e.type == SecondaryStructureType.A || e.type == SecondaryStructureType.U || e.type == SecondaryStructureType.G || e.type == SecondaryStructureType.C || e.type == SecondaryStructureType.X) && e.inside(Location(position))},
+                                                ThemeProperty.color,
+                                                { getHTMLColorString(colorCharacter) })
                                         }
                                     }
                                 } ?: run {

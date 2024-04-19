@@ -26,69 +26,78 @@ java -jar /path/to/your/rnartistcore-X.X.X-jar-with-dependencies.jar
 </pre>
 
 ```text
+#####################################################################
 RNArtistCore: a commandline tool to create and plot RNA 2D structures
-=====================================================================
+#####################################################################
 
-Usage:
-------
-If you already have an RNArtistCore script:
+Usage with a prior RNArtistCore script:
+======================================
 
     java -jar rnartistcore-X.X.X-jar-with-dependencies.jar /path/to/your/script
     
-If you don't have any RNArtistCore script:
+Usages without any prior RNArtistCore script:
+============================================
 
-* to compute the 2D plot for a single local structural file: 
-    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [options] -f /path/to/your/structural_file
-    
-* to compute the 2D plots for several local structural files:  
-    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [options] -d /path/to/the/root_folder/
-    
-* to compute the 2D plot for a database entry: 
-    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [options] -e database_entry_id -o output_directory
+Depending on the mandatory option chosen (f, d or e), you can:
 
-Primary options (to define the location of your structural data):
------------------------------------------------------------------
+* plot a single local structural file: 
+    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [--non-mandatory-options] -f /path/to/your/structural_file
+    
+* plot several local structural files:  
+    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [--non-mandatory-options] -d /path/to/the/root_folder/
+    
+* plot a database entry: 
+    java -jar rnartistcore-X.X.X-jar-with-dependencies.jar [--non-mandatory-options] -e database_entry_id -o output_directory
+    
+In each case, an RNArtistCore script will be created for each structural file found. This script stores the instructions for a theme and a non-overlapping layout.
+Non mandatory options can be used to change the default parameters used in the script. The script can be modified with a text editor and re-run as a prior RNArtistCore script.
+
+Mandatory options to define the location of the structural data:
+----------------------------------------------------------------
 -f <arg>                Compute the 2D plot for a single structural file whose path is given as argument.
                         An RNArtistCore script with default parameters will be created in the same folder as the structural file.
 
 -d <arg>                Compute the 2D plots from structural files stored in subfolders inside 
                         the root folder given as argument. If some files have already been processed, they will be ignored.
+                        At the end of the process, the root folder can be loaded with the graphical tool RNArtist to explore and manipulate the 2D plots.
 
--e <arg> -o <arg>       Compute the 2D plot for a a database entry (PDB, RNACentral and Rfam supported). 
+-e <arg> -o <arg>       Compute the 2D plot for a database entry (PDB, RNACentral and Rfam supported). 
                         The argument for option -e has to be a valid ID for the database (like 1EHZ for PDB, RF00177 for Rfam or URS00000CFF65 for RNACentral).
                         An RNArtistCore script with default parameters will be created in the folder defined with the mandatory option -o.
 
-Secondary options (to change some default parameters in the script):
---------------------------------------------------------------------
+Non mandatory options (change the default parameters in the script created):
+----------------------------------------------------------------------------
 --no-png                The RNArtistCore script will not export its 2D plot(s) in PNG files. This option should not be used to 
                         create a database fully compliant with the graphical tool RNArtist. RNArtist needs PNG files to preview the 2Ds.
 
-
 --with-svg              The RNArtistCore script will export its 2D plot(s) in SVG files
 
---from <arg>            If you're batch processing several structural files, this option allow to restart process from the file whose name without suffix 
-                        is given as argument (if file named my_rna_67.vienna, then you need to type --from my_rna_67).
-                        If some files have already been processed after this start file, they will be recomputed.
-
 --min-color <arg>       Define the first color for the gradient color. The gradient color is used to 
-                        incorporate quantitative values into 2D plots (default: lightyellow)
+                        display quantitative values in 2D plots (default: lightyellow)
 
 --max-color <arg>       Define the last color for the gradient color. The gradient color is used to 
-                        incorporate quantitative values into 2D plots (default: firebrick)
+                        display quantitative values in 2D plots (default: firebrick)
 
 --min-value [<arg>]     Define the min value to be used to compute the gradient color between 
                         min-color and max-color (default: 0.0)
 
 --max-value [<arg>]     Define the max value to be used to compute the gradient color between 
                         min-color and max-color (default: 1.0)
+                        
+Secondary options to process several local structural files:
+-----------------------------------------------------------
+
+--from <arg>            If you're batch processing several structural files, this option allow to restart the process from the file whose name without suffix 
+                        is given as argument (if the file is named my_rna_67.vienna, then you need to type --from my_rna_67).
+                        If some files have already been processed after this start file, they will be recomputed.
 ```
 
 As described in the help information, you can either:
 
 * run an RNArtistCore script. RNArtistCore will execute the instructions described in this script.
-* compute the 2D from a database entry. RNArtistCore will create and run a script whose name matches the entry ID and whose location is defined with the mandatory option -o. You can then edit this script to fit your peculiarities and re-run it from the commandline.
-* compute the 2D from a single local structural file. RNArtistCore will create and run a script with the same name and location as the structural file. You can then edit this script to fit your peculiarities and re-run it from the commandline.
-* compute the 2Ds from several local structural files. To do this, your files has to be organized like the following:
+* compute a 2D from a database entry. RNArtistCore will create and run a script whose name matches the entry ID and whose location is defined with the mandatory option -o. You can then edit this script to fit your peculiarities and re-run it from the commandline.
+* compute a 2D from a single local structural file. RNArtistCore will create and run a script with the same name and location as the structural file. You can then edit this script to fit your peculiarities and re-run it from the commandline.
+* compute a 2Ds from several local structural files. To do this, your files has to be organized like the following:
 <pre>
 root_folder (no structural files in the root folder)
  |

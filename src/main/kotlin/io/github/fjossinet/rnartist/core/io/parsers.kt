@@ -12,54 +12,61 @@ import java.util.stream.Collectors
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-fun getScriptContentForDataFile(dataFile:File, outputDir:File, noPNG:Boolean = false, withSVG:Boolean = false, minColor: String = "lightyellow", minvalue:Double = 0.0, maxColor:String = "firebrick", maxvalue:Double = 1.0):String {
-    val quantitativeDataFile = File(dataFile.parentFile, "${dataFile.name.split(Regex(".(vienna|bpseq|ct|pdb|stk|sto|stockholm)")).first()}.txt")
-        val rnartistEl = initScript()
-        if (!noPNG)
-            with(rnartistEl.addPNG()) {
-                this.setPath(outputDir.invariantSeparatorsPath)
-                this.setWidth(250.0)
-                this.setHeight(250.0)
+fun getScriptContentForDataFile(dataFile:File, outputDir:File, quantitativeDataFile:File? = null, noPNG:Boolean = false, pngWidth:Double? = null, pngHeight:Double? = null, withSVG:Boolean = false, svgWidth:Double? = null, svgHeight:Double? = null, minColor: String = "lightyellow", minvalue:Double = 0.0, maxColor:String = "firebrick", maxvalue:Double = 1.0):String {
+    val rnartistEl = initScript()
+    if (!noPNG)
+        with(rnartistEl.addPNG()) {
+            this.setPath(outputDir.invariantSeparatorsPath)
+            pngWidth?.let {
+                this.setWidth(it)
             }
-
-        if (withSVG)
-            with(rnartistEl.addSVG()) {
-                this.setPath(outputDir.invariantSeparatorsPath)
-                this.setWidth(1000.0)
-                this.setHeight(1000.0)
-            }
-
-        with (rnartistEl.addSS()) {
-            when (dataFile.name.split(".").last()) {
-                "vienna" ->  this.addVienna().setFile(dataFile.invariantSeparatorsPath)
-                "ct" ->  this.addCT().setFile(dataFile.invariantSeparatorsPath)
-                "bpseq" -> this.addBPSeq().setFile(dataFile.invariantSeparatorsPath)
-                "pdb" ->  this.addPDB().setFile(dataFile.invariantSeparatorsPath)
-                "stk" -> this.addStockholm().setFile(dataFile.invariantSeparatorsPath)
-                "sto" -> this.addStockholm().setFile(dataFile.invariantSeparatorsPath)
-                "stockholm" -> this.addStockholm().setFile(dataFile.invariantSeparatorsPath)
+            pngHeight?.let {
+                this.setHeight(it)
             }
         }
 
-        if (quantitativeDataFile.exists()) {
-            with (rnartistEl.addData()) {
-                quantitativeDataFile.readLines().forEach {
-                    this.addValue(it.split(" ").first().toInt(), it.split(" ").last().toDouble())
-                }
+    if (withSVG)
+        with(rnartistEl.addSVG()) {
+            this.setPath(outputDir.invariantSeparatorsPath)
+            svgWidth?.let {
+                this.setWidth(it)
             }
-            //we remove the scheme from initScript()
-            with (rnartistEl.getThemeOrNew()) {
-                this.getScheme()?.let {
-                    this.removeChild(it)
-                }
-                with (this.addColor()) {
-                    this.setType("N")
-                    this.setValue(minColor)
-                    this.setTo(maxColor, minvalue, maxvalue)
-                    this.setStep(1)
-                }
+            svgHeight?.let {
+                this.setHeight(it)
             }
         }
+
+    with (rnartistEl.addSS()) {
+        when (dataFile.name.split(".").last()) {
+            "vienna" ->  this.addVienna().setFile(dataFile.invariantSeparatorsPath)
+            "ct" ->  this.addCT().setFile(dataFile.invariantSeparatorsPath)
+            "bpseq" -> this.addBPSeq().setFile(dataFile.invariantSeparatorsPath)
+            "pdb" ->  this.addPDB().setFile(dataFile.invariantSeparatorsPath)
+            "stk" -> this.addStockholm().setFile(dataFile.invariantSeparatorsPath)
+            "sto" -> this.addStockholm().setFile(dataFile.invariantSeparatorsPath)
+            "stockholm" -> this.addStockholm().setFile(dataFile.invariantSeparatorsPath)
+        }
+    }
+
+    quantitativeDataFile?.let {
+        with (rnartistEl.addData()) {
+            quantitativeDataFile.readLines().forEach {
+                this.addValue(it.split(" ").first().toInt(), it.split(" ").last().toDouble())
+            }
+        }
+        //we remove the scheme from initScript()
+        with (rnartistEl.getThemeOrNew()) {
+            this.getScheme()?.let {
+                this.removeChild(it)
+            }
+            with (this.addColor()) {
+                this.setType("N")
+                this.setValue(minColor)
+                this.setTo(maxColor, minvalue, maxvalue)
+                this.setStep(1)
+            }
+        }
+    }
 
     return rnartistEl.dump().toString()
 }
