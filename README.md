@@ -14,8 +14,8 @@ The largest part of this documentation explains the [syntax to write your own dr
 ## Prerequisites and installation
 
 You need to have java installed on your computer and executable in a terminal. Two options to install RNArtistCore on your computer:
-* download the last release available [here](https://github.com/fjossinet/RNArtistCore/releases) and unzip the zip file
-* download the source code from Github. You will need the tool [maven](https://maven.apache.org/) and a Java Development Kit to be installed. In the project directory, type: <pre>mvn clean package</pre> The zip file will be created in the target subdirectory. 
+* either download the last release available [here](https://github.com/fjossinet/RNArtistCore/releases) and unzip the zip file
+* or download the source code from Github. You will need the tool [maven](https://maven.apache.org/) and a Java Development Kit to be installed. In the project directory, type: <pre>mvn clean package</pre> Two files will be created in the target subdirectory: (i) rnartistcore-X.X.X-jar-with-dependencies.jar you can use directly as described in the examples below and (ii) a zip file packaging this jar file along with a bunch of samples and scripts to play with. 
 
 ## RNArtistCore from the commandline
 

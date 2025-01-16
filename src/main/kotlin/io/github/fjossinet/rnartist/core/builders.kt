@@ -112,7 +112,13 @@ class RNArtistBuilder {
                 }
 
                 drawings.add(bestDrawing)
-            } catch (e: Exception) {
+
+            }
+            catch (e: CoreException) {
+                println(e.message)
+                issues++
+            }
+            catch (e: Exception) {
                 e.printStackTrace()
                 issues++
             }
@@ -469,7 +475,11 @@ abstract class OutputFileBuilder {
                 File("${Jar().path()}/${path}/${fileName}.$suffix")
             if (!f.parentFile.exists())
                 f.parentFile.mkdirs()
-            f.createNewFile()
+            try {
+                f.createNewFile()
+            } catch(e:java.io.IOException) {
+                throw CoreException("Cannot create output file ${f.path}")
+            }
             return f
         }
         return null

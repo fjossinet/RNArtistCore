@@ -8078,7 +8078,13 @@ fun angleFrom(p1: Point2D, p2: Point2D, p3: Point2D): Double {
     val a = distance(p1, p2)
     val b = distance(p2, p3)
     val c = distance(p1, p3)
-    return Math.acos((a * a + c * c - b * b) / (2 * a * c)) * radiansToDegrees
+    var v = (a * a + c * c - b * b) / (2 * a * c)
+    //sometimes v can be slightly ouside the -1/1 interval (like -1.0000000000000002), so...
+    if (v > 1)
+        v = 1.toDouble()
+    if (v < -1)
+        v = -1.toDouble()
+    return Math.acos(v) * radiansToDegrees
 }
 
 fun adjacentSideFrom(degrees: Double, hypotenuse: Double) = Math.cos(degrees * degreesToRadians) * hypotenuse
