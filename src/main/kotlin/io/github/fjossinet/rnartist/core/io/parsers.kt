@@ -581,7 +581,7 @@ fun parsePDB(reader: Reader): List<TertiaryStructure> {
                     ts = TertiaryStructure(rna)
                     tertiaryStructures.add(ts)
                 }
-                rna?.addResidue(line!!.substring(17, 21).trim { it <= ' ' }.toUpperCase())
+                rna?.addResidue(line!!.substring(17, 21).trim { it <= ' ' }.uppercase())
                 r = ts?.addResidue3D(nt_id)
                 r?.label = resId
                 for ((key, value) in atoms) r?.setAtomCoordinates(key, value[0], value[1], value[2])
@@ -611,8 +611,8 @@ fun parsePDB(reader: Reader): List<TertiaryStructure> {
     }
     for (tertiaryStructure in tertiaryStructures) {
         if (title.isNotEmpty()) {
-            var t = title.toString().toLowerCase()
-            t = t.substring(0, 1).toUpperCase() + t.substring(1).toLowerCase()
+            var t = title.toString().lowercase()
+            t = t.substring(0, 1).uppercase() + t.substring(1).lowercase()
             tertiaryStructure.title = t
             t = authors.toString().split(",".toRegex()).toTypedArray()[0]
             tertiaryStructure.authors = t
