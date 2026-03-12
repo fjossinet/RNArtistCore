@@ -172,30 +172,14 @@ If you have generated PNG files (meaning that you did not use the option ```--no
 
 # <a name="library"></a>RNArtistCore as a library
 
-RNArtistCore can be added as a dependency into your own projects. No stable release for now, only snapshots. To use RNArtistCore in your Java/Kotlin application, just add the below dependency in your file pom.xml:
+RNArtistCore can be added as a dependency into your own projects. To use RNArtistCore in your Java/Kotlin application, just add the below dependency in your file pom.xml:
 
 ```xml
-  <repositories>
-      <repository>
-        <id>maven-snapshots</id>
-        <url>http://oss.sonatype.org/content/repositories/snapshots</url>
-        <layout>default</layout>
-        <releases>
-          <enabled>false</enabled>
-        </releases>
-        <snapshots>
-          <enabled>true</enabled>
-        </snapshots>
-      </repository>
-  </repositories>
-  
-  <dependencies>
-    <dependency>
-      <groupId>io.github.fjossinet.rnartist</groupId>
-      <artifactId>rnartistcore</artifactId>
-      <version>0.3.4-SNAPSHOT</version>
-    </dependency>
-  </dependencies>
+<dependency>
+    <groupId>io.github.fjossinet.rnartist</groupId>
+    <artifactId>rnartistcore</artifactId>
+    <version>0.4.7</version>
+</dependency>
 ```
 # <a name="dsl"></a>How to write your drawing script?
 
@@ -300,7 +284,6 @@ rnartist {
         value = "#E557E5"
       }
     }
-
   }
 }
 ```
@@ -1689,7 +1672,6 @@ rnartist {
     }
 
   }
-}
 ```
 
 ![](media/kotlin_powered_A.png)
