@@ -219,7 +219,7 @@ rnartist {
   }
 
   ss {
-    //the description of your 2D (bracket notation, parts or external file)     
+    //the description of one or several 2Ds (bracket notation, parts, local file or database entry)     
   }
 
   data {
@@ -353,7 +353,7 @@ rnartist {
 
 ### <a name="ss"></a>The ```ss``` element
 
-You have different ways to define a secondary structure:
+An ss element allows you to describe one or several secondary structures. You have different ways to define a secondary structure:
 * by describing all the structural elements yourself using the element **```parts```**
 * from a bracket notation using the element **```bn```**
 * from a file using the elements **```vienna```**, **```bpseq```**, **```ct```**, or **```stockholm```**
