@@ -10,6 +10,8 @@ import java.io.FileReader
 import java.io.IOException
 import java.util.*
 import kotlin.Exception
+import kotlin.collections.component1
+import kotlin.collections.component2
 import kotlin.random.Random
 
 class RNArtistBuilder {
@@ -194,24 +196,34 @@ class RNABuilder {
     var name: String = "A"
     var seq: String? = null
     var length: Int? = null
+    private var nsBuilder :NumberingSystemBuilder? = null
+
+    fun ns (setup: NumberingSystemBuilder.() -> Unit) {
+        this.nsBuilder = NumberingSystemBuilder()
+        this.nsBuilder?.setup()
+    }
 
     fun build(): RNA? {
+        var rna:RNA? = null
         this.seq?.let {
-            return RNA(name, it)
+            rna = RNA(name, it)
         }
         this.length?.let {
             val sequence = StringBuffer()
             sequence.append((1..it).joinToString(separator = "") { listOf("A", "U", "G", "C").random() })
-            return RNA(name, sequence.toString())
+            rna = RNA(name, sequence.toString())
         }
-        return null
+        this.nsBuilder?.let {
+            rna?.numbering_system = this.nsBuilder!!.build()
+        }
+        return rna
     }
 }
 
 class PartsBuilder {
 
     private val helixBuilders = mutableListOf<HelixBuilder>()
-    private val interactionBuilders = mutableListOf<InteractionBuilder>() //tertiary interactions
+    private val basePairBuilders = mutableListOf<BasePairBuilder>() //tertiary interactions
     private var rnaBuilder: RNABuilder? = null
     var source: String? = null
 
@@ -226,21 +238,21 @@ class PartsBuilder {
         helixBuilders.add(helixBuilder)
     }
 
-    fun interaction(setup: InteractionBuilder.() -> Unit) {
-        val interactionBuilder = InteractionBuilder()
-        interactionBuilder.setup()
-        interactionBuilders.add(interactionBuilder)
+    fun interaction(setup: BasePairBuilder.() -> Unit) {
+        val basePairBuilder = BasePairBuilder()
+        basePairBuilder.setup()
+        basePairBuilders.add(basePairBuilder)
     }
 
     fun build(): SecondaryStructure? {
         this.rnaBuilder?.let { rnaBuilder ->
-            val helices = mutableListOf<Helix>()
-            helixBuilders.forEach {
-                it.build()?.let { h ->
-                    helices.add(h)
-                }
-            }
             rnaBuilder.build()?.let { rna ->
+                val helices = mutableListOf<Helix>()
+                helixBuilders.forEach {
+                    it.build(rna.numbering_system)?.let { h ->
+                        helices.add(h)
+                    }
+                }
                 val ss = SecondaryStructure(rna, helices = helices, source = PartsSource())
                 if (rnaBuilder.seq == null) {
                     //this means that the sequence is a random one, but then nnot fitting the structural constraints. So we generate a new one fitting the constraints
@@ -288,30 +300,77 @@ class BracketNotationBuilder {
     }
 }
 
-class InteractionBuilder
+class BasePairBuilder {
+    var pos5:Int? = null
+    var pos3:Int? = null
+    var edge5: String = "W"
+    var edge3:String = "W"
+    var orientation:String = "cis"
+
+    fun build(): BasePair? {
+        pos5?.let { pos5 ->
+            pos3?.let { pos3 ->
+                val bp =  BasePair(Location(Location(pos5,pos5), Location(pos3,pos3)))
+                when (edge5.uppercase()) {
+                    "W" -> bp.edge5 = Edge.WC
+                    "H" -> bp.edge5 = Edge.Hoogsteen
+                    "S" -> bp.edge5 = Edge.Sugar
+                    else -> bp.edge3 = Edge.Unknown
+                }
+
+                when (edge3.uppercase()) {
+                    "W" -> bp.edge3 = Edge.WC
+                    "H" -> bp.edge3 = Edge.Hoogsteen
+                    "S" -> bp.edge3 = Edge.Sugar
+                    else -> bp.edge3 = Edge.Unknown
+                }
+
+                when (orientation.lowercase()) {
+                    "cis" -> bp.orientation = Orientation.cis
+                    "trans" -> bp.orientation = Orientation.trans
+                    else -> bp.orientation = Orientation.Unknown
+                }
+
+                return bp
+            }
+        }
+        return null
+    }
+
+}
 
 class HelixBuilder {
 
     private val locationBuilder = LocationBuilder()
     var name: String? = null
-    private val interactionBuilders = mutableListOf<InteractionBuilder>() //non canonical secondary interactions
+    private val basePairBuilders = mutableListOf<BasePairBuilder>() //non canonical secondary interactions
 
     fun location(setup: LocationBuilder.() -> Unit) {
         this.locationBuilder.setup()
     }
 
-    fun interaction(setup: InteractionBuilder.() -> Unit) {
-        val interaction = InteractionBuilder()
-        interaction.setup()
-        interactionBuilders.add(interaction)
+    fun bp(setup: BasePairBuilder.() -> Unit) {
+        val builder = BasePairBuilder()
+        builder.setup()
+        basePairBuilders.add(builder)
     }
 
-    fun build(): Helix? {
+    fun build(ns:Map<Int,Int>?=null): Helix? {
         locationBuilder.build()?.let { location ->
             val h = Helix(name ?: "MyHelix")
             for (i in location.start..location.start + location.length / 2 - 1) {
                 val l = Location(Location(i), Location(location.end - (i - location.start)))
                 h.secondaryInteractions.add(BasePair(l, Edge.WC, Edge.WC, Orientation.cis))
+            }
+            for (builder in basePairBuilders) {
+                builder.build()?.let { bp ->
+                    val _bp = h.secondaryInteractions.find { it.location.start == bp.location.start && it.location.end == bp.location.end }
+                    _bp?.let {
+                        h.secondaryInteractions.remove(_bp)
+                        h.secondaryInteractions.add(bp)
+                        h.secondaryInteractions.sortBy{it.location.start}
+                    }
+                }
             }
             return h
         }
@@ -662,7 +721,7 @@ class TravelerBuilder:GraphicFileBuilder() {
             val at = AffineTransform()
             at.translate(drawing.workingSession.viewX, drawing.workingSession.viewY)
             at.scale(drawing.workingSession.zoomLevel, drawing.workingSession.zoomLevel)
-            drawing.residues.sortedBy { it.absPos }.forEach {
+            drawing.residues.sortedBy { it.location.start }.forEach {
                 val _c = at.createTransformedShape(it.circle)
                 builder.appendLine("<point x=\"${"%.2f".format(Locale.ENGLISH, _c.bounds2D.centerX)}\" y=\"${"%.2f".format(Locale.ENGLISH, _c.bounds2D.centerY)}\" b=\"${it.name}\"/>")
             }
@@ -2293,15 +2352,52 @@ class LocationBuilder {
         blocks[this] = i
     }
 
-    fun build(): Location? = if (isEmpty())
+    /**
+     * Builds a `Location` object from the current state of the `LocationBuilder`.
+     *
+     * @param ns An optional numbering system. It not null, the values defined in the block are maped into the corresponding absolute position
+     * @return A `Location` object if `blocks` is not empty, or `null` if `blocks` is empty.
+     */
+    fun build(ns:Map<Int,Int>?=null): Location? = if (isEmpty())
         null
-    else
-        Location(this.blocks.map { "${it.key}:${it.value - it.key + 1}" }.joinToString(","))
+    else {
+        ns?.let {
+            Location(this.blocks.map { "${ns.getValue(it.key)}:${ns.getValue(it.value) - ns.getValue(it.key) + 1}" }.joinToString(","))
+        } ?: run {
+            Location(this.blocks.map { "${it.key}:${it.value - it.key + 1}" }.joinToString(","))
+        }
+    }
 
     fun isEmpty(): Boolean {
         return this.blocks.isEmpty()
     }
 
+}
+
+class NumberingSystemBuilder {
+
+    val dslElement: NumberingSystemEl?
+        get() {
+            return if (ns.isEmpty())
+                null
+            else {
+                val nsEl = NumberingSystemEl()
+                ns.forEach { (absPos, pos) ->
+                    nsEl.addNumbering(pos, absPos)
+                }
+                nsEl
+            }
+
+        }
+    val ns = mutableMapOf<Int, Int>()
+
+    infix fun Int.to(i: Int) {
+        ns[this] = i
+    }
+
+    fun build(): Map<Int,Int> {
+        return this.ns
+    }
 }
 
 fun ss(setup: SecondaryStructureBuilder.() -> Unit) = SecondaryStructureBuilder().apply { setup() }.build()

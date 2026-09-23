@@ -618,6 +618,11 @@ fun parsePDB(reader: Reader): List<TertiaryStructure> {
             tertiaryStructure.authors = t
             tertiaryStructure.pubDate = pubDate.toString()
         }
+        val ns = mutableMapOf<Int,Int>()
+        tertiaryStructure.getNumberingSystem().forEachIndexed { index, label ->
+            ns[label] =  index+1
+        }
+        tertiaryStructure.rna.numbering_system = ns
     }
     return tertiaryStructures
 }

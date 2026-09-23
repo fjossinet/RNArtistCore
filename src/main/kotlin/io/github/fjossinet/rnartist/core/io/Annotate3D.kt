@@ -54,11 +54,11 @@ class Annotate3D {
             }
             val ss = SecondaryStructure(RNA(ts.rna.name, StringBuffer(ts.rna.seq).toString()), basePairs = basePairs)
             ss.name = ts.rna.name
-            val ns = mutableMapOf<Int,String>()
+            val ns = mutableMapOf<Int,Int>()
             ts.getNumberingSystem().forEachIndexed { index, label ->
-                ns[index] =  label
+                ns[label] =  index+1
             }
-            ss.rna.tertiary_structure_numbering_system = ns
+            ss.rna.numbering_system = ns
             ss.tertiaryStructure = ts
             annotatedStructures.add(ss)
         }

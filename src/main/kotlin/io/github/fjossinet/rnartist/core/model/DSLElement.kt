@@ -778,6 +778,12 @@ class LayoutEl : UndoRedoDSLElement("layout") {
     }
 }
 
+class HelixEl : DSLElement("helix") {
+    fun setName(name: String) {
+        this.children.add(StringDSLProperty("name", name))
+    }
+}
+
 class JunctionEl : StepableDSLElement("junction") {
 
     fun setName(name: String) {
@@ -1046,6 +1052,12 @@ class SSEl : DSLElement("ss") {
         return el
     }
 
+    fun addParts(partsEl: PartsEl? = null): PartsEl {
+        val el = partsEl ?: PartsEl()
+        this.children.add(el)
+        return el
+    }
+
     fun getBPSeqOrNew(): BPSeqEl = this.getChildOrNull("bpseq") as? BPSeqEl ?: addBPSeq()
 
     fun getBPSeqOrNull(): BPSeqEl? = this.getChildOrNull("bpseq") as? BPSeqEl
@@ -1100,6 +1112,44 @@ class DataEl : DSLElement("data") {
         this.children.add(DSLProperty("$pos", "$value", operator = "to"))
     }
 
+}
+
+class PartsEl: DSLElement("parts") {
+    fun addRna(rnaEl: RnaEl? = null): RnaEl {
+        val el = rnaEl ?: RnaEl()
+        this.children.add(el)
+        return el
+    }
+
+    fun addHelix(helixEl:HelixEl? = null): HelixEl {
+        val el = helixEl ?: HelixEl()
+        this.children.add(el)
+        return el
+    }
+}
+
+class RnaEl: DSLElement("rna") {
+    fun setSeq(seq: String) {
+        this.getPropertyOrNull("seq")?.let {
+            it.value = seq
+        } ?: run {
+            this.children.add(StringDSLProperty("seq", seq))
+        }
+    }
+
+    fun setName(name: String) {
+        this.getPropertyOrNull("name")?.let {
+            it.value = name
+        } ?: run {
+            this.children.add(StringDSLProperty("name", name))
+        }
+    }
+
+    fun addNumberingSystem(nsEl: NumberingSystemEl? = null): NumberingSystemEl {
+        val el = nsEl ?: NumberingSystemEl()
+        this.children.add(el)
+        return el
+    }
 }
 
 
@@ -1358,6 +1408,18 @@ class LocationEl : DSLElement("location") {
         Location(this.getProperties().map {
             "${it.name}:${it.value.toInt() - it.name.toInt() + 1}"
         }.joinToString(separator = ","))
+}
+
+class NumberingSystemEl : DSLElement("ns") {
+
+    fun addNumbering(pos: Int, absolutePos: Int) {
+        this.children.add(DSLProperty("$pos", "$absolutePos", operator = "to"))
+    }
+
+    fun toNumberingSystem(): Map<Int,Int> =
+        mapOf(*this.getProperties().map {
+            Pair<Int,Int>(it.name.toInt(), it.value.toInt())
+        }.toTypedArray())
 }
 
 /**

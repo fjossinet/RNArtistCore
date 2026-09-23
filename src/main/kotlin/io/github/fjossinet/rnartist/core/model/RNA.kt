@@ -475,12 +475,12 @@ class RNA(var name: String = "A", seq: String, var source: DataSource? = null) :
      */
     var useAlignmentNumberingSystem = false
 
-    var tertiary_structure_numbering_system: Map<Int, String>? = null
+    var numbering_system: Map<Int, Int>? = null
 
     /**
      * If true, some functions will compute the location according to the 3D Structure numbering system
      */
-    var useTertiaryStructureNumberingSystem = false
+    var useNumberingSystem = false
 
     /**
      * Adds a single residue to the end of the RNA sequence
@@ -591,9 +591,9 @@ class RNA(var name: String = "A", seq: String, var source: DataSource? = null) :
  * */
 class BasePair(
     val location: Location,
-    val edge5: Edge = Edge.WC,
-    val edge3: Edge = Edge.WC,
-    val orientation: Orientation = Orientation.cis
+    var edge5: Edge = Edge.WC,
+    var edge3: Edge = Edge.WC,
+    var orientation: Orientation = Orientation.cis
 ) : Serializable {
 
     /**
@@ -704,7 +704,7 @@ abstract class AbstractStructuralDomain : StructuralDomain {
     override var lengthStd = 0.0
 }
 
-class Helix(val name: String = "MyHelix") : AbstractStructuralDomain() {
+class Helix(var name: String = "MyHelix") : AbstractStructuralDomain() {
 
     val secondaryInteractions = mutableListOf<BasePair>()
     var junctionsLinked = Pair<Junction?, Junction?>(null, null)
@@ -749,6 +749,12 @@ class Helix(val name: String = "MyHelix") : AbstractStructuralDomain() {
         }
 
     constructor(location:Location):this() {
+        for (i in 0 until location.blocks.first().length)
+            this.secondaryInteractions.add(BasePair(location = Location("${location.blocks.first().start+i},${location.blocks.last().end-i}")))
+    }
+
+    constructor(name:String, location:Location):this() {
+        this.name = name
         for (i in 0 until location.blocks.first().length)
             this.secondaryInteractions.add(BasePair(location = Location("${location.blocks.first().start+i},${location.blocks.last().end-i}")))
     }
@@ -854,7 +860,7 @@ class TertiaryStructure(val rna: RNA) : Serializable {
         return null
     }
 
-    fun getNumberingSystem() = this.residues.map { it.label }
+    fun getNumberingSystem() = this.residues.map { it.label.toInt() }
 
 }
 
